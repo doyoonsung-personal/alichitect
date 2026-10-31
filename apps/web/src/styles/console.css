@@ -234,7 +234,24 @@ button.chg:active { background: var(--action-soft-2); }
 .toast__action { min-height: 24px; padding: 0 var(--s-3); font-size: var(--t-13); line-height: var(--lh-13); font-weight: var(--w-medium); color: var(--action); transition: background-color var(--d-hover) linear; }
 .toast__action:hover { background: var(--action-soft); }
 
+/* ---------- motion in the record (tokens.css, motion.css) ---------- */
+/* a revision that starts now fades in (its ask is flying in from the box it was typed in: shell/flight.ts) */
+.revs > li[data-enter] { animation: m-fade var(--d-enter) linear backwards; }
+/* the words that just arrived come in light and settle into the note's ink, right behind the Cursor */
+.ink[data-live] { animation: ink-in var(--d-ink) linear; }
+@keyframes ink-in { from { opacity: 0.15; } }
+/* a change line lands with its card; a planned line's ring turns into its + as the card is drawn */
+.chgs__list > li[data-enter] { animation: m-rise var(--d-enter) var(--ease-out) backwards; }
+.chgs__list > li[data-mark-changed] .chg__mark { animation: chg-mark var(--d-snap) var(--ease-out) backwards; }
+@keyframes chg-mark { from { opacity: 0; transform: scale(0.5); } }
+/* at commit the closing line arrives and the revision's tag presses on in ink, with the canvas's tags */
+.rev__foot[data-enter] { animation: m-rise var(--d-enter) var(--ease-out) backwards; }
+.tag[data-stamp] { animation: tag-press var(--d-stamp) var(--ease-out); }
+@keyframes tag-press { 40% { transform: scale(0.8); } }
+
 @media (prefers-reduced-motion: reduce) {
+  .chgs__list > li[data-mark-changed] .chg__mark { animation-name: m-fade; }
+  .tag[data-stamp] { animation: none; }
   .req__item[data-enter] { animation-name: fade-in; }
   .revs > li[data-opening] { animation: none; }
   .rec__jump { transition: none; }

@@ -6,6 +6,7 @@ import type { KeyboardEvent, ReactElement } from 'react';
 import { Icon } from '../shell/Icon.tsx';
 import { askLength, enterAction, preventsDefault } from './logic.ts';
 import { isBusy } from './ctx.ts';
+import { armFlight, disarmFlight } from '../shell/flight.ts';
 import type { ConsoleCtx } from './ctx.ts';
 
 /** 12 px padding above and below, up to eight lines of 24 px. */
@@ -47,7 +48,10 @@ export function Composer({ ctx }: { ctx: ConsoleCtx }): ReactElement {
   }, [text]);
 
   const send = (): void => {
+    // the words leave the box for the record: note where they are while the field still holds them
+    armFlight(field.current);
     if (actions.submit(text) === 'started') setText('');
+    else disarmFlight();
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>): void => {

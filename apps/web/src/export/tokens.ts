@@ -1,0 +1,51 @@
+// The design tokens the PDF draws with. The values mirror src/styles/tokens.css (the source of truth); tokens.test.ts
+// reads that file and fails when a value here drifts. Orange is the logo and the official product icons only: it is
+// never text, and no white text sits on it (tokens.css, brand layer).
+export const COLOR = {
+  ink: '#181818',
+  ink2: '#414042',
+  ink3: '#636466',
+  inkDisabled: '#9d9fa2',
+  sheet: '#ffffff',
+  record: '#f4f5f7',
+  surface2: '#f7f9fc',
+  line1: '#dcddde',
+  line2: '#bcbec0',
+  lineControl: '#808285',
+  action: '#1354ee',
+  actionSoft: '#edf2ff',
+  onAction: '#ffffff',
+  ok: '#006621',
+  okSoft: '#e8f4ec',
+  warn: '#a85800',
+  warnSoft: '#fdf3e3',
+  danger: '#c4281c',
+  dangerSoft: '#fdeceb',
+  brandIcon: '#ff6a00',
+  edge: '#808285',
+} as const;
+
+/** The token each constant mirrors, for the drift test. */
+export const TOKEN_OF: Readonly<Record<keyof typeof COLOR, string>> = {
+  ink: '--ink',
+  ink2: '--ink-2',
+  ink3: '--ink-3',
+  inkDisabled: '--ink-disabled',
+  sheet: '--sheet',
+  record: '--record',
+  surface2: '--surface-2',
+  line1: '--line-1',
+  line2: '--line-2',
+  lineControl: '--line-control',
+  action: '--action',
+  actionSoft: '--action-soft',
+  onAction: '--on-action',
+  ok: '--ok',
+  okSoft: '--ok-soft',
+  warn: '--warn',
+  warnSoft: '--warn-soft',
+  danger: '--danger',
+  dangerSoft: '--danger-soft',
+  brandIcon: '--brand-orange',
+  edge: '--edge',
+};

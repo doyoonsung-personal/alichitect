@@ -272,6 +272,8 @@ export interface ReplayState {
   turn: number;
   playing: boolean;
   recordedAt: string;
+  /** Written for the product, not recorded from a real session: the banner says so. */
+  synthetic?: boolean;
 }
 
 export interface UiState {

@@ -32,11 +32,11 @@ function turnResponse(fx: Fixture, turn = 0, upTo = Infinity): Response {
   );
 }
 
-function setup(o: { health?: unknown; turn?: () => Response | Promise<Response> } = {}) {
+function setup(o: { health?: unknown; turn?: () => Response | Promise<Response>; sessions?: ReturnType<typeof createSessionStore>; resumeId?: string | null } = {}) {
   const store = newStore();
   const timers = new Map<number, () => void>();
   let n = 0;
-  const sessions = createSessionStore(memStorage());
+  const sessions = o.sessions ?? createSessionStore(memStorage());
   const requests: Array<{ url: string; body?: unknown }> = [];
   const env: ControllerEnv = {
     sessions,
@@ -56,6 +56,7 @@ function setup(o: { health?: unknown; turn?: () => Response | Promise<Response> 
     },
     search: '',
     setLanguage: () => undefined,
+    resumeId: o.resumeId,
     fetchImpl: (async (url: string, init?: RequestInit) => {
       requests.push({ url, body: init?.body ? JSON.parse(String(init.body)) : undefined });
       if (String(url).endsWith('/api/health')) return o.health === null ? Promise.reject(new TypeError('fetch failed')) : new Response(JSON.stringify(o.health ?? HEALTH));
@@ -191,4 +192,25 @@ test('new session and open session switch cleanly; opening restores the record',
   assert.equal(s.session.revisions[0].status, 'done');
   assert.equal(s.ui.toast?.kind, 'restored');
   assert.ok(s.display.layout);
+});
+
+test('a refresh reopens the session the tab was showing; a new tab, an unsaved id and a replay start on the landing', async () => {
+  const a = setup();
+  await a.c.boot();
+  a.c.submit('We run an online store');
+  await until(() => a.store.getState().session.revisions[0]?.status === 'done');
+  const id = a.store.getState().session.id;
+  assert.ok(a.sessions.get(id), 'the commit saved the session');
+  const back = setup({ sessions: a.sessions, resumeId: id });
+  await back.c.boot();
+  const s = back.store.getState();
+  assert.equal(s.view, 'working');
+  assert.equal(s.session.id, id);
+  assert.equal(s.session.revisions.length, 1);
+  assert.equal(s.ui.toast?.kind, 'restored');
+  for (const resumeId of [null, undefined, 'never-saved']) {
+    const fresh = setup({ sessions: a.sessions, resumeId });
+    await fresh.c.boot();
+    assert.equal(fresh.store.getState().view, 'landing');
+  }
 });

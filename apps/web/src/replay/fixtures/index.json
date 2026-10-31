@@ -141,5 +141,49 @@
   "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
   "durationMs": 20012,
   "note": "Adds the summary status and a summary event after the commit, as the server sends them when history overflows."
+ },
+ {
+  "id": "asks-shop",
+  "title": "Web shop: assumes public-facing, asks about scale, then a Change",
+  "lang": "en",
+  "recordedAt": "2026-10-31",
+  "synthetic": true,
+  "turns": 3,
+  "ask": "Build a web app for our online store.",
+  "durationMs": 29230,
+  "note": "Synthetic. Draw first, then ask: two assume ops (public-facing, Singapore) and two ask ops after the drawing. Turn 2 answers the scale question with its option. Turn 3 is the Change on the public-facing chip: the requirement pins and the chip goes."
+ },
+ {
+  "id": "asks-vague",
+  "title": "\"We need cloud\": asks before drawing anything",
+  "lang": "en",
+  "recordedAt": "2026-10-31",
+  "synthetic": true,
+  "turns": 2,
+  "ask": "We need cloud for our company.",
+  "durationMs": 20128,
+  "note": "Synthetic. A request too vague to pick any pattern: two ask ops and no nodes. Turn 2 answers with an option and draws a web store with two assumptions and one question."
+ },
+ {
+  "id": "asks-shop-ko",
+  "title": "웹 쇼핑몰: 외부 공개를 가정하고 규모를 묻고, 가정을 변경",
+  "lang": "ko",
+  "recordedAt": "2026-10-31",
+  "synthetic": true,
+  "turns": 3,
+  "ask": "온라인 스토어용 웹 앱을 만들어 주세요.",
+  "durationMs": 29230,
+  "note": "Synthetic. Draw first, then ask: two assume ops (public-facing, Singapore) and two ask ops after the drawing. Turn 2 answers the scale question with its option. Turn 3 is the Change on the public-facing chip: the requirement pins and the chip goes."
+ },
+ {
+  "id": "asks-vague-ko",
+  "title": "\"클라우드가 필요합니다\": 그리기 전에 먼저 질문",
+  "lang": "ko",
+  "recordedAt": "2026-10-31",
+  "synthetic": true,
+  "turns": 2,
+  "ask": "회사에 클라우드가 필요합니다.",
+  "durationMs": 20128,
+  "note": "Synthetic. A request too vague to pick any pattern: two ask ops and no nodes. Turn 2 answers with an option and draws a web store with two assumptions and one question."
  }
 ]

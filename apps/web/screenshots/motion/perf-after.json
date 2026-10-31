@@ -1,0 +1,84 @@
+{
+ "build": "production",
+ "speed": 3,
+ "throttle": 1,
+ "reduced": false,
+ "viewport": "1440x900",
+ "results": [
+  {
+   "run": 1,
+   "seconds": 14.8,
+   "commitAt": 13.3,
+   "cards": 25,
+   "edges": 21,
+   "frames": 887,
+   "fps": 60,
+   "p50": 16.7,
+   "p95": 16.8,
+   "p99": 16.8,
+   "max": 17,
+   "over20": 0,
+   "over34": 0,
+   "missedPct": 0,
+   "loaf": 0,
+   "loafMaxMs": 0,
+   "loafBlockingMs": 0,
+   "longtasks": 0,
+   "cancelled": {
+    "animations": 6,
+    "transitions": 14
+   },
+   "errors": []
+  },
+  {
+   "run": 2,
+   "seconds": 14.7,
+   "commitAt": 13.2,
+   "cards": 25,
+   "edges": 21,
+   "frames": 886,
+   "fps": 60,
+   "p50": 16.7,
+   "p95": 16.8,
+   "p99": 16.9,
+   "max": 17,
+   "over20": 0,
+   "over34": 0,
+   "missedPct": 0,
+   "loaf": 0,
+   "loafMaxMs": 0,
+   "loafBlockingMs": 0,
+   "longtasks": 0,
+   "cancelled": {
+    "animations": 4,
+    "transitions": 14
+   },
+   "errors": []
+  },
+  {
+   "run": 3,
+   "seconds": 14.8,
+   "commitAt": 13.3,
+   "cards": 25,
+   "edges": 21,
+   "frames": 887,
+   "fps": 60,
+   "p50": 16.7,
+   "p95": 16.8,
+   "p99": 16.9,
+   "max": 16.9,
+   "over20": 0,
+   "over34": 0,
+   "missedPct": 0,
+   "loaf": 0,
+   "loafMaxMs": 0,
+   "loafBlockingMs": 0,
+   "longtasks": 0,
+   "cancelled": {
+    "animations": 8,
+    "transitions": 14
+   },
+   "errors": []
+  }
+ ]
+}

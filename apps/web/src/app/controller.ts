@@ -28,6 +28,8 @@ export interface ControllerEnv {
   search: string;
   /** Persists the chosen UI language and sets html[lang]; the browser implementation is in main.tsx. */
   setLanguage(lang: Lang): void;
+  /** The id of the session this tab was showing before a refresh: boot reopens it (when it was saved) instead of the landing. */
+  resumeId?: string | null;
 }
 
 export type SubmitResult = 'started' | 'empty' | 'busy' | 'offline' | 'too-long' | 'read-only';
@@ -171,7 +173,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     clearFlush();
     player?.stop();
     d({ type: 'session/new', id: `replay-${fx.id}`, now: env.now() });
-    d({ type: 'replay/set', replay: { fixtureId: fx.id, speed: o.speed ?? st().replay?.speed ?? '1x', turn: 0, playing: true, recordedAt: fx.recordedAt } });
+    d({ type: 'replay/set', replay: { fixtureId: fx.id, speed: o.speed ?? st().replay?.speed ?? '1x', turn: 0, playing: true, recordedAt: fx.recordedAt, synthetic: fx.synthetic } });
     player = createPlayer(
       { dispatch: d, setTimeout: (fn, ms) => env.setTimeout(fn, ms), clearTimeout: (h) => env.clearTimeout(h), now: env.now },
       {
@@ -201,6 +203,11 @@ export function createController(store: Store, env: ControllerEnv): Controller {
       }
       d({ type: 'sessions/list', sessions: env.sessions.list() });
       const replay = q.get('replay');
+      // a refresh returns to the session on screen, as saved at its last commit; a new tab starts on the landing
+      if (!replay && env.resumeId && env.sessions.get(env.resumeId)) {
+        const rec = env.sessions.get(env.resumeId);
+        if (rec && rec.revisions.length > 0) d({ type: 'session/open', record: rec, now: env.now() });
+      }
       const speed = q.get('speed');
       const sp = SPEEDS.find((x) => x === speed);
       if (replay) {

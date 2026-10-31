@@ -213,7 +213,10 @@ try {
     ok(await until(p, () => { const r = document.querySelector('.rec'); return r && r.scrollHeight > r.clientHeight + 40; }, 15000), 'record grows past its viewport mid-stream');
     const atBottom = await p.evaluate(() => { const r = document.querySelector('.rec'); return r.scrollHeight - r.scrollTop - r.clientHeight < 40; });
     ok(atBottom, 'record follows the bottom while streaming');
-    await p.evaluate(() => { const r = document.querySelector('.rec'); r.scrollTop = 0; });
+    // a real wheel: only the user's own scrolling lets the record stop following
+    const rb = await p.$eval('.rec', (e) => { const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+    await p.mouse.move(rb.x, rb.y);
+    await p.mouse.wheel({ deltaY: -4000 });
     await sleep(900);
     const held = await p.evaluate(() => ({ top: document.querySelector('.rec').scrollTop, chip: !!document.querySelector('.rec__jump') }));
     ok(held.top < 30 && held.chip, 'scrolled up: the record stays put and shows "Jump to latest"', JSON.stringify(held));

@@ -1,6 +1,6 @@
 // One revision of the record (spec 7.8 to 7.12): tag, the ask, Qwen's note with the Cursor, the change set, the fix
 // block, notes and status lines, the footer, and the error block when it failed. Never a bubble.
-import { Fragment, useLayoutEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { Icon } from '../shell/Icon.tsx';
 import { ChangeList } from './ChangeList.tsx';
@@ -13,11 +13,15 @@ import type { ConsoleCtx } from './ctx.ts';
 export function RevTag({ ctx, r }: { ctx: ConsoleCtx; r: Revision }): ReactElement {
   const { t, actions, latestCommitted, highlightedRevision } = ctx;
   const live = r.status === 'waiting' || r.status === 'streaming';
+  // the tag that was live when this record mounted stamps on as ink when the revision commits, with the canvas's tags
+  const sawLive = useRef(live);
+  if (live) sawLive.current = true;
+  const stamp = sawLive.current && !live && latestCommitted === r.n;
   const { cards, ghosts } = revisionCards(r);
   const cls = `tag${latestCommitted === r.n ? ' tag--latest' : ''}${live ? ' tag--live' : ''}`;
   if (!cards.length && !ghosts.length) {
     return (
-      <span className={`${cls} tag--static`} aria-hidden="true">
+      <span className={`${cls} tag--static`} data-stamp={stamp || undefined} aria-hidden="true">
         <span className="num">{r.n}</span>
       </span>
     );
@@ -27,6 +31,7 @@ export function RevTag({ ctx, r }: { ctx: ConsoleCtx; r: Revision }): ReactEleme
     <button
       type="button"
       className={cls}
+      data-stamp={stamp || undefined}
       aria-pressed={highlightedRevision === r.n}
       aria-label={t('rec.tagLabel', { n: r.n })}
       onMouseEnter={on}
@@ -37,6 +42,30 @@ export function RevTag({ ctx, r }: { ctx: ConsoleCtx; r: Revision }): ReactEleme
     >
       <span className="num">{r.n}</span>
     </button>
+  );
+}
+
+/**
+ * Qwen's note as it streams: what has arrived settles into ink, and the words that just arrived come in light and settle
+ * (--d-ink), so the eye sees where the note is growing. Text present when the note mounts (a finished revision, a
+ * restored session) is simply there.
+ */
+export function NoteText({ text, live }: { text: string; live: boolean }): ReactElement {
+  const seen = useRef(live ? '' : text);
+  const base = text.startsWith(seen.current) ? seen.current : '';
+  const fresh = text.slice(base.length);
+  useEffect(() => {
+    seen.current = text;
+  }, [text]);
+  return (
+    <>
+      {base}
+      {fresh ? (
+        <span key={text.length} className="ink" data-live={live || undefined}>
+          {fresh}
+        </span>
+      ) : null}
+    </>
   );
 }
 
@@ -74,6 +103,9 @@ function Footer({ ctx, r }: { ctx: ConsoleCtx; r: Revision }): ReactElement | nu
   const { t, requirements } = ctx;
   const live = r.status === 'streaming';
   const now = useNow(live, 200);
+  // the closing line ("Drawn in 9.5 s · Requirements held") arrives when this revision commits in front of the reader
+  const sawLive = useRef(live);
+  if (live) sawLive.current = true;
   if (live) {
     const p = drawProgress(r.changes);
     const items: string[] = [];
@@ -94,7 +126,7 @@ function Footer({ ctx, r }: { ctx: ConsoleCtx; r: Revision }): ReactElement | nu
   const items = footerItems(r, requirements.length > 0, t);
   if (!items.length) return null;
   return (
-    <p className="rev__foot num">
+    <p className="rev__foot num" data-enter={sawLive.current || undefined}>
       {items.map((it, i) => (
         <Fragment key={it.key}>
           {i > 0 ? <span aria-hidden="true"> {'·'} </span> : null}
@@ -147,11 +179,11 @@ function FixBlock({ ctx, r, slot }: { ctx: ConsoleCtx; r: Revision; slot: Return
             : null}
           {fix.note ? (
             <p className="fix__note prose" lang={r.askLang}>
-              {fix.note}
+              <NoteText text={fix.note} live={slot === 'fix'} />
               {slot === 'fix' ? <Cursor lastTextAt={turn.lastTextAt} /> : null}
             </p>
           ) : null}
-          <ChangeList ctx={ctx} lines={fix.changes} />
+          <ChangeList ctx={ctx} lines={fix.changes} live={r.status === 'streaming'} />
         </div>
       ) : null}
       {fix.autoFixes.length ? (
@@ -209,6 +241,10 @@ export function RevisionBlock({ ctx, r, onCollapse }: { ctx: ConsoleCtx; r: Revi
   const ended = r.status === 'failed' || r.status === 'stopped';
   const waiting = r.status === 'waiting';
   const now = useNow(waiting, 1000);
+  const live = waiting || r.status === 'streaming';
+  // this revision was drawn in front of the reader (not restored or reopened): what it adds arrives with motion
+  const sawLive = useRef(live);
+  if (live) sawLive.current = true;
   const quiet = r.status === 'done' && !(r.asks?.length) && !r.changes.length && !r.fix.changes.length && !r.fix.autoFixes.length && r.fix.state === 'none' && !r.lifecycle.length;
   return (
     <article className="rev" aria-label={t('rec.revision', { n: r.n })} data-n={r.n} data-status={r.status} data-closable={onCollapse ? true : undefined}>
@@ -227,7 +263,7 @@ export function RevisionBlock({ ctx, r, onCollapse }: { ctx: ConsoleCtx; r: Revi
         ) : r.note && !ended ? (
           <p className="rev__note prose" lang={r.askLang}>
             <span className="visually-hidden">{t('rec.noteLabel')}: </span>
-            {r.note}
+            <NoteText text={r.note} live={r.status === 'streaming'} />
             {slot === 'note' ? <Cursor lastTextAt={turn.lastTextAt} /> : null}
           </p>
         ) : null}
@@ -243,11 +279,11 @@ export function RevisionBlock({ ctx, r, onCollapse }: { ctx: ConsoleCtx; r: Revi
             <span>{r.statusLine.text}</span>
           </p>
         ) : null}
-        <ChangeList ctx={ctx} lines={r.changes} />
+        <ChangeList ctx={ctx} lines={r.changes} live={live} />
         {quiet ? <p className="rev__quiet">{t('rec.noChange')}</p> : null}
         <FixBlock ctx={ctx} r={r} slot={slot} />
         <ErrorBlock ctx={ctx} r={r} />
-        <Questions ctx={ctx} r={r} />
+        <Questions ctx={ctx} r={r} fresh={sawLive.current} />
         <Footer ctx={ctx} r={r} />
       </div>
       {onCollapse ? (

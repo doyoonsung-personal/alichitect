@@ -25,11 +25,13 @@ import { createHoverMachine } from './hover.ts';
 import type { HoverMachine, OpenedBy } from './hover.ts';
 import { label } from './labels.ts';
 import { makeMeasurer } from './measure.ts';
-import { EXIT_MS, GHOST_MS, litCards, planMotion } from './motion.ts';
+import { STAGGER_MAX, STAGGER_MS, createMotionClock, litCards, pathOrder, planMotion } from './motion.ts';
+import type { MotionClock } from './motion.ts';
 import { nearest, readingOrder, rovingStop } from './nav.ts';
 import type { NavDir, NavItem } from './nav.ts';
 import { CardNode, EdgesNode, FrameNode, UiContext } from './nodes.tsx';
 import type { CanvasUi, CardData, EdgesData, FrameData } from './nodes.tsx';
+import type { EdgeDraw } from './edges.tsx';
 import { Popover } from './Popover.tsx';
 import { popContent } from './pop-model.ts';
 import { buildScene } from './scene.ts';
@@ -157,26 +159,38 @@ function Stage(p: CanvasProps): ReactElement {
   const measure = useMemo(() => makeMeasurer(getComputedStyle(document.body).fontFamily), [lang, fontEpoch]);
   const scene = useMemo<Scene | null>(() => (layout ? buildScene({ layout, graph: display.graph, catalog, lang, t, measure }) : null), [layout, display.graph, catalog, lang, t, measure]);
   const motion = useMemo(() => planMotion(display.prev, layout, display.animate), [display.version]); // eslint-disable-line react-hooks/exhaustive-deps
-  // the scene before this layout version: the exiting cards are drawn from it, for as long as this version is the latest
+  // The clock keeps what is running running when the next batch lands (every 180 ms while Qwen streams): an entrance,
+  // a glide, a ghost or an edge draw started by one layout version finishes on its own schedule, and a new op retargets
+  // a moving card from where it is. Nothing waits in a queue.
+  const clockRef = useRef<MotionClock | null>(null);
+  const clock = (clockRef.current ??= createMotionClock());
+  // the scene before this layout version: the exiting cards are drawn from it
   const lastScene = useRef<Scene | null>(null);
-  const before = useRef<{ version: number; scene: Scene | null }>({ version: -1, scene: null });
-  if (before.current.version !== display.version) before.current = { version: display.version, scene: lastScene.current };
-  const prevScene = before.current.scene;
+  const applied = useRef(-1);
+  const ghostViews = useRef(new Map<string, CardView>());
+  if (applied.current !== display.version) {
+    applied.current = display.version;
+    clock.apply(motion, performance.now());
+    for (const id of motion.exit) {
+      const v = lastScene.current?.byId.get(id);
+      if (v) ghostViews.current.set(id, v);
+    }
+  }
   useEffect(() => {
     lastScene.current = scene;
   }, [scene]);
-
-  // ghosts of the cards that left in this batch: kept for the exit, then dropped
-  const [expired, setExpired] = useState(0);
-  useEffect(() => {
-    if (!motion.exit.length) return;
-    const id = window.setTimeout(() => setExpired(display.version), EXIT_MS + GHOST_MS + 60);
-    return () => window.clearTimeout(id);
-  }, [motion, display.version]);
+  // bumped when a ghost or a leaving edge has finished, so it leaves the DOM
+  const [tick, setTick] = useState(0);
   const ghosts: CardView[] = useMemo(() => {
-    if (!prevScene || expired >= display.version) return [];
-    return motion.exit.map((id) => prevScene.byId.get(id)).filter((c): c is CardView => !!c && !(layout && Object.hasOwn(layout.cards, c.id)));
-  }, [motion, prevScene, expired, display.version, layout]);
+    const now = performance.now();
+    const live = new Set(clock.ghosts(now));
+    const out: CardView[] = [];
+    for (const [id, v] of ghostViews.current) {
+      if (!live.has(id)) ghostViews.current.delete(id);
+      else if (!(layout && Object.hasOwn(layout.cards, id))) out.push(v);
+    }
+    return out;
+  }, [clock, layout, tick, display.version]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ----- routing: planned here, solved in a worker, the channel router answers when libavoid is late -----
   const port = useRef<AvoidPort | null>(null);
@@ -320,16 +334,62 @@ function Stage(p: CanvasProps): ReactElement {
   const litBadgeIds = useMemo(() => (layout ? (p.highlight?.cards ?? []).filter((id) => Object.hasOwn(layout.badges, id)) : []), [p.highlight, layout]);
   const mark = useMemo(() => litCards(p.building, layout), [p.building, layout]);
   const tagSet = useMemo(() => litCards(p.tagged?.cards ?? [], layout), [p.tagged, layout]);
+  // At commit the revision's tags stamp on in request-path order, 30 ms apart (at most 6 steps), as the BuildMarks
+  // retract. A restored session's tags are simply there.
+  const stamps = useMemo(() => {
+    const out = new Map<string, number>();
+    if (!layout || !display.animate || display.reason !== 'commit') return out;
+    pathOrder([...tagSet], layout).forEach((id, i) => out.set(id, Math.min(i, STAGGER_MAX - 1) * STAGGER_MS));
+    return out;
+  }, [tagSet, layout, display.animate, display.reason]);
 
   // ----- edges -----
   const drawn = useRef<Set<string>>(new Set());
+  const plannedIds = useRef<Set<string>>(new Set());
+  const lastDraw = useRef(new Map<string, EdgeDraw>());
   const edgeData = useMemo<EdgesData>(() => {
     if (!planned || !routed || !layout) return { edges: [], dimming: false };
+    const now = performance.now();
+    // an edge that left the graph fades where it was (only in an animated change)
+    const ids = new Set(planned.edges.map((e) => e.id));
+    for (const id of plannedIds.current) if (!ids.has(id) && lastDraw.current.has(id) && display.animate) clock.leave(id, now);
+    plannedIds.current = ids;
     const hot = new Set<string>();
     if (hotId) hot.add(cardOfId(hotId));
-    const edges = drawEdges({ planned: planned.edges, routes: routed.routes, routedVersion: routed.version, version: display.version, layout, motion, hot, lit, building: mark, streaming: p.streaming, drawn: drawn.current, measure: (s) => measure.body(s, 12) });
-    return { edges, dimming: lit.size > 0 };
-  }, [planned, routed, layout, display.version, motion, hotId, lit, mark, p.streaming, measure, cardOfId]);
+    const edges = drawEdges({
+      planned: planned.edges,
+      routes: routed.routes,
+      routedVersion: routed.version,
+      version: display.version,
+      layout,
+      motion,
+      hot,
+      lit,
+      building: mark,
+      streaming: p.streaming,
+      drawn: drawn.current,
+      measure: (s) => measure.body(s, 12),
+      timing: (id, key, ends, returning) => clock.edge(id, key, now, clock.wait(ends, now), display.animate, returning),
+    });
+    for (const e of edges) lastDraw.current.set(e.id, e);
+    const leaving: EdgeDraw[] = [];
+    const going = new Set(clock.leaving(now));
+    for (const [id, e] of lastDraw.current) {
+      if (ids.has(id)) continue;
+      if (going.has(id)) leaving.push({ ...e, leave: true, draw: null, appear: false, hot: false, dim: lit.size > 0 });
+      else lastDraw.current.delete(id);
+    }
+    return { edges: [...leaving, ...edges], dimming: lit.size > 0 };
+  }, [planned, routed, layout, display.version, motion, hotId, lit, mark, p.streaming, measure, cardOfId, tick]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // the next moment a ghost or a leaving edge is done: render then, so it leaves the DOM
+  useEffect(() => {
+    const now = performance.now();
+    const at = clock.nextChange(now);
+    if (at === null) return;
+    const id = window.setTimeout(() => setTick((n) => n + 1), Math.max(16, at - now + 20));
+    return () => window.clearTimeout(id);
+  });
 
   useEffect(() => {
     drawn.current = new Set(edgeData.edges.map((e) => e.id));
@@ -338,12 +398,13 @@ function Stage(p: CanvasProps): ReactElement {
   // ----- nodes -----
   const nodes = useMemo<Node[]>(() => {
     if (!layout || !scene) return [];
+    const now = performance.now();
     const out: Node[] = [];
     for (const f of scene.frames) {
       // a solution lane with nothing in it stays off the sheet; only 'Cloud resources' says so out loud (canvas.mapEmpty)
       if (f.empty && f.kind === 'solution' && f.lane !== 'cloud') continue;
-      const data: FrameData = { view: f, emptyText: f.empty && f.kind === 'solution' && f.lane === 'cloud' ? t('canvas.mapEmpty') : null };
-      out.push({ id: 'f:' + f.id, type: 'frame', position: { x: f.x, y: f.y }, width: f.w, height: f.h, data, zIndex: f.depth, draggable: false, selectable: false, focusable: false, connectable: false, className: motion.frames.has(f.id) ? 'is-moving' : undefined });
+      const data: FrameData = { view: f, emptyText: f.empty && f.kind === 'solution' && f.lane === 'cloud' ? t('canvas.mapEmpty') : null, enter: clock.frameEnter(f.id, now) };
+      out.push({ id: 'f:' + f.id, type: 'frame', position: { x: f.x, y: f.y }, width: f.w, height: f.h, data, zIndex: f.depth, draggable: false, selectable: false, focusable: false, connectable: false, className: clock.moving('f:' + f.id, now) ? 'is-moving' : undefined });
     }
     out.push({ id: 'edges', type: 'edges', position: { x: 0, y: 0 }, width: 1, height: 1, data: edgeData, zIndex: 10, draggable: false, selectable: false, focusable: false, connectable: false });
     const dimming = lit.size > 0;
@@ -358,11 +419,18 @@ function Stage(p: CanvasProps): ReactElement {
         dim: dimming && !lit.has(c.id),
         litBadges: litBadgeIds.filter((id) => scene.badgeById.get(id)?.host === c.id),
         hot: badgeHot === c.id || p.hoverCard === c.id,
-        enter: motion.enter.has(c.id) ? (motion.enter.get(c.id) ?? 0) : null,
-        moving: motion.move.has(c.id),
+        enter: clock.enter(c.id, now),
+        moving: clock.moving(c.id, now),
         stop,
+        stamp: tagSet.has(c.id) && p.tagged && stamps.has(c.id) ? clock.stamp(c.id, p.tagged.n, stamps.get(c.id) ?? 0, now) : null,
+        snaps: [...c.badges, ...c.attachments]
+          .flatMap((b) => {
+            const d = clock.badge(b.id, now);
+            return d === null ? [] : [`${b.id}:${d}`];
+          })
+          .join(','),
       };
-      out.push({ id: c.id, type: 'card', position: { x: c.x, y: c.y }, width: c.w, height: c.h, data, zIndex: 20, draggable: false, selectable: false, focusable: false, connectable: false, className: motion.move.has(c.id) ? 'is-moving' : undefined });
+      out.push({ id: c.id, type: 'card', position: { x: c.x, y: c.y }, width: c.w, height: c.h, data, zIndex: 20, draggable: false, selectable: false, focusable: false, connectable: false, className: data.moving ? 'is-moving' : undefined });
     }
     for (const g of ghosts) {
       const data: CardData = { view: g, mark: false, tag: null, tagPressed: false, lit: false, dim: false, litBadges: [], hot: false, enter: null, moving: false, stop: null, ghost: true };
@@ -370,7 +438,7 @@ function Stage(p: CanvasProps): ReactElement {
     }
     return out;
 
-  }, [layout, scene, motion, ghosts, edgeData, lit, litBadgeIds, mark, tagSet, hotId, stop, p.tagged, p.highlight, p.hoverCard, t, cardOfId]);
+  }, [layout, scene, motion, ghosts, edgeData, lit, litBadgeIds, mark, tagSet, stamps, hotId, stop, p.tagged, p.highlight, p.hoverCard, t, cardOfId, tick]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ----- the camera -----
   const fitted = useRef<{ version: number; w: number; h: number } | null>(null);

@@ -1,0 +1,43 @@
+/* The motion grammar beyond tokens.css (which stays a copy of the spec's tokens): the durations of the moments the app
+   added after Phase 1 (edges drawing, tags stamping, badges snapping, narration settling, the highlight ring, the
+   follow-up flight, the products count, the export bar) and one stagger step. Every animation in the app takes its
+   timing from tokens.css or from here; src/canvas/motion.ts mirrors the canvas values for its clock (motion.test.ts
+   checks they agree). Compositor properties only (transform, opacity), plus stroke-dashoffset on a drawing edge.
+   With reduced motion, movement goes and the meaningful state changes stay as short fades. */
+:root {
+  --d-draw: 320ms; /* an edge draws itself from its source to its target, after its later end lands */
+  --d-stamp: 240ms; /* the revision tag stamps onto a card at commit */
+  --d-handover: 360ms; /* the Cursor's bar under a new card retracts as the tag stamps on */
+  --d-snap: 200ms; /* a badge (WAF on ALB) snaps onto its host */
+  --d-ink: 180ms; /* newly arrived narration settles from light to ink */
+  --d-ring: 160ms; /* the highlight ring closes in on a card */
+  --d-flight: 320ms; /* a follow-up's words rise from the composer into the new revision */
+  --stagger: 30ms; /* one step of a sibling stagger (cards, tags, chips, options) */
+  --stagger-row: 16ms; /* products rows as the panel opens */
+  --snap-lift: -8px; /* where a badge drops from */
+  --stamp-scale: 1.7; /* how large a tag starts before it presses on */
+  --ring-scale: 1.04; /* how wide the highlight ring starts */
+  --ghost-scale: 0.92; /* how far a removed card's ghost collapses */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --d-draw: 0ms;
+    --d-stamp: 120ms;
+    --d-handover: 120ms;
+    --d-snap: 120ms;
+    --d-ink: 120ms;
+    --d-ring: 120ms;
+    --d-flight: 0ms;
+    --stagger: 0ms;
+    --stagger-row: 0ms;
+    --snap-lift: 0px;
+    --stamp-scale: 1;
+    --ring-scale: 1;
+    --ghost-scale: 1;
+  }
+}
+
+/* shared keyframes: fade in, and fade up by --rise (which reduced motion sets to 0, leaving the fade) */
+@keyframes m-fade { from { opacity: 0; } }
+@keyframes m-rise { from { opacity: 0; transform: translateY(var(--rise)); } }

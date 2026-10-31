@@ -225,8 +225,15 @@ async function sample(p, ms) {
   const names = new Set(s.flatMap((x) => x.enter));
   check('motion: cards enter with the rise keyframes', names.has('cv-card-in'), [...names].join(','));
   check('motion: the swapped card leaves through a ghost', s.some((x) => x.ghosts > 0));
-  const ghostFrames = s.filter((x) => x.ghosts > 0).length;
-  check('motion: the ghost is gone within a second', ghostFrames * 0.06 + 0.06 < 1.2, `${ghostFrames} samples`);
+  // each exit is its own ghost (several cards leave in this conversation, and a card folded into a badge at commit leaves
+  // too): the longest unbroken stretch with a ghost on the sheet must stay under a second
+  let run = 0;
+  let longest = 0;
+  for (const x of s) {
+    run = x.ghosts > 0 ? run + 1 : 0;
+    longest = Math.max(longest, run);
+  }
+  check('motion: the ghost is gone within a second', longest * 0.06 + 0.06 < 1.2, `longest run ${longest} samples, ${s.filter((x) => x.ghosts > 0).length} in all`);
   check('motion: BuildMarks show while streaming', s.some((x) => x.marks > 0));
   check('motion: revision tags appear at commit and marks hand over', s.some((x) => x.tags > 0) && s[s.length - 1].marks === 0, `last marks=${s[s.length - 1].marks}`);
   check('motion: bystander cards do not move (moves are rare)', Math.max(...s.map((x) => x.moving)) <= 3, `max moving ${Math.max(...s.map((x) => x.moving))}`);

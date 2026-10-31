@@ -11,7 +11,7 @@ export function ReplayBanner({ ctx }: { ctx: ConsoleCtx }): ReactElement | null 
   if (!replay) return null;
   return (
     <section className="rb" aria-label={t('header.replay')}>
-      <p className="rb__text">{t('replay.banner', { date: replay.recordedAt })}</p>
+      <p className="rb__text">{t(replay.synthetic ? 'replay.bannerSynthetic' : 'replay.banner', { date: replay.recordedAt })}</p>
       <div className="rb__row">
         <div className="rb__speed" role="group" aria-label={t('replay.speed')}>
           {SPEEDS.map((s) => (

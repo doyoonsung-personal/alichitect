@@ -11,7 +11,7 @@
   background: var(--sheet); border: 1px solid var(--line-2); border-radius: var(--r-control);
   font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink);
 }
-.asm__chip[data-enter] { animation: asm-in var(--d-enter) var(--ease-out) both; }
+.asm__chip[data-enter] { animation: asm-in var(--d-enter) var(--ease-out) calc(var(--i, 0) * var(--stagger) * 2) both; }
 @keyframes asm-in { from { opacity: 0; transform: translateY(var(--rise)); } to { opacity: 1; transform: none; } }
 .asm__text { min-width: 0; }
 .asm__label { color: var(--ink-3); }
@@ -29,7 +29,11 @@
 .asm__more { margin-top: var(--s-3); }
 
 /* ---------- questions, inside the revision that asked them ---------- */
-.asks { margin-top: var(--s-4); padding-top: var(--s-4); border-top: 1px solid var(--line-1); animation: asm-in var(--d-enter) var(--ease-out) both; }
+.asks { margin-top: var(--s-4); padding-top: var(--s-4); border-top: 1px solid var(--line-1); }
+/* questions asked in front of the reader arrive, their quick replies one after another; an answer lands where they were */
+.asks[data-enter] { animation: asm-in var(--d-enter) var(--ease-out) both; }
+.asks[data-enter] .ask__opts > li { animation: m-rise var(--d-enter) var(--ease-out) calc(var(--d-enter) / 2 + var(--i, 0) * var(--stagger) * 2) backwards; }
+.asks[data-enter] .ask__answer { animation: m-rise var(--d-enter) var(--ease-out) backwards; }
 .ask + .ask { margin-top: var(--s-4); padding-top: var(--s-4); border-top: 1px solid var(--line-1); }
 .ask__text { font-size: var(--t-14); line-height: var(--lh-14); font-weight: var(--w-medium); color: var(--ink); }
 .ask[data-state="answered"] .ask__text, .ask[data-state="replied"] .ask__text { font-weight: var(--w-regular); color: var(--ink-2); }

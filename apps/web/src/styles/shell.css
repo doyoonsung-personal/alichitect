@@ -345,6 +345,16 @@
   white-space: pre-wrap;
 }
 
+/* the copy of an ask that flies from where it was typed into the record (shell/flight.ts) */
+.flight {
+  position: fixed;
+  margin: 0;
+  z-index: 61;
+  pointer-events: none;
+  transform-origin: 0 0;
+  will-change: transform, opacity;
+}
+
 /* ---------- Console root (the rest of the console is in console.css) ---------- */
 .console {
   display: flex;
@@ -358,10 +368,10 @@
 @media (max-width: 760px) {
   .header__title { display: none; }
   .header__right { margin-left: auto; }
-  .header .btn > span {
+  .header .btn--ghost > span {
     position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
   }
-  .header .btn { padding: 0 var(--s-3); }
+  .header .btn--ghost { padding: 0 var(--s-3); }
 }
 
 /* Phone width: the header keeps the logo and the controls; the product name and the rule go */

@@ -1,0 +1,46 @@
+{"t":1929,"name":"boot","view":"landing","mode":"live","turn":"idle","lang":"en","title":"","revs":0,"rev":null,"cards":0,"reqs":[],"assumptions":0,"questions":0}
+{"t":2006,"name":"01-landing"}
+{"t":3489,"name":"02-landing-typed"}
+{"t":3489,"name":"submit","label":"ecommerce","text":"Cross-border e-commerce for Southeast Asia with flash sales and an AI shopping assistant"}
+{"t":3790,"name":"03-handoff-mid"}
+{"t":6106,"name":"04-stream-2s"}
+{"t":7967,"name":"first-card","ms":4477}
+{"t":9704,"name":"05-stream-6s"}
+{"t":14709,"name":"06-stream-11s"}
+{"t":30179,"name":"turn-done","label":"ecommerce","ms":25181,"firstCardMs":4477,"cards":12,"rev":{"n":1,"status":"done","note":"I'll design a cross-border e-commerce platform for Southeast Asia with flash sale scaling and an AI shopping assistant. App servers auto-scale for flash sales, ","lines":["added:Users","added:Cloud DNS","added:ESA","added:ALB","attached:WAF","added:ECS","attached:Auto Scaling","added:Tair (Redis)","added:PolarDB","added:RocketMQ","added:OSS","added:Model Studio"],"nChanges":15,"error":null,"ms":25070},"reqs":[],"assumptions":0,"questions":0}
+{"t":30235,"name":"07-ecommerce-done"}
+{"t":31047,"name":"08-panel-open"}
+{"t":32390,"name":"09-card-hover"}
+{"t":32724,"name":"submit","label":"waf","text":"oh i also want waf"}
+{"t":35376,"name":"10-waf-stream-2s"}
+{"t":37586,"name":"turn-done","label":"waf","ms":3646,"firstCardMs":null,"cards":12,"rev":{"n":2,"status":"done","note":"WAF is already attached to the ALB as a badge, blocking attacks before they reach your app servers.","lines":[],"nChanges":0,"error":null,"ms":3586},"reqs":[],"assumptions":0,"questions":0}
+{"t":38185,"name":"12-waf-done"}
+{"t":38185,"name":"export-open","label":"ecommerce"}
+{"t":38871,"name":"export-dialog-ecommerce"}
+{"t":39380,"name":"export-saved","label":"ecommerce","file":"Cross-border-e-commerce-for-Southeast-Asia-with-flash-sales-and-an-AI-shopping-architecture-proposal-2026-11-01.pdf","ms":509}
+{"t":39994,"name":"export-done-ecommerce"}
+{"t":40973,"name":"13-newsession-landing"}
+{"t":41726,"name":"submit","label":"agent","text":"i need some AI agent that i can use with my team"}
+{"t":44823,"name":"14-agent-stream-3s"}
+{"t":45072,"name":"first-card","label":"agent","ms":3344,"cards":1}
+{"t":47406,"name":"turn-done","label":"agent","ms":4465,"firstCardMs":3344,"cards":2,"rev":{"n":1,"status":"done","note":"For a team AI agent, Qoder Teams suits developers and QwenWork suits everyone else. Which audience fits your team?","lines":["recommended:Qoder Teams","recommended:QwenWork"],"nChanges":2,"error":null,"ms":4453},"reqs":[],"assumptions":0,"questions":0}
+{"t":47974,"name":"16-agent-done"}
+{"t":47974,"name":"export-open","label":"agent"}
+{"t":48660,"name":"export-dialog-agent"}
+{"t":48921,"name":"export-saved","label":"agent","file":"i-need-some-AI-agent-that-i-can-use-with-my-team-architecture-proposal-2026-11-01.pdf","ms":261}
+{"t":49521,"name":"export-done-agent"}
+{"t":52406,"name":"16b-ko-landing"}
+{"t":52953,"name":"submit","label":"korean","text":"싱가포르에서 고객 데이터가 외부로 나가면 안 되는 핀테크 웹앱"}
+{"t":56081,"name":"17-ko-stream-3s"}
+{"t":58323,"name":"first-card","label":"korean","ms":5369,"cards":1}
+{"t":62053,"name":"18-ko-stream-9s"}
+{"t":77401,"name":"turn-done","label":"korean","ms":23227,"firstCardMs":5369,"cards":13,"rev":{"n":1,"status":"done","note":"싱가포르 리전에 데이터가 고정된 핀테크 웹앱 아키텍처를 그립니다. ESA, ALB, ECS, Tair, RDS 구성입니다. 세션은 Tair에, 거래 데이터는 RDS에 저장하며 모두 다중 가용영역으로 구성합니다.","lines":["added:Users","added:Cloud DNS","added:ESA","added:ALB","attached:WAF","added:ECS","attached:Auto Scaling","added:Tair (Redis)","added:RDS","added:OSS","added:SLS","added:KMS"],"nChanges":17,"error":null,"ms":23179},"reqs":["고객 데이터는 싱가포르 외부로 나갈 수 없음"],"assumptions":0,"questions":0}
+{"t":77967,"name":"19-ko-done"}
+{"t":80681,"name":"refresh","before":{"view":"working","title":"싱가포르에서 고객 데이터가 외부로 나가면 안 되는 핀테크 웹앱","revs":1,"cards":13},"after":{"view":"working","title":"싱가포르에서 고객 데이터가 외부로 나가면 안 되는 핀테크 웹앱","revs":1,"cards":13,"reqs":["고객 데이터는 싱가포르 외부로 나갈 수 없음"]}}
+{"t":80734,"name":"20-after-refresh"}
+{"t":80734,"name":"export-open","label":"korean-after-refresh"}
+{"t":81400,"name":"export-dialog-korean-after-refresh"}
+{"t":81921,"name":"export-saved","label":"korean-after-refresh","file":"싱가포르에서-고객-데이터가-외부로-나가면-안-되는-핀테크-웹앱-architecture-proposal-2026-11-01.pdf","ms":521}
+{"t":82527,"name":"export-done-korean-after-refresh"}
+{"t":83101,"name":"21-sessions-menu"}
+{"t":83102,"name":"summary","pdfs":["Cross-border-e-commerce-for-Southeast-Asia-with-flash-sales-and-an-AI-shopping-architecture-proposal-2026-11-01.pdf","i-need-some-AI-agent-that-i-can-use-with-my-team-architecture-proposal-2026-11-01.pdf","싱가포르에서-고객-데이터가-외부로-나가면-안-되는-핀테크-웹앱-architecture-proposal-2026-11-01.pdf"],"sessionsSaved":3,"pageErrors":[],"consoleErrors":[]}

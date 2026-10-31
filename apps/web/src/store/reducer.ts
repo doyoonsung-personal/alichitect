@@ -212,6 +212,13 @@ function foldedThrough(session: SessionRecord, memory: SessionMemory): number {
 
 // ---------- the reducer ----------
 
+/** The calendar date on the reader's clock (YYYY-MM-DD): a session saved at 01:00 in Seoul is from that day, not from the UTC day before. */
+function localDate(ms: number): string {
+  const d = new Date(ms);
+  const p = (n: number): string => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
 export function reduce(state: AppState, action: Action, deps: StoreDeps): AppState {
   switch (action.type) {
     case 'app/init':
@@ -240,7 +247,7 @@ export function reduce(state: AppState, action: Action, deps: StoreDeps): AppSta
         work: null,
         turn: { phase: 'idle', lastTextAt: null, startedAt: null },
         replay: null,
-        ui: { ...state.ui, highlight: null, panTo: null, hoverCard: null, handoff: false, composerDraft: null, toast: { id: action.now, kind: 'restored', date: new Date(rec.updatedAt).toISOString().slice(0, 10) } },
+        ui: { ...state.ui, highlight: null, panTo: null, hoverCard: null, handoff: false, composerDraft: null, toast: { id: action.now, kind: 'restored', date: localDate(rec.updatedAt) } },
       };
       return relayout(base, deps, rec.memory.graph, 'restore', { refit: true, animate: false, fresh: true });
     }

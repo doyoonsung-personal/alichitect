@@ -3,7 +3,7 @@
 // requirement that follows settles the assumption and the chip goes. Chips and Change are plain buttons: Tab reaches
 // them, Enter or Space presses them, the focus ring is the global one.
 import { useState } from 'react';
-import type { ReactElement } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 import { ASM_COLLAPSED, canAnswer, changeAsk, visibleAssumptions } from './logic.ts';
 import { focusComposer } from './focus.ts';
 import type { AssumptionView } from '../app/contracts.ts';
@@ -17,8 +17,8 @@ export function Assumptions({ ctx }: { ctx: ConsoleCtx }): ReactElement | null {
   return (
     <div className="asm">
       <ul className="asm__list" aria-label={t('asm.listLabel')}>
-        {shown.map((a) => (
-          <Chip key={a.id} ctx={ctx} a={a} />
+        {shown.map((a, i) => (
+          <Chip key={a.id} ctx={ctx} a={a} i={i} />
         ))}
       </ul>
       {hidden > 0 ? (
@@ -35,14 +35,14 @@ export function Assumptions({ ctx }: { ctx: ConsoleCtx }): ReactElement | null {
   );
 }
 
-function Chip({ ctx, a }: { ctx: ConsoleCtx; a: AssumptionView }): ReactElement {
+function Chip({ ctx, a, i }: { ctx: ConsoleCtx; a: AssumptionView; i: number }): ReactElement {
   const { t, turn, replay, actions } = ctx;
   // a chip that lands while a turn streams enters; one that is there when the block mounts does not
   const [entering, setEntering] = useState(turn.phase !== 'idle' && turn.phase !== 'error');
   const ask = changeAsk(a, t);
   const live = canAnswer(turn.phase, !!replay);
   return (
-    <li className="asm__chip" data-enter={entering || undefined} onAnimationEnd={(e) => e.target === e.currentTarget && setEntering(false)}>
+    <li className="asm__chip" data-enter={entering || undefined} style={{ '--i': Math.min(i, 3) } as CSSProperties} onAnimationEnd={(e) => e.target === e.currentTarget && setEntering(false)}>
       <span className="asm__text prose">
         <span className="asm__label">{t('asm.label')}</span>
         {ctx.lang === 'zh' ? '' : ' '}

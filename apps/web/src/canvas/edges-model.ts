@@ -6,7 +6,8 @@ import type { PlannedEdge, Pt } from '../routing/types.ts';
 import { labelBox } from '../routing/plan.ts';
 import { arrowPath, placeEdgeLabel, roundedPath } from './edge-geom.ts';
 import type { EdgeDraw } from './edges.tsx';
-import type { MotionPlan } from './motion.ts';
+import type { EdgeTiming, MotionPlan } from './motion.ts';
+import { drawDash, routeLength } from './motion.ts';
 
 export interface EdgeInputs {
   planned: readonly PlannedEdge[];
@@ -27,6 +28,11 @@ export interface EdgeInputs {
   drawn: ReadonlySet<string>;
   /** Width of a label's text at 12 px. */
   measure(text: string): number;
+  /**
+   * The canvas's motion clock: when a non-control edge draws itself (after its later end lands). Without it (the PDF,
+   * the tests) edges fade in after `motion.edgeDelay` when an end was touched, as before.
+   */
+  timing?(id: string, key: string, ends: readonly string[], returning: boolean): EdgeTiming;
 }
 
 /** The cards an edge end stands for: a card, or every card of a lane block for a container-level edge. */
@@ -71,9 +77,11 @@ export function drawEdges(i: EdgeInputs): EdgeDraw[] {
       const p = placeEdgeLabel(pts, w, obstacles);
       if (p) label = { plate: p.plate, x: p.textX, y: p.textY, text: e.label };
     }
+    const k = key(e.id, pts) + (e.kind === 'control' ? '|c' : '');
+    const t = i.timing && e.kind !== 'control' ? i.timing(e.id, k, [...from, ...to], !i.drawn.has(e.id)) : null;
     out.push({
       id: e.id,
-      key: key(e.id, pts) + (e.kind === 'control' ? '|c' : ''),
+      key: k,
       d: roundedPath(pts),
       arrow: e.kind === 'resolve' ? '' : arrowPath(pts),
       kind: e.kind,
@@ -81,8 +89,9 @@ export function drawEdges(i: EdgeInputs): EdgeDraw[] {
       fresh,
       hot: touchesHot || (dimming && bothLit),
       dim: dimming && !bothLit,
-      appear: !i.drawn.has(e.id),
-      delay: waits ? i.motion.edgeDelay : 0,
+      appear: t ? t.fade !== null : !i.drawn.has(e.id),
+      delay: t ? (t.draw ? t.delay : (t.fade ?? 0)) : waits ? i.motion.edgeDelay : 0,
+      draw: t?.draw ? drawDash(e.kind, routeLength(pts)) : null,
       label,
     });
   }

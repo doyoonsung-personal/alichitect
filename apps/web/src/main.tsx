@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles/tokens.css';
+import './styles/motion.css';
 import './styles/base.css';
 import './styles/shell.css';
 import './styles/landing.css';
@@ -36,6 +37,17 @@ function setLanguage(lang: Lang): void {
   }
 }
 
+// The session this tab shows is remembered in sessionStorage, so a refresh returns to it and a new tab starts fresh.
+const TAB_KEY = 'ab.tab.session';
+function tabSession(): string | null {
+  try {
+    return sessionStorage.getItem(TAB_KEY);
+  } catch {
+    return null;
+  }
+}
+const resumeId = new URLSearchParams(location.search).has('replay') ? null : tabSession();
+
 const lang = storedLang();
 document.documentElement.lang = lang;
 
@@ -50,6 +62,18 @@ const controller = createController(store, {
   loadFixture,
   search: location.search,
   setLanguage,
+  resumeId,
+});
+
+store.subscribe(() => {
+  const s = store.getState();
+  if (s.replay) return;
+  try {
+    if (s.view === 'working' && s.session.revisions.length > 0) sessionStorage.setItem(TAB_KEY, s.session.id);
+    else if (s.view === 'landing') sessionStorage.removeItem(TAB_KEY);
+  } catch {
+    /* storage unavailable: a refresh starts on the landing */
+  }
 });
 
 // handles for headless checks and the builders' screenshots: window.__ab.store.getState(), window.__ab.controller.startReplay('ha')

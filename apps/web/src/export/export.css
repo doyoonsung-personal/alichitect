@@ -1,0 +1,75 @@
+/* The export dialog: a small popover under the header button, in the same grammar as the header menus. Tokens only. */
+.xp { position: relative; }
+
+.xp__panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 340px;
+  max-width: calc(100vw - 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  background: var(--sheet);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-pop);
+  box-shadow: var(--shadow-raise);
+  color: var(--ink);
+  z-index: 50;
+}
+
+/* it opens like the header menus' popovers do, dropping a few px into place */
+.xp__panel { animation: xp-open var(--d-fade) var(--ease-out); }
+@keyframes xp-open { from { opacity: 0; transform: translateY(-4px); } }
+
+/* progress: a 2 px action-blue sweep on the top edge while the PDF is made, a fill to the end when it is saved */
+.xp__bar { position: absolute; left: -1px; right: -1px; top: -1px; height: 2px; overflow: hidden; pointer-events: none; }
+.xp__bar > span { position: absolute; inset: 0; background: var(--action); opacity: 0; transform-origin: 0 50%; }
+.xp__bar[data-phase='working'] > span { opacity: 1; width: 40%; animation: xp-sweep 1100ms var(--ease-in-out) infinite; }
+.xp__bar[data-phase='done'] > span { animation: xp-fill var(--d-panel) var(--ease-out), xp-fade var(--d-fade) linear 700ms forwards; opacity: 1; }
+@keyframes xp-sweep { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+@keyframes xp-fill { from { transform: scaleX(0.4); } }
+@keyframes xp-fade { to { opacity: 0; } }
+.xp__note-text { display: inline-block; animation: m-rise var(--d-fade) var(--ease-out); }
+
+.xp__title { margin: 0; font-size: var(--t-16); line-height: var(--lh-16); font-weight: var(--w-medium); }
+.xp__hint { margin: 0; font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink-3); }
+:root:lang(ko) .xp__hint,
+:root:lang(zh) .xp__hint { line-height: var(--lh-cjk); }
+:root:lang(ko) .xp__hint { word-break: keep-all; }
+
+.xp__field { display: flex; flex-direction: column; gap: var(--s-2); }
+.xp__label { font-size: var(--t-12); line-height: var(--lh-12); font-weight: var(--w-medium); color: var(--ink-3); }
+
+.xp__input {
+  height: 36px;
+  padding: 0 var(--s-4);
+  background: var(--sheet);
+  border: 1px solid var(--line-control);
+  border-radius: var(--r-control);
+  font-size: var(--t-14);
+  line-height: var(--lh-14);
+  color: var(--ink);
+}
+.xp__input:hover { border-color: var(--ink); }
+.xp__input:focus-visible { outline: var(--focus-outline); outline-offset: -1px; border-color: var(--action); }
+
+.xp__actions { display: flex; gap: var(--s-3); }
+.xp__actions .btn--primary { flex: 1; }
+
+.xp__note { margin: 0; min-height: var(--lh-13); font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink-2); overflow-wrap: anywhere; }
+.xp__note[data-phase='failed'] { color: var(--danger); }
+.xp__note[data-phase='done'] { color: var(--ok); }
+
+@media (prefers-reduced-motion: reduce) {
+  /* no sweep: the bar holds still while the work runs, and fades when it is done */
+  .xp__bar[data-phase='working'] > span { width: 100%; opacity: 0.5; animation: m-fade var(--d-fade) linear; }
+  .xp__bar[data-phase='done'] > span { animation: xp-fade var(--d-fade) linear 700ms forwards; }
+  .xp__panel { animation-name: m-fade; }
+}
+
+/* Phone width: the panel spans the window under the header, as the header's own controls have no room to anchor it */
+@media (max-width: 560px) {
+  .xp__panel { position: fixed; top: calc(var(--header-h) + 4px); left: var(--s-3); right: var(--s-3); width: auto; max-width: none; }
+}

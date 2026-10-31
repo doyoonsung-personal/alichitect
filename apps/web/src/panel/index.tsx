@@ -1,8 +1,8 @@
 // The products-and-why panel (spec 7.25, 7.26, 7.28): a 52 px bar under the canvas with the ^ handle, and a table that
 // rises over the canvas. The shell pins this component's container to the stage bottom at the open height with
 // pointer-events none; the root below sets pointer-events auto. The table is data from model.ts.
-import { useEffect, useMemo, useRef } from 'react';
-import type { KeyboardEvent, ReactElement } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties, KeyboardEvent, ReactElement } from 'react';
 import { ProductIcon } from '../icons/ProductIcon.tsx';
 import { Icon } from '../shell/Icon.tsx';
 import type { PanelProps } from '../app/contracts.ts';
@@ -23,6 +23,12 @@ const FLAG_KEY = {
 const EDGE_KEY = { data: 'panel.edge.data', async: 'panel.edge.async', control: 'panel.edge.control', resolve: 'panel.edge.resolve' } as const;
 
 const FLASH_MS = 1600;
+/** Rows that cascade in as the panel opens: the first ones, the rest are below the fold or arrive together. */
+const CASCADE = 12;
+/** A new row's arrival: its rise and the soft ground that fades after it (panel.css). */
+const ARRIVAL_MS = 1300;
+/** How long the opening cascade lasts: the panel's rise plus the cascade (tokens --d-panel, --stagger-row, --d-fade). */
+const OPENING_MS = 280 + CASCADE * 16 + 200;
 
 export function Panel(p: PanelProps): ReactElement {
   const { t, open, actions } = p;
@@ -42,6 +48,39 @@ export function Panel(p: PanelProps): ReactElement {
   const lit = p.highlight ? new Set(p.highlight.cards) : null;
 
   const toggle = (): void => actions.setOpen(!open);
+
+  // Rows that are new while the diagram is being drawn (or at commit) arrive; the rows the reader has seen stay still.
+  // A new row keeps its arrival for as long as it runs, whatever renders in between (a batch lands every 180 ms).
+  const seen = useRef<Set<string> | null>(null);
+  const arriving = useRef(new Map<string, number>());
+  const animating = p.streaming || p.display.animate;
+  const now = Date.now();
+  if (seen.current && animating) for (const r of model.rows) if (!seen.current.has(r.id) && !arriving.current.has(r.id)) arriving.current.set(r.id, now + ARRIVAL_MS);
+  for (const [id, until] of arriving.current) if (until <= now) arriving.current.delete(id);
+  const fresh = (id: string): boolean => arriving.current.has(id);
+  useEffect(() => {
+    seen.current = new Set(model.rows.map((r) => r.id));
+  }, [model]);
+
+  // opening: the first rows cascade in as the panel rises, so the eye reads down the list
+  const [opening, setOpening] = useState(false);
+  const wasOpen = useRef(open);
+  useEffect(() => {
+    if (open && !wasOpen.current) {
+      setOpening(true);
+      const id = window.setTimeout(() => setOpening(false), OPENING_MS);
+      wasOpen.current = open;
+      return () => window.clearTimeout(id);
+    }
+    wasOpen.current = open;
+    setOpening(false);
+  }, [open]);
+
+  // the count ticks when it changes, so a glance at the closed bar shows the list grew
+  const countText = parts.join(' · ');
+  const firstCount = useRef(countText);
+  const ticked = countText !== firstCount.current;
+  let index = 0;
 
   const onKeyDown = (e: KeyboardEvent<HTMLElement>): void => {
     if (e.key === 'Escape' && open) {
@@ -69,7 +108,7 @@ export function Panel(p: PanelProps): ReactElement {
   const cols = 6;
 
   return (
-    <section id="products" className="pp" data-open={open || undefined} data-streaming={p.streaming || undefined} aria-label={t('panel.title')} onKeyDown={onKeyDown}>
+    <section id="products" className="pp" data-open={open || undefined} data-opening={opening || undefined} data-streaming={p.streaming || undefined} aria-label={t('panel.title')} onKeyDown={onKeyDown}>
       <button
         ref={handleRef}
         type="button"
@@ -79,13 +118,15 @@ export function Panel(p: PanelProps): ReactElement {
         aria-label={open ? t('panel.collapse') : t('panel.expand')}
         onClick={toggle}
       >
-        <Icon name={open ? 'chevronDown' : 'chevronUp'} size={16} />
+        <Icon name="chevronUp" size={16} />
       </button>
 
       <div className="pp__bar" onClick={toggle}>
         <h2 className="pp__title">{t('panel.title')}</h2>
         {parts.length ? (
-          <span className="pp__count num">{parts.join(' · ')}</span>
+          <span key={countText} className="pp__count num" data-tick={ticked || undefined}>
+            {countText}
+          </span>
         ) : (
           <span className="pp__count">{t('panel.empty')}</span>
         )}
@@ -119,9 +160,11 @@ export function Panel(p: PanelProps): ReactElement {
                   <th scope="col"><span className="visually-hidden">{t('panel.title')}</span></th>
                 </tr>
               </thead>
-              {model.groups.map((g) => (
-                <GroupBody key={g.key} g={g} cols={cols} solution={solution} p={p} lit={lit} buildingRev={buildingRev} hover={hover} show={show} />
-              ))}
+              {model.groups.map((g) => {
+                const first = index;
+                index += g.rows.length + (g.label ? 1 : 0);
+                return <GroupBody key={g.key} g={g} cols={cols} solution={solution} p={p} lit={lit} buildingRev={buildingRev} hover={hover} show={show} fresh={fresh} first={first} />;
+              })}
             </table>
             {model.edges.length ? <Connections edges={model.edges} p={p} /> : null}
           </>
@@ -132,6 +175,10 @@ export function Panel(p: PanelProps): ReactElement {
 }
 
 interface GroupProps {
+  /** The row is new while the diagram is being drawn: it arrives. */
+  fresh: (id: string) => boolean;
+  /** Index of the group's first row in the table, for the opening cascade. */
+  first: number;
   g: PanelGroup;
   cols: number;
   solution: boolean;
@@ -142,22 +189,27 @@ interface GroupProps {
   show: (row: PanelRow) => void;
 }
 
-function GroupBody({ g, cols, solution, p, lit, buildingRev, hover, show }: GroupProps): ReactElement {
+const cascade = (i: number): CSSProperties => ({ '--i': Math.min(i, CASCADE) }) as CSSProperties;
+
+function GroupBody({ g, cols, solution, p, lit, buildingRev, hover, show, fresh, first }: GroupProps): ReactElement {
+  const off = g.label ? 1 : 0;
   return (
     <tbody className="pp-group-body">
       {g.label ? (
-        <tr className="pp-group">
+        <tr className="pp-group" style={cascade(first)}>
           <th scope="rowgroup" colSpan={cols}>{g.label}</th>
         </tr>
       ) : null}
-      {g.rows.map((row) => (
-        <ProductRow key={row.id} row={row} solution={solution} p={p} lit={lit?.has(row.id) ?? false} dim={lit !== null && !lit.has(row.id)} buildingRev={buildingRev} hover={hover} show={show} />
+      {g.rows.map((row, i) => (
+        <ProductRow key={row.id} row={row} solution={solution} p={p} lit={lit?.has(row.id) ?? false} dim={lit !== null && !lit.has(row.id)} buildingRev={buildingRev} hover={hover} show={show} fresh={fresh(row.id)} order={first + off + i} />
       ))}
     </tbody>
   );
 }
 
 interface RowProps {
+  fresh: boolean;
+  order: number;
   row: PanelRow;
   solution: boolean;
   p: PanelProps;
@@ -168,7 +220,7 @@ interface RowProps {
   show: (row: PanelRow) => void;
 }
 
-function ProductRow({ row, solution, p, lit, buildingRev, hover, show }: RowProps): ReactElement {
+function ProductRow({ row, solution, p, lit, buildingRev, hover, show, fresh, order }: RowProps): ReactElement {
   const { t } = p;
   const rev = row.addedIn ?? buildingRev;
   const filled = isLatest(row, p.latestCommitted);
@@ -176,6 +228,8 @@ function ProductRow({ row, solution, p, lit, buildingRev, hover, show }: RowProp
     <tr
       className="pp-row"
       data-row-id={row.id}
+      data-enter={fresh || undefined}
+      style={cascade(order)}
       data-lit={lit || undefined}
       data-indent={row.indent || undefined}
       onMouseEnter={() => hover(row)}

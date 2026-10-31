@@ -245,12 +245,20 @@
 .pp-show:hover { background: var(--action-soft-2); }
 .pp-show:active { background: var(--action-soft-2); }
 
-/* rows arrive as products arrive: a short fade, only while a turn streams */
-@keyframes pp-row-in { from { opacity: 0; } }
-.pp[data-streaming] .pp-row { animation: pp-row-in var(--d-enter) var(--ease-out) both; }
-@media (prefers-reduced-motion: reduce) {
-  .pp[data-streaming] .pp-row { animation-duration: 120ms; }
-}
+/* A row arrives when its product lands on the diagram (only new rows: the ones the reader has seen stay still), with a
+   soft blue ground that fades like a newly pinned requirement. As the panel rises, its first rows cascade in. */
+/* (only while the panel is open: a closed panel's rows are hidden, and their animations would still cost style work on
+   every frame of the stream) */
+.pp[data-open] .pp-row[data-enter] { animation: m-rise var(--d-enter) var(--ease-out) backwards; }
+.pp[data-open] .pp-row[data-enter] > * { animation: pp-row-new 1200ms linear; }
+@keyframes pp-row-new { 0%, 40% { background-color: var(--action-soft); } }
+.pp[data-opening] .pp-group,
+.pp[data-opening] .pp-row { animation: m-rise var(--d-fade) var(--ease-out) calc(var(--d-panel) * 0.35 + var(--i, 0) * var(--stagger-row)) backwards; }
+
+/* the ^ handle turns over as the panel opens; the count ticks up when it changes */
+.pp__handle .icon { transition: transform var(--d-panel) var(--ease-in-out); }
+.pp[data-open] .pp__handle .icon { transform: rotate(180deg); }
+.pp__count[data-tick] { display: inline-block; animation: m-rise var(--d-fade) var(--ease-out); }
 
 /* connections */
 .pp-conn { margin: var(--s-4) var(--s-5) var(--s-5); font-size: var(--t-13); line-height: var(--lh-13); }

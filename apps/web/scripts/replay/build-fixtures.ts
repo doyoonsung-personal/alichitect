@@ -19,6 +19,7 @@ import { constraintChecker } from '@ali/core/validate.ts';
 import { executeTurn } from '../../../server/src/turn.ts';
 import type { WireEvent as ServerWire } from '../../../server/src/turn.ts';
 import { FATAL_COPY, STATUS_COPY } from '../../../server/src/messages.ts';
+import { askFixtures } from './ask-fixtures.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.resolve(HERE, '../..');
@@ -419,7 +420,7 @@ async function main(): Promise<void> {
     const fx: Fixture = { id: src.id, title: src.title, lang: src.lang, recordedAt: src.recordedAt, source: src.source, model: src.model, note: src.note, synthetic: false, turns };
     built.set(fx.id, fx);
   }
-  const all: Fixture[] = [...built.values(), ...synthetic(built.get('ha')!)];
+  const all: Fixture[] = [...built.values(), ...synthetic(built.get('ha')!), ...askFixtures(built.get('ha')!)];
   for (const fx of all) {
     writeFileSync(path.join(OUT, `${fx.id}.json`), JSON.stringify(fx));
     manifest.push({

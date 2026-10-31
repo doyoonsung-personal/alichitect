@@ -1,22 +1,22 @@
-// The landing-to-console handoff (spec section 10): the brief box travels to the composer slot, its text becomes
-// revision 1's ask, the lockup shrinks into the header, and the canvas slides in. The landing captures where its box
-// and lockup are, the working view plays the move once it has mounted. Transform and opacity only, on a ghost of the
-// box and on the header lockup; the real composer fades in under the ghost. Reduced motion: a 120 ms cross-fade.
+// The landing-to-console handoff (spec section 10): the brief box travels to the composer slot, its words fly up into
+// revision 1's ask (flight.ts), the lockup shrinks into the header, and the canvas slides in. The landing captures where
+// its box, words and lockup are, the working view plays the move once it has mounted. Transform and opacity only, on a
+// ghost of the box, a copy of the ask and the header lockup; the real composer and ask fade in under them. Reduced
+// motion: a 120 ms cross-fade.
 //
 // Builders: put data-flip="composer" on the composer's box in the console, and data-flip="lockup" is on the header's
 // lockup already.
 
-export interface RectLike {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
+import { flyText, typedText } from './flight.ts';
+import type { RectLike, TypedText } from './flight.ts';
+
+export type { RectLike };
 
 interface Pending {
   brief: RectLike;
   lockup: RectLike | null;
   text: string;
+  words: TypedText | null;
 }
 
 let pending: Pending | null = null;
@@ -33,9 +33,10 @@ const rectOf = (el: Element | null): RectLike | null => {
 export function captureHandoff(briefEl: Element | null, text: string): { commit(): void } {
   const brief = rectOf(briefEl);
   const lockup = rectOf(document.querySelector('.landing [data-flip="lockup"]'));
+  const words = typedText(briefEl?.querySelector<HTMLElement>('textarea') ?? null);
   return {
     commit() {
-      pending = brief ? { brief, lockup, text } : null;
+      pending = brief ? { brief, lockup, text, words } : null;
     },
   };
 }
@@ -62,11 +63,15 @@ export function playHandoff(done: () => void): boolean {
     const ghost = document.createElement('div');
     ghost.className = 'handoff-ghost';
     ghost.setAttribute('aria-hidden', 'true');
-    // console track: the box is scaled non-uniformly on its way, which would squash the words, so they fade out in the first third
+    // the box is scaled non-uniformly on its way to the composer, which would squash the words: they leave it at once,
+    // as their copy (set the way revision 1 sets them) lifts off toward the record
     const words = document.createElement('span');
     words.textContent = p.text;
     ghost.appendChild(words);
-    if (!reduced()) words.animate([{ opacity: 1 }, { opacity: 0 }], { duration: duration * 0.3, easing: 'linear', fill: 'forwards' });
+    const ask = document.querySelector<HTMLElement>('.rev[data-n="1"] .rev__ask');
+    const flying = !reduced() && p.words && ask ? flyText(p.words, ask, duration) : [];
+    animations.push(...flying);
+    if (!reduced()) words.animate([{ opacity: 1 }, { opacity: 0 }], { duration: duration * (flying.length ? 0.12 : 0.3), easing: 'linear', fill: 'forwards' });
     Object.assign(ghost.style, { left: `${p.brief.left}px`, top: `${p.brief.top}px`, width: `${p.brief.width}px`, height: `${p.brief.height}px` });
     document.body.appendChild(ghost);
     const sx = to.width / p.brief.width;

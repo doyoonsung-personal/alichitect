@@ -1,7 +1,7 @@
 // A revision's change set (spec 7.10): one line per change, each a button that points at its cards on the canvas.
 // Arrow keys move within the list (roving tab stop); hover and focus highlight, click or Enter pans.
 import { Fragment, useRef, useState } from 'react';
-import type { KeyboardEvent, ReactElement } from 'react';
+import type { KeyboardEvent, ReactElement, ReactNode } from 'react';
 import { Icon } from '../shell/Icon.tsx';
 import type { UiIconName } from '../shell/Icon.tsx';
 import { isLinked, lineView, visibleLines } from './logic.ts';
@@ -11,7 +11,22 @@ import type { ConsoleCtx } from './ctx.ts';
 
 const MARK: Record<LineMark, UiIconName> = { plus: 'plus', minus: 'minus', arrow: 'arrowRight', ring: 'dottedRing', info: 'infoCircle' };
 
-export function ChangeList({ ctx, lines, label }: { ctx: ConsoleCtx; lines: readonly ChangeLine[]; label?: string }): ReactElement | null {
+/**
+ * A line that lands while its revision streams fades up beside the card it names (the card enters in the same batch);
+ * its mark settles when a planned line turns into an added one. Lines already there when the list mounts are still.
+ */
+function Line({ live, mark, children }: { live: boolean; mark: LineMark; children: ReactNode }): ReactElement {
+  const [entering, setEntering] = useState(live);
+  const first = useRef(mark);
+  const changed = first.current !== mark;
+  return (
+    <li data-enter={entering || undefined} data-mark-changed={changed || undefined} onAnimationEnd={(e) => e.target === e.currentTarget && setEntering(false)}>
+      {children}
+    </li>
+  );
+}
+
+export function ChangeList({ ctx, lines, label, live = false }: { ctx: ConsoleCtx; lines: readonly ChangeLine[]; label?: string; live?: boolean }): ReactElement | null {
   const { t, actions } = ctx;
   const [expanded, setExpanded] = useState(false);
   const [active, setActive] = useState<string | null>(null);
@@ -39,7 +54,7 @@ export function ChangeList({ ctx, lines, label }: { ctx: ConsoleCtx; lines: read
           const v = lineView(l, t);
           const body = (
             <>
-              <span className="chg__mark" data-mark={v.mark} data-warn={v.warn || undefined}>
+              <span key={v.mark} className="chg__mark" data-mark={v.mark} data-warn={v.warn || undefined}>
                 <Icon name={MARK[v.mark]} />
               </span>
               <span className="chg__text" data-struck={v.struck || undefined} data-muted={v.muted || undefined} data-warn={v.warn || undefined}>
@@ -64,14 +79,14 @@ export function ChangeList({ ctx, lines, label }: { ctx: ConsoleCtx; lines: read
           );
           if (!isLinked(l)) {
             return (
-              <li key={l.key}>
+              <Line key={l.key} live={live} mark={v.mark}>
                 <div className="chg chg--static">{body}</div>
-              </li>
+              </Line>
             );
           }
           const hl = (): void => actions.highlight({ source: 'line', cards: l.cards, ghosts: l.ghosts });
           return (
-            <li key={l.key}>
+            <Line key={l.key} live={live} mark={v.mark}>
               <button
                 type="button"
                 className="chg"
@@ -88,7 +103,7 @@ export function ChangeList({ ctx, lines, label }: { ctx: ConsoleCtx; lines: read
               >
                 {body}
               </button>
-            </li>
+            </Line>
           );
         })}
       </ul>

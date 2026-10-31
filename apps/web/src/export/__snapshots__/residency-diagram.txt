@@ -1,0 +1,51 @@
+badge cert product=certificate-management
+badge scaling product=ess
+badge waf product=waf
+card alb product=alb
+card app product=ecs
+card backup product=cloud-backup
+card cache product=tair
+card chatbot product=ecs
+card db product=rds
+card db-replica product=rds
+card dns product=dns
+card docs product=oss
+card esa product=esa
+card firewall product=cloud-firewall
+card ga product=ga
+card kms product=kms
+card llm product=model-studio
+card logs product=sls
+card nat product=nat
+card users product=users
+card vector-db product=milvus
+edge e-alb-app kind=data
+edge e-app-cache kind=data
+edge e-app-chatbot kind=data
+edge e-app-db kind=data
+edge e-app-docs kind=data
+edge e-chatbot-llm kind=data
+edge e-chatbot-vector kind=data
+edge e-db-db-replica kind=async
+edge e-docs-vector kind=async
+edge e-esa-alb kind=data
+edge e-ga-esa kind=data
+edge e-users-dns kind=resolve
+edge e-users-ga kind=data
+edge-label e-app-docs
+edge-label e-docs-vector
+edge-label e-users-ga
+frame edge
+frame internet
+frame sg
+frame sg~ai
+frame sg~ops
+frame sg~security
+frame sg~storage
+frame vpc
+legend
+--
+g: 67
+path: 64
+rect: 28
+text: 57

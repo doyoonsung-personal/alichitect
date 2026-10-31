@@ -70,5 +70,23 @@
   },
   "transit_router": {
     "name": "Transit Router: router symbol (ring with four arrows)"
+  },
+  "model_serving": {
+    "name": "Model serving: a model block with an arrow out to an endpoint"
+  },
+  "training_job": {
+    "name": "Training job: a circular arrow around a node"
+  },
+  "notebook": {
+    "name": "Notebook: a binder page with code lines"
+  },
+  "model_catalog": {
+    "name": "Model gallery: a grid of tiles with a sparkle"
+  },
+  "sandbox": {
+    "name": "Sandbox: corner brackets around an isolated box"
+  },
+  "other_cloud": {
+    "name": "Other cloud environment: a cloud outline"
   }
 }

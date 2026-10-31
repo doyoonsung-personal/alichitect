@@ -41,13 +41,15 @@ function useUi(): CanvasUi {
 export interface FrameData extends Record<string, unknown> {
   view: FrameView;
   emptyText: string | null;
+  /** New in this layout: fades in. */
+  enter?: boolean;
 }
 export type FrameNodeType = Node<FrameData, 'frame'>;
 
 function FrameNodeImpl({ data }: NodeProps<FrameNodeType>): ReactElement {
   const f = data.view;
   return (
-    <div className="cv-frame" data-kind={f.kind} data-empty={f.empty || undefined} aria-hidden="true">
+    <div className="cv-frame" data-kind={f.kind} data-empty={f.empty || undefined} data-enter={data.enter || undefined} aria-hidden="true">
       <span className="cv-frame__label">
         {f.aside && f.asidePlace === 'before' ? <span className="cv-frame__aside cv-frame__aside--before">{f.aside}</span> : null}
         <span className="cv-frame__name">{f.text}</span>
@@ -83,15 +85,20 @@ export interface CardData extends Record<string, unknown> {
   /** Roving tabindex: this card or one of its badges holds the tab stop. */
   stop: string | null;
   ghost?: boolean;
+  /** The revision tag stamps on (commit), after this delay in ms; the BuildMark retracts with it. */
+  stamp?: number | null;
+  /** New badges and attachments snapping onto this card, as "id:delay" pairs. */
+  snaps?: string;
 }
 export type CardNodeType = Node<CardData, 'card'>;
 
-function Tag({ n, pressed }: { n: number; pressed: boolean }): ReactElement {
+function Tag({ n, pressed, stamp }: { n: number; pressed: boolean; stamp: boolean }): ReactElement {
   const ui = useUi();
   return (
     <button
       type="button"
       className="cv-tag"
+      data-stamp={stamp || undefined}
       tabIndex={-1}
       aria-pressed={pressed}
       aria-label={label(ui.lang, 'card.revTag', { n })}
@@ -115,18 +122,19 @@ function BuildMark({ on }: { on: boolean }): ReactElement | null {
       setShown(true);
       return;
     }
-    const id = window.setTimeout(() => setShown(false), 1300);
+    const id = window.setTimeout(() => setShown(false), 900);
     return () => window.clearTimeout(id);
   }, [on]);
   return shown ? <i className="cv-mark" data-on={on || undefined} aria-hidden="true" /> : null;
 }
 
-function BadgeChip({ b, hostLabel, stop, lit }: { b: BadgeView; hostLabel: string; stop: boolean; lit: boolean }): ReactElement {
+function BadgeChip({ b, hostLabel, stop, lit, snap }: { b: BadgeView; hostLabel: string; stop: boolean; lit: boolean; snap: number | null }): ReactElement {
   const ui = useUi();
-  const style = { left: b.x, top: b.y, width: b.w, height: b.h } as CSSProperties;
+  const style = { left: b.x, top: b.y, width: b.w, height: b.h, '--snap-delay': snap !== null ? `${snap}ms` : undefined } as CSSProperties;
   return (
     <span
       className="cv-badge"
+      data-snap={snap !== null || undefined}
       data-as={b.as}
       data-lit={lit || undefined}
       data-nav-id={b.id}
@@ -162,7 +170,8 @@ function BadgeChip({ b, hostLabel, stop, lit }: { b: BadgeView; hostLabel: strin
 function CardNodeImpl({ data }: NodeProps<CardNodeType>): ReactElement {
   const ui = useUi();
   const c = data.view;
-  const style = { '--tpx': `${c.titlePx}px`, '--delay': `${data.enter ?? 0}ms` } as CSSProperties;
+  const style = { '--tpx': `${c.titlePx}px`, '--delay': `${data.enter ?? 0}ms`, '--stamp-delay': `${data.stamp ?? 0}ms` } as CSSProperties;
+  const snaps = new Map((data.snaps ? data.snaps.split(',') : []).map((p) => [p.slice(0, p.lastIndexOf(':')), Number(p.slice(p.lastIndexOf(':') + 1))]));
   const hasChips = c.zones.length > 0;
   const accessible = [c.label, c.name !== c.label ? c.name : '', c.where].filter(Boolean).join(', ');
   if (data.ghost) {
@@ -230,12 +239,12 @@ function CardNodeImpl({ data }: NodeProps<CardNodeType>): ReactElement {
         ) : null}
         <BuildMark on={data.mark} />
       </div>
-      {data.tag !== null ? <Tag n={data.tag} pressed={data.tagPressed} /> : null}
+      {data.tag !== null ? <Tag n={data.tag} pressed={data.tagPressed} stamp={data.stamp !== null && data.stamp !== undefined} /> : null}
       {c.badges.map((b) => (
-        <BadgeChip key={b.id} b={b} hostLabel={c.label} stop={data.stop === b.id} lit={data.litBadges.includes(b.id)} />
+        <BadgeChip key={b.id} b={b} hostLabel={c.label} stop={data.stop === b.id} lit={data.litBadges.includes(b.id)} snap={snaps.get(b.id) ?? null} />
       ))}
       {c.attachments.map((b) => (
-        <BadgeChip key={b.id} b={b} hostLabel={c.label} stop={data.stop === b.id} lit={data.litBadges.includes(b.id)} />
+        <BadgeChip key={b.id} b={b} hostLabel={c.label} stop={data.stop === b.id} lit={data.litBadges.includes(b.id)} snap={snaps.get(b.id) ?? null} />
       ))}
     </div>
   );
@@ -256,6 +265,8 @@ function sameData(a: NodeProps<CardNodeType>, b: NodeProps<CardNodeType>): boole
     x.moving === y.moving &&
     x.stop === y.stop &&
     x.ghost === y.ghost &&
+    x.stamp === y.stamp &&
+    x.snaps === y.snaps &&
     x.litBadges.join() === y.litBadges.join()
   );
 }

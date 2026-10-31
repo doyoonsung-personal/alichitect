@@ -861,8 +861,9 @@
       "confidence": "generic"
     },
     "agent-sandbox": {
-      "icon": "fallback:agent",
-      "confidence": "generic"
+      "icon": "fallback:sandbox",
+      "confidence": "exact",
+      "note": "No sandbox icon in the official set: drawn glyph, shared with the Container edition so sandboxes differ from agent runtimes."
     },
     "agentic-computer": {
       "icon": "official:clouddesktop",
@@ -952,6 +953,51 @@
     "meoo": {
       "icon": "fallback:saas",
       "confidence": "generic"
+    },
+    "pai-eas": {
+      "icon": "fallback:model_serving",
+      "confidence": "exact",
+      "note": "No PAI-stage icon in the official set: this stage has its own glyph in the official style, so EAS, DLC, DSW and Model Gallery differ on one canvas."
+    },
+    "pai-dlc": {
+      "icon": "fallback:training_job",
+      "confidence": "exact",
+      "note": "No PAI-stage icon in the official set: this stage has its own glyph in the official style, so EAS, DLC, DSW and Model Gallery differ on one canvas."
+    },
+    "pai-dsw": {
+      "icon": "fallback:notebook",
+      "confidence": "exact",
+      "note": "No PAI-stage icon in the official set: this stage has its own glyph in the official style, so EAS, DLC, DSW and Model Gallery differ on one canvas."
+    },
+    "pai-model-gallery": {
+      "icon": "fallback:model_catalog",
+      "confidence": "exact",
+      "note": "No PAI-stage icon in the official set: this stage has its own glyph in the official style, so EAS, DLC, DSW and Model Gallery differ on one canvas."
+    },
+    "pai-instant": {
+      "icon": "fallback:sandbox",
+      "confidence": "close",
+      "note": "PAI's own sandbox product, china-only: it shares the sandbox glyph with the two Agent Sandbox editions."
+    },
+    "pai-langstudio": {
+      "icon": "fallback:pai",
+      "confidence": "close",
+      "note": "A PAI sub-product: it shares the PAI glyph, and its name tells it apart on the canvas."
+    },
+    "pai-token-service": {
+      "icon": "fallback:pai",
+      "confidence": "close",
+      "note": "A PAI sub-product: it shares the PAI glyph, and its name tells it apart on the canvas."
+    },
+    "other-cloud": {
+      "icon": "fallback:other_cloud",
+      "confidence": "exact",
+      "note": "A cloud outline, deliberately not any provider's logo: the label names the provider and role."
+    },
+    "acs-agent-sandbox": {
+      "icon": "fallback:sandbox",
+      "confidence": "exact",
+      "note": "Same glyph as agent-sandbox (the two editions of one product); its ACS parent is told apart by name."
     }
   }
 }

@@ -1,0 +1,1134 @@
+{
+ "reduced": {
+  "anims": [
+   {
+    "key": "li. m-fade",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.stage stage-enter",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.handoff-ghost waapi",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cmp__box waapi",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cmp__box transition:border-bottom-color",
+    "props": [
+     "borderBottomColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cmp__box transition:border-left-color",
+    "props": [
+     "borderLeftColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cmp__box transition:border-right-color",
+    "props": [
+     "borderRightColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cmp__box transition:border-top-color",
+    "props": [
+     "borderTopColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cmp__box transition:box-shadow",
+    "props": [
+     "boxShadow"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.ink ink-in",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "li. m-rise",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cv-frame m-fade",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 200
+   },
+   {
+    "key": "div.cv-unit m-fade",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "i.cv-mark m-fade",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.pp__count m-rise",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 200
+   },
+   {
+    "key": "g.cv-edge cv-edge-in",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.cv-badge m-fade",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cv-card cv-ghost-out",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cv-card__body cv-ghost-content",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "g.cv-edge cv-edge-out",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.btn transition:color",
+    "props": [
+     "color"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.tag transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.tag transition:color",
+    "props": [
+     "color"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "path.cv-edge__line transition:stroke",
+    "props": [
+     "stroke"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "path.cv-edge__arrow transition:stroke",
+    "props": [
+     "stroke"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "i.cv-mark transition:opacity",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.pp-rev transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.pp-rev transition:border-bottom-color",
+    "props": [
+     "borderBottomColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.pp-rev transition:border-left-color",
+    "props": [
+     "borderLeftColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.pp-rev transition:border-right-color",
+    "props": [
+     "borderRightColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.pp-rev transition:border-top-color",
+    "props": [
+     "borderTopColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "p.rev__foot m-rise",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.cv-tag m-fade",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "p.rev__ask waapi",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.tag transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.tag transition:border-bottom-color",
+    "props": [
+     "borderBottomColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.tag transition:border-left-color",
+    "props": [
+     "borderLeftColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.tag transition:border-right-color",
+    "props": [
+     "borderRightColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.tag transition:border-top-color",
+    "props": [
+     "borderTopColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.tag transition:color",
+    "props": [
+     "color"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.chg transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "g.cv-edge transition:opacity",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cv-unit transition:opacity",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cv-card transition:opacity",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "th.pp-cell-product transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "td.pp-why transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "td.pp-cell-where transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "td.pp-cell-notes transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "td.pp-cell-rev transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "td.pp-cell-act transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.pp__bar transition:border-bottom-color",
+    "props": [
+     "borderBottomColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.pp-show transition:color",
+    "props": [
+     "color"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.pp-show transition:opacity",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "tr.pp-group m-rise",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 200
+   },
+   {
+    "key": "tr.pp-row m-rise",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 200
+   },
+   {
+    "key": "button.btn transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "form.xp__panel m-fade",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 200
+   },
+   {
+    "key": "span.xp__note-text m-rise",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 200
+   }
+  ],
+  "flights": 0,
+  "errors": [],
+  "cursor": []
+ },
+ "full": {
+  "anims": [
+   {
+    "key": "li. m-fade",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 240
+   },
+   {
+    "key": "span.cursor cursor-blink",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 1060
+   },
+   {
+    "key": "div.stage stage-enter",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": true,
+    "duration": 420
+   },
+   {
+    "key": "i.cv-cursor cv-blink",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 1060
+   },
+   {
+    "key": "p.rev__ask waapi",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": true,
+    "duration": 420
+   },
+   {
+    "key": "span. waapi",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 50.4
+   },
+   {
+    "key": "div.handoff-ghost waapi",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": true,
+    "duration": 420
+   },
+   {
+    "key": "div.cmp__box waapi",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 420
+   },
+   {
+    "key": "button.brand waapi",
+    "props": [
+     "transform",
+     "transformOrigin"
+    ],
+    "moves": true,
+    "duration": 420
+   },
+   {
+    "key": "span.ink ink-in",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 180
+   },
+   {
+    "key": "div.cmp__box transition:border-bottom-color",
+    "props": [
+     "borderBottomColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cmp__box transition:border-left-color",
+    "props": [
+     "borderLeftColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cmp__box transition:border-right-color",
+    "props": [
+     "borderRightColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cmp__box transition:border-top-color",
+    "props": [
+     "borderTopColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cmp__box transition:box-shadow",
+    "props": [
+     "boxShadow"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "li. m-rise",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": true,
+    "duration": 240
+   },
+   {
+    "key": "div.cv-frame m-fade",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 200
+   },
+   {
+    "key": "div.cv-unit cv-card-in",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": true,
+    "duration": 240
+   },
+   {
+    "key": "i.cv-mark cv-mark-in",
+    "props": [
+     "transform"
+    ],
+    "moves": true,
+    "duration": 240
+   },
+   {
+    "key": "span.pp__count m-rise",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": true,
+    "duration": 200
+   },
+   {
+    "key": "div.react-flow__node transition:height",
+    "props": [
+     "height"
+    ],
+    "moves": false,
+    "duration": 300
+   },
+   {
+    "key": "div.react-flow__node transition:transform",
+    "props": [
+     "transform"
+    ],
+    "moves": true,
+    "duration": 300
+   },
+   {
+    "key": "path.cv-edge__line cv-draw",
+    "props": [
+     "strokeDashoffset"
+    ],
+    "moves": true,
+    "duration": 320
+   },
+   {
+    "key": "g.cv-edge__label cv-edge-in",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "path.cv-edge__arrow cv-edge-in",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.cv-badge cv-badge-snap",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": true,
+    "duration": 200
+   },
+   {
+    "key": "div.cv-card cv-ghost-out",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": true,
+    "duration": 160
+   },
+   {
+    "key": "div.cv-card__body cv-ghost-content",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 160
+   },
+   {
+    "key": "div.react-flow__node transition:width",
+    "props": [
+     "width"
+    ],
+    "moves": false,
+    "duration": 300
+   },
+   {
+    "key": "g.cv-edge cv-edge-out",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 160
+   },
+   {
+    "key": "button.btn transition:color",
+    "props": [
+     "color"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.tag transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.tag transition:color",
+    "props": [
+     "color"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "path.cv-edge__line transition:stroke",
+    "props": [
+     "stroke"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "path.cv-edge__arrow transition:stroke",
+    "props": [
+     "stroke"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "i.cv-mark transition:transform",
+    "props": [
+     "transform"
+    ],
+    "moves": true,
+    "duration": 360
+   },
+   {
+    "key": "button.pp-rev transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.pp-rev transition:border-bottom-color",
+    "props": [
+     "borderBottomColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.pp-rev transition:border-left-color",
+    "props": [
+     "borderLeftColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.pp-rev transition:border-right-color",
+    "props": [
+     "borderRightColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.pp-rev transition:border-top-color",
+    "props": [
+     "borderTopColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.tag tag-press",
+    "props": [
+     "transform"
+    ],
+    "moves": true,
+    "duration": 240
+   },
+   {
+    "key": "p.rev__foot m-rise",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": true,
+    "duration": 240
+   },
+   {
+    "key": "button.cv-tag cv-tag-stamp",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": true,
+    "duration": 240
+   },
+   {
+    "key": "span.tag transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.tag transition:border-bottom-color",
+    "props": [
+     "borderBottomColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.tag transition:border-left-color",
+    "props": [
+     "borderLeftColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.tag transition:border-right-color",
+    "props": [
+     "borderRightColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.tag transition:border-top-color",
+    "props": [
+     "borderTopColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "span.tag transition:color",
+    "props": [
+     "color"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.chg transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "g.cv-edge transition:opacity",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cv-unit transition:opacity",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cv-card transition:opacity",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cv-card transition:transform",
+    "props": [
+     "transform"
+    ],
+    "moves": true,
+    "duration": 160
+   },
+   {
+    "key": "th.pp-cell-product transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "td.pp-why transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "td.pp-cell-where transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "td.pp-cell-notes transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "td.pp-cell-rev transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "td.pp-cell-act transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "section.pp transition:box-shadow",
+    "props": [
+     "boxShadow"
+    ],
+    "moves": false,
+    "duration": 280
+   },
+   {
+    "key": "section.pp transition:transform",
+    "props": [
+     "transform"
+    ],
+    "moves": true,
+    "duration": 280
+   },
+   {
+    "key": "button.pp__handle transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "svg.icon transition:transform",
+    "props": [
+     "transform"
+    ],
+    "moves": true,
+    "duration": 280
+   },
+   {
+    "key": "div.pp__bar transition:border-bottom-color",
+    "props": [
+     "borderBottomColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "tr.pp-group m-rise",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": true,
+    "duration": 200
+   },
+   {
+    "key": "tr.pp-row m-rise",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": true,
+    "duration": 200
+   },
+   {
+    "key": "button.pp-show transition:color",
+    "props": [
+     "color"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.pp-show transition:opacity",
+    "props": [
+     "opacity"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.pp__body transition:visibility",
+    "props": [
+     "visibility"
+    ],
+    "moves": false,
+    "duration": 0
+   },
+   {
+    "key": "div.cv-card transition:border-bottom-color",
+    "props": [
+     "borderBottomColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cv-card transition:border-left-color",
+    "props": [
+     "borderLeftColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cv-card transition:border-right-color",
+    "props": [
+     "borderRightColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cv-card transition:border-top-color",
+    "props": [
+     "borderTopColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "div.cv-card transition:box-shadow",
+    "props": [
+     "boxShadow"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "button.btn transition:background-color",
+    "props": [
+     "backgroundColor"
+    ],
+    "moves": false,
+    "duration": 120
+   },
+   {
+    "key": "form.xp__panel xp-open",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": true,
+    "duration": 200
+   },
+   {
+    "key": "span.xp__note-text m-rise",
+    "props": [
+     "transform",
+     "opacity"
+    ],
+    "moves": true,
+    "duration": 200
+   }
+  ],
+  "flights": 2,
+  "errors": [],
+  "cursor": []
+ }
+}

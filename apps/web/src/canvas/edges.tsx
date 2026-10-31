@@ -2,7 +2,7 @@
 // node, so the router's world coordinates are drawn as they are and the z-order is plain. Hidden control edges are not
 // in the DOM; the canvas passes them in only while an end is hovered, focused or linked.
 import { memo } from 'react';
-import type { ReactElement } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 import type { EdgeKind } from '@ali/core/types.ts';
 import type { Rect } from '@ali/core/layout.ts';
 
@@ -30,14 +30,19 @@ export interface EdgeDraw {
   dim: boolean;
   /** Fades in: it was not on the sheet a moment ago. A route that only changed shape swaps without a fade. */
   appear: boolean;
-  /** Wait this long before fading in (the cards it joins are still landing). */
+  /** Wait this long before fading in or drawing (the cards it joins are still landing); negative to resume a draw. */
   delay: number;
+  /** Draws itself from source to target: the dash array and the offset it starts from (motion.ts drawDash). */
+  draw: { array: string; from: number } | null;
+  /** The edge left the graph: it fades out where it was. */
+  leave?: boolean;
   label: EdgeLabelDraw | null;
 }
 
 function EdgeImpl({ e }: { e: EdgeDraw }): ReactElement {
+  const style = (e.draw ? { '--dash': e.draw.array, '--dash-from': e.draw.from, '--edge-delay': `${e.delay}ms` } : { animationDelay: e.delay && e.appear ? `${e.delay}ms` : undefined }) as CSSProperties;
   return (
-    <g className="cv-edge" data-kind={e.kind} data-path={e.path || undefined} data-fresh={e.fresh || undefined} data-hot={e.hot || undefined} data-dim={e.dim || undefined} data-appear={e.appear || undefined} style={{ animationDelay: e.delay ? `${e.delay}ms` : undefined }}>
+    <g className="cv-edge" data-id={e.id} data-kind={e.kind} data-path={e.path || undefined} data-fresh={e.fresh || undefined} data-hot={e.hot || undefined} data-dim={e.dim || undefined} data-appear={e.appear || undefined} data-draw={e.draw ? true : undefined} data-leave={e.leave || undefined} style={style}>
       <path className="cv-edge__line" d={e.d} />
       {e.kind !== 'resolve' ? <path className="cv-edge__arrow" d={e.arrow} /> : null}
       {e.label ? (

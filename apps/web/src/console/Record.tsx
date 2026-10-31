@@ -10,7 +10,11 @@ import { RevisionBlock } from './Revision.tsx';
 import { RevisionRow } from './RevisionRow.tsx';
 import { distanceFromBottom, followsStream, isExpanded, showJumpChip } from './logic.ts';
 import { isBusy } from './ctx.ts';
+import { playFlight, tokenMs } from '../shell/flight.ts';
 import type { ConsoleCtx } from './ctx.ts';
+
+/** A scroll event within this long of a wheel, touch or key press on the record is the user's. */
+const USER_SCROLL_MS = 1000;
 
 export function SummaryNote({ ctx }: { ctx: ConsoleCtx }): ReactElement | null {
   const { t, summary, turn } = ctx;
@@ -55,6 +59,7 @@ export function RevisionLog({ ctx }: { ctx: ConsoleCtx }): ReactElement {
   const [opened, setOpened] = useState<ReadonlySet<number>>(new Set());
   const [flash, setFlash] = useState<number | null>(null);
   const [opening, setOpening] = useState<number | null>(null);
+  const [entering, setEntering] = useState<number | null>(null);
   const [checking, setChecking] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const newest = revisions.length ? revisions[revisions.length - 1].n : 0;
@@ -64,9 +69,33 @@ export function RevisionLog({ ctx }: { ctx: ConsoleCtx }): ReactElement {
     if (el) el.scrollTop = el.scrollHeight;
   }, []);
 
+  // Only the user's own scrolling (wheel, touch, keys, the scrollbar) decides whether the record keeps following. Our
+  // scroll to the bottom and the browser's scroll anchoring also fire scroll events, a frame late, after the record
+  // may have grown again (a question group lands in one step); read as the user leaving, they stopped the follow.
+  const userAt = useRef(0);
+  const dragging = useRef(false);
+  const byUser = (): void => {
+    userAt.current = performance.now();
+  };
+  useEffect(() => {
+    const up = (): void => {
+      dragging.current = false;
+    };
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
+    return () => {
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
+    };
+  }, []);
+
   const onScroll = (): void => {
     const el = scroller.current;
     if (!el) return;
+    if (!dragging.current && performance.now() - userAt.current > USER_SCROLL_MS) {
+      setScrolled(el.scrollTop > 2);
+      return;
+    }
     follow.current = followsStream(distanceFromBottom(el));
     setJump(showJumpChip(follow.current, busy));
     setScrolled(el.scrollTop > 2);
@@ -74,11 +103,16 @@ export function RevisionLog({ ctx }: { ctx: ConsoleCtx }): ReactElement {
 
   // a new turn, or another session: the newest revision comes into view and the record follows it from there
   const firstStart = revisions[0]?.startedAt;
+  const newestLive = revisions.length ? revisions[revisions.length - 1].status === 'waiting' : false;
   useLayoutEffect(() => {
     follow.current = true;
     setJump(false);
     toBottom();
-  }, [newest, firstStart, toBottom]);
+    // a revision that starts now arrives (a restored session's do not), and a follow-up's words fly up from the composer
+    if (!newestLive) return;
+    setEntering(newest);
+    playFlight(content.current?.querySelector<HTMLElement>(`[data-rev="${newest}"] .rev__ask`) ?? null, tokenMs('--d-flight', 320));
+  }, [newest, firstStart, toBottom]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // content grew (a note typed, a line landed): stay at the bottom unless the user scrolled up
   useEffect(() => {
@@ -135,7 +169,22 @@ export function RevisionLog({ ctx }: { ctx: ConsoleCtx }): ReactElement {
 
   return (
     <div className="rec-wrap">
-      <div className="rec" data-scrolled={scrolled || undefined} role="log" aria-live="off" aria-busy={busy} aria-label={t('rec.logLabel')} ref={scroller} onScroll={onScroll}>
+      <div
+        className="rec"
+        data-scrolled={scrolled || undefined}
+        role="log"
+        aria-live="off"
+        aria-busy={busy}
+        aria-label={t('rec.logLabel')}
+        ref={scroller}
+        onScroll={onScroll}
+        onWheel={byUser}
+        onTouchMove={byUser}
+        onKeyDown={byUser}
+        onPointerDown={(e) => {
+          if (e.target === e.currentTarget) dragging.current = true; // a press on the scrollbar itself, not on the content
+        }}
+      >
         <div ref={content}>
           {conn === 'offline' ? (
             <div className="rec__offline">
@@ -161,10 +210,12 @@ export function RevisionLog({ ctx }: { ctx: ConsoleCtx }): ReactElement {
                   data-rev={r.n}
                   data-flash={flash === r.n || undefined}
                   data-opening={opening === r.n || undefined}
+                  data-enter={entering === r.n || undefined}
                   onAnimationEnd={(e) => {
                     if (e.target !== e.currentTarget) return;
                     setFlash(null);
                     setOpening(null);
+                    setEntering(null);
                   }}
                 >
                   {open ? <RevisionBlock ctx={ctx} r={r} onCollapse={closable ? () => toggle(r.n) : undefined} /> : <RevisionRow ctx={ctx} r={r} onOpen={() => toggle(r.n)} />}

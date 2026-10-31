@@ -64,6 +64,8 @@
 }
 .cv-frame[data-kind='lane'] .cv-frame__label { left: 0; top: 2px; }
 .cv-frame__name { overflow: hidden; text-overflow: ellipsis; }
+/* a new frame (a region, a VPC, a zone) fades in under its first cards; frames never animate their borders */
+.cv-frame[data-enter] { animation: m-fade var(--d-fade) linear backwards; }
 .cv-frame__aside { font-weight: var(--w-regular); color: var(--ink-3); }
 .cv-frame__aside--before { font-weight: var(--w-medium); }
 .cv-frame[data-kind='vpc'] .cv-frame__name { color: var(--ink-2); }
@@ -101,7 +103,19 @@
 .cv-card:hover,
 .cv-card[data-hot] { box-shadow: var(--shadow-raise); border-color: var(--ink-3); }
 .cv-card:focus-visible { box-shadow: var(--focus-ring); border-color: var(--ink-3); }
-.cv-card[data-lit] { outline: 2px solid var(--action); outline-offset: 2px; }
+/* the highlight ring (7.24): it closes in on the cards a change line, a tag or a panel row points at */
+.cv-card::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border: 2px solid var(--action);
+  border-radius: calc(var(--r-card) + 3px);
+  opacity: 0;
+  transform: scale(var(--ring-scale));
+  transition: opacity var(--d-hover) linear, transform var(--d-ring) var(--ease-out);
+  pointer-events: none;
+}
+.cv-card[data-lit]::after { opacity: 1; transform: none; }
 .cv-card__body {
   position: absolute;
   inset: -1px; /* over the 1 px border: the text column is exactly GEOMETRY.textW wide */
@@ -151,6 +165,7 @@
 /* the revision tag at the corner (7.19) */
 .cv-tag {
   position: absolute;
+  transform-origin: 50% 50%;
   right: -9px;
   top: -9px;
   width: 18px;
@@ -164,12 +179,13 @@
   font-weight: var(--w-bold);
   border-radius: var(--r-control);
   z-index: 3;
-  animation: cv-tag-in var(--d-settle) var(--ease-in-out) both;
 }
+/* at commit the tag stamps on, card by card in request-path order (a restored session shows it still) */
+.cv-tag[data-stamp] { animation: cv-tag-stamp var(--d-stamp) var(--ease-out) var(--stamp-delay, 0ms) backwards; }
 .cv-tag:hover { background: var(--ink-2); }
 .cv-tag[aria-pressed='true'] { box-shadow: 0 0 0 2px var(--sheet), 0 0 0 4px var(--action); }
 .cv-tag:focus-visible { box-shadow: var(--focus-ring); }
-@keyframes cv-tag-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cv-tag-stamp { from { opacity: 0; transform: scale(var(--stamp-scale)); } 45% { opacity: 1; } }
 
 /* the BuildMark: the Cursor's bar under a card the streaming revision added (7.18) */
 .cv-mark {
@@ -179,11 +195,15 @@
   width: 24px;
   height: 3px;
   background: var(--cursor);
-  opacity: 0;
-  transition: opacity var(--d-settle) var(--ease-in-out);
   pointer-events: none;
+  /* at commit the bar retracts into its start as the tag stamps on: the Cursor hands the card over */
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  transition: transform var(--d-handover) var(--ease-in-out) var(--stamp-delay, 0ms);
 }
-.cv-mark[data-on] { opacity: 1; transition-duration: var(--d-enter); transition-timing-function: var(--ease-out); }
+/* it draws itself under the card as the card lands, like the Cursor underlining the build */
+.cv-mark[data-on] { transform: none; transition: none; animation: cv-mark-in var(--d-enter) var(--ease-out) calc(var(--delay, 0ms) + var(--d-enter) / 2) backwards; }
+@keyframes cv-mark-in { from { transform: scaleX(0); } }
 
 /* a recommendation's chip on the top edge (7.28) */
 .cv-chip {
@@ -221,6 +241,9 @@
 .cv-badge:hover { border-color: var(--ink-3); box-shadow: var(--shadow-raise); }
 .cv-badge:focus-visible { box-shadow: var(--focus-ring); border-color: var(--ink-3); }
 .cv-badge[data-lit] { outline: 2px solid var(--action); outline-offset: 2px; }
+/* a new badge drops onto its host's edge once the host has landed */
+.cv-badge[data-snap] { animation: cv-badge-snap var(--d-snap) var(--ease-out) var(--snap-delay, 0ms) backwards; }
+@keyframes cv-badge-snap { from { opacity: 0; transform: translateY(var(--snap-lift)) scale(var(--stamp-scale)); } }
 .cv-badge[data-as='attachment'] { justify-content: flex-start; padding: 0 var(--s-3) 0 6px; font-size: var(--c-badge); line-height: 16px; font-weight: var(--w-medium); color: var(--ink-2); }
 .cv-badge[data-as='attachment'] > svg { color: var(--brand-icon); flex: none; }
 .cv-badge__name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -229,15 +252,15 @@
 @keyframes cv-card-in { from { opacity: 0; transform: translateY(var(--rise)); } }
 .cv-unit[data-enter] { animation: cv-card-in var(--d-enter) var(--ease-out) var(--delay, 0ms) backwards; }
 
-/* exit: the card becomes a dashed ghost at its slot, its content fades, then the ghost fades */
+/* exit: the card becomes a dashed ghost at its slot, its content fades, then the ghost collapses into its centre */
 @keyframes cv-ghost-content { to { opacity: 0; } }
-@keyframes cv-ghost-out { to { opacity: 0; } }
+@keyframes cv-ghost-out { to { opacity: 0; transform: scale(var(--ghost-scale)); } }
 .cv-card--ghost {
   background: transparent;
   border: 1px dashed var(--line-2);
   box-shadow: none;
   pointer-events: none;
-  animation: cv-ghost-out var(--d-exit) linear var(--d-exit) forwards;
+  animation: cv-ghost-out var(--d-exit) var(--ease-in) var(--d-exit) forwards;
 }
 .cv-card--ghost .cv-card__body { animation: cv-ghost-content var(--d-exit) var(--ease-in) forwards; }
 
@@ -247,7 +270,7 @@
 .cv-edge[data-appear] { animation: cv-edge-in var(--d-fade) linear backwards; }
 @keyframes cv-edge-in { from { opacity: 0; } }
 .cv-edge__line,
-.cv-edge__arrow { fill: none; stroke: var(--edge); stroke-width: 1.5; stroke-linecap: butt; stroke-linejoin: round; }
+.cv-edge__arrow { fill: none; stroke: var(--edge); stroke-width: 1.5; stroke-linecap: butt; stroke-linejoin: round; transition: stroke var(--d-hover) linear; }
 .cv-edge[data-path] .cv-edge__line,
 .cv-edge[data-path] .cv-edge__arrow { stroke: var(--edge-path); stroke-width: 2; }
 .cv-edge[data-fresh] .cv-edge__line,
@@ -260,6 +283,14 @@
 .cv-edge[data-hot] .cv-edge__line,
 .cv-edge[data-hot] .cv-edge__arrow { stroke: var(--ink); }
 .cv-edge[data-dim] { opacity: var(--dim-opacity); }
+/* a new edge draws itself from its source to its target once its later end has landed; the arrowhead and the label
+   arrive as the line reaches them. A removed edge fades where it was. */
+.cv-edge[data-draw] .cv-edge__line { stroke-dasharray: var(--dash); animation: cv-draw var(--d-draw) var(--ease-out) var(--edge-delay, 0ms) backwards; }
+.cv-edge[data-draw] .cv-edge__arrow,
+.cv-edge[data-draw] .cv-edge__label { animation: cv-edge-in var(--d-hover) linear calc(var(--edge-delay, 0ms) + var(--d-draw) * 0.7) backwards; }
+@keyframes cv-draw { from { stroke-dashoffset: var(--dash-from); } }
+.cv-edge[data-leave] { animation: cv-edge-out var(--d-exit) var(--ease-in) forwards; }
+@keyframes cv-edge-out { to { opacity: 0; } }
 .cv-edge__label rect { fill: var(--edge-label-fill); }
 .cv-edge__label text { fill: var(--ink-3); font-size: var(--c-edge); line-height: 16px; dominant-baseline: central; }
 
@@ -385,7 +416,16 @@ button.cv-pop__rev:hover { color: var(--ink); }
 :root:lang(ko) .cv-pop__why { word-break: keep-all; }
 
 @media (prefers-reduced-motion: reduce) {
-  .cv-unit[data-enter] { animation: cv-fade var(--d-enter) linear var(--delay, 0ms) backwards; }
-  @keyframes cv-fade { from { opacity: 0; } }
+  .cv-unit[data-enter] { animation: m-fade var(--d-enter) linear var(--delay, 0ms) backwards; }
   .cv-cursor { animation: none; }
+  /* no travelling: edges fade in where they end up, marks and tags fade, ghosts fade where they were */
+  .cv-edge[data-draw] { animation: cv-edge-in 120ms linear var(--edge-delay, 0ms) backwards; }
+  .cv-edge[data-draw] .cv-edge__line,
+  .cv-edge[data-draw] .cv-edge__arrow,
+  .cv-edge[data-draw] .cv-edge__label { animation: none; }
+  .cv-mark { transform: none; opacity: 0; transition: opacity var(--d-handover) linear; }
+  .cv-mark[data-on] { opacity: 1; animation: m-fade 120ms linear backwards; }
+  .cv-tag[data-stamp] { animation-name: m-fade; animation-timing-function: linear; }
+  .cv-badge[data-snap] { animation-name: m-fade; animation-timing-function: linear; }
+  .cv-card::after { transition: opacity var(--d-hover) linear; }
 }

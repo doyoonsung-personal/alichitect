@@ -1,0 +1,34 @@
+{
+ "build": "production",
+ "speed": 3,
+ "throttle": 4,
+ "reduced": false,
+ "viewport": "1440x900",
+ "results": [
+  {
+   "run": 1,
+   "seconds": 14.8,
+   "commitAt": 13.3,
+   "cards": 25,
+   "edges": 21,
+   "frames": 823,
+   "fps": 55.4,
+   "p50": 16.7,
+   "p95": 16.9,
+   "p99": 50,
+   "max": 200,
+   "over20": 40,
+   "over34": 11,
+   "missedPct": 7.6,
+   "loaf": 6,
+   "loafMaxMs": 179.9,
+   "loafBlockingMs": 250.9,
+   "longtasks": 3,
+   "cancelled": {
+    "animations": 13,
+    "transitions": 14
+   },
+   "errors": []
+  }
+ ]
+}

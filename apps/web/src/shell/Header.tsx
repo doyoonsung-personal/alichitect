@@ -1,6 +1,7 @@
 // The working view's header (48 px): the lockup (a link to the landing), the session title, and the controls.
 import type { ReactElement } from 'react';
 import { BrandMark } from '../brand/BrandMark.tsx';
+import { ExportButton } from '../export/ExportButton.tsx';
 import { Icon } from './Icon.tsx';
 import { LanguageMenu, ModeState, SessionsMenu } from './controls.tsx';
 import { useAppState, useController, useT } from '../store/react.tsx';
@@ -28,6 +29,7 @@ export function Header(): ReactElement {
           <Icon name={focus ? 'showConsole' : 'focusDiagram'} />
           <span>{focus ? t('header.showConsole') : t('header.focusDiagram')}</span>
         </button>
+        <ExportButton />
         <SessionsMenu />
         <button type="button" className="btn btn--ghost" onClick={() => c.newSession()} disabled={streaming}>
           <Icon name="plus" />

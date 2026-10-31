@@ -12,12 +12,15 @@
     "test": "node --import ./scripts/alias.mjs --test \"src/**/*.test.ts\" \"scripts/**/*.test.ts\"",
     "shots": "node scripts/shots.mjs",
     "icons:ui": "node scripts/ui-icons/build.ts",
-    "replay:build": "node --import ./scripts/alias.mjs scripts/replay/build-fixtures.ts"
+    "replay:build": "node --import ./scripts/alias.mjs scripts/replay/build-fixtures.ts",
+    "replay:asks": "node --import ./scripts/alias.mjs scripts/replay/ask-fixtures.ts",
+    "export:samples": "node --import ./scripts/alias.mjs scripts/export/make-pdfs.ts"
   },
   "dependencies": {
     "@fontsource/noto-sans-kr": "5.3.1",
     "@fontsource/noto-sans-sc": "5.3.1",
     "@xyflow/react": "12.12.0",
+    "fontkit": "2.0.4",
     "libavoid-js": "0.5.0-beta.5",
     "pdfkit": "0.20.2",
     "react": "19.3.1",
