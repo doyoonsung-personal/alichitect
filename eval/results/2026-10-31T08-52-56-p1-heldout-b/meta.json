@@ -1,0 +1,51 @@
+{
+  "startedAt": "2026-10-31T08:52:56.504Z",
+  "args": {
+    "cases-dir": "eval/cases-heldout",
+    "runs": "3",
+    "concurrency": "3",
+    "budget": "100",
+    "label": "p1-heldout-b"
+  },
+  "model": "qwen3.8-max",
+  "fallbackModel": "qwen3.7-max",
+  "judgeModel": "kimi-k3",
+  "runsPerCase": 3,
+  "concurrency": 3,
+  "cases": 18,
+  "units": 54,
+  "catalogVersion": "2026-10-31",
+  "catalogEntries": 223,
+  "systemPromptChars": 48298,
+  "systemPromptSha256": "53b0ef6af750794923157b21f4ad350d91e9e53709bfd0eb30099c36b9ad9be7",
+  "node": "v24.21.0",
+  "coreFiles": {
+    "catalog-node.ts": "dade41cbd9ed",
+    "catalog.ts": "5bf2d46dc58f",
+    "constraints.ts": "6374f064e4dd",
+    "diff.ts": "eaabf1ce1def",
+    "display.ts": "941ca6dec769",
+    "layout.ts": "a34f6bc0b415",
+    "llm.ts": "1b7966305c9a",
+    "ndjson.ts": "3163a8232eaa",
+    "pricing.ts": "6fa3a32521c0",
+    "prompt.ts": "a14eabdf51d2",
+    "reducer.ts": "42217123e9aa",
+    "regions.ts": "59b6d0e2a0d6",
+    "types.ts": "8e467f31f5f9",
+    "validate.ts": "1043e63714e6"
+  },
+  "judgeAllRunsOf": [
+    "ho-p1-residency-japan",
+    "ho-p1-avoid-es",
+    "ho-p1-avoid-fc-tempt",
+    "ho-p1-ko-residency",
+    "ho-p1-zh-residency",
+    "ho-residency-korea",
+    "ho-scale-sae",
+    "ho-scale-ecs-ok",
+    "ho-budget-ha"
+  ],
+  "finishedAt": "2026-10-31T08:59:26.107Z",
+  "spentUsd": 0.9607849999999997
+}

@@ -9,6 +9,8 @@
     "test": "node --test \"test/**/*.test.ts\"",
     "dry": "node run.ts --dry",
     "run": "node run.ts",
-    "summarize": "node summarize.ts"
+    "summarize": "node summarize.ts",
+    "compare": "node compare.ts",
+    "report": "node phase1-report.ts"
   }
 }

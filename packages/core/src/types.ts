@@ -57,6 +57,7 @@ export interface CatalogEntry {
   useWhen?: string; // at most 20 words
   avoidWhen?: string; // at most 20 words
   pairsWith?: string[]; // ids
+  family?: string; // product family for avoid constraints (for example 'kubernetes'): avoiding the family rules out every member
   alternatives?: string[]; // ids
   docs?: string; // official URL, link only
   note?: string; // lifecycle or availability caveat in our own words (dates, successor hints); shown in warnings and hover
@@ -118,7 +119,7 @@ export interface Graph {
 export type Op =
   | { t: 'say'; text: string }
   | { t: 'plan'; products: string[]; note?: string }
-  | { t: 'req'; text: string; regions?: string[]; avoid?: string[] } // pins a user requirement for chat memory; regions: region ids data and workloads must stay in; avoid: catalog ids the user ruled out
+  | { t: 'req'; text: string; regions?: string[]; avoid?: string[]; lifts?: string[] } // pins a user requirement for chat memory; regions: region ids data and workloads must stay in (the complete list now allowed: it replaces earlier region pins); avoid: catalog ids the user ruled out; lifts: 'regions' to drop every region pin, or catalog ids to drop from the avoid lists
   | { t: 'group'; id: string; kind: GroupKind; label: string; parent?: string | null }
   | { t: 'node'; id: string; product: string; label: string; group?: string | null; zones?: string[]; attachTo?: string; why?: string } // upsert by id
   | { t: 'edge'; id: string; from: string; to: string; label?: string; kind?: EdgeKind }
@@ -127,6 +128,8 @@ export type Op =
   | { t: 'remove'; id: string } // removing a node cascades its edges; unknown id is a no-op
   | { t: 'rec'; product: string; fit: 'primary' | 'complement'; why: string }
   | { t: 'gap'; need: string; note: string }
+  | { t: 'assume'; id: string; text: string; alt?: string } // an assumption the design rests on; shown as a chip, alt is the one-click alternative (research/phase1-asks-and-scope.md)
+  | { t: 'ask'; id: string; text: string; options?: string[] } // a question whose answer would change the design; options become quick-reply buttons
   | { t: 'done'; summary: string };
 
 export type WarningCode =
@@ -140,7 +143,8 @@ export type WarningCode =
   // Phase 1 (validate.ts):
   | 'attach-invalid' // attachTo on a product the catalog does not let attach to that host; repaired into an edge
   | 'constraint-region' // a group, node or say line puts data or workloads outside a pinned regions constraint
-  | 'constraint-avoid'; // a product the user ruled out was added
+  | 'constraint-avoid' // a product the user ruled out was added
+  | 'constraint-replaced'; // info: a pinned constraint was replaced, lifted or dropped (a newer requirement, or the cap of twelve)
 
 export interface Warning {
   code: WarningCode;
@@ -173,6 +177,8 @@ export interface SessionMemory {
   summary?: string; // rolling summary of turns older than the window
   requirements: string[]; // pinned by req ops, always sent
   constraints?: Constraint[]; // machine-checkable form of pinned requirements (req ops with regions or avoid), checked every turn
+  assumptions?: Array<{ id: string; text: string; alt?: string }>; // the assumptions the current diagram rests on; the same id replaces
+  questions?: Array<{ id: string; text: string; options?: string[] }>; // open questions from the latest assistant turn
   graph: Graph;
   tombstones: Array<GraphNode | GraphEdge | GraphGroup>;
 }
@@ -182,6 +188,8 @@ export interface Constraint {
   text: string; // the requirement as pinned
   regions?: string[]; // region ids (for example ap-southeast-1) that data and workloads must stay in
   avoid?: string[]; // catalog ids the user ruled out
+  /** Transient, on a constraint taken from a req op: 'regions' or catalog ids this requirement lifts. mergeConstraints applies it and never stores it. */
+  lifts?: string[];
 }
 
 // ---------- Server API (apps/server) ----------

@@ -270,7 +270,8 @@
             "ack",
             "acs",
             "ack-one",
-            "asm"
+            "asm",
+            "family:kubernetes"
           ],
           "include": [
             [
@@ -295,7 +296,8 @@
             "ack",
             "acs",
             "ack-one",
-            "asm"
+            "asm",
+            "family:kubernetes"
           ],
           "req": [
             [
@@ -307,13 +309,18 @@
       },
       {
         "ask": "Add in-game chat between players.",
-        "expect": {},
+        "expect": {
+          "edit": {
+            "minChanged": 1
+          }
+        },
         "retain": {
           "exclude": [
             "ack",
             "acs",
             "ack-one",
-            "asm"
+            "asm",
+            "family:kubernetes"
           ],
           "req": [
             [
@@ -339,7 +346,8 @@
             "ack",
             "acs",
             "ack-one",
-            "asm"
+            "asm",
+            "family:kubernetes"
           ],
           "req": [
             [
@@ -377,7 +385,8 @@
             "ack",
             "acs",
             "ack-one",
-            "asm"
+            "asm",
+            "family:kubernetes"
           ],
           "req": [
             [
@@ -427,7 +436,8 @@
             "ack",
             "acs",
             "ack-one",
-            "asm"
+            "asm",
+            "family:kubernetes"
           ],
           "include": [
             [
@@ -436,6 +446,9 @@
               "ecs",
               "edas"
             ]
+          ],
+          "residency": [
+            "ap-southeast-5"
           ]
         }
       },
@@ -457,7 +470,8 @@
             "ack",
             "acs",
             "ack-one",
-            "asm"
+            "asm",
+            "family:kubernetes"
           ],
           "regions": {
             "only": [
@@ -465,7 +479,10 @@
               "ap-southeast-5",
               "indonesia"
             ]
-          }
+          },
+          "residency": [
+            "ap-southeast-5"
+          ]
         }
       },
       {
@@ -485,7 +502,8 @@
             "ack",
             "acs",
             "ack-one",
-            "asm"
+            "asm",
+            "family:kubernetes"
           ],
           "regions": {
             "only": [
@@ -493,7 +511,10 @@
               "ap-southeast-5",
               "indonesia"
             ]
-          }
+          },
+          "residency": [
+            "ap-southeast-5"
+          ]
         }
       },
       {
@@ -510,7 +531,8 @@
             "ack",
             "acs",
             "ack-one",
-            "asm"
+            "asm",
+            "family:kubernetes"
           ],
           "regions": {
             "only": [
@@ -518,18 +540,26 @@
               "ap-southeast-5",
               "indonesia"
             ]
-          }
+          },
+          "residency": [
+            "ap-southeast-5"
+          ]
         }
       },
       {
         "ask": "Finally, add disaster recovery to the architecture.",
-        "expect": {},
+        "expect": {
+          "edit": {
+            "minChanged": 1
+          }
+        },
         "retain": {
           "exclude": [
             "ack",
             "acs",
             "ack-one",
-            "asm"
+            "asm",
+            "family:kubernetes"
           ],
           "regions": {
             "only": [
@@ -548,6 +578,9 @@
               "kubernetes",
               "k8s"
             ]
+          ],
+          "residency": [
+            "ap-southeast-5"
           ]
         }
       }

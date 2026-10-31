@@ -1,0 +1,441 @@
+[
+  {
+    "id": "ho-p1-residency-japan",
+    "category": "multiturn",
+    "title": "Claims Portal for Japanese Insurance Company",
+    "reference": "Everything in Tokyo (ap-northeast-1); the request for a copy of the database in Singapore is declined with an in-region alternative (reporting in Tokyo); Model Studio in Tokyo for the chatbot; residency pinned with its region id.",
+    "turns": [
+      {
+        "ask": "We are a Japanese insurance company and need a claims portal with a database and document storage for our policyholders' submissions. All policyholder data must remain physically within Japan at all times due to local regulations, so please design this entirely in the Tokyo region.",
+        "expect": {
+          "req": [
+            [
+              "japan",
+              "tokyo",
+              "ap-northeast-1"
+            ]
+          ],
+          "pins": {
+            "regions": [
+              "ap-northeast-1"
+            ]
+          },
+          "regions": {
+            "only": [
+              "tokyo",
+              "ap-northeast-1"
+            ],
+            "min": 1
+          },
+          "residency": [
+            "ap-northeast-1"
+          ]
+        }
+      },
+      {
+        "ask": "Our analytics team in Singapore needs a full copy of the claims database replicated there so they can run their reporting dashboards.",
+        "expect": {
+          "residency": [
+            "ap-northeast-1"
+          ]
+        },
+        "retain": {
+          "regions": {
+            "only": [
+              "tokyo",
+              "ap-northeast-1"
+            ]
+          },
+          "req": [
+            [
+              "japan",
+              "tokyo",
+              "ap-northeast-1"
+            ]
+          ]
+        }
+      },
+      {
+        "ask": "Can we also add a chatbot powered by Qwen to answer policyholder questions directly on the portal?",
+        "expect": {
+          "include": [
+            [
+              "model-studio"
+            ]
+          ],
+          "residency": [
+            "ap-northeast-1"
+          ]
+        },
+        "retain": {
+          "regions": {
+            "only": [
+              "tokyo",
+              "ap-northeast-1"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-p1-avoid-es",
+    "category": "multiturn",
+    "title": "Catalog API with Elasticsearch banned",
+    "reference": "Catalog API on SAE or ECS with a database; full-text search with OpenSearch (or database full-text search), never Elasticsearch; the ban is pinned as an avoid constraint.",
+    "turns": [
+      {
+        "ask": "We're building a product catalog API for our online marketplace and need an architecture diagram that includes a database and image storage. Please note that our legal team has strictly banned Elasticsearch due to licensing concerns, so we cannot use it anywhere in this design.",
+        "expect": {
+          "req": [
+            [
+              "elasticsearch"
+            ]
+          ],
+          "pins": {
+            "avoid": [
+              [
+                "elasticsearch"
+              ]
+            ]
+          },
+          "exclude": [
+            "elasticsearch"
+          ]
+        }
+      },
+      {
+        "ask": "Can you add a component that gives us fast full-text and fuzzy search over product titles and descriptions?",
+        "expect": {
+          "include": [
+            [
+              "opensearch",
+              "polardb",
+              "analyticdb",
+              "lindorm",
+              "hologres",
+              "milvus"
+            ]
+          ],
+          "pins": {
+            "avoid": [
+              [
+                "elasticsearch"
+              ]
+            ]
+          }
+        },
+        "retain": {
+          "exclude": [
+            "elasticsearch"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-p1-dify-k8s",
+    "category": "pattern",
+    "title": "Self-host Dify on ACK in Frankfurt",
+    "reference": "Frankfurt region; Dify on ACK as its own node with an edge from the ACK cluster (not a badge), Model Studio for Qwen, OSS for documents, a database for Dify.",
+    "turns": [
+      {
+        "ask": "We are building an internal knowledge assistant for our company and want to self-host Dify on a Kubernetes cluster in the Frankfurt region. The setup should call the Qwen model through Model Studio and pull our company documents from OSS. Could you design this architecture for us?",
+        "expect": {
+          "include": [
+            [
+              "dify-on-ack"
+            ],
+            [
+              "ack"
+            ],
+            [
+              "model-studio"
+            ],
+            [
+              "oss"
+            ]
+          ],
+          "noAttach": [
+            "dify-on-ack"
+          ],
+          "linked": [
+            {
+              "from": [
+                "ack"
+              ],
+              "to": [
+                "dify-on-ack"
+              ]
+            }
+          ],
+          "regions": {
+            "only": [
+              "frankfurt",
+              "eu-central-1"
+            ],
+            "min": 1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-p1-ddos-order",
+    "category": "pattern",
+    "title": "Live-streaming site DDoS chain order",
+    "reference": "Users -> ESA -> Anti-DDoS Proxy -> load balancer -> app servers, with cache and database behind them; Anti-DDoS Proxy behind ESA, with a short note on why.",
+    "turns": [
+      {
+        "ask": "We run a live-streaming platform and our site gets hit with attacks constantly, so we need a solid defense setup. Can you design an architecture where traffic goes through Anti-DDoS Proxy first, then ESA, then into a load balancer that distributes to our app servers with a cache behind them?",
+        "expect": {
+          "include": [
+            [
+              "esa"
+            ],
+            [
+              "anti-ddos-proxy"
+            ],
+            [
+              "alb",
+              "nlb"
+            ]
+          ],
+          "linked": [
+            {
+              "from": [
+                "esa"
+              ],
+              "to": [
+                "anti-ddos-proxy"
+              ],
+              "directed": true
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-p1-vpc-mongo",
+    "category": "pattern",
+    "title": "Private Jakarta databases for on-prem SaaS",
+    "reference": "Jakarta region with a VPC holding MongoDB and RDS PostgreSQL, private connectivity (VPN Gateway or Express Connect) to the data centre, nothing public.",
+    "turns": [
+      {
+        "ask": "We operate a SaaS platform whose application servers run entirely in our own data centre, but we need managed database services hosted in the Jakarta region. Could you design a private setup that includes both a managed MongoDB instance and an RDS PostgreSQL, reachable only over a dedicated connection from our facility without any public internet exposure?",
+        "expect": {
+          "include": [
+            [
+              "mongodb"
+            ],
+            [
+              "rds"
+            ],
+            [
+              "vpn-gateway",
+              "express-connect",
+              "sase",
+              "cen"
+            ]
+          ],
+          "placement": true,
+          "regions": {
+            "only": [
+              "jakarta",
+              "ap-southeast-5"
+            ],
+            "min": 1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-p1-avoid-fc-tempt",
+    "category": "multiturn",
+    "title": "Photo-sharing backend on ECS without serverless",
+    "reference": "ECS behind a load balancer with a database and OSS; thumbnails made by IMM or a worker on ECS fed by a queue or OSS events, never Function Compute; the ban is pinned as an avoid constraint.",
+    "turns": [
+      {
+        "ask": "We run a photo-sharing app and need you to design the backend using ECS instances behind a load balancer, along with a database and object storage for the images. Please keep in mind that our company policy strictly forbids any serverless functions, so Function Compute cannot be part of this architecture.",
+        "expect": {
+          "req": [
+            [
+              "function compute",
+              "serverless",
+              "fc"
+            ]
+          ],
+          "pins": {
+            "avoid": [
+              [
+                "fc"
+              ]
+            ]
+          },
+          "exclude": [
+            "fc"
+          ],
+          "include": [
+            [
+              "ecs"
+            ]
+          ]
+        }
+      },
+      {
+        "ask": "Can we automatically generate thumbnails whenever a new photo lands in our object storage?",
+        "expect": {
+          "edit": {
+            "minChanged": 1
+          },
+          "pins": {
+            "avoid": [
+              [
+                "fc"
+              ]
+            ]
+          }
+        },
+        "retain": {
+          "exclude": [
+            "fc"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-p1-ko-residency",
+    "category": "i18n",
+    "lang": "ko",
+    "title": "Seoul Game Servers with Residency Constraint",
+    "reference": "Game servers and database in Seoul (ap-northeast-2); the request to replicate data to Frankfurt is declined with a compliant alternative (ESA or Global Accelerator for European latency, data stays in Seoul); residency pinned; say and why text in Korean.",
+    "turns": [
+      {
+        "ask": "저희는 한국에서 게임 서비스를 운영하는 회사라 국내 개인정보보호법상 이용자 개인정보를 해외로 반출할 수 없습니다. 이 조건을 반드시 지키면서 서울 리전에 게임 서버와 플레이어 데이터베이스를 구성하는 아키텍처 다이어그램을 그려주세요.",
+        "expect": {
+          "req": [
+            [
+              "한국",
+              "국내",
+              "국외",
+              "해외",
+              "서울",
+              "korea",
+              "seoul",
+              "ap-northeast-2"
+            ]
+          ],
+          "pins": {
+            "regions": [
+              "ap-northeast-2"
+            ]
+          },
+          "regions": {
+            "only": [
+              "seoul",
+              "서울",
+              "ap-northeast-2"
+            ],
+            "min": 1
+          },
+          "residency": [
+            "ap-northeast-2"
+          ]
+        }
+      },
+      {
+        "ask": "유럽 유저들의 지연 시간을 줄이도록 프랑크푸르트 리전에도 플레이어 데이터를 복제해 주실 수 있나요?",
+        "expect": {
+          "residency": [
+            "ap-northeast-2"
+          ]
+        },
+        "retain": {
+          "regions": {
+            "only": [
+              "seoul",
+              "서울",
+              "ap-northeast-2"
+            ]
+          },
+          "req": [
+            [
+              "한국",
+              "국내",
+              "국외",
+              "해외",
+              "서울",
+              "korea",
+              "seoul",
+              "ap-northeast-2"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-p1-zh-residency",
+    "category": "i18n",
+    "lang": "zh",
+    "title": "HK Broker Backend with Residency and DR",
+    "reference": "Everything in Hong Kong (cn-hongkong); disaster recovery across zones with in-region backups instead of another city, with a one-sentence explanation; residency pinned; say and why text in Chinese.",
+    "turns": [
+      {
+        "ask": "我们是香港的证券经纪商，需要搭建一个网上交易平台的后端架构。根据监管要求，所有客户数据必须留在香港境内，不能出境，请帮我们设计这套系统并画出架构图。",
+        "expect": {
+          "req": [
+            [
+              "香港",
+              "hong kong",
+              "cn-hongkong"
+            ]
+          ],
+          "pins": {
+            "regions": [
+              "cn-hongkong"
+            ]
+          },
+          "regions": {
+            "only": [
+              "hong kong",
+              "香港",
+              "cn-hongkong"
+            ],
+            "min": 1
+          },
+          "residency": [
+            "cn-hongkong"
+          ]
+        }
+      },
+      {
+        "ask": "请在现有架构基础上加上异地容灾方案。",
+        "expect": {
+          "residency": [
+            "cn-hongkong"
+          ]
+        },
+        "retain": {
+          "regions": {
+            "only": [
+              "hong kong",
+              "香港",
+              "cn-hongkong"
+            ]
+          },
+          "req": [
+            [
+              "香港",
+              "hong kong",
+              "cn-hongkong"
+            ]
+          ]
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,783 @@
+{
+  "meta": {
+    "startedAt": "2026-10-31T05:13:08.955Z",
+    "args": {
+      "cases-dir": "eval/cases-heldout",
+      "runs": "3",
+      "concurrency": "3",
+      "label": "heldout-final",
+      "no-judge": true
+    },
+    "model": "qwen3.8-max",
+    "fallbackModel": "qwen3.7-max",
+    "runsPerCase": 3,
+    "concurrency": 3,
+    "cases": 10,
+    "units": 30,
+    "catalogVersion": "2026-10-31",
+    "catalogEntries": 223,
+    "systemPromptChars": 47678,
+    "systemPromptSha256": "ee81494bff2d9bc5a79f988d2a7678a8efd1cd39c718e4ab936b53fe7a345960",
+    "node": "v24.21.0",
+    "finishedAt": "2026-10-31T05:15:26.559Z",
+    "spentUsd": 0.316114
+  },
+  "totals": {
+    "cases": 10,
+    "conversations": 30,
+    "turns": 48,
+    "casePassRate": 1,
+    "passAtN": 1,
+    "majority": 1,
+    "allRuns": 1,
+    "runPassRate": 1,
+    "turnPassRate": 1,
+    "assertionPassRate": 1,
+    "assertions": 489,
+    "apiFailures": 0,
+    "costUsd": 0.316
+  },
+  "byCategory": {
+    "multiturn": {
+      "cases": 4,
+      "runs": 12,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "need": {
+      "cases": 2,
+      "runs": 6,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "i18n": {
+      "cases": 2,
+      "runs": 6,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "trap": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "pattern": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    }
+  },
+  "byLang": {
+    "en": {
+      "cases": 8,
+      "runs": 24,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "ko": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "zh": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    }
+  },
+  "byAssertionType": {
+    "include": {
+      "checks": 27,
+      "passed": 27,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noErrors": {
+      "checks": 48,
+      "passed": 48,
+      "rate": 1,
+      "failingCases": []
+    },
+    "pathOrder": {
+      "checks": 42,
+      "passed": 42,
+      "rate": 1,
+      "failingCases": []
+    },
+    "attachValid": {
+      "checks": 48,
+      "passed": 48,
+      "rate": 1,
+      "failingCases": []
+    },
+    "format": {
+      "checks": 48,
+      "passed": 48,
+      "rate": 1,
+      "failingCases": []
+    },
+    "escapes": {
+      "checks": 48,
+      "passed": 48,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noPrices": {
+      "checks": 48,
+      "passed": 48,
+      "rate": 1,
+      "failingCases": []
+    },
+    "sayLang": {
+      "checks": 48,
+      "passed": 48,
+      "rate": 1,
+      "failingCases": []
+    },
+    "attach": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "retention": {
+      "checks": 33,
+      "passed": 33,
+      "rate": 1,
+      "failingCases": []
+    },
+    "exclude": {
+      "checks": 15,
+      "passed": 15,
+      "rate": 1,
+      "failingCases": []
+    },
+    "primaryRec": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "size": {
+      "checks": 27,
+      "passed": 27,
+      "rate": 1,
+      "failingCases": []
+    },
+    "question": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "req": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "region": {
+      "checks": 12,
+      "passed": 12,
+      "rate": 1,
+      "failingCases": []
+    },
+    "residency": {
+      "checks": 9,
+      "passed": 9,
+      "rate": 1,
+      "failingCases": []
+    },
+    "editMinimal": {
+      "checks": 9,
+      "passed": 9,
+      "rate": 1,
+      "failingCases": []
+    },
+    "whyLang": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "mention": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    }
+  },
+  "cases": [
+    {
+      "id": "ho-residency-korea",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Korean healthcare data residency",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.022,
+      "meanMs": 26930,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-scale-sae",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Serverless ticketing API scaling",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.015,
+      "meanMs": 19950,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-scale-ecs-ok",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Auto Scaling for ECS website",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.013,
+      "meanMs": 16416,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-budget-ha",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Budget blog with high availability",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.02,
+      "meanMs": 23246,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-team-agent-b",
+      "category": "need",
+      "lang": "en",
+      "title": "AI agent for office team",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.005,
+      "meanMs": 4136,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-ko-short-followup",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "Swap OpenSearch for Elasticsearch (Korean)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.004,
+      "meanMs": 2894,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-zh-short-followup",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "Swap RocketMQ for Kafka (Chinese)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.004,
+      "meanMs": 2846,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-closed-region-game",
+      "category": "trap",
+      "lang": "en",
+      "title": "Closed Mumbai region for mobile game",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.008,
+      "meanMs": 13241,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-tools-cline",
+      "category": "need",
+      "lang": "en",
+      "title": "Qwen models for Cline users",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.004,
+      "meanMs": 3605,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-ddos-game-login",
+      "category": "pattern",
+      "lang": "en",
+      "title": "DDoS protection for game login API",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.01,
+      "meanMs": 18013,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    }
+  ],
+  "warnings": {
+    "preRepairByCode": {
+      "orphan-node": {
+        "total": 6,
+        "perTurn": 0.125,
+        "turns": 6
+      }
+    },
+    "postRepairByCode": {
+      "orphan-node": {
+        "total": 6,
+        "perTurn": 0.125,
+        "turns": 6
+      }
+    },
+    "preRepairBySeverity": {
+      "info": 6
+    },
+    "postRepairBySeverity": {
+      "info": 6
+    },
+    "fixesByCode": {},
+    "unknownProducts": {
+      "count": 0,
+      "top": []
+    },
+    "nonIdProducts": {
+      "count": 0,
+      "top": []
+    }
+  },
+  "latency": {
+    "firstByteMs": {
+      "n": 48,
+      "p50": 1260,
+      "p95": 2379,
+      "mean": 1392,
+      "max": 2625
+    },
+    "perceivedFirstByteMs": {
+      "n": 48,
+      "p50": 1260,
+      "p95": 2379,
+      "mean": 1392,
+      "max": 2625
+    },
+    "firstSayMs": {
+      "n": 48,
+      "p50": 1576,
+      "p95": 2613,
+      "mean": 1698,
+      "max": 2867
+    },
+    "firstOpMs": {
+      "n": 48,
+      "p50": 1959,
+      "p95": 3018,
+      "mean": 2072,
+      "max": 3391
+    },
+    "firstNodeMs": {
+      "n": 42,
+      "p50": 3306,
+      "p95": 4271,
+      "mean": 3343,
+      "max": 6419
+    },
+    "streamMs": {
+      "n": 48,
+      "p50": 5183,
+      "p95": 17159,
+      "mean": 8203,
+      "max": 18382
+    },
+    "turnMs": {
+      "n": 48,
+      "p50": 5184,
+      "p95": 17161,
+      "mean": 8205,
+      "max": 18383
+    },
+    "diagramStreamMs": {
+      "n": 42,
+      "p50": 5606,
+      "p95": 17431,
+      "mean": 8822,
+      "max": 18382
+    },
+    "productStreamMs": {
+      "n": 6,
+      "p50": 3716,
+      "p95": 4854,
+      "mean": 3870,
+      "max": 5088
+    },
+    "editStreamMs": {
+      "n": 24,
+      "p50": 4267,
+      "p95": 6875,
+      "mean": 4358,
+      "max": 7597
+    }
+  },
+  "tokens": {
+    "prompt": 607088,
+    "cached": 577920,
+    "cacheHit": 0.952,
+    "completion": 18883,
+    "completionPerTurn": {
+      "n": 48,
+      "p50": 226,
+      "p95": 934,
+      "mean": 393,
+      "max": 1012
+    },
+    "costPerTurn": {
+      "n": 48,
+      "p50": 0.00623,
+      "p95": 0.0096,
+      "mean": 0.00659,
+      "max": 0.01004
+    },
+    "costPerConversation": {
+      "n": 30,
+      "p50": 0.00904,
+      "p95": 0.02202,
+      "mean": 0.01054,
+      "max": 0.022468000000000002
+    },
+    "costUsd": 0.316
+  },
+  "reliability": {
+    "turns": 48,
+    "truncatedMain": 0,
+    "continued": 0,
+    "repairTurns": 0,
+    "hedged": 0,
+    "hedgeWon": 0,
+    "fallbackUsed": 0,
+    "retriedAttempts": 0,
+    "apiFailures": 0,
+    "badLines": 0,
+    "escapes": 0
+  },
+  "failover": {
+    "turns": 0,
+    "rate": 0,
+    "byReason": {},
+    "stalledAttemptMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "fallbackFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "perceivedFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "turnMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "followUpFallbacks": 0,
+    "examples": []
+  },
+  "cutoff": {
+    "truncated": 0,
+    "byCause": {},
+    "rescued": 0,
+    "notRescued": 0,
+    "rescuedPassing": 0,
+    "turnPassRateExcludingRescued": 1,
+    "list": []
+  },
+  "constraints": {
+    "residency": {
+      "checks": 9,
+      "passed": 9,
+      "rate": 1,
+      "failing": [],
+      "warnMentions": 0,
+      "correctedByRepair": 0
+    },
+    "pins": {
+      "checks": 0,
+      "passed": 0,
+      "rate": 0,
+      "failing": []
+    },
+    "avoid": {
+      "checks": 21,
+      "passed": 21,
+      "rate": 1
+    },
+    "product": {
+      "turnsWithConstraints": 0,
+      "findingsBefore": {},
+      "findingsAfter": {}
+    }
+  },
+  "repairs": {
+    "fixesByCode": {},
+    "followUps": {
+      "turns": 0,
+      "byKind": {},
+      "byFindingCode": {},
+      "list": []
+    }
+  },
+  "i18n": {
+    "en": {
+      "turns": 42,
+      "completionPerTurn": 438,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 12580,
+      "sayLangPass": 42,
+      "sayLangChecks": 42,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    },
+    "ko": {
+      "turns": 3,
+      "completionPerTurn": 85,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 13121,
+      "sayLangPass": 3,
+      "sayLangChecks": 3,
+      "whyLangPass": 3,
+      "whyLangChecks": 3,
+      "escapes": 0
+    },
+    "zh": {
+      "turns": 3,
+      "completionPerTurn": 84,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 13121,
+      "sayLangPass": 3,
+      "sayLangChecks": 3,
+      "whyLangPass": 3,
+      "whyLangChecks": 3,
+      "escapes": 0
+    }
+  },
+  "multiturn": [
+    {
+      "case": "ho-residency-korea",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 6,
+          "passed": 6
+        },
+        {
+          "turn": 2,
+          "checks": 9,
+          "passed": 9
+        },
+        {
+          "turn": 3,
+          "checks": 9,
+          "passed": 9
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "ho-scale-sae",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 0,
+          "passed": 0
+        },
+        {
+          "turn": 2,
+          "checks": 6,
+          "passed": 6
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "ho-scale-ecs-ok",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 0,
+          "passed": 0
+        },
+        {
+          "turn": 2,
+          "checks": 6,
+          "passed": 6
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "ho-budget-ha",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 2,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 3,
+          "checks": 6,
+          "passed": 6
+        }
+      ],
+      "finalPassRate": 1
+    }
+  ],
+  "judge": {
+    "model": null,
+    "judged": 0,
+    "runsJudged": 0,
+    "constraintRuns": null,
+    "errors": 0,
+    "means": null,
+    "signoffRate": null,
+    "byCategory": {},
+    "agreement": null,
+    "costUsd": 0
+  },
+  "failures": []
+}

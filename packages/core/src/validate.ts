@@ -21,7 +21,7 @@ import type { ApplyCtx } from './reducer.ts';
 import { LANE_ORDER, checkLifecycle, placementOf, successorWarning } from './catalog.ts';
 import type { PlaceKind } from './catalog.ts';
 import { DEFAULT_REGION, isOpenRegion, regionLabel, regionMentions, resolveRegions } from './regions.ts';
-import { allowedRegions } from './constraints.ts';
+import { allowedRegions, expandAvoid, familyOfWord } from './constraints.ts';
 
 export { normalizeId };
 export { checkConstraints, constraintChecker } from './constraints.ts';
@@ -250,20 +250,44 @@ export function resolveProduct(catalog: Catalog, v: unknown, ids: string[]): { e
   return { entry, warnings };
 }
 
-/** Catalog ids for a req op's avoid list: names, aliases and ids resolve through the catalog; unknown ones are dropped. */
-function avoidIds(v: unknown, catalog: Catalog, warnings: Warning[]): string[] {
+/**
+ * Catalog ids for a req op's avoid list: names, aliases and ids resolve through the catalog; unknown ones are dropped.
+ * A family word ("kubernetes", "k8s", "쿠버네티스") or a family's root product (ack) expands to every member of the family,
+ * so "no Kubernetes" also rules out ACS, ACK One, ACK Serverless, ASM and Dify on ACK.
+ */
+function avoidIds(v: unknown, catalog: Catalog, warnings: Warning[], what = 'avoid'): string[] {
   const list = Array.isArray(v) ? v : typeof v === 'string' ? v.split(/[,;]/) : [];
-  const out: string[] = [];
+  const found: string[] = [];
   for (const x of list.slice(0, 60)) {
     const q = typeof x === 'string' ? x.trim() : '';
     if (!q) continue;
-    const e = entryOf(catalog, q) ?? entryOf(catalog, q.toLowerCase().replace(/[_\s]+/g, '-'));
-    if (!e) {
-      warnings.push(W('unknown-product', [], `req avoid '${clip(q)}' is not in the catalog; dropped`, 'info', true));
+    if (familyOfWord(q)) {
+      found.push(q.normalize('NFKC').toLowerCase());
       continue;
     }
-    if (!out.includes(e.id) && out.length < REQ_LIMITS.avoid) out.push(e.id);
+    const e = entryOf(catalog, q) ?? entryOf(catalog, q.toLowerCase().replace(/[_\s]+/g, '-'));
+    if (!e) {
+      warnings.push(W('unknown-product', [], `req ${what} '${clip(q)}' is not in the catalog; dropped`, 'info', true));
+      continue;
+    }
+    found.push(e.id);
   }
+  return expandAvoid(catalog, found).slice(0, REQ_LIMITS.avoid);
+}
+
+/** What a req op lifts: 'regions' (every region pin) or catalog ids to drop from the avoid lists (families expanded). */
+function liftIds(v: unknown, catalog: Catalog, warnings: Warning[]): string[] {
+  const list = Array.isArray(v) ? v : typeof v === 'string' ? v.split(/[,;]/) : [];
+  const out: string[] = [];
+  const rest: string[] = [];
+  for (const x of list.slice(0, 60)) {
+    const q = typeof x === 'string' ? x.trim() : '';
+    if (!q) continue;
+    if (/^(?:regions?|residency|data[\s_-]?residency)$/i.test(q)) {
+      if (!out.includes('regions')) out.push('regions');
+    } else rest.push(q);
+  }
+  for (const id of avoidIds(rest, catalog, warnings, 'lifts')) if (!out.includes(id)) out.push(id);
   return out;
 }
 
@@ -318,8 +342,10 @@ export function validateOp(raw: unknown, catalog: Catalog, ctx?: ValidateCtx): V
       const op: Extract<Op, { t: 'req' }> = { t: 'req', text: s };
       const regions = reqRegionIds(r.regions ?? r.region, warnings);
       const avoid = avoidIds(r.avoid, catalog, warnings);
+      const lifts = liftIds(r.lifts ?? r.lift, catalog, warnings);
       if (regions.length) op.regions = regions;
       if (avoid.length) op.avoid = avoid;
+      if (lifts.length) op.lifts = lifts;
       return { op, warnings };
     }
     case 'plan': {
@@ -806,9 +832,10 @@ function attachFixes(g: Graph, catalog: Catalog, keepInline: ReadonlySet<string>
     const up = list.find((a) => a.dir === 'in' && hostFor(e, a.other, n.id));
     return (down ?? up)?.other;
   };
+  const hostsOf = (n: GraphNode, e: CatalogEntry): string[] => Object.values(g.nodes).filter((h) => hostFor(e, h.id, n.id)).map((h) => h.id);
   const onlyHost = (n: GraphNode, e: CatalogEntry): string | undefined => {
-    const all = Object.values(g.nodes).filter((h) => hostFor(e, h.id, n.id));
-    return all.length === 1 ? all[0].id : undefined;
+    const all = hostsOf(n, e);
+    return all.length === 1 ? all[0] : undefined;
   };
   for (const n of Object.values(g.nodes)) {
     const e = entryOf(catalog, n.product);
@@ -830,7 +857,8 @@ function attachFixes(g: Graph, catalog: Catalog, keepInline: ReadonlySet<string>
       const severity: Severity = host ? 'warn' : 'error';
       const target = e && e.attach ? (adjacentHost(n, e) ?? onlyHost(n, e)) : undefined;
       if (target) out.push({ id: n.id, action: 'attach', host: target, code: 'attach-host-missing', severity, msg });
-      else if (attachment) out.push({ id: n.id, action: 'drop', host: null, code: 'attach-host-missing', severity, msg });
+      // Several possible hosts and none chosen: keep the node on its own rather than delete it; only a diagram with no host at all loses it.
+      else if (attachment) out.push({ id: n.id, action: e && hostsOf(n, e).length > 1 ? 'clear' : 'drop', host: null, code: 'attach-host-missing', severity, msg });
       else if (host && !host.attachTo) out.push({ id: n.id, action: 'edge', host: host.id, code: 'attach-host-missing', severity, msg });
       else out.push({ id: n.id, action: 'clear', host: null, code: 'attach-host-missing', severity, msg });
       continue;
@@ -843,7 +871,9 @@ function attachFixes(g: Graph, catalog: Catalog, keepInline: ReadonlySet<string>
       // An attachment drawn on its own with no edges (its host was removed or replaced): it means nothing without one.
       const only = onlyHost(n, e);
       const msg = `'${n.id}' (${e.id}) is an attachment with no host`;
-      out.push(only ? { id: n.id, action: 'attach', host: only, code: 'attach-host-missing', severity: 'warn', msg } : { id: n.id, action: 'drop', host: null, code: 'attach-host-missing', severity: 'warn', msg });
+      if (only) out.push({ id: n.id, action: 'attach', host: only, code: 'attach-host-missing', severity: 'warn', msg });
+      else if (!hostsOf(n, e).length) out.push({ id: n.id, action: 'drop', host: null, code: 'attach-host-missing', severity: 'warn', msg });
+      // several candidate hosts: it stays on its own
     }
   }
   return out;
@@ -918,8 +948,8 @@ function structuralIssues(g: Graph, catalog: Catalog): Warning[] {
   return out;
 }
 
-/** Semantic checks of a whole graph. Nothing is changed; every warning has repaired: false. */
-export function checkGraph(graph: Graph, catalog: Catalog): Warning[] {
+/** Semantic checks of a whole graph. Nothing is changed; every warning has repaired: false. opts.keepInline as for repairGraph. */
+export function checkGraph(graph: Graph, catalog: Catalog, opts: Pick<RepairOptions, 'keepInline'> = {}): Warning[] {
   const g = shape(graph);
   const out: Warning[] = structuralIssues(g, catalog);
   for (const m of groupNestingMoves(g)) out.push(W('containment', [m.id], m.msg, m.severity));
@@ -933,7 +963,7 @@ export function checkGraph(graph: Graph, catalog: Catalog): Warning[] {
     const into = s.spanning ? ` that belong to '${s.spanning}'` : '';
     out.push(W('zone-replicas', ids, `per-zone ${s.product} nodes ${s.members.join(', ')}${into}; draw one node with zones [${[...new Set(s.letters)].sort().join(', ')}]`, 'warn'));
   }
-  for (const f of attachFixes(g, catalog)) out.push(W(f.code, f.host && f.action === 'attach' ? [f.id, f.host] : [f.id], f.msg, f.severity));
+  for (const f of attachFixes(g, catalog, new Set(opts.keepInline ?? []))) out.push(W(f.code, f.host && f.action === 'attach' ? [f.id, f.host] : [f.id], f.msg, f.severity));
   for (const e of dnsDataEdges(g, catalog)) {
     out.push(W('dns-in-path', [e.id], `edge '${e.id}' (${e.from} -> ${e.to}) puts DNS in the data path; DNS should be a 'resolve' edge`, 'warn'));
   }
@@ -1123,7 +1153,7 @@ function reorderEdgeChains(g: Graph, catalog: Catalog, fixes: Warning[], dropEdg
     for (const [e, a, b] of plan) g.edges[e.id] = makeEdge({ ...e, from: a, to: b });
     for (const e of entry) g.edges[e.id] = makeEdge({ ...e, to: sorted[0] });
     for (const e of tail) g.edges[e.id] = makeEdge({ ...e, from: sorted[sorted.length - 1] });
-    for (const e of [...entry, ...tail]) {
+    for (const e of [...entry, ...plan.map((x) => x[0]), ...tail]) {
       const now = g.edges[e.id];
       if (now && Object.values(g.edges).some((f) => f.id !== now.id && f.from === now.from && f.to === now.to)) dropEdge(now.id);
     }
@@ -1241,18 +1271,21 @@ export function repairGraph(graph: Graph, catalog: Catalog, opts: RepairOptions 
     }
   }
 
-  // 2. group nesting
-  for (let round = 0; round < 4; round++) {
-    const moves = groupNestingMoves(g);
-    if (!moves.length) break;
-    for (const m of moves) {
-      const grp = g.groups[m.id];
-      if (!grp || grp.parent === m.target) continue;
-      if (m.target !== null && chainOf(g, m.target).some((x) => x.id === m.id)) continue; // would cycle
-      g.groups[m.id] = { ...grp, parent: m.target };
-      fixes.push(W('containment', [m.id], `${m.msg}; moved to ${m.target ? `'${m.target}'` : 'the root'}`, m.severity, true));
+  // 2. group nesting (run again after repair (c) creates a VPC: zone and subnet groups outside every VPC go into it in the same pass)
+  const nestGroups = (): void => {
+    for (let round = 0; round < 4; round++) {
+      const moves = groupNestingMoves(g);
+      if (!moves.length) break;
+      for (const m of moves) {
+        const grp = g.groups[m.id];
+        if (!grp || grp.parent === m.target) continue;
+        if (m.target !== null && chainOf(g, m.target).some((x) => x.id === m.id)) continue; // would cycle
+        g.groups[m.id] = { ...grp, parent: m.target };
+        fixes.push(W('containment', [m.id], `${m.msg}; moved to ${m.target ? `'${m.target}'` : 'the root'}`, m.severity, true));
+      }
     }
-  }
+  };
+  nestGroups();
 
   // 3. per-zone replicas -> one node with zones[] (one set at a time, since a merge can expose the next one)
   for (let round = 0; round < 12; round++) {
@@ -1348,7 +1381,9 @@ export function repairGraph(graph: Graph, catalog: Catalog, opts: RepairOptions 
   }
 
   // 4b. VPC resources drawn without any VPC group get one (and a region group when there is none)
+  const groupCount = Object.keys(g.groups).length;
   ensureVpc(g, catalog, opts, fixes);
+  if (Object.keys(g.groups).length !== groupCount) nestGroups();
 
   // 5. containment by catalog scope
   for (let round = 0; round < 3; round++) {
@@ -1397,5 +1432,5 @@ export function repairGraph(graph: Graph, catalog: Catalog, opts: RepairOptions 
   }
 
   const out: Graph = { groups: { ...g.groups }, nodes: { ...g.nodes }, edges: { ...g.edges }, recs: g.recs };
-  return { graph: out, warnings: [...fixes, ...checkGraph(out, catalog)], tombstones };
+  return { graph: out, warnings: [...fixes, ...checkGraph(out, catalog, { keepInline })], tombstones };
 }

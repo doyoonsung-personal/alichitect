@@ -777,6 +777,7 @@
     },
     {
       "id": "dify-on-ack",
+      "family": "kubernetes",
       "name": "Dify on ACK (tech solution)",
       "short": "Dify on ACK",
       "aliases": ["Dify","Dify on Alibaba Cloud"],

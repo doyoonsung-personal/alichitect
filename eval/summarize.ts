@@ -65,14 +65,46 @@ export interface Summary {
     unknownProducts: { count: number; top: Array<[string, number]> };
     nonIdProducts: { count: number; top: Array<[string, number]> }; // product strings the model wrote that are not catalog ids (aliases, invented)
   };
-  latency: { firstSayMs: Dist; firstOpMs: Dist; firstNodeMs: Dist; streamMs: Dist; turnMs: Dist; diagramStreamMs: Dist; productStreamMs: Dist; editStreamMs: Dist };
+  latency: {
+    /** First token of the main-stream attempt that produced the result. */
+    firstByteMs: Dist;
+    /** First token as the user waits for it: failed attempts (stalls, errors) and backoff before the answering attempt included. */
+    perceivedFirstByteMs: Dist;
+    firstSayMs: Dist;
+    firstOpMs: Dist;
+    firstNodeMs: Dist;
+    streamMs: Dist;
+    turnMs: Dist;
+    diagramStreamMs: Dist;
+    productStreamMs: Dist;
+    editStreamMs: Dist;
+  };
   tokens: { prompt: number; cached: number; cacheHit: number; completion: number; completionPerTurn: Dist; costPerTurn: Dist; costPerConversation: Dist; costUsd: number };
   reliability: { turns: number; truncatedMain: number; continued: number; repairTurns: number; hedged: number; hedgeWon: number; fallbackUsed: number; retriedAttempts: number; apiFailures: number; badLines: number; escapes: number };
+  /** Main-stream failovers to the fallback model: how often, why, how long the stalled attempt took, how fast the fallback answered. */
+  failover: { turns: number; rate: number; byReason: Record<string, number>; stalledAttemptMs: Dist; fallbackFirstByteMs: Dist; perceivedFirstByteMs: Dist; turnMs: Dist; followUpFallbacks: number; examples: Array<{ case: string; run: number; turn: number; reasons: string[]; stalledMs: number; fallbackFirstByteMs: number | null }> };
+  /** Main streams that ended without done, by cause, and how many the continuation turn rescued. */
+  cutoff: { truncated: number; byCause: Record<string, number>; rescued: number; notRescued: number; rescuedPassing: number; turnPassRateExcludingRescued: number; list: Array<{ case: string; run: number; turn: number; cause: string; rescued: boolean; pass: boolean }> };
+  /** Machine-checked constraint compliance: the eval's residency and pinned-constraint assertions, and the product's own constraint findings. */
+  constraints: {
+    residency: { checks: number; passed: number; rate: number; failing: Array<{ case: string; run: number; turn: number; detail: string }>; warnMentions: number; correctedByRepair: number; /** The independent scan (residency-scan.ts); absent in summaries written before it existed. */ scan?: { checks: number; passed: number; failing: Array<{ case: string; run: number; turn: number; detail: string }> } };
+    pins: { checks: number; passed: number; rate: number; failing: Array<{ case: string; run: number; turn: number; name: string; detail: string }> };
+    avoid: { checks: number; passed: number; rate: number };
+    product: { turnsWithConstraints: number; findingsBefore: Record<string, { total: number; turns: number; error: number }>; findingsAfter: Record<string, { total: number; turns: number; error: number }> };
+  };
+  /** Deterministic repairs (validator fixes) by code, and the single LLM follow-up turn by trigger. */
+  repairs: {
+    fixesByCode: Record<string, { total: number; turns: number }>;
+    followUps: { turns: number; byKind: Record<string, number>; byFindingCode: Record<string, number>; list: Array<{ case: string; run: number; turn: number; kind: string; model: string; findings: string[]; pass: boolean }> };
+  };
   i18n: Record<string, { turns: number; completionPerTurn: number | null; ratioVsEnglish: number | null; promptPerTurn: number | null; sayLangPass: number; sayLangChecks: number; whyLangPass: number; whyLangChecks: number; escapes: number }>;
   multiturn: Array<{ case: string; turns: number; perTurnRetention: Array<{ turn: number; checks: number; passed: number }>; finalPassRate: number }>;
   judge: {
     model: string | null;
-    judged: number;
+    judged: number; // cases with a judged run (the lowest judged run per case feeds means, sign-off and the case rows)
+    runsJudged: number; // every judged run, including runs 2 and 3 of constraint cases
+    /** Every judged run of the constraint cases. */
+    constraintRuns: { runs: number; signoff: number | null; overall: number | null; noSignoff: Array<{ case: string; run: number; defects: string[] }> } | null;
     errors: number;
     means: { completeness: number; accuracy: number; rationality: number; readability: number; overall: number } | null;
     signoffRate: number | null;
@@ -100,6 +132,21 @@ function dist(xs: Array<number | null | undefined>): Dist {
   const mean = v.reduce((s, x) => s + x, 0) / v.length;
   const r = (x: number): number => (Math.abs(x) >= 100 ? Math.round(x) : Math.round(x * 1e5) / 1e5);
   return { n: v.length, p50: r(quantile(v, 0.5)), p95: r(quantile(v, 0.95)), mean: r(mean), max: v[v.length - 1] };
+}
+
+/** First token as the user waits for it: the failed attempts before the answering one, then its first token (retry backoff sleeps are not recorded per attempt and are left out). */
+export function perceivedFirstByte(t: TurnRecord): number | null {
+  if (t.stats.firstByteMs === null || t.stats.firstByteMs === undefined) return null;
+  const earlier = (t.stats.attempts ?? []).slice(0, -1).reduce((s, a) => s + (a.totalMs ?? 0), 0);
+  return earlier + t.stats.firstByteMs;
+}
+
+/** Why a main stream ended without done: a watchdog, a stream or network error, the token limit, or the model's own stop. */
+export function cutoffCause(t: TurnRecord): string {
+  const e = t.stats.error?.code;
+  if (e) return e;
+  if (t.stats.finishReason === 'length') return 'token-limit';
+  return t.stats.finishReason ? `model-stop (${t.stats.finishReason})` : 'unknown';
 }
 
 const turnKind = (t: TurnRecord): 'diagram' | 'product' | 'none' => (Object.keys(t.graph.nodes).length ? 'diagram' : (t.graph.recs ?? []).length ? 'product' : 'none');
@@ -150,7 +197,10 @@ export function summarize(runs: RunRecord[], judges: JudgeRecord[], meta: RunMet
   const nTurns = turns.length;
   const byCase = new Map<string, RunRecord[]>();
   for (const r of runs) byCase.set(r.case, [...(byCase.get(r.case) ?? []), r].sort((a, b) => a.run - b.run));
-  const judgeByCase = new Map(judges.filter((j) => j.scores).map((j) => [j.case, j]));
+  // The lowest judged run of each case feeds the case rows, means, sign-off and agreement (comparable with Phase 0, which
+  // judged run 1 only); every judged run of a constraint case feeds judge.constraintRuns.
+  const judgeByCase = new Map<string, JudgeRecord>();
+  for (const j of judges.filter((x) => x.scores).sort((a, b) => b.run - a.run)) judgeByCase.set(j.case, j);
 
   // assertions
   const byType: Summary['byAssertionType'] = {};
@@ -230,6 +280,8 @@ export function summarize(runs: RunRecord[], judges: JudgeRecord[], meta: RunMet
   const kind = (k: 'diagram' | 'product'): TurnRecord[] => turns.filter(({ t }) => turnKind(t) === k).map(({ t }) => t);
   const isEdit = (run: RunRecord, t: TurnRecord): boolean => t.index > 0 || !!allCases.find((c) => c.id === run.case)?.base;
   const lat = {
+    firstByteMs: dist(turns.map(({ t }) => t.stats.firstByteMs)),
+    perceivedFirstByteMs: dist(turns.map(({ t }) => perceivedFirstByte(t))),
     firstSayMs: dist(turns.map(({ t }) => t.stats.firstSayMs)),
     firstOpMs: dist(turns.map(({ t }) => t.stats.firstOpMs)),
     firstNodeMs: dist(turns.map(({ t }) => t.stats.firstNodeMs)),
@@ -259,6 +311,123 @@ export function summarize(runs: RunRecord[], judges: JudgeRecord[], meta: RunMet
     apiFailures: runs.filter((r) => r.apiError).length,
     badLines: turns.reduce((s, { t }) => s + (t.stats.badLines ?? 0), 0),
     escapes: turns.reduce((s, { t }) => s + (t.stats.escapes ?? 0), 0),
+  };
+
+  // failover: main-stream attempts on another model than the run's primary
+  const failed = turns.filter(({ t }) => (t.stats.attempts ?? []).some((a) => a.model !== meta.model));
+  const reasons: Record<string, number> = {};
+  for (const { t } of failed) for (const a of (t.stats.attempts ?? []).slice(0, -1)) if (a.error) reasons[a.error.code] = (reasons[a.error.code] ?? 0) + 1;
+  const stalled = failed.flatMap(({ t }) => (t.stats.attempts ?? []).filter((a) => a.model === meta.model && a.error).map((a) => a.totalMs));
+  const failover: Summary['failover'] = {
+    turns: failed.length,
+    rate: r3(rate(failed.length, nTurns)),
+    byReason: Object.fromEntries(Object.entries(reasons).sort((a, b) => b[1] - a[1])),
+    stalledAttemptMs: dist(stalled),
+    fallbackFirstByteMs: dist(failed.map(({ t }) => t.stats.firstByteMs)),
+    perceivedFirstByteMs: dist(failed.map(({ t }) => perceivedFirstByte(t))),
+    turnMs: dist(failed.map(({ t }) => t.stats.turnMs)),
+    followUpFallbacks: turns.filter(({ t }) => t.stats.repair && t.stats.repair.model !== meta.model).length,
+    examples: failed.slice(0, 20).map(({ run, t }) => ({
+      case: run.case,
+      run: run.run,
+      turn: t.index + 1,
+      reasons: (t.stats.attempts ?? []).slice(0, -1).map((a) => a.error?.code ?? 'ok'),
+      stalledMs: (t.stats.attempts ?? []).slice(0, -1).reduce((s, a) => s + (a.totalMs ?? 0), 0),
+      fallbackFirstByteMs: t.stats.firstByteMs ?? null,
+    })),
+  };
+
+  // cut-off main streams and the continuation turn
+  const cut = turns.filter(({ t }) => t.stats.truncated);
+  const isRescued = (t: TurnRecord): boolean => !!t.stats.truncated && !!t.stats.finalDone;
+  const notRescuedTurns = turns.filter(({ t }) => !isRescued(t));
+  const cutoff: Summary['cutoff'] = {
+    truncated: cut.length,
+    byCause: countBy(cut, ({ t }) => cutoffCause(t)),
+    rescued: cut.filter(({ t }) => isRescued(t)).length,
+    notRescued: cut.filter(({ t }) => !isRescued(t)).length,
+    rescuedPassing: cut.filter(({ t }) => isRescued(t) && t.pass).length,
+    turnPassRateExcludingRescued: r3(rate(notRescuedTurns.filter(({ t }) => t.pass).length, notRescuedTurns.length)),
+    list: cut.map(({ run, t }) => ({ case: run.case, run: run.run, turn: t.index + 1, cause: cutoffCause(t), rescued: isRescued(t), pass: t.pass })),
+  };
+
+  // constraint compliance
+  const resid = turns.flatMap(({ run, t }) => t.assertions.filter((a) => a.type === 'residency').map((a) => ({ run, t, a })));
+  const scanA = turns.flatMap(({ run, t }) => t.assertions.filter((a) => a.type === 'residencyScan').map((a) => ({ run, t, a })));
+  const pinsA = turns.flatMap(({ run, t }) => t.assertions.filter((a) => a.type === 'pins').map((a) => ({ run, t, a })));
+  const avoidA = turns.flatMap(({ t }) => t.assertions.filter((a) => (a.type === 'exclude' || a.type === 'retention') && a.name.startsWith('exclude ')));
+  const CONSTRAINT = new Set(['constraint-region', 'constraint-avoid']);
+  const findingTable = (pick: (t: TurnRecord) => Array<{ code: string; severity: string }>): Record<string, { total: number; turns: number; error: number }> => {
+    const o: Record<string, { total: number; turns: number; error: number }> = {};
+    for (const { t } of turns) {
+      const ws = pick(t).filter((w) => CONSTRAINT.has(w.code));
+      const seen = new Set<string>();
+      for (const w of ws) {
+        const e = (o[w.code] ??= { total: 0, turns: 0, error: 0 });
+        e.total++;
+        if (w.severity === 'error') e.error++;
+        if (!seen.has(w.code)) (seen.add(w.code), e.turns++);
+      }
+    }
+    return o;
+  };
+  const constraints: Summary['constraints'] = {
+    residency: {
+      checks: resid.length,
+      passed: resid.filter((x) => x.a.pass).length,
+      rate: r3(rate(resid.filter((x) => x.a.pass).length, resid.length)),
+      failing: resid.filter((x) => !x.a.pass).map((x) => ({ case: x.run.case, run: x.run.run, turn: x.t.index + 1, detail: (x.a.detail ?? '').slice(0, 300) })),
+      warnMentions: resid.filter((x) => (x.a.detail ?? '').includes('warn (not failed)')).length,
+      correctedByRepair: resid.filter((x) => (x.a.detail ?? '').includes('corrected by the repair turn')).length,
+      scan: {
+        checks: scanA.length,
+        passed: scanA.filter((x) => x.a.pass).length,
+        failing: scanA.filter((x) => !x.a.pass).map((x) => ({ case: x.run.case, run: x.run.run, turn: x.t.index + 1, detail: (x.a.detail ?? '').slice(0, 300) })),
+      },
+    },
+    pins: {
+      checks: pinsA.length,
+      passed: pinsA.filter((x) => x.a.pass).length,
+      rate: r3(rate(pinsA.filter((x) => x.a.pass).length, pinsA.length)),
+      failing: pinsA.filter((x) => !x.a.pass).map((x) => ({ case: x.run.case, run: x.run.run, turn: x.t.index + 1, name: x.a.name, detail: (x.a.detail ?? '').slice(0, 200) })),
+    },
+    avoid: { checks: avoidA.length, passed: avoidA.filter((a) => a.pass).length, rate: r3(rate(avoidA.filter((a) => a.pass).length, avoidA.length)) },
+    product: {
+      turnsWithConstraints: turns.filter(({ t }) => (t.constraints ?? []).length > 0).length,
+      findingsBefore: findingTable((t) => t.stats.warningsBefore ?? []),
+      findingsAfter: findingTable((t) => t.stats.warningsAfter ?? []),
+    },
+  };
+
+  // repairs: deterministic fixes and the LLM follow-up turn
+  const fixTable: Record<string, { total: number; turns: number }> = {};
+  for (const { t } of turns) {
+    const seen = new Set<string>();
+    for (const f of t.stats.fixes ?? []) {
+      const e = (fixTable[f.code] ??= { total: 0, turns: 0 });
+      e.total++;
+      if (!seen.has(f.code)) (seen.add(f.code), e.turns++);
+    }
+  }
+  const follow = turns.filter(({ t }) => t.stats.repair);
+  const byFinding: Record<string, number> = {};
+  for (const { t } of follow) for (const c of new Set((t.stats.repair?.findings ?? []).map((w) => w.code))) byFinding[c] = (byFinding[c] ?? 0) + 1;
+  const repairs: Summary['repairs'] = {
+    fixesByCode: Object.fromEntries(Object.entries(fixTable).sort((a, b) => b[1].total - a[1].total)),
+    followUps: {
+      turns: follow.length,
+      byKind: countBy(follow, ({ t }) => t.stats.repair!.kind),
+      byFindingCode: Object.fromEntries(Object.entries(byFinding).sort((a, b) => b[1] - a[1])),
+      list: follow.map(({ run, t }) => ({
+        case: run.case,
+        run: run.run,
+        turn: t.index + 1,
+        kind: t.stats.repair!.kind,
+        model: t.stats.repair!.model,
+        findings: (t.stats.repair!.findings ?? []).map((w) => `${w.code}/${w.severity}: ${w.msg}`.slice(0, 220)),
+        pass: t.pass,
+      })),
+    },
   };
 
   // languages: completion tokens per turn and the share of say/why checks that passed, with the ratio against the English twin
@@ -307,7 +476,7 @@ export function summarize(runs: RunRecord[], judges: JudgeRecord[], meta: RunMet
     .map((c) => {
       const rs = byCase.get(c.id) ?? [];
       const per = c.turns.map((_, i) => {
-        const as = rs.flatMap((r) => r.turns.filter((t) => t.index === i).flatMap((t) => t.assertions.filter((a) => a.type === 'retention' || a.type === 'req')));
+        const as = rs.flatMap((r) => r.turns.filter((t) => t.index === i).flatMap((t) => t.assertions.filter((a) => a.type === 'retention' || a.type === 'req' || a.type === 'residency')));
         return { turn: i + 1, checks: as.length, passed: as.filter((a) => a.pass).length };
       });
       return { case: c.id, turns: c.turns.length, perTurnRetention: per, finalPassRate: r3(rate(rs.filter((r) => r.pass).length, rs.length)) };
@@ -382,6 +551,16 @@ export function summarize(runs: RunRecord[], judges: JudgeRecord[], meta: RunMet
     e.overall = r3(e.overall / e.n);
     e.signoff = r3(e.signoff / e.n);
   }
+  const everyRun = new Set(meta.judgeAllRunsOf ?? []);
+  const cJudged = judges.filter((j) => j.scores && everyRun.has(j.case) && caseIds.has(j.case));
+  const constraintRuns: Summary['judge']['constraintRuns'] = cJudged.length
+    ? {
+        runs: cJudged.length,
+        signoff: r3(rate(cJudged.filter((j) => j.scores!.signoff).length, cJudged.length)),
+        overall: mean(cJudged.map(overall)),
+        noSignoff: cJudged.filter((j) => !j.scores!.signoff).sort((a, b) => a.case.localeCompare(b.case) || a.run - b.run).map((j) => ({ case: j.case, run: j.run, defects: j.scores!.defects.slice(0, 3) })),
+      }
+    : null;
 
   return {
     meta,
@@ -425,11 +604,17 @@ export function summarize(runs: RunRecord[], judges: JudgeRecord[], meta: RunMet
       costUsd: r3(costUsd),
     },
     reliability: rel,
+    failover,
+    cutoff,
+    constraints,
+    repairs,
     i18n,
     multiturn,
     judge: {
       model: judges.find((j) => j.scores)?.model ?? meta.judgeModel ?? null,
       judged: scored.length,
+      runsJudged: judges.filter((j) => j.scores && caseIds.has(j.case)).length,
+      constraintRuns,
       errors: judges.filter((j) => !j.scores).length,
       means: scored.length
         ? {
@@ -463,15 +648,16 @@ export function renderSummaryMd(s: Summary): string {
   out.push(`# Evaluation summary`, '');
   out.push(`Model ${s.meta.model} (fallback ${s.meta.fallbackModel}), catalog ${s.meta.catalogVersion} (${s.meta.catalogEntries} entries), system prompt ${s.meta.systemPromptChars} chars (sha256 ${s.meta.systemPromptSha256.slice(0, 12)}), ${s.meta.runsPerCase} runs per case, started ${s.meta.startedAt}.`, '');
   out.push(`## Overall`, '');
+  out.push(`**pass@1 ${pc(t.casePassRate)}, all ${s.meta.runsPerCase} runs pass ${pc(t.allRuns)}** (${t.cases} cases). pass@${s.meta.runsPerCase} is best-of-${s.meta.runsPerCase} and is listed last.`, '');
   out.push(
     table(
       ['measure', 'value'],
       [
         ['cases / conversations / turns', `${t.cases} / ${t.conversations} / ${t.turns}`],
         ['pass@1 (mean case pass rate)', pc(t.casePassRate)],
-        [`pass@${s.meta.runsPerCase} (some run passes)`, pc(t.passAtN)],
-        ['majority (over half the runs pass)', pc(t.majority)],
         ['all runs pass', pc(t.allRuns)],
+        ['majority (over half the runs pass)', pc(t.majority)],
+        [`pass@${s.meta.runsPerCase} (some run passes)`, pc(t.passAtN)],
         ['conversations passing every assertion', pc(t.runPassRate)],
         ['turns passing every assertion', pc(t.turnPassRate)],
         [`assertions passing (${t.assertions} checks)`, pc(t.assertionPassRate)],
@@ -482,9 +668,9 @@ export function renderSummaryMd(s: Summary): string {
     '',
   );
   out.push(`## By category`, '');
-  out.push(table(['category', 'cases', 'runs', 'run pass', `pass@${s.meta.runsPerCase}`, 'majority', 'all runs'], Object.entries(s.byCategory).map(([k, v]) => [k, v.cases, v.runs, pc(v.runPassRate), pc(v.passAtN), pc(v.majority), pc(v.allRuns)])), '');
+  out.push(table(['category', 'cases', 'runs', 'run pass', 'all runs', 'majority', `pass@${s.meta.runsPerCase}`], Object.entries(s.byCategory).map(([k, v]) => [k, v.cases, v.runs, pc(v.runPassRate), pc(v.allRuns), pc(v.majority), pc(v.passAtN)])), '');
   out.push(`## By language`, '');
-  out.push(table(['language', 'cases', 'runs', 'run pass', `pass@${s.meta.runsPerCase}`, 'majority', 'all runs'], Object.entries(s.byLang).map(([k, v]) => [k, v.cases, v.runs, pc(v.runPassRate), pc(v.passAtN), pc(v.majority), pc(v.allRuns)])), '');
+  out.push(table(['language', 'cases', 'runs', 'run pass', 'all runs', 'majority', `pass@${s.meta.runsPerCase}`], Object.entries(s.byLang).map(([k, v]) => [k, v.cases, v.runs, pc(v.runPassRate), pc(v.allRuns), pc(v.majority), pc(v.passAtN)])), '');
   out.push(`## By assertion type (worst first)`, '');
   out.push(table(['type', 'checks', 'passed', 'rate', 'cases that failed it'], Object.entries(s.byAssertionType).map(([k, v]) => [k, v.checks, v.passed, pc(v.rate), v.failingCases.length])), '');
   const weak = s.cases.filter((c) => c.passRate < 1).sort((a, b) => a.passRate - b.passRate);
@@ -502,13 +688,51 @@ export function renderSummaryMd(s: Summary): string {
   out.push(`Severity before repair ${JSON.stringify(s.warnings.preRepairBySeverity)}, after ${JSON.stringify(s.warnings.postRepairBySeverity)}. Unknown products: ${s.warnings.unknownProducts.count} (${s.warnings.unknownProducts.top.slice(0, 8).map(([k, n]) => `${k} x${n}`).join(', ') || 'none'}). Product strings that were not catalog ids: ${s.warnings.nonIdProducts.count} (${s.warnings.nonIdProducts.top.slice(0, 8).map(([k, n]) => `${k} x${n}`).join(', ') || 'none'}).`, '');
   out.push(`## Latency (main stream)`, '');
   const L = s.latency;
-  out.push(table(['measure', 'n', 'p50', 'p95', 'max'], [['first say', L.firstSayMs], ['first op', L.firstOpMs], ['first node', L.firstNodeMs], ['stream total (all turns)', L.streamMs], ['stream total, new diagrams', L.diagramStreamMs], ['stream total, edits', L.editStreamMs], ['stream total, product answers', L.productStreamMs], ['whole turn incl. retries and follow-up', L.turnMs]].map(([k, d]) => [k as string, (d as Dist).n, ms((d as Dist).p50), ms((d as Dist).p95), ms((d as Dist).max)])), '');
+  out.push(table(['measure', 'n', 'p50', 'p95', 'max'], [['first token (answering attempt)', L.firstByteMs], ['first token as waited for (failed attempts included)', L.perceivedFirstByteMs], ['first say', L.firstSayMs], ['first op', L.firstOpMs], ['first node', L.firstNodeMs], ['stream total (all turns)', L.streamMs], ['stream total, new diagrams', L.diagramStreamMs], ['stream total, edits', L.editStreamMs], ['stream total, product answers', L.productStreamMs], ['whole turn incl. retries and follow-up', L.turnMs]].map(([k, d]) => [k as string, (d as Dist).n, ms((d as Dist).p50), ms((d as Dist).p95), ms((d as Dist).max)])), '');
   out.push(`## Tokens and cost`, '');
   const T = s.tokens;
   out.push(table(['measure', 'value'], [['prompt tokens', T.prompt], ['cached prompt tokens', `${T.cached} (${pc(T.cacheHit)})`], ['completion tokens', T.completion], ['completion tokens per turn p50 / p95', `${T.completionPerTurn.p50} / ${T.completionPerTurn.p95}`], ['cost per turn mean / p95', `${usd(T.costPerTurn.mean)} / ${usd(T.costPerTurn.p95)}`], ['cost per conversation mean / p95', `${usd(T.costPerConversation.mean)} / ${usd(T.costPerConversation.p95)}`], ['total', usd(T.costUsd, 2)]]), '');
   out.push(`## Reliability`, '');
   const R = s.reliability;
   out.push(table(['counter', 'value'], [['turns', R.turns], ['main stream ended without done (truncated)', R.truncatedMain], ['continuation turns', R.continued], ['repair turns', R.repairTurns], ['hedged turns / hedge won', `${R.hedged} / ${R.hedgeWon}`], ['turns that used the fallback model', R.fallbackUsed], ['extra attempts after failures', R.retriedAttempts], ['conversations with an API failure', R.apiFailures], ['bad (unparseable) lines', R.badLines], ['\\u escapes', R.escapes]]), '');
+  const F = s.failover;
+  if (F) {
+    out.push(`## Failover to the fallback model`, '');
+    out.push(`${F.turns} of ${s.totals.turns} turns (${pc(F.rate)}) failed over in the main stream; reasons ${JSON.stringify(F.byReason)}. Follow-up turns that ran on another model: ${F.followUpFallbacks}.`, '');
+    if (F.turns) out.push(table(['measure', 'n', 'p50', 'p95', 'max'], [['stalled attempt before failover', F.stalledAttemptMs], ['fallback first token', F.fallbackFirstByteMs], ['first token as waited for', F.perceivedFirstByteMs], ['whole turn', F.turnMs]].map(([k, d]) => [k as string, (d as Dist).n, ms((d as Dist).p50), ms((d as Dist).p95), ms((d as Dist).max)])), '');
+  }
+  const C = s.cutoff;
+  if (C) {
+    out.push(`## Cut-off turns`, '');
+    out.push(`Main streams that ended without done: ${C.truncated} (${JSON.stringify(C.byCause)}). Rescued by the continuation turn: ${C.rescued} (${C.rescuedPassing} of them pass every assertion); not rescued: ${C.notRescued}. Turn pass rate without the rescued turns: ${pc(C.turnPassRateExcludingRescued)}.`, '');
+  }
+  const K = s.constraints;
+  if (K) {
+    out.push(`## Constraint compliance (machine-checked)`, '');
+    out.push(
+      table(
+        ['check', 'passed', 'rate'],
+        [
+          ['residency (final graph and final narration, core checker)', `${K.residency.passed}/${K.residency.checks}`, K.residency.checks ? pc(K.residency.rate) : '-'],
+          ...(K.residency.scan && K.residency.scan.checks ? [['residency, independent scan (own place table and cue words; shares no code with the checker)', `${K.residency.scan.passed}/${K.residency.scan.checks}`, pc(K.residency.scan.passed / K.residency.scan.checks)]] : []),
+          ['pinned constraints as data (req regions / avoid)', `${K.pins.passed}/${K.pins.checks}`, K.pins.checks ? pc(K.pins.rate) : '-'],
+          ['avoided products absent (exclude and retained exclude)', `${K.avoid.passed}/${K.avoid.checks}`, K.avoid.checks ? pc(K.avoid.rate) : '-'],
+        ],
+      ),
+      '',
+    );
+    out.push(`Residency checks with a warn-level foreign-region mention (not failed, reviewed by hand): ${K.residency.warnMentions}. Residency checks where the product's repair turn corrected the main-stream narration: ${K.residency.correctedByRepair}. Turns with pinned constraints in memory: ${K.product.turnsWithConstraints}. Product constraint findings before repair ${JSON.stringify(K.product.findingsBefore)}, left after repair ${JSON.stringify(K.product.findingsAfter)}.`, '');
+    if (K.residency.scan && K.residency.scan.failing.length) out.push('Independent residency scan hits (read each one: it errs towards flagging):', '', table(['case', 'run', 'turn', 'scan finding'], K.residency.scan.failing.map((f) => [f.case, f.run, f.turn, f.detail.replace(/\|/g, '/').slice(0, 220)])), '');
+    if (K.residency.failing.length) out.push(table(['case', 'run', 'turn', 'residency finding'], K.residency.failing.map((f) => [f.case, f.run, f.turn, f.detail.replace(/\|/g, '/').slice(0, 220)])), '');
+    if (K.pins.failing.length) out.push(table(['case', 'run', 'turn', 'pins check', 'pinned'], K.pins.failing.map((f) => [f.case, f.run, f.turn, f.name.replace(/\|/g, '/'), f.detail.replace(/\|/g, '/').slice(0, 160)])), '');
+  }
+  const P = s.repairs;
+  if (P) {
+    out.push(`## Repairs`, '');
+    out.push(table(['deterministic fix', 'fixes', 'turns'], Object.entries(P.fixesByCode).map(([k, v]) => [k, v.total, v.turns])), '');
+    out.push(`LLM follow-up turns: ${P.followUps.turns} (${JSON.stringify(P.followUps.byKind)}); turns by finding code ${JSON.stringify(P.followUps.byFindingCode)}.`, '');
+    if (P.followUps.list.length) out.push(table(['case', 'run', 'turn', 'kind', 'turn passes', 'findings'], P.followUps.list.map((f) => [f.case, f.run, f.turn, f.kind, f.pass ? 'yes' : 'no', f.findings.join('; ').replace(/\|/g, '/').slice(0, 260)])), '');
+  }
   out.push(`## Languages`, '');
   out.push(table(['language', 'turns', 'completion tokens / turn', 'vs English twin', 'prompt tokens / turn', 'say in language', 'why in language', '\\u escapes'], Object.entries(s.i18n).map(([k, v]) => [k, v.turns, v.completionPerTurn ?? '-', v.ratioVsEnglish ?? '-', v.promptPerTurn ?? '-', `${v.sayLangPass}/${v.sayLangChecks}`, `${v.whyLangPass}/${v.whyLangChecks}`, v.escapes])), '');
   out.push(`## Multi-turn retention`, '');
@@ -518,6 +742,11 @@ export function renderSummaryMd(s: Summary): string {
   if (J.means) {
     out.push(table(['measure', 'value'], [['runs judged / judge errors', `${J.judged} / ${J.errors}`], ['completeness', J.means.completeness], ['accuracy', J.means.accuracy], ['rationality', J.means.rationality], ['readability', J.means.readability], ['overall', J.means.overall], ['architect would sign off', pc(J.signoffRate ?? 0)], ['judge cost', usd(J.costUsd, 3)]]), '');
     out.push(table(['category', 'judged', 'overall score', 'sign-off'], Object.entries(J.byCategory).map(([k, v]) => [k, v.n, v.overall, pc(v.signoff)])), '');
+    const cr = J.constraintRuns;
+    if (cr) {
+      out.push(`Every run of the constraint cases: ${cr.runs} runs judged, sign-off ${pc(cr.signoff ?? 0)}, mean ${cr.overall}. (Total judged runs: ${J.runsJudged}.)`, '');
+      if (cr.noSignoff.length) out.push(table(['case', 'run', 'judge defects'], cr.noSignoff.map((d) => [d.case, d.run, d.defects.join('; ').replace(/\|/g, '/').slice(0, 220)])), '');
+    }
     const g = J.agreement;
     if (g) {
       out.push(`Agreement between the judged run's assertions and the judge's sign-off: ${g.agree}/${g.n} (${g.rate === null ? '-' : pc(g.rate)}). Assertions pass and judge yes ${g.tp}, both no ${g.tn}, assertions pass but judge no ${g.fp}, assertions fail but judge yes ${g.fn}. Mean score of passing runs ${g.meanScorePass ?? '-'}, failing runs ${g.meanScoreFail ?? '-'}, point-biserial r ${g.pointBiserial ?? '-'}.`, '');
@@ -544,7 +773,9 @@ if (process.argv[1] && path.basename(process.argv[1]) === 'summarize.ts') {
   const { loadCases } = await import('./lib.ts');
   const meta = JSON.parse(readFileSync(path.join(dir, 'meta.json'), 'utf8')) as RunMeta;
   const { loadCatalog } = await import('../packages/core/src/catalog-node.ts');
-  const s = summarize(readJsonl<RunRecord>(path.join(dir, 'runs.jsonl')), readJsonl<JudgeRecord>(path.join(dir, 'judge.jsonl')), meta, loadCases(), new Set(loadCatalog().entries.map((e) => e.id)));
+  // The cases directory the run used (--cases-dir), else the golden set.
+  const casesDir = typeof meta.args?.['cases-dir'] === 'string' ? path.resolve(meta.args['cases-dir'] as string) : undefined;
+  const s = summarize(readJsonl<RunRecord>(path.join(dir, 'runs.jsonl')), readJsonl<JudgeRecord>(path.join(dir, 'judge.jsonl')), meta, loadCases(casesDir), new Set(loadCatalog().entries.map((e) => e.id)));
   writeFileSync(path.join(dir, 'summary.json'), JSON.stringify(s, null, 2));
   writeFileSync(path.join(dir, 'summary.md'), renderSummaryMd(s));
   console.log(renderSummaryMd(s));

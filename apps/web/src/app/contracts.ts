@@ -27,9 +27,11 @@ import type {
   TurnStatus,
 } from '../store/types.ts';
 import type { SummaryView } from '../store/selectors.ts';
+import type { AskView, AssumptionView } from '../store/asks.ts';
 import type { SubmitResult } from './controller.ts';
 
 export type { Lang, TFn, Catalog, CanvasSize, ConnMode, DisplayState, Highlight, ReplayState, ReplaySpeed, RequirementView, Revision, SummaryView, Toast, TurnStatus, SubmitResult, Health };
+export type { AskView, AssumptionView };
 export type { ChangeLine, ChangeKind, LifecycleNote, AutoFix, FixBlock, ReqState, RevisionStatus } from '../store/types.ts';
 export { cursorMode, nextCursorChange, CURSOR_SOLID_MS } from '../stream/cursor.ts';
 export type { CursorMode } from '../stream/cursor.ts';
@@ -70,6 +72,8 @@ export interface ConsoleProps {
   requirements: RequirementView[];
   /** Oldest first. The last one is the newest (expanded); older ones collapse to rows. */
   revisions: readonly Revision[];
+  /** The assumptions the drawing rests on, as chips next to the pinned requirements ("Assumed: Public-facing · Change"). A requirement that settles one removes it. */
+  assumptions: AssumptionView[];
   /** idle, waiting, streaming, fallback, repairing or error; `lastTextAt` drives the Cursor (see cursorMode). */
   turn: TurnStatus;
   /** The revision that is streaming now, or null. */

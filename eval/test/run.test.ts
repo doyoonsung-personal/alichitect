@@ -56,10 +56,29 @@ describe('compare', () => {
     assert.equal(cmp.after.runPass, 3);
     assert.equal(cmp.before.casesMajority, 1);
     assert.equal(cmp.after.casesMajority, 1);
+    // pass@1 is the mean of per-case pass rates: before (1/3 + 1/1) / 2, after (3/3 + 0/1) / 2
+    assert.equal(cmp.before.casePassRate, 0.667);
+    assert.equal(cmp.after.casePassRate, 0.5);
+    assert.equal(cmp.before.casesAllRuns, 1);
+    assert.equal(cmp.after.casesAllRuns, 1);
     assert.deepEqual(cmp.cases[1].afterFailed, ['include: include x']);
     const md = renderComparison(cmp);
     assert.match(md, /conversations passing every assertion \| 2\/4 \(50%\) \| 3\/4 \(75%\)/);
     assert.match(md, /\| a \| 1\/3 \| 3\/3 \|/);
+    assert.deepEqual(cmp.onlyBefore, ['z']);
+    assert.deepEqual(cmp.onlyAfter, []);
+  });
+
+  test('a case that exists only in the after directory (a new case) is left out of both sides', () => {
+    const before = [run('a', 1, true), run('a', 2, false)];
+    const after = [run('a', 1, true), run('a', 2, true), run('new', 1, false), run('new', 2, false)];
+    const cmp = compare(before, after);
+    assert.deepEqual(cmp.cases.map((x) => x.id), ['a']);
+    assert.equal(cmp.after.runs, 2);
+    assert.equal(cmp.after.casePassRate, 1);
+    assert.equal(cmp.after.casesAllRuns, 1);
+    assert.deepEqual(cmp.onlyAfter, ['new']);
+    assert.match(renderComparison(cmp), /only in the after directory \(1\): new/);
   });
 
   test('pre-repair warnings count warn and error only, per turn', () => {

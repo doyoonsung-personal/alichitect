@@ -6,6 +6,7 @@ import { regionLabel } from '@ali/core/regions.ts';
 import type { TFn } from '../i18n/t.ts';
 import { nameOf, connectionDetail } from '../store/changes.ts';
 import type { AutoFix, ChangeLine, ReqState, RequirementView, Revision, RevisionError, TurnStatus } from '../store/types.ts';
+import type { AssumptionView } from '../store/asks.ts';
 import { CONSTRAINT_CODES } from '../stream/events.ts';
 
 // ---------- composer keys (7.4, 7.13) ----------
@@ -100,6 +101,8 @@ export interface FooterItem {
  */
 export function footerItems(r: Revision, hasRequirements: boolean, t: TFn): FooterItem[] {
   const state = revisionState(r);
+  // a revision that only asked drew nothing: "Drawn in 2.1 s" and "Requirements held" would describe a drawing that is not there
+  if (state === 'held' && (r.asks?.length ?? 0) > 0 && !r.changes.length && !r.fix.changes.length) return [];
   if (state === 'stopped') return [{ key: 'stopped', text: t('rec.stopped'), tone: 'plain' }];
   if (state === 'failed' || state === 'live') return [];
   const out: FooterItem[] = [];
@@ -290,6 +293,25 @@ export function requirementMeta(r: RequirementView, catalog: Catalog, t: TFn): M
 export const REQ_COLLAPSED_ROWS = 4;
 export function visibleRequirements<T>(rows: readonly T[], expanded: boolean): { shown: T[]; hidden: number } {
   return visibleLines(rows, expanded, REQ_COLLAPSED_ROWS);
+}
+
+// ---------- assumptions and questions (research/phase1-asks-and-scope.md section 1) ----------
+
+/** Chips shown before "{n} more": the pinned requirements show four rows; the chips are smaller, so three. */
+export const ASM_COLLAPSED = 3;
+
+export function visibleAssumptions(list: readonly AssumptionView[], expanded: boolean): { shown: AssumptionView[]; hidden: number } {
+  return visibleLines(list, expanded, ASM_COLLAPSED);
+}
+
+/** The follow-up a chip's Change sends: "Change: Internal only instead of Public-facing". Null when the assumption has no alternative. */
+export function changeAsk(a: AssumptionView, t: TFn): string | null {
+  return a.alt ? t('asm.changeAsk', { alt: a.alt, text: a.text }) : null;
+}
+
+/** Chips and quick replies work when no turn is in flight and the session is not a read-only replay. */
+export function canAnswer(phase: TurnStatus['phase'], replay: boolean): boolean {
+  return !replay && (phase === 'idle' || phase === 'error');
 }
 
 // ---------- the fix block (7.11) ----------

@@ -11,6 +11,8 @@
 // leaves the chat history uncached and doubles the follow-up cost. 'two' puts a marker on the system block and on the
 // newest history message (moved every turn), which the spike recommends once traffic is steady.
 import type { ApplyResult, Catalog, Constraint, Graph, GraphEdge, GraphGroup, GraphNode, Recommendation, SessionMemory, Turn, Warning } from './types.ts';
+import { REGIONS, regionInfo } from './regions.ts';
+import { diffGraphs } from './diff.ts';
 import { PROMPT_ROW_FORMAT, isRecommendable } from './catalog.ts';
 
 // ---------- message types (OpenAI-compatible Chat Completions) ----------
@@ -51,26 +53,8 @@ const MAX_CHANGE_CHARS = 600;
 
 // ---------- facts the model must not take from its own (stale) memory ----------
 
-/** International regions the model may use (seed catalog section D, checked 2026-10-31). */
-export const REGIONS: ReadonlyArray<readonly [string, string]> = [
-  ['Singapore', 'ap-southeast-1'],
-  ['Kuala Lumpur', 'ap-southeast-3'],
-  ['Johor', 'ap-southeast-8'],
-  ['Jakarta', 'ap-southeast-5'],
-  ['Manila', 'ap-southeast-6'],
-  ['Bangkok', 'ap-southeast-7'],
-  ['Tokyo', 'ap-northeast-1'],
-  ['Seoul', 'ap-northeast-2'],
-  ['Hong Kong', 'cn-hongkong'],
-  ['Virginia', 'us-east-1'],
-  ['Silicon Valley', 'us-west-1'],
-  ['Mexico', 'na-south-1'],
-  ['Sao Paulo', 'sa-east-1'],
-  ['Frankfurt', 'eu-central-1'],
-  ['London', 'eu-west-1'],
-  ['Paris', 'eu-west-2'],
-  ['Dubai', 'me-east-1'],
-];
+// The region table lives in regions.ts (REGIONS is re-exported here for existing callers).
+export { REGIONS };
 
 /** Former or alternate names the model still uses, mapped to the catalog id to emit (tested against catalog.resolve). */
 export const RENAMES: ReadonlyArray<readonly [string, string]> = [
@@ -93,7 +77,7 @@ export const RENAMES: ReadonlyArray<readonly [string, string]> = [
 
 const OPS = [
   '{"t":"say","text":"<chat sentence, at most 25 words>"}',
-  '{"t":"req","text":"<a lasting requirement or constraint the user stated, at most 12 words>","regions":["<region id data and workloads must stay in>"],"avoid":["<catalog id the user ruled out>"]}',
+  '{"t":"req","text":"<a lasting requirement or constraint the user stated, at most 12 words>","regions":["<region id data and workloads must stay in>"],"avoid":["<catalog id the user ruled out>"],"lifts":["regions|<id>"]}',
   '{"t":"plan","products":["<catalog id>","..."]}',
   '{"t":"group","id":"<id>","kind":"external|edge|region|vpc|onprem","label":"<label>","parent":"<group id>|null"}',
   '{"t":"node","id":"<id>","product":"<catalog id>","label":"<at most 40 characters>","group":"<group id>|null","zones":["a","b"],"attachTo":"<host node id>","why":"<at most 20 words>"}',
@@ -148,7 +132,7 @@ function rules(catalog: Catalog): string[] {
     'R1 Output only NDJSON: one compact JSON object per line and nothing else. No markdown, no code fences, no prose, no array brackets. Write non-ASCII text as raw UTF-8 characters (한국어, 中文), never as \\u escapes. Every reply ends with exactly one done op as its last line, also a short answer or a recommendation.',
     'Ops:',
     ...OPS,
-    'Omit optional fields you do not need (zones, attachTo, edge label, edge kind, req regions and avoid).',
+    'Omit optional fields you do not need (zones, attachTo, edge label, edge kind, req regions, avoid and lifts).',
     '',
     '# Drawing a new architecture',
     'R2 Order: one say (what you will build and the key choice), then plan, then section by section outside-in: users, DNS, edge, region and VPC, ingress, compute, cache, databases, storage, messaging, AI and analytics, ops and security, governance. Start a section with a short say when it helps (at most 6 say ops per turn). Declare a group before the nodes in it and both endpoints before an edge. Finish with done.',
@@ -167,8 +151,8 @@ function rules(catalog: Catalog): string[] {
     'R11 When the user wants a product, tool, seats or a plan to buy and use (an AI agent for a team, a coding assistant, cloud desktops), answer with rec ops: one primary and up to three complements, with edges between recs only where they work together, and no groups or nodes. "An AI agent my team can use" means a ready-made assistant: Qoder Teams for developers, QwenWork for everyone else; AgentCore is for teams that want to build their own agents. An assistant that must answer from the user\'s own documents or data, or that calls Qwen models, is a build: draw the architecture, never a ready-made product. Qwen models inside tools the team already uses (Claude Code, Cursor, Cline) are Token Plan for a team and Coding Plan for one developer, never Qoder, which is a separate product with its own IDE and agents; do not recommend Coding Plan to a team. If the audience is unclear (developers or the whole company), recommend for the most likely audience and end the say with one short question. Add a rec only for a product that answers the need; never recommend a product you just said does not apply. When the user wants something built or hosted (a chatbot on their docs, an API, a platform), draw the architecture instead; you may add rec ops for SaaS or plans that complement it.',
     '',
     '# Memory and constraints',
-    'R12 When the user states a lasting requirement or constraint (budget, a technology to avoid or prefer, region or data residency, compliance, scale, team skills), emit one req op for it in the user\'s language, before the ops it affects. Do not repeat requirements already listed under PINNED REQUIREMENTS. Every pinned requirement stays in force on every later turn until the user lifts it and is a hard constraint: check each request against all of them before you draw. If a request seems to need something a pinned requirement forbids (another country or region, a technology to avoid, more spend), keep the requirement, choose the compliant way (zones and backups inside the same region, a smaller option) and say so in one sentence; never pin a requirement that contradicts a pinned one. Under a budget, mention the cost effect of each addition in the say.',
-    'R12b The app checks req regions and avoid against every diagram. Examples: "customer data must stay in Singapore" -> {"t":"req","text":"Customer data stays in Singapore","regions":["ap-southeast-1"]}; "no Kubernetes" -> {"t":"req","text":"Avoid Kubernetes","avoid":["ack","acs","ack-one"]}. Regions bind every region group, replica, backup and disaster-recovery copy, and every say line.',
+    'R12 When the user states a lasting requirement or constraint (budget, a technology to avoid or prefer, region or data residency, compliance, scale, team skills), emit one req op for it in the user\'s language, before the ops it affects. Do not repeat requirements already listed under PINNED REQUIREMENTS. Every pinned requirement stays in force on every later turn until the user lifts it and is a hard constraint: check each request against all of them before you draw. If a request seems to need something a pinned requirement forbids (another country or region, a technology to avoid, more spend), keep the requirement, choose the compliant way (zones and backups inside the same region, a smaller option) and say so in one sentence. Only the user can change a pinned requirement ("Tokyo is fine now", "Kubernetes is OK", "drop the residency rule"): then do what they ask, re-pin it as R12b says, and never refuse by citing the old requirement. Never pin a requirement that contradicts a pinned one on your own. Under a budget, mention the cost effect of each addition in the say.',
+    'R12b The app checks req regions and avoid against every diagram. Examples: "customer data must stay in Singapore" -> {"t":"req","text":"Customer data stays in Singapore","regions":["ap-southeast-1"]}; "no Kubernetes" -> {"t":"req","text":"Avoid Kubernetes","avoid":["kubernetes"]} (the app expands a product family to all its products). Regions bind every region group, replica, backup and disaster-recovery copy, and every say line. A req with regions replaces the earlier region requirement, so list every region now allowed: "a Tokyo replica is fine now" -> {"t":"req","text":"Data may be in Singapore and Tokyo","regions":["ap-southeast-1","ap-northeast-1"]}. To drop a rule, use lifts: {"t":"req","text":"Residency rule lifted","lifts":["regions"]}, or lifts with a family or product id after "Kubernetes is OK" (["kubernetes"]). A requirement with no region or product to rule out (a preference, team skills, compliance, scale) is still pinned, as text alone: {"t":"req","text":"Team knows Java only"}. Two requirements in one message get two req ops, each in the user\'s own words; never shorten one to an example above.',
     '',
     '# Facts that override your memory',
     `R13 Regions: use Singapore (ap-southeast-1) unless the user names another. International regions: ${regions}. Sydney (ap-southeast-2) and Mumbai (ap-south-1) are closed: never use them; say so in one sentence and draw the design in the nearest open region (Singapore) at once, with ESA or CDN for latency, instead of waiting for confirmation. A public website in a mainland China region (cn-*) needs ICP filing and a China-site account: say so, and suggest Hong Kong or Singapore unless the user confirms both. Model Studio runs in Singapore, Virginia, Frankfurt, Tokyo and Hong Kong (not Seoul).`,
@@ -309,8 +293,8 @@ export function turnsOutsideWindow(memory: SessionMemory, window = DEFAULT_WINDO
 }
 
 const regionLabel = (id: string): string => {
-  const r = REGIONS.find(([, rid]) => rid === id);
-  return r ? `${id} (${r[0]})` : id;
+  const r = regionInfo(id);
+  return r ? `${id} (${r.name})` : id;
 };
 
 function constraintTags(c: Constraint | undefined): string {
@@ -474,35 +458,7 @@ export function buildRepairMessages(
 
 // ---------- change summaries ----------
 
-const same = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
-
-/** Net change between two graphs as one ApplyResult (rec ids are 'rec:<product>'); removed elements are tombstoned. */
-export function diffGraphs(before: Graph, after: Graph): ApplyResult {
-  const added: string[] = [];
-  const updated: string[] = [];
-  const removed: string[] = [];
-  const tombstones: Array<GraphNode | GraphEdge | GraphGroup> = [];
-  const cmp = <T>(a: Record<string, T>, b: Record<string, T>): void => {
-    for (const [id, x] of Object.entries(a)) {
-      if (!Object.prototype.hasOwnProperty.call(b, id)) {
-        removed.push(id);
-        tombstones.push(x as unknown as GraphNode);
-      } else if (!same(x, b[id])) updated.push(id);
-    }
-    for (const id of Object.keys(b)) if (!Object.prototype.hasOwnProperty.call(a, id)) added.push(id);
-  };
-  cmp(before.groups, after.groups);
-  cmp(before.nodes, after.nodes);
-  cmp(before.edges, after.edges);
-  const ra = new Map((before.recs ?? []).map((r) => [r.product, r]));
-  const rb = new Map((after.recs ?? []).map((r) => [r.product, r]));
-  for (const [p, r] of ra) {
-    if (!rb.has(p)) removed.push('rec:' + p);
-    else if (!same(r, rb.get(p))) updated.push('rec:' + p);
-  }
-  for (const p of rb.keys()) if (!ra.has(p)) added.push('rec:' + p);
-  return { graph: after, added, updated, removed, tombstones, warnings: [] };
-}
+export { diffGraphs };
 
 type NetStatus = 'added' | 'updated' | 'removed';
 
@@ -576,4 +532,10 @@ export function mergeRequirements(pinned: readonly string[], added: readonly str
     out.push(r);
   }
   return out.slice(-max);
+}
+
+/** Removes pinned requirements whose text is in `texts` (ignoring case, spacing and punctuation): a newer requirement replaced or lifted them. */
+export function dropRequirements(pinned: readonly string[], texts: readonly string[]): string[] {
+  const gone = new Set(texts.map(reqKey));
+  return gone.size ? pinned.filter((r) => !gone.has(reqKey(r))) : [...pinned];
 }

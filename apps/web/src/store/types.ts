@@ -127,6 +127,25 @@ export interface Revision {
   cards: string[];
   /** Ids this revision removed. */
   gone: string[];
+  // --- follow-up questions and assumptions (research/phase1-asks-and-scope.md section 1; additive) ---
+  /** The assume ops this revision streamed. The chips come from memory.assumptions once committed; these show them while it streams. Absent in sessions saved before. */
+  assumes?: AssumeNote[];
+  /** The questions this revision asked (ask ops; at commit, memory.questions when the server sent it). Absent in sessions saved before. */
+  asks?: AskNote[];
+}
+
+/** An assumption the design rests on; `alt` is the one-click alternative. Same shape as SessionMemory.assumptions. */
+export interface AssumeNote {
+  id: string;
+  text: string;
+  alt?: string;
+}
+
+/** A question whose answer would change the design; `options` are the quick replies. Same shape as SessionMemory.questions. */
+export interface AskNote {
+  id: string;
+  text: string;
+  options?: string[];
 }
 
 /** held: Held. checking: Checking (mid-turn). repaired: Held, fixed. broken: Not met. atRisk: the commit still carries a warning-level finding (for example a narration line naming another region) while the diagram holds. */

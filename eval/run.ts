@@ -3,15 +3,16 @@
 //   node eval/run.ts [--runs 3] [--concurrency 3] [--cases pat-,need-01] [--category trap,edit] [--lang ko,zh]
 //                    [--model qwen3.8-max] [--fallback qwen3.7-max] [--judge kimi-k3 | --no-judge] [--budget 30]
 //                    [--label name] [--resume DIR] [--rescore DIR] [--judge-only DIR] [--failing-from DIR] [--passing-from DIR]
-//                    [--cases-dir DIR] [--dry]
+//                    [--cases-dir DIR] [--judge-all] [--dry]
 //
-// For every selected case it runs N independent conversations (each turn through runTurn, so retries, hedging, the
-// continuation turn and the repair turn all happen as in the product), checks the machine assertions after each
-// turn and appends one JSON line per conversation to eval/results/<timestamp>/runs.jsonl. Then it asks an LLM judge
-// (a different model family) to score one run per case and writes summary.json and summary.md.
+// For every selected case it runs N independent conversations (each turn through runTurn, so retries, failover to the
+// fallback model, the pinned-constraint check, the continuation turn and the repair turn all happen as in the product),
+// checks the machine assertions after each turn and appends one JSON line per conversation to
+// eval/results/<timestamp>/runs.jsonl. Then it asks an LLM judge (a different model family) to score run 1 of every
+// case and every run of the constraint cases (--judge-all: every run of every case), and writes summary.json and summary.md.
 // DASHSCOPE_API_KEY is read from the environment and never printed or written. Every API call is booked in
 // eval/results/ledger.jsonl at list price; the run stops when the ledger passes --budget (default USD 30).
-import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { loadCatalog } from '../packages/core/src/catalog-node.ts';
@@ -19,7 +20,7 @@ import { buildSystemPrompt, createMemory } from '../packages/core/src/prompt.ts'
 import { DEFAULT_MODEL, FALLBACK_MODEL, createCacheTracker, runTurn } from '../packages/core/src/llm.ts';
 import type { RunTurnResult, TurnStats } from '../packages/core/src/llm.ts';
 import type { Graph, SessionMemory } from '../packages/core/src/types.ts';
-import { RESULTS_DIR, appendLedger, askText, checkCases, evaluateTurn, loadBase, loadCases, productNamePattern, spentUsd } from './lib.ts';
+import { EVAL_DIR, RESULTS_DIR, appendLedger, askText, checkCases, evaluateTurn, isConstraintCase, loadBase, loadCases, productNamePattern, spentUsd } from './lib.ts';
 import type { EvalCase, TurnView } from './lib.ts';
 import { judgeRun } from './judge.ts';
 import type { JudgeRecord, RunMeta, RunRecord } from './records.ts';
@@ -152,10 +153,11 @@ export async function runUnit(c: EvalCase, run: number, ctx: UnitContext): Promi
       graph: r.memory.graph,
       before,
       requirements: r.memory.requirements,
+      constraints: r.memory.constraints ?? [],
       stats: r.stats,
       userTexts: [...userTexts],
     };
-    const assertions = evaluateTurn(view, turn, lang, ctx.names);
+    const assertions = evaluateTurn(view, turn, lang, ctx.names, ctx.catalog);
     const pass = assertions.every((a) => a.pass);
     rec.turns.push({
       index: i,
@@ -169,6 +171,7 @@ export async function runUnit(c: EvalCase, run: number, ctx: UnitContext): Promi
       changes: r.changes,
       graph: r.memory.graph,
       requirements: r.memory.requirements,
+      constraints: r.memory.constraints ?? [],
       summary: r.memory.summary,
       stats: slimStats(r.stats),
       assertions,
@@ -220,8 +223,8 @@ function rescore(dir: string, cases: EvalCase[], catalog: ReturnType<typeof load
     run.turns.forEach((t, i) => {
       const turn = c.turns[i];
       userTexts.push(t.ask);
-      const view: TurnView = { ask: t.ask, ops: t.ops, says: t.says, reqs: t.reqs, gaps: t.gaps, rawProducts: t.rawProducts, graph: t.graph, before, requirements: t.requirements, stats: t.stats, userTexts: [...userTexts] };
-      t.assertions = evaluateTurn(view, turn, c.lang ?? 'en', names);
+      const view: TurnView = { ask: t.ask, ops: t.ops, says: t.says, reqs: t.reqs, gaps: t.gaps, rawProducts: t.rawProducts, graph: t.graph, before, requirements: t.requirements, constraints: t.constraints ?? [], stats: t.stats, userTexts: [...userTexts] };
+      t.assertions = evaluateTurn(view, turn, c.lang ?? 'en', names, catalog);
       t.pass = t.assertions.every((a) => a.pass);
       if (!t.pass) run.pass = false;
       before = t.graph;
@@ -302,6 +305,8 @@ async function main(): Promise<number> {
           systemPromptChars: system.length,
           systemPromptSha256: createHash('sha256').update(system).digest('hex'),
           node: process.version,
+          coreFiles: coreFileHashes(),
+          judgeAllRunsOf: judgeModel ? cases.filter((c) => a['judge-all'] || isConstraintCase(c)).map((c) => c.id) : [],
         };
   writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(meta, null, 2));
 
@@ -335,13 +340,11 @@ async function main(): Promise<number> {
 
   const all = readJsonl<RunRecord>(runsFile);
   if (judgeModel && !stop.signal.aborted) {
-    const judged = new Set(readJsonl<JudgeRecord>(judgeFile).filter((j) => j.scores).map((j) => j.case));
-    const picks: Array<{ c: EvalCase; rec: RunRecord }> = [];
-    for (const c of cases) {
-      if (judged.has(c.id)) continue;
-      const recs = all.filter((r) => r.case === c.id && r.turns.length === c.turns.length).sort((x, y) => x.run - y.run);
-      if (recs.length) picks.push({ c, rec: recs[0] });
-    }
+    // Run 1 (the lowest complete run) of every case, and every run of a constraint case: a narrated or drawn violation in
+    // run 2 or 3 is otherwise invisible to the judge (REVIEW.md section 6).
+    const judged = new Set(readJsonl<JudgeRecord>(judgeFile).filter((j) => j.scores).map((j) => `${j.case}#${j.run}`));
+    const everyRun = new Set(meta.judgeAllRunsOf ?? cases.filter((c) => a['judge-all'] || isConstraintCase(c)).map((c) => c.id));
+    const picks = pickJudgeRuns(cases, all, everyRun).filter((p) => !judged.has(`${p.c.id}#${p.rec.run}`));
     console.log(`judge ${judgeModel}: ${picks.length} runs to score`);
     await pool(picks, Math.max(concurrency, 4), async ({ c, rec }) => {
       if (stop.signal.aborted) return;
@@ -359,7 +362,7 @@ async function main(): Promise<number> {
         },
       });
       appendFileSync(judgeFile, JSON.stringify(j) + '\n');
-      console.log(`judge ${c.id}: ${j.scores ? `${j.scores.completeness}/${j.scores.accuracy}/${j.scores.rationality}/${j.scores.readability} signoff ${j.scores.signoff ? 'yes' : 'no'}` : 'ERROR ' + j.error}`);
+      console.log(`judge ${c.id}#${rec.run}: ${j.scores ? `${j.scores.completeness}/${j.scores.accuracy}/${j.scores.rationality}/${j.scores.readability} signoff ${j.scores.signoff ? 'yes' : 'no'}` : 'ERROR ' + j.error}`);
     });
   }
 
@@ -372,6 +375,24 @@ async function main(): Promise<number> {
   console.log(`\nresults: ${dir}\nspent this run: USD ${fmt(session)} (ledger total USD ${fmt(spentUsd())})`);
   console.log(renderSummaryMd(sum).split('\n').slice(0, 60).join('\n'));
   return stop.signal.aborted ? 2 : 0;
+}
+
+/** The runs to judge: the lowest complete run of every case, plus every other complete run of the cases in `everyRun`. */
+export function pickJudgeRuns(cases: EvalCase[], runs: RunRecord[], everyRun: ReadonlySet<string>): Array<{ c: EvalCase; rec: RunRecord }> {
+  const out: Array<{ c: EvalCase; rec: RunRecord }> = [];
+  for (const c of cases) {
+    const recs = runs.filter((r) => r.case === c.id && r.turns.length === c.turns.length).sort((x, y) => x.run - y.run);
+    for (const rec of everyRun.has(c.id) ? recs : recs.slice(0, 1)) out.push({ c, rec });
+  }
+  return out;
+}
+
+/** sha256 (first 12 hex) of every packages/core/src file, so a results directory records the exact code it ran. */
+export function coreFileHashes(): Record<string, string> {
+  const dir = path.join(EVAL_DIR, '..', 'packages', 'core', 'src');
+  const out: Record<string, string> = {};
+  for (const f of readdirSync(dir).filter((x) => x.endsWith('.ts')).sort()) out[f] = createHash('sha256').update(readFileSync(path.join(dir, f))).digest('hex').slice(0, 12);
+  return out;
 }
 
 /** Body fields that individual judge models need. The default is plain: enable_thinking:false is always sent. */

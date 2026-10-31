@@ -2,7 +2,7 @@
 // clock in them, so replays and tests are exact. One reducer owns the turn: the working raw graph (core applyOp on each
 // streamed op), the display graph (displayGraph over repairGraph), the layout (layoutGraph with the previous layout, for
 // stability), the record model of the revision in progress, and the commit that replaces memory with the server's.
-import type { Catalog, Graph, SessionMemory, Warning } from '@ali/core/types.ts';
+import type { Catalog, Graph, Op, SessionMemory, Warning } from '@ali/core/types.ts';
 import { applyOp, createCtx, emptyGraph } from '@ali/core/reducer.ts';
 import { repairGraph } from '@ali/core/validate.ts';
 import { defaultConstraintChecker } from '@ali/core/llm.ts';
@@ -23,6 +23,8 @@ import { addLifecycle, lifecycleNote } from './lifecycle.ts';
 import { unpinFrom } from './requirements.ts';
 import type {
   AppState,
+  AskNote,
+  AssumeNote,
   AutoFix,
   ConnMode,
   DisplayReason,
@@ -133,6 +135,8 @@ function emptyRevision(n: number, ask: string, now: number): Revision {
     removed: 0,
     cards: [],
     gone: [],
+    assumes: [],
+    asks: [],
   };
 }
 
@@ -428,6 +432,7 @@ function onOp(state: AppState, work: TurnWork, ev: Extract<WireEvent, { type: 'o
   let next = firstToken(state);
   next = patchLast(next, (r) => ({ ...r, status: 'streaming', statusLine: null }));
   if (op.t === 'say') return next; // the say event carries the text; the op repeats it
+  if (op.t === 'assume' || op.t === 'ask') return onAssumeOrAsk(next, op); // not graph ops: they feed the chips and the questions
 
   const toFix = phase === 'repair' && work.follow !== 'continue';
   const res = applyOp(work.raw, op, work.ctx);
@@ -458,6 +463,30 @@ function onOp(state: AppState, work: TurnWork, ev: Extract<WireEvent, { type: 'o
     next = live(next, t(next.lang, 'live.reqPinned', { text: op.text }));
   }
   return next;
+}
+
+// ---------- assume and ask ops (additive: research/phase1-asks-and-scope.md section 1) ----------
+
+function upsertNote<T extends { id: string }>(list: readonly T[], note: T): T[] {
+  const i = list.findIndex((x) => x.id === note.id);
+  if (i < 0) return [...list, note];
+  const out = list.slice();
+  out[i] = note;
+  return out;
+}
+
+/** The same id replaces. A note with no text says nothing and is dropped; options are trimmed, deduplicated and capped at four. */
+function onAssumeOrAsk(state: AppState, op: Extract<Op, { t: 'assume' | 'ask' }>): AppState {
+  const text = op.text.trim();
+  if (!op.id || !text) return state;
+  if (op.t === 'assume') {
+    const alt = op.alt?.trim();
+    const note: AssumeNote = alt ? { id: op.id, text, alt } : { id: op.id, text };
+    return patchLast(state, (r) => ({ ...r, assumes: upsertNote(r.assumes ?? [], note) }));
+  }
+  const options = [...new Set((op.options ?? []).map((o) => String(o).trim()).filter(Boolean))].slice(0, 4);
+  const note: AskNote = options.length ? { id: op.id, text, options } : { id: op.id, text };
+  return patchLast(state, (r) => ({ ...r, asks: upsertNote(r.asks ?? [], note) }));
 }
 
 function onWarn(state: AppState, work: TurnWork, w: Warning, deps: StoreDeps): AppState {
@@ -552,6 +581,8 @@ function onCommit(state: AppState, work: TurnWork, ev: Extract<WireEvent, { type
       removed: counts.removed,
       cards,
       gone,
+      // the server's questions are the validated ones (limits applied); without them, keep what streamed
+      asks: memory.questions ?? r.asks ?? [],
     };
   });
 
@@ -572,6 +603,14 @@ function onCommit(state: AppState, work: TurnWork, ev: Extract<WireEvent, { type
   const broken = ev.warnings.find((w) => CONSTRAINT_CODES.has(w.code));
   next = live(next, t(next.lang, 'live.drawn', { n, added: rev.added, removed: rev.removed }));
   if (broken) next = live(next, t(next.lang, 'live.reqBroken', { text: memory.requirements[memory.requirements.length - 1] ?? '' }));
+  // new questions are announced politely, after what the revision drew (a question-first revision drew nothing)
+  const asked = rev.asks ?? [];
+  if (asked.length) {
+    const first = asked[0].text;
+    const what = asked.length === 1 ? t(next.lang, 'live.asked', { text: first }) : t(next.lang, 'live.askedMore', { count: asked.length, text: first });
+    const before = broken ? t(next.lang, 'live.reqBroken', { text: memory.requirements[memory.requirements.length - 1] ?? '' }) : rev.added + rev.removed > 0 ? t(next.lang, 'live.drawn', { n, added: rev.added, removed: rev.removed }) : '';
+    next = live(next, before ? `${before} ${what}` : what);
+  }
   return next;
 }
 
@@ -583,7 +622,7 @@ function endWithoutCommit(state: AppState, deps: StoreDeps, status: 'failed' | '
   let next = patchLast(state, (r) =>
     r.status === 'done' || r.status === 'failed' || r.status === 'stopped'
       ? r
-      : { ...r, status, error, statusLine: null, changes: [], reqs: [], lifecycle: [], truncated: false, durationMs: Math.max(0, now - r.startedAt), fix: { autoFixes: [], constraint: [], state: 'none', note: '', changes: [] } },
+      : { ...r, status, error, statusLine: null, changes: [], reqs: [], lifecycle: [], assumes: [], asks: [], truncated: false, durationMs: Math.max(0, now - r.startedAt), fix: { autoFixes: [], constraint: [], state: 'none', note: '', changes: [] } },
   );
   // memory is unchanged, so the pinned requirements are too: drop the ones this revision announced mid-turn
   const reqPinnedIn = { ...next.session.reqPinnedIn };

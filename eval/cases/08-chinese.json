@@ -261,7 +261,8 @@
             "ack",
             "acs",
             "ack-one",
-            "asm"
+            "asm",
+            "family:kubernetes"
           ],
           "include": [
             [
@@ -287,7 +288,8 @@
             "ack",
             "acs",
             "ack-one",
-            "asm"
+            "asm",
+            "family:kubernetes"
           ]
         }
       },
@@ -298,7 +300,8 @@
             "ack",
             "acs",
             "ack-one",
-            "asm"
+            "asm",
+            "family:kubernetes"
           ],
           "req": [
             [
@@ -306,6 +309,11 @@
               "k8s"
             ]
           ]
+        },
+        "expect": {
+          "edit": {
+            "minChanged": 1
+          }
         }
       }
     ]

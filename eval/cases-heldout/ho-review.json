@@ -1,0 +1,162 @@
+[
+  {
+    "id": "ho-r-relax-tokyo",
+    "category": "multiturn",
+    "title": "Web shop: a residency pin relaxed in chat",
+    "reference": "Turn 1 pins Singapore. Turn 2 is the user's own change of mind: the app must follow it (a req with regions listing both Singapore and Tokyo, a Tokyo DR replica) and must not refuse by citing the old pin. Review defect: a pin could not be relaxed, and the checker errored on every region group afterwards.",
+    "turns": [
+      {
+        "ask": "Please design a small web shop for customers in Southeast Asia: a storefront, a relational database and image storage. Customer data must stay in Singapore.",
+        "expect": {
+          "req": [["singapore", "ap-southeast-1"]],
+          "pins": { "regions": ["ap-southeast-1"] },
+          "residency": ["ap-southeast-1"],
+          "include": [["rds", "polardb"]]
+        }
+      },
+      {
+        "ask": "Actually we changed our mind: a disaster recovery replica of the database in Tokyo is fine now. Please add it.",
+        "expect": {
+          "pins": { "regions": ["ap-southeast-1", "ap-northeast-1"] },
+          "residency": ["ap-southeast-1", "ap-northeast-1"],
+          "regions": { "min": 2 },
+          "noWarn": ["constraint-region"]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-r-k8s-lifted",
+    "category": "multiturn",
+    "title": "Order API: Kubernetes ruled out, then allowed",
+    "reference": "Turn 1 avoids the whole Kubernetes family (no ACK, ACS, ACK One, ASM, ACK Serverless, ACK Dedicated, ACK Edge or Dify on ACK). Turn 2 lifts it in the user's own words and the app must follow: ACK or ACS appears and no constraint-avoid finding is raised. Review defect: the avoid list covered three ids only.",
+    "turns": [
+      {
+        "ask": "We have no Kubernetes skills on the team, so keep the design completely free of Kubernetes. We need a REST order API, background workers and a PostgreSQL database.",
+        "expect": {
+          "req": [["kubernetes", "k8s"]],
+          "pins": { "avoid": [["ack"]] },
+          "exclude": ["family:kubernetes"],
+          "include": [["sae", "ecs", "fc", "edas"], ["rds", "polardb"]]
+        }
+      },
+      {
+        "ask": "We hired a platform team, so Kubernetes is fine now. Please move the API and the workers onto a managed Kubernetes cluster.",
+        "expect": {
+          "include": [["ack", "acs", "ack-serverless", "ack-dedicated"]],
+          "noWarn": ["constraint-avoid"]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-r-ko-dr-in-country",
+    "category": "i18n",
+    "lang": "ko",
+    "title": "예약 시스템: 국내 보관 요건과 재해 복구",
+    "reference": "서울 리전 하나에 모든 것을 둔다. 재해 복구는 같은 리전의 다중 가용 영역과 리전 내 백업으로 구성하며, 다른 리전이나 해외가 나오지 않는다. 설명 문장에서 해외 반출 없음을 말해도 오류로 잡히면 안 된다.",
+    "turns": [
+      {
+        "ask": "개인정보는 한국 밖으로 나가면 안 됩니다. 서울 리전에 병원 예약 시스템을 설계해 주세요. 웹 서비스, 데이터베이스, 첨부 파일 저장소가 필요합니다.",
+        "expect": {
+          "req": [["한국", "국내", "국외", "해외", "서울", "korea", "seoul", "ap-northeast-2"]],
+          "pins": { "regions": ["ap-northeast-2"] },
+          "residency": ["ap-northeast-2"],
+          "regions": { "only": ["seoul", "서울", "ap-northeast-2"], "min": 1 }
+        }
+      },
+      {
+        "ask": "재해 복구도 추가해 주세요.",
+        "expect": { "residency": ["ap-northeast-2"] },
+        "retain": { "regions": { "only": ["seoul", "서울", "ap-northeast-2"] } }
+      }
+    ]
+  },
+  {
+    "id": "ho-r-zh-no-crossregion",
+    "category": "i18n",
+    "lang": "zh",
+    "title": "在线预约系统：数据留在新加坡，用户要求异地备份",
+    "reference": "全部留在新加坡。用户要求跨区域的异地备份时，保持固定的数据驻留要求，改用同一地域内的可用区和地域内备份，并用一句话说明；图表和说明文字里都不出现其他地域。",
+    "turns": [
+      {
+        "ask": "请设计一个在线预约系统，包含网站、数据库和文件存储。客户数据必须留在新加坡。",
+        "expect": {
+          "req": [["新加坡", "singapore", "ap-southeast-1"]],
+          "pins": { "regions": ["ap-southeast-1"] },
+          "residency": ["ap-southeast-1"]
+        }
+      },
+      {
+        "ask": "请再加一个跨区域的异地备份，放在别的国家。",
+        "expect": { "residency": ["ap-southeast-1"] },
+        "retain": { "residency": ["ap-southeast-1"] }
+      }
+    ]
+  },
+  {
+    "id": "ho-r-ko-avoid-mesh",
+    "category": "i18n",
+    "lang": "ko",
+    "title": "주문 API: 쿠버네티스 금지 뒤에 서비스 메시 요청",
+    "reference": "쿠버네티스 계열 전체(ACK, ACS, ASM 포함)가 나오지 않는다. 서비스 메시를 요청받으면 MSE 같은 쿠버네티스가 아닌 대안으로 답한다.",
+    "turns": [
+      {
+        "ask": "쿠버네티스는 사용하지 않습니다. 주문 REST API와 PostgreSQL 데이터베이스를 구성해 주세요.",
+        "expect": {
+          "req": [["쿠버네티스", "kubernetes", "k8s"]],
+          "pins": { "avoid": [["ack"]] },
+          "exclude": ["family:kubernetes"],
+          "include": [["sae", "ecs", "fc", "edas"], ["rds", "polardb"]]
+        }
+      },
+      {
+        "ask": "마이크로서비스 사이의 트래픽을 관리할 서비스 메시도 추가해 주세요.",
+        "expect": { "exclude": ["family:kubernetes"] },
+        "retain": { "exclude": ["family:kubernetes"] }
+      }
+    ]
+  },
+  {
+    "id": "ho-r-malaysia-two",
+    "category": "multiturn",
+    "title": "Payments portal: a country with two regions",
+    "reference": "Malaysia has two open regions, Kuala Lumpur (ap-southeast-3) and Johor (ap-southeast-8); the pin lists both ids and the design stays in them. DR in the other Malaysian region is allowed; Singapore or any other country is not.",
+    "turns": [
+      {
+        "ask": "We run a payments portal for Malaysian banks: web front end, an application tier, a relational database and object storage. All customer data must remain in Malaysia.",
+        "expect": {
+          "req": [["malaysia", "kuala lumpur", "johor", "ap-southeast-3", "ap-southeast-8"]],
+          "pins": { "regions": ["ap-southeast-3", "ap-southeast-8"] },
+          "residency": ["ap-southeast-3", "ap-southeast-8"]
+        }
+      },
+      {
+        "ask": "Add disaster recovery for the database.",
+        "expect": { "residency": ["ap-southeast-3", "ap-southeast-8"] },
+        "retain": { "residency": ["ap-southeast-3", "ap-southeast-8"] }
+      }
+    ]
+  },
+  {
+    "id": "ho-r-eu-bloc",
+    "category": "multiturn",
+    "title": "HR platform: data must stay in Europe",
+    "reference": "The pin lists the open European regions (Frankfurt eu-central-1, London eu-west-1, Paris eu-west-2) and nothing outside Europe appears, including in the narration; a backup request outside Europe (Virginia) is declined with an in-Europe alternative.",
+    "turns": [
+      {
+        "ask": "We are building an HR platform for European employees: a web app, a database and document storage. For GDPR reasons all personal data must stay in Europe.",
+        "expect": {
+          "req": [["europe", "eu", "gdpr", "frankfurt", "paris", "london"]],
+          "pins": { "regions": ["eu-central-1", "eu-west-1", "eu-west-2"] },
+          "residency": ["eu-central-1", "eu-west-1", "eu-west-2"]
+        }
+      },
+      {
+        "ask": "Our US parent company wants a nightly copy of the HR database in Virginia for their reporting.",
+        "expect": { "residency": ["eu-central-1", "eu-west-1", "eu-west-2"] },
+        "retain": { "residency": ["eu-central-1", "eu-west-1", "eu-west-2"] }
+      }
+    ]
+  }
+]

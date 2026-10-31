@@ -2,6 +2,7 @@
 // state slices, which are stable references, and builds the prop object in a memo.
 import { useMemo } from 'react';
 import { useAppState, useCatalog, useController, useT } from '../store/react.tsx';
+import { assumptionViews } from '../store/asks.ts';
 import { buildMarks, headerMode, isSolutionMap, isStreaming, productCount, requirements, summaryView, taggedRevision } from '../store/selectors.ts';
 import { catalog as bundled } from '../catalog/catalog.ts';
 import { DEFAULT_MAX_ASK_CHARS } from '@ali/core/prompt.ts';
@@ -50,12 +51,14 @@ export function useConsoleProps(): ConsoleProps {
   );
   const requirementList = useMemo(() => requirements({ session, work } as AppState), [session, work]);
   const summary = useMemo(() => summaryView({ session } as AppState), [session]);
+  const assumptions = useMemo(() => assumptionViews(session, work), [session, work]);
   const latest = session.revisions.length ? [...session.revisions].reverse().find((r) => r.status === 'done') : undefined;
   return useMemo<ConsoleProps>(
     () => ({
       lang,
       t,
       requirements: requirementList,
+      assumptions,
       revisions: session.revisions,
       turn,
       streamingRevision: work ? work.n : null,
@@ -70,7 +73,7 @@ export function useConsoleProps(): ConsoleProps {
       reveal: ui.reveal,
       actions,
     }),
-    [lang, t, requirementList, session.revisions, turn, work, summary, mode, replay, conn.health, ui, latest, actions],
+    [lang, t, requirementList, assumptions, session.revisions, turn, work, summary, mode, replay, conn.health, ui, latest, actions],
   );
 }
 

@@ -900,6 +900,7 @@
     },
     {
       "id": "ack",
+      "family": "kubernetes",
       "name": "Container Service for Kubernetes (ACK)",
       "short": "ACK",
       "aliases": ["Container Service for Kubernetes","ACK Pro","Kubernetes","K8s","Managed Kubernetes","ACK cluster"],
@@ -923,6 +924,7 @@
     },
     {
       "id": "acs",
+      "family": "kubernetes",
       "name": "Container Compute Service (ACS)",
       "short": "ACS",
       "aliases": ["Container Compute Service","ACS cluster"],
@@ -984,6 +986,7 @@
     },
     {
       "id": "asm",
+      "family": "kubernetes",
       "name": "Alibaba Cloud Service Mesh (ASM)",
       "short": "Service Mesh",
       "aliases": ["Service Mesh","Service Mesh (ASM)","Istio"],
@@ -1004,6 +1007,7 @@
     },
     {
       "id": "ack-one",
+      "family": "kubernetes",
       "name": "Distributed Cloud Container Platform for Kubernetes (ACK One)",
       "short": "ACK One",
       "aliases": ["Distributed Cloud Container Platform for Kubernetes","ADCP"],
@@ -3129,6 +3133,7 @@
     },
     {
       "id": "ack-serverless",
+      "family": "kubernetes",
       "name": "ACK Serverless",
       "short": "ACK Serverless",
       "aliases": ["ASK","Serverless Kubernetes","Serverless Kubernetes (ASK)","ACK Serverless cluster"],
@@ -3147,6 +3152,7 @@
     },
     {
       "id": "ack-dedicated",
+      "family": "kubernetes",
       "name": "ACK dedicated cluster",
       "short": "ACK Dedicated",
       "aliases": ["ACK dedicated Kubernetes cluster"],
@@ -3165,6 +3171,7 @@
     },
     {
       "id": "ack-edge",
+      "family": "kubernetes",
       "name": "ACK Edge",
       "short": "ACK Edge",
       "aliases": ["ACK Edge cluster"],

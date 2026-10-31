@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { Icon } from '../shell/Icon.tsx';
+import { Assumptions } from './Assumptions.tsx';
 import { REQ_COLLAPSED_ROWS, requirementMeta, stateView, visibleRequirements } from './logic.ts';
 import type { RequirementView } from '../app/contracts.ts';
 import type { ConsoleCtx } from './ctx.ts';
@@ -45,6 +46,7 @@ export function Requirements({ ctx }: { ctx: ConsoleCtx }): ReactElement {
           {t('req.less')}
         </button>
       ) : null}
+      <Assumptions ctx={ctx} />
     </section>
   );
 }

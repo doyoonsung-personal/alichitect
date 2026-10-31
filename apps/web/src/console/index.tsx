@@ -4,6 +4,7 @@
 import { useMemo } from 'react';
 import type { ReactElement } from 'react';
 import '../styles/console.css';
+import './asks.css';
 import { useCatalog } from '../app/contracts.ts';
 import type { ConsoleProps } from '../app/contracts.ts';
 import { Composer } from './Composer.tsx';

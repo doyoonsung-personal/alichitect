@@ -1,0 +1,1675 @@
+{
+  "meta": {
+    "startedAt": "2026-10-31T08:52:56.504Z",
+    "args": {
+      "cases-dir": "eval/cases-heldout",
+      "runs": "3",
+      "concurrency": "3",
+      "budget": "100",
+      "label": "p1-heldout-b"
+    },
+    "model": "qwen3.8-max",
+    "fallbackModel": "qwen3.7-max",
+    "judgeModel": "kimi-k3",
+    "runsPerCase": 3,
+    "concurrency": 3,
+    "cases": 18,
+    "units": 54,
+    "catalogVersion": "2026-10-31",
+    "catalogEntries": 223,
+    "systemPromptChars": 48298,
+    "systemPromptSha256": "53b0ef6af750794923157b21f4ad350d91e9e53709bfd0eb30099c36b9ad9be7",
+    "node": "v24.21.0",
+    "coreFiles": {
+      "catalog-node.ts": "dade41cbd9ed",
+      "catalog.ts": "5bf2d46dc58f",
+      "constraints.ts": "6374f064e4dd",
+      "diff.ts": "eaabf1ce1def",
+      "display.ts": "941ca6dec769",
+      "layout.ts": "a34f6bc0b415",
+      "llm.ts": "1b7966305c9a",
+      "ndjson.ts": "3163a8232eaa",
+      "pricing.ts": "6fa3a32521c0",
+      "prompt.ts": "a14eabdf51d2",
+      "reducer.ts": "42217123e9aa",
+      "regions.ts": "59b6d0e2a0d6",
+      "types.ts": "8e467f31f5f9",
+      "validate.ts": "1043e63714e6"
+    },
+    "judgeAllRunsOf": [
+      "ho-p1-residency-japan",
+      "ho-p1-avoid-es",
+      "ho-p1-avoid-fc-tempt",
+      "ho-p1-ko-residency",
+      "ho-p1-zh-residency",
+      "ho-residency-korea",
+      "ho-scale-sae",
+      "ho-scale-ecs-ok",
+      "ho-budget-ha"
+    ],
+    "finishedAt": "2026-10-31T08:59:26.107Z",
+    "spentUsd": 0.9607849999999997
+  },
+  "totals": {
+    "cases": 18,
+    "conversations": 54,
+    "turns": 90,
+    "casePassRate": 0.926,
+    "passAtN": 1,
+    "majority": 0.889,
+    "allRuns": 0.889,
+    "runPassRate": 0.926,
+    "turnPassRate": 0.956,
+    "assertionPassRate": 0.996,
+    "assertions": 967,
+    "apiFailures": 0,
+    "costUsd": 0.649
+  },
+  "byCategory": {
+    "multiturn": {
+      "cases": 7,
+      "runs": 21,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "pattern": {
+      "cases": 4,
+      "runs": 12,
+      "runPassRate": 0.833,
+      "passAtN": 1,
+      "majority": 0.75,
+      "allRuns": 0.75
+    },
+    "i18n": {
+      "cases": 4,
+      "runs": 12,
+      "runPassRate": 0.833,
+      "passAtN": 1,
+      "majority": 0.75,
+      "allRuns": 0.75
+    },
+    "need": {
+      "cases": 2,
+      "runs": 6,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "trap": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    }
+  },
+  "byLang": {
+    "en": {
+      "cases": 14,
+      "runs": 42,
+      "runPassRate": 0.952,
+      "passAtN": 1,
+      "majority": 0.929,
+      "allRuns": 0.929
+    },
+    "ko": {
+      "cases": 2,
+      "runs": 6,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "zh": {
+      "cases": 2,
+      "runs": 6,
+      "runPassRate": 0.667,
+      "passAtN": 1,
+      "majority": 0.5,
+      "allRuns": 0.5
+    }
+  },
+  "byAssertionType": {
+    "residency": {
+      "checks": 30,
+      "passed": 28,
+      "rate": 0.933,
+      "failingCases": [
+        "ho-p1-zh-residency"
+      ]
+    },
+    "attachValid": {
+      "checks": 90,
+      "passed": 88,
+      "rate": 0.978,
+      "failingCases": [
+        "ho-p1-vpc-mongo"
+      ]
+    },
+    "exclude": {
+      "checks": 21,
+      "passed": 21,
+      "rate": 1,
+      "failingCases": []
+    },
+    "req": {
+      "checks": 21,
+      "passed": 21,
+      "rate": 1,
+      "failingCases": []
+    },
+    "pins": {
+      "checks": 21,
+      "passed": 21,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noErrors": {
+      "checks": 90,
+      "passed": 90,
+      "rate": 1,
+      "failingCases": []
+    },
+    "pathOrder": {
+      "checks": 84,
+      "passed": 84,
+      "rate": 1,
+      "failingCases": []
+    },
+    "format": {
+      "checks": 90,
+      "passed": 90,
+      "rate": 1,
+      "failingCases": []
+    },
+    "escapes": {
+      "checks": 90,
+      "passed": 90,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noPrices": {
+      "checks": 90,
+      "passed": 90,
+      "rate": 1,
+      "failingCases": []
+    },
+    "sayLang": {
+      "checks": 90,
+      "passed": 90,
+      "rate": 1,
+      "failingCases": []
+    },
+    "include": {
+      "checks": 66,
+      "passed": 66,
+      "rate": 1,
+      "failingCases": []
+    },
+    "retention": {
+      "checks": 60,
+      "passed": 60,
+      "rate": 1,
+      "failingCases": []
+    },
+    "region": {
+      "checks": 42,
+      "passed": 42,
+      "rate": 1,
+      "failingCases": []
+    },
+    "attach": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "linked": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "placement": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "editMinimal": {
+      "checks": 12,
+      "passed": 12,
+      "rate": 1,
+      "failingCases": []
+    },
+    "whyLang": {
+      "checks": 16,
+      "passed": 16,
+      "rate": 1,
+      "failingCases": []
+    },
+    "primaryRec": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "size": {
+      "checks": 27,
+      "passed": 27,
+      "rate": 1,
+      "failingCases": []
+    },
+    "question": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "mention": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    }
+  },
+  "cases": [
+    {
+      "id": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Claims Portal for Japanese Insurance Company",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.025,
+      "meanMs": 32781,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "All components correctly placed in Tokyo (ap-northeast-1) honoring the data residency pin",
+          "Singapore replication properly declined with in-region CEN + Quick BI alternative",
+          "Model Studio correctly placed in Tokyo for Qwen chatbot with AI Gateway for security"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-p1-avoid-es",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Catalog API with Elasticsearch banned",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.015,
+      "meanMs": 21795,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Elasticsearch ban honored via Lindorm search engine",
+          "Lindorm correctly placed in VPC with multi-zone HA",
+          "Narration explicitly acknowledges the legal constraint"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-p1-dify-k8s",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Self-host Dify on ACK in Frankfurt",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.01,
+      "meanMs": 20065,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Dify node sits in VPC as a peer of ACK rather than nested in the cluster; acceptable but slightly ambiguous",
+          "NAT Gateway justified as 'pulling images' though ACR supports VPC-internal pulls; egress is still reasonable for external API calls",
+          "Narration is brief and does not mention the pinned 'data stays in Frankfurt' constraint explicitly"
+        ],
+        "reasons": [
+          "All requested components present: Frankfurt region, Dify on ACK as own node with edge from ACK, Model Studio for Qwen, OSS for docs, RDS for Dify metadata",
+          "Placement rules respected: OSS/SLS/Model Studio outside VPC, DNS not a data-path hop, multi-zone as single nodes with zones a,b",
+          "Minor issues: Dify node placement inside VPC alongside ACK is slightly redundant, and NAT for image pulls is debatable when ACR has VPC endpoints"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-p1-ddos-order",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Live-streaming site DDoS chain order",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.009,
+      "meanMs": 18355,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Correctly places ESA before Anti-DDoS Proxy per platform rules, with clear explanation",
+          "Proper multi-zone HA design with ALB, app servers, and cache across zones a,b",
+          "WAF correctly implemented as badge on ALB rather than separate hop",
+          "Includes all requested components plus appropriate additions (DNS, logging, media storage)"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-p1-vpc-mongo",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Private Jakarta databases for on-prem SaaS",
+      "runs": 3,
+      "passes": 1,
+      "passRate": 0.333,
+      "passAtN": true,
+      "majority": false,
+      "failed": {
+        "every attachment names a valid host": 2
+      },
+      "failedTypes": [
+        "attachValid"
+      ],
+      "meanCostUsd": 0.007,
+      "meanMs": 13585,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "ec-onprem (the DC-side Express Connect endpoint) is placed inside the VPC group instead of the on-prem group, which misrepresents the boundary",
+          "Narration is very brief; it does not mention PrivateZone, multi-AZ HA, or how the no-public-exposure requirement is enforced"
+        ],
+        "reasons": [
+          "All requested components present: Jakarta VPC, managed MongoDB, RDS PostgreSQL, dedicated private connectivity, no public exposure",
+          "PrivateZone correctly modeled as a badge on the VPC rather than a hop",
+          "Multi-zone databases correctly modeled as single nodes with zones a,b"
+        ]
+      },
+      "runPass": [
+        true,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "ho-p1-avoid-fc-tempt",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Photo-sharing backend on ECS without serverless",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.015,
+      "meanMs": 21838,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          5,
+          4,
+          4
+        ],
+        "defects": [
+          "Worker polls OSS instead of using OSS event notifications with a message queue, adding latency and wasted API calls",
+          "No mention of where thumbnails are stored or how the DB learns of them (minor flow gap)",
+          "Narration doesn't explicitly restate the pinned constraint as an avoid rule beyond one sentence"
+        ],
+        "reasons": [
+          "Honors the no-serverless constraint with an ECS worker fleet for thumbnails",
+          "All products current and correctly placed; OSS outside VPC, WAF as badge, multi-zone as single nodes",
+          "Polling OSS works but an OSS event notification into a queue would be more efficient; narration is brief but clear"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-p1-ko-residency",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "Seoul Game Servers with Residency Constraint",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.015,
+      "meanMs": 22377,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "프랑크푸르트 복제 요청을 개인정보보호법 근거로 정확히 거절하고 ESA 유럽 엣지 캐시라는 준수 대안을 제시함",
+          "개인정보(DB, 세션 캐시)는 서울에 유지하고 유럽 엣지는 비개인정보 정적 에셋만 캐싱",
+          "모든 제품이 현행 카탈로그와 일치하고 배치 규칙(WAF 배지, DNS 비경유, 다중 AZ 단일 노드) 준수"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-p1-zh-residency",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "HK Broker Backend with Residency and DR",
+      "runs": 3,
+      "passes": 1,
+      "passRate": 0.333,
+      "passAtN": true,
+      "majority": false,
+      "failed": {
+        "residency cn-hongkong": 2
+      },
+      "failedTypes": [
+        "residency"
+      ],
+      "meanCostUsd": 0.019,
+      "meanMs": 34172,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          4,
+          5
+        ],
+        "defects": [
+          "只读副本节点未标注 zones a,b，与主库的双可用区表述不一致，容灾拓扑表达略不完整。",
+          "云备份描述为'备份至同区域另一可用区'，未说明备份数据同样不出香港（虽属同区域，但显式说明更稳妥）。",
+          "未提及备份的恢复演练或 RPO/RTO 目标，对证券监管场景略显单薄。"
+        ],
+        "reasons": [
+          "数据驻留约束被明确钉住：所有资源均在 cn-hongkong，容灾以同区域跨可用区实现并附一句中文解释，符合监管要求。",
+          "新增 RDS 只读副本与云备份（覆盖 RDS 与 OSS）是合理的同城容灾手段，未引入出境复制。",
+          "标签与 why 文本均为中文且具体，架构层次清晰。"
+        ]
+      },
+      "runPass": [
+        false,
+        true,
+        false
+      ]
+    },
+    {
+      "id": "ho-residency-korea",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Korean healthcare data residency",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.021,
+      "meanMs": 28183,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          4,
+          5
+        ],
+        "defects": [
+          "Scans bucket not included in Cloud Backup scope; MRI/CT backups not mentioned despite DR requirement",
+          "ESA edge caching could be noted as a residency consideration for dynamic patient traffic, though origin remains in Seoul"
+        ],
+        "reasons": [
+          "All components stay in Seoul region, satisfying Korean data residency",
+          "OSS bucket for MRI/CT scans correctly added as regional service outside VPC with app upload path",
+          "Multi-zone ALB, ECS, RDS, Tair plus Cloud Backup provide in-region DR"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-scale-sae",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Serverless ticketing API scaling",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.013,
+      "meanMs": 20520,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "RDS read replicas are not 'automatic' scaling; the why text overstates RDS auto-scaling capability",
+          "Removing the direct api->db edge means reads of order state now only flow via the queue, which is slightly unrealistic for a ticketing API that still needs synchronous DB reads",
+          "Queue->db edge implies a consumer writing to RDS but no consumer component is shown"
+        ],
+        "reasons": [
+          "SAE autoscaling expressed in the existing node, no spurious Auto Scaling node; queue buffering is a sound spike-absorption pattern",
+          "All products current and correctly placed; WAF as badge, SLS outside VPC, DNS not a data-path hop",
+          "Narration is concise and explains the 20x scaling changes"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-scale-ecs-ok",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Auto Scaling for ECS website",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.013,
+      "meanMs": 16061,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Auto Scaling correctly attached as a badge on the ECS node, matching catalog guidance",
+          "All workloads remain in Singapore; existing architecture preserved",
+          "Narration is concise and directly addresses the weekend scaling requirement"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-budget-ha",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Budget blog with high availability",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.019,
+      "meanMs": 24243,
+      "judge": {
+        "run": 1,
+        "mean": 3.75,
+        "signoff": false,
+        "scores": [
+          4,
+          4,
+          3,
+          4
+        ],
+        "defects": [
+          "db (Posts DB) and comment-db are not multi-zone; RDS HA edition not requested, leaving the outage scenario partially unaddressed",
+          "Turn 3 narration says 'modest cost' without flagging that ALB plus a second ECS instance is the main budget driver and no trade-off is offered",
+          "Comments path (cdn -> comments SAE) bypasses the ALB, so comment service resilience depends on SAE defaults without explanation",
+          "Two separate RDS instances for a $150 budget blog is questionable spend; merging would free budget for RDS HA"
+        ],
+        "reasons": [
+          "HA added for the app tier but the two RDS databases remain single-zone, so a zone failure still takes down posts/comments",
+          "No cost note quantifying the ALB + second ECS impact against the $150 budget",
+          "Placement and product usage are otherwise correct and the ALB/CDN rewiring is clean"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-team-agent-b",
+      "category": "need",
+      "lang": "en",
+      "title": "AI agent for office team",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.004,
+      "meanMs": 4491,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          5
+        ],
+        "defects": [
+          "Token Plan is Singapore-only; user location unknown and not flagged",
+          "Token Plan overlaps with Qoder Teams' bundled tools, so its added value is not explained"
+        ],
+        "reasons": [
+          "Correctly identifies Qoder Teams as the primary fit for a coding team and asks the key clarifying question about whether all users are developers",
+          "Token Plan as a complement is reasonable for per-member keys, though slightly redundant since Qoder Teams bundles the tooling",
+          "Narration is short, clear and in the user's language"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-ko-short-followup",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "Swap OpenSearch for Elasticsearch (Korean)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.005,
+      "meanMs": 2920,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          4
+        ],
+        "defects": [
+          "search 노드의 why 텍스트만 한국어인 반면 나머지 노드 why는 영어로 남아 있어 언어 일관성이 다소 부족"
+        ],
+        "reasons": [
+          "OpenSearch 노드가 Elasticsearch로 정확히 교체되고 나머지 구성은 그대로 유지됨",
+          "Elasticsearch는 vpc/search 제품으로 VPC 내 배치와 다중존(a,b) 구성이 카탈로그와 일치",
+          "엣지 app->search 'query' 연결 유지, 나레이션도 한국어로 변경 사항을 명확히 전달"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-zh-short-followup",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "Swap RocketMQ for Kafka (Chinese)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.004,
+      "meanMs": 2935,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          4,
+          4
+        ],
+        "defects": [
+          "Only the queue node's why text is in Chinese; the rest of the diagram stays in English despite the Chinese-language conversation",
+          "Narration is minimal; could briefly note Kafka fits streaming/order-event pipelines"
+        ],
+        "reasons": [
+          "Queue node correctly swapped from RocketMQ to ApsaraMQ for Kafka, edges and placement preserved",
+          "Narration is in Chinese and confirms the swap",
+          "Kafka why text is in Chinese while all other nodes remain in English, a minor consistency issue"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-closed-region-game",
+      "category": "trap",
+      "lang": "en",
+      "title": "Closed Mumbai region for mobile game",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.01,
+      "meanMs": 17340,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Correctly identifies Mumbai closure and pivots to Singapore with ESA edge acceleration",
+          "Proper placement: managed services (OSS, SLS, CloudMonitor) outside VPC, DNS as resolve-only hop, ESA includes DDoS defense",
+          "Multi-zone deployment (a,b) for NLB, game servers, cache, and database ensures high availability"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-tools-cline",
+      "category": "need",
+      "lang": "en",
+      "title": "Qwen models for Cline users",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.004,
+      "meanMs": 3858,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Token Plan correctly chosen for fixed per-developer cost in Cline",
+          "Qwen Code complement is relevant and accurately described",
+          "Narration is concise and directly addresses the need"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-ddos-game-login",
+      "category": "pattern",
+      "lang": "en",
+      "title": "DDoS protection for game login API",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.009,
+      "meanMs": 17703,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "ESA includes its own DDoS protection; placing Anti-DDoS Proxy as a separate hop after ESA is questionable—typically Anti-DDoS Proxy fronts the origin directly, so the esa->ddos edge direction/order is debatable",
+          "Narration is a single sentence; doesn't explain traffic flow, failover, or why both ESA and Anti-DDoS Proxy are used together",
+          "NAT gateway justification ('token refresh') is thin but acceptable"
+        ],
+        "reasons": [
+          "Full layered design: DNS, ESA edge, Anti-DDoS Proxy scrubbing, WAF-badged API gateway, multi-zone ACK backend with Tair cache and RDS HA",
+          "All products current per catalog; WAF correctly drawn as badge on gateway; SLS outside VPC; DNS off data path",
+          "Minor issues: ESA already includes DDoS defense so chaining ESA -> Anti-DDoS Proxy is arguably redundant ordering, and narration is very brief"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    }
+  ],
+  "warnings": {
+    "preRepairByCode": {
+      "orphan-node": {
+        "total": 14,
+        "perTurn": 0.156,
+        "turns": 12
+      },
+      "constraint-region": {
+        "total": 10,
+        "perTurn": 0.111,
+        "turns": 7
+      },
+      "containment": {
+        "total": 7,
+        "perTurn": 0.078,
+        "turns": 4
+      },
+      "attach-host-missing": {
+        "total": 6,
+        "perTurn": 0.067,
+        "turns": 6
+      },
+      "unknown-id": {
+        "total": 2,
+        "perTurn": 0.022,
+        "turns": 1
+      },
+      "duplicate-id": {
+        "total": 1,
+        "perTurn": 0.011,
+        "turns": 1
+      }
+    },
+    "postRepairByCode": {
+      "orphan-node": {
+        "total": 14,
+        "perTurn": 0.156,
+        "turns": 12
+      },
+      "constraint-region": {
+        "total": 7,
+        "perTurn": 0.078,
+        "turns": 7
+      }
+    },
+    "preRepairBySeverity": {
+      "warn": 14,
+      "info": 14,
+      "error": 12
+    },
+    "postRepairBySeverity": {
+      "info": 12,
+      "warn": 9
+    },
+    "fixesByCode": {
+      "containment": 7,
+      "attach-invalid": 4,
+      "attach-host-missing": 2
+    },
+    "unknownProducts": {
+      "count": 0,
+      "top": []
+    },
+    "nonIdProducts": {
+      "count": 0,
+      "top": []
+    }
+  },
+  "latency": {
+    "firstByteMs": {
+      "n": 90,
+      "p50": 1302,
+      "p95": 1835,
+      "mean": 1330,
+      "max": 2386
+    },
+    "perceivedFirstByteMs": {
+      "n": 90,
+      "p50": 1302,
+      "p95": 1835,
+      "mean": 1330,
+      "max": 2386
+    },
+    "firstSayMs": {
+      "n": 90,
+      "p50": 1611,
+      "p95": 2110,
+      "mean": 1620,
+      "max": 2681
+    },
+    "firstOpMs": {
+      "n": 90,
+      "p50": 2097,
+      "p95": 2737,
+      "mean": 2100,
+      "max": 3116
+    },
+    "firstNodeMs": {
+      "n": 81,
+      "p50": 3713,
+      "p95": 4712,
+      "mean": 3685,
+      "max": 5197
+    },
+    "streamMs": {
+      "n": 90,
+      "p50": 8130,
+      "p95": 20007,
+      "mean": 10664,
+      "max": 25998
+    },
+    "turnMs": {
+      "n": 90,
+      "p50": 8138,
+      "p95": 20341,
+      "mean": 10773,
+      "max": 26003
+    },
+    "diagramStreamMs": {
+      "n": 84,
+      "p50": 10816,
+      "p95": 20086,
+      "mean": 11128,
+      "max": 25998
+    },
+    "productStreamMs": {
+      "n": 6,
+      "p50": 3918,
+      "p95": 5197,
+      "mean": 4172,
+      "max": 5393
+    },
+    "editStreamMs": {
+      "n": 42,
+      "p50": 4626,
+      "p95": 8459,
+      "mean": 5099,
+      "max": 10753
+    }
+  },
+  "tokens": {
+    "prompt": 1181449,
+    "cached": 1135104,
+    "cacheHit": 0.961,
+    "completion": 45481,
+    "completionPerTurn": {
+      "n": 90,
+      "p50": 333,
+      "p95": 1011,
+      "mean": 505,
+      "max": 1321
+    },
+    "costPerTurn": {
+      "n": 90,
+      "p50": 0.00699,
+      "p95": 0.01057,
+      "mean": 0.00722,
+      "max": 0.014998000000000001
+    },
+    "costPerConversation": {
+      "n": 54,
+      "p50": 0.01234,
+      "p95": 0.02154,
+      "mean": 0.01203,
+      "max": 0.031166000000000003
+    },
+    "costUsd": 0.649
+  },
+  "reliability": {
+    "turns": 90,
+    "truncatedMain": 0,
+    "continued": 0,
+    "repairTurns": 2,
+    "hedged": 0,
+    "hedgeWon": 0,
+    "fallbackUsed": 0,
+    "retriedAttempts": 0,
+    "apiFailures": 0,
+    "badLines": 0,
+    "escapes": 0
+  },
+  "failover": {
+    "turns": 0,
+    "rate": 0,
+    "byReason": {},
+    "stalledAttemptMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "fallbackFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "perceivedFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "turnMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "followUpFallbacks": 0,
+    "examples": []
+  },
+  "cutoff": {
+    "truncated": 0,
+    "byCause": {},
+    "rescued": 0,
+    "notRescued": 0,
+    "rescuedPassing": 0,
+    "turnPassRateExcludingRescued": 0.956,
+    "list": []
+  },
+  "constraints": {
+    "residency": {
+      "checks": 30,
+      "passed": 28,
+      "rate": 0.933,
+      "failing": [
+        {
+          "case": "ho-p1-zh-residency",
+          "run": 1,
+          "turn": 2,
+          "detail": "a say line sends data to another region (\"容灾\"): \"实现符合监管要求的同城异地容灾方案\"; the pinned regions are Hong Kong (cn-hongkong) (\"eval residency\"). Correct the narration and keep data in the pinned region"
+        },
+        {
+          "case": "ho-p1-zh-residency",
+          "run": 3,
+          "turn": 2,
+          "detail": "a say line sends data to another region (\"容灾\"): \"实现异地容灾\"; the pinned regions are Hong Kong (cn-hongkong) (\"eval residency\"). Correct the narration and keep data in the pinned region"
+        }
+      ],
+      "warnMentions": 6,
+      "correctedByRepair": 1
+    },
+    "pins": {
+      "checks": 21,
+      "passed": 21,
+      "rate": 1,
+      "failing": []
+    },
+    "avoid": {
+      "checks": 33,
+      "passed": 33,
+      "rate": 1
+    },
+    "product": {
+      "turnsWithConstraints": 55,
+      "findingsBefore": {
+        "constraint-region": {
+          "total": 10,
+          "turns": 7,
+          "error": 3
+        }
+      },
+      "findingsAfter": {
+        "constraint-region": {
+          "total": 7,
+          "turns": 7,
+          "error": 0
+        }
+      }
+    }
+  },
+  "repairs": {
+    "fixesByCode": {
+      "containment": {
+        "total": 7,
+        "turns": 4
+      },
+      "attach-invalid": {
+        "total": 4,
+        "turns": 4
+      },
+      "attach-host-missing": {
+        "total": 2,
+        "turns": 2
+      }
+    },
+    "followUps": {
+      "turns": 2,
+      "byKind": {
+        "repair": 2
+      },
+      "byFindingCode": {
+        "constraint-region": 1,
+        "duplicate-id": 1
+      },
+      "list": [
+        {
+          "case": "ho-p1-residency-japan",
+          "run": 2,
+          "turn": 2,
+          "kind": "repair",
+          "model": "qwen3.8-max",
+          "findings": [
+            "constraint-region/error: region group 'sg' (Singapore (ap-southeast-1)) is in Singapore (ap-southeast-1) and holds analytics; the pinned regions are Tokyo (ap-northeast-1) (\"All policyholder data must remain physically w",
+            "constraint-region/error: the why of 'cen' says \"Private cross-region network linking Singapore analytics to Tokyo replica\" (replica to Singapore (ap-southeast-1)); the pinned regions are Tokyo (ap-northeast-1) (\"All poli",
+            "constraint-region/warn: a say line names Singapore (ap-southeast-1): \"I cannot replicate policyholder data to Singapore because your pinned requirement mandate…\"; the pinned regions are Tokyo (ap-northeast-1) (\"All polic",
+            "constraint-region/error: a say line pairs Singapore (ap-southeast-1) with \"replica\": \"I'll add a read replica in Tokyo and let the analytics team access it securely from Singa…\"; the pinned regions are Tokyo (ap-northeas"
+          ],
+          "pass": true
+        },
+        {
+          "case": "ho-closed-region-game",
+          "run": 2,
+          "turn": 1,
+          "kind": "repair",
+          "model": "qwen3.8-max",
+          "findings": [
+            "duplicate-id/error: node 'players' collides with a group id; op dropped"
+          ],
+          "pass": true
+        }
+      ]
+    }
+  },
+  "i18n": {
+    "en": {
+      "turns": 72,
+      "completionPerTurn": 511,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 13148,
+      "sayLangPass": 72,
+      "sayLangChecks": 72,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    },
+    "ko": {
+      "turns": 9,
+      "completionPerTurn": 387,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 13009,
+      "sayLangPass": 9,
+      "sayLangChecks": 9,
+      "whyLangPass": 7,
+      "whyLangChecks": 7,
+      "escapes": 0
+    },
+    "zh": {
+      "turns": 9,
+      "completionPerTurn": 580,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 13077,
+      "sayLangPass": 9,
+      "sayLangChecks": 9,
+      "whyLangPass": 9,
+      "whyLangChecks": 9,
+      "escapes": 0
+    }
+  },
+  "multiturn": [
+    {
+      "case": "ho-p1-residency-japan",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 6,
+          "passed": 6
+        },
+        {
+          "turn": 2,
+          "checks": 9,
+          "passed": 9
+        },
+        {
+          "turn": 3,
+          "checks": 6,
+          "passed": 6
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "ho-p1-avoid-es",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 2,
+          "checks": 3,
+          "passed": 3
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "ho-p1-avoid-fc-tempt",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 2,
+          "checks": 3,
+          "passed": 3
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "ho-p1-ko-residency",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 6,
+          "passed": 6
+        },
+        {
+          "turn": 2,
+          "checks": 9,
+          "passed": 9
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "ho-p1-zh-residency",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 6,
+          "passed": 6
+        },
+        {
+          "turn": 2,
+          "checks": 9,
+          "passed": 7
+        }
+      ],
+      "finalPassRate": 0.333
+    },
+    {
+      "case": "ho-residency-korea",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 6,
+          "passed": 6
+        },
+        {
+          "turn": 2,
+          "checks": 9,
+          "passed": 9
+        },
+        {
+          "turn": 3,
+          "checks": 9,
+          "passed": 9
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "ho-scale-sae",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 0,
+          "passed": 0
+        },
+        {
+          "turn": 2,
+          "checks": 6,
+          "passed": 6
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "ho-scale-ecs-ok",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 0,
+          "passed": 0
+        },
+        {
+          "turn": 2,
+          "checks": 6,
+          "passed": 6
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "ho-budget-ha",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 2,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 3,
+          "checks": 6,
+          "passed": 6
+        }
+      ],
+      "finalPassRate": 1
+    }
+  ],
+  "judge": {
+    "model": "kimi-k3",
+    "judged": 18,
+    "runsJudged": 36,
+    "constraintRuns": {
+      "runs": 27,
+      "signoff": 0.926,
+      "overall": 4.519,
+      "noSignoff": [
+        {
+          "case": "ho-budget-ha",
+          "run": 1,
+          "defects": [
+            "db (Posts DB) and comment-db are not multi-zone; RDS HA edition not requested, leaving the outage scenario partially unaddressed",
+            "Turn 3 narration says 'modest cost' without flagging that ALB plus a second ECS instance is the main budget driver and no trade-off is offered",
+            "Comments path (cdn -> comments SAE) bypasses the ALB, so comment service resilience depends on SAE defaults without explanation"
+          ]
+        },
+        {
+          "case": "ho-p1-zh-residency",
+          "run": 2,
+          "defects": [
+            "gtm用于'可用区间切换流量'是产品误用：GTM做跨区域DNS级容灾，同区域AZ故障已由多AZ ALB/RDS覆盖",
+            "users->gtm(resolve)再gtm->dns(resolve)形成冗余解析链，DNS不应作为数据路径/解析链中的一跳",
+            "未说明备份保留策略、RPO/RTO或恢复演练，容灾方案深度不足"
+          ]
+        }
+      ]
+    },
+    "errors": 0,
+    "means": {
+      "completeness": 4.833,
+      "accuracy": 4.611,
+      "rationality": 4.389,
+      "readability": 4.556,
+      "overall": 4.597
+    },
+    "signoffRate": 0.944,
+    "byCategory": {
+      "multiturn": {
+        "n": 7,
+        "overall": 4.571,
+        "signoff": 0.857
+      },
+      "pattern": {
+        "n": 4,
+        "overall": 4.438,
+        "signoff": 1
+      },
+      "i18n": {
+        "n": 4,
+        "overall": 4.688,
+        "signoff": 1
+      },
+      "need": {
+        "n": 2,
+        "overall": 4.625,
+        "signoff": 1
+      },
+      "trap": {
+        "n": 1,
+        "overall": 5,
+        "signoff": 1
+      }
+    },
+    "agreement": {
+      "n": 18,
+      "agree": 16,
+      "rate": 0.889,
+      "tp": 16,
+      "tn": 0,
+      "fp": 1,
+      "fn": 1,
+      "meanScorePass": 4.603,
+      "meanScoreFail": 4.5,
+      "pointBiserial": 0.062,
+      "disagreements": [
+        {
+          "case": "ho-p1-zh-residency",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "residency cn-hongkong"
+          ],
+          "defects": [
+            "只读副本节点未标注 zones a,b，与主库的双可用区表述不一致，容灾拓扑表达略不完整。",
+            "云备份描述为'备份至同区域另一可用区'，未说明备份数据同样不出香港（虽属同区域，但显式说明更稳妥）。",
+            "未提及备份的恢复演练或 RPO/RTO 目标，对证券监管场景略显单薄。"
+          ]
+        },
+        {
+          "case": "ho-budget-ha",
+          "run": 1,
+          "assertions": "pass",
+          "judge": "no",
+          "failed": [],
+          "defects": [
+            "db (Posts DB) and comment-db are not multi-zone; RDS HA edition not requested, leaving the outage scenario partially unaddressed",
+            "Turn 3 narration says 'modest cost' without flagging that ALB plus a second ECS instance is the main budget driver and no trade-off is offered",
+            "Comments path (cdn -> comments SAE) bypasses the ALB, so comment service resilience depends on SAE defaults without explanation"
+          ]
+        }
+      ]
+    },
+    "costUsd": 0.311
+  },
+  "failures": [
+    {
+      "case": "ho-p1-zh-residency",
+      "category": "i18n",
+      "run": 1,
+      "turn": 2,
+      "type": "residency",
+      "name": "residency cn-hongkong",
+      "detail": "a say line sends data to another region (\"容灾\"): \"实现符合监管要求的同城异地容灾方案\"; the pinned regions are Hong Kong (cn-hongkong) (\"eval residency\"). Correct the narration and keep data in the pinned region"
+    },
+    {
+      "case": "ho-p1-vpc-mongo",
+      "category": "pattern",
+      "run": 2,
+      "turn": 1,
+      "type": "attachValid",
+      "name": "every attachment names a valid host",
+      "detail": "'pzone' attaches to 'vpc': host 'vpc' does not exist"
+    },
+    {
+      "case": "ho-p1-vpc-mongo",
+      "category": "pattern",
+      "run": 3,
+      "turn": 1,
+      "type": "attachValid",
+      "name": "every attachment names a valid host",
+      "detail": "'dns' attaches to 'vpc': host 'vpc' does not exist"
+    },
+    {
+      "case": "ho-p1-zh-residency",
+      "category": "i18n",
+      "run": 3,
+      "turn": 2,
+      "type": "residency",
+      "name": "residency cn-hongkong",
+      "detail": "a say line sends data to another region (\"容灾\"): \"实现异地容灾\"; the pinned regions are Hong Kong (cn-hongkong) (\"eval residency\"). Correct the narration and keep data in the pinned region"
+    }
+  ]
+}

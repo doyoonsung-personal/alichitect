@@ -1,0 +1,45 @@
+/* src/console/asks.css: assumption chips and follow-up questions (research/phase1-asks-and-scope.md section 1).
+   Tokens only. Square controls, hairlines, no colour stripes; orange does not appear here. Motion reuses the card
+   entrance (--d-enter, --rise), which the reduced-motion tokens already shorten to a 120 ms fade. */
+
+/* ---------- assumption chips, under the pinned requirements ---------- */
+.asm { margin-top: var(--s-4); }
+.asm__list { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+.asm__chip {
+  display: inline-flex; align-items: center; gap: var(--s-3); max-width: 100%; min-height: 30px;
+  padding: 3px var(--s-3) 3px var(--s-4);
+  background: var(--sheet); border: 1px solid var(--line-2); border-radius: var(--r-control);
+  font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink);
+}
+.asm__chip[data-enter] { animation: asm-in var(--d-enter) var(--ease-out) both; }
+@keyframes asm-in { from { opacity: 0; transform: translateY(var(--rise)); } to { opacity: 1; transform: none; } }
+.asm__text { min-width: 0; }
+.asm__label { color: var(--ink-3); }
+.asm__what { font-weight: var(--w-medium); }
+.asm__sep { flex: none; color: var(--ink-3); }
+.asm__change {
+  flex: none; min-height: 24px; margin-right: calc(-1 * var(--s-2)); padding: 0 var(--s-3);
+  font-size: var(--t-13); line-height: var(--lh-13); font-weight: var(--w-medium); color: var(--action);
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+  transition: background-color var(--d-hover) linear, color var(--d-hover) linear;
+}
+.asm__change:hover:not(:disabled) { background: var(--action-soft); color: var(--action-hover); }
+.asm__change:active:not(:disabled) { background: var(--action-soft-2); color: var(--action-press); }
+.asm__change:disabled { color: var(--ink-disabled); text-decoration: none; }
+.asm__more { margin-top: var(--s-3); }
+
+/* ---------- questions, inside the revision that asked them ---------- */
+.asks { margin-top: var(--s-4); padding-top: var(--s-4); border-top: 1px solid var(--line-1); animation: asm-in var(--d-enter) var(--ease-out) both; }
+.ask + .ask { margin-top: var(--s-4); padding-top: var(--s-4); border-top: 1px solid var(--line-1); }
+.ask__text { font-size: var(--t-14); line-height: var(--lh-14); font-weight: var(--w-medium); color: var(--ink); }
+.ask[data-state="answered"] .ask__text, .ask[data-state="replied"] .ask__text { font-weight: var(--w-regular); color: var(--ink-2); }
+.ask__opts { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-3); }
+.ask .ask__opt {
+  min-height: 32px; height: auto; padding: 6px var(--s-4);
+  white-space: normal; text-align: left;
+  font-size: var(--t-13); line-height: var(--lh-13);
+}
+.ask__answer { display: flex; align-items: flex-start; gap: var(--s-3); margin-top: var(--s-2); font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink); }
+.ask__answer .icon { margin-top: 2px; color: var(--ok); }
+.ask__answer--quiet { font-size: var(--t-12); line-height: var(--lh-12); color: var(--ink-3); }
+.ask__hint { margin-top: var(--s-4); font-size: var(--t-12); line-height: var(--lh-12); color: var(--ink-3); }

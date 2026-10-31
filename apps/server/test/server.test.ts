@@ -241,7 +241,12 @@ describe('POST /api/turn streaming', () => {
       assert.match(m.turns[1].changes!, /\+gw\(cloud-native-api-gateway\)/);
       assert.equal(commit.changes, m.turns[1].changes);
       assert.deepEqual(m.requirements, ['Team knows Java', 'Customer data stays in Singapore', 'Avoid Kubernetes']);
-      assert.deepEqual(m.constraints, [{ text: 'Customer data stays in Singapore', regions: ['ap-southeast-1'] }, { text: 'Avoid Kubernetes', avoid: ['ack'] }]);
+      // "ack" is the root of the Kubernetes family, so validateOp pins the whole family (every member, ACK first)
+      assert.equal(m.constraints!.length, 2);
+      assert.deepEqual(m.constraints![0], { text: 'Customer data stays in Singapore', regions: ['ap-southeast-1'] });
+      assert.equal(m.constraints![1].text, 'Avoid Kubernetes');
+      assert.equal(m.constraints![1].avoid![0], 'ack');
+      for (const id of ['acs', 'asm', 'ack-one', 'ack-serverless', 'ack-dedicated', 'ack-edge', 'dify-on-ack']) assert.ok(m.constraints![1].avoid!.includes(id), `family member ${id} is pinned`);
       assert.deepEqual(Object.keys(m.graph.nodes).sort(), ['app', 'db', 'gw']);
       assert.ok(Array.isArray(commit.warnings));
       // the committed memory is accepted back as the next request's memory
@@ -648,6 +653,36 @@ describe('the key never leaves the server', () => {
       assert.deepEqual([r.status, ((await r.json()) as { code: string }).code], [503, 'no-key']);
     } finally {
       await srv.close();
+    }
+  });
+});
+
+describe('redactor: a key cut off by the 300-character error truncation, or masked by the provider', () => {
+  test('a prefix of the key, an sk- token and the full key are all redacted; ordinary text is left alone', async () => {
+    const { makeRedactor } = await import('../src/log.ts');
+    const redact = makeRedactor(KEY);
+    assert.equal(redact(`Invalid API-key provided: ${KEY}`), 'Invalid API-key provided: [redacted]');
+    for (const cut of [8, 10, 14, 20, KEY.length - 1]) assert.ok(!redact(`bad key ${KEY.slice(0, cut)}`).includes(KEY.slice(3, 8)), `prefix of ${cut} characters`);
+    assert.ok(!/sk-test-S/.test(redact('x'.repeat(280) + KEY.slice(0, 12))), 'cut at the end of the message');
+    assert.equal(redact('provider says sk-AbCd1234EfGh5678 is wrong'), 'provider says [redacted] is wrong', 'any sk- token of eight characters or more');
+    assert.equal(redact('the task-force sk is fine, ask-me anything, risk-free'), 'the task-force sk is fine, ask-me anything, risk-free');
+  });
+});
+
+describe('rejection log lines are bounded', () => {
+  test('a request with a very long path logs at most 100 characters of it (a loop of bad requests cannot grow the log by the size of its URLs)', async () => {
+    const { srv, base, logFile } = await start({});
+    try {
+      const path = '/' + 'a'.repeat(5000);
+      const res = await fetch(base + path);
+      assert.equal(res.status, 404);
+      await srv.close();
+      const rows = logLines(logFile).filter((r) => r.outcome === 'rejected');
+      assert.equal(rows.length, 1);
+      assert.ok(String(rows[0].route).length <= 101, `route logged with ${String(rows[0].route).length} characters`);
+      assert.ok(String(rows[0].route).startsWith('/aaaa'));
+    } finally {
+      await srv.close().catch(() => undefined);
     }
   });
 });

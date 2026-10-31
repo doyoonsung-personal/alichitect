@@ -17,11 +17,15 @@
 // repair or summary starts.
 // Browser-safe (fetch, TextDecoder, AbortController only). The API key is only ever put in the Authorization header.
 import type { ApplyResult, Catalog, Constraint, Graph, Op, ServerEvent, SessionMemory, Warning, WarningCode } from './types.ts';
-import { createLineParser } from './ndjson.ts';
+import { createLineParser, completeLines } from './ndjson.ts';
+import { checkLifecycle } from './catalog.ts';
+import { cachedTokens, creationTokens, costOf, estimateCost, priceOf } from './pricing.ts';
+import type { Price } from './pricing.ts';
 import { applyOp, createCtx, endTurn } from './reducer.ts';
 import type { ApplyCtx } from './reducer.ts';
 import { checkGraph, constraintChecker, repairGraph, validateOp } from './validate.ts';
-import { mergeConstraints } from './constraints.ts';
+import { mergeConstraintsDetailed } from './constraints.ts';
+import { diffGraphs } from './diff.ts';
 import {
   CONSTRAINT_CODES,
   DEFAULT_MAX_ASK_CHARS,
@@ -30,11 +34,13 @@ import {
   buildRepairMessages,
   buildSystemPrompt,
   compactChanges,
-  diffGraphs,
+  dropRequirements,
   mergeRequirements,
   renderAssistantTurn,
 } from './prompt.ts';
 import type { CacheMode, ChatMessage } from './prompt.ts';
+
+export { completeLines };
 
 export const DEFAULT_BASE_URL = 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1';
 export const DEFAULT_MODEL = 'qwen3.8-max';
@@ -59,63 +65,9 @@ export interface Usage {
   [k: string]: unknown;
 }
 
-/** USD per 1M tokens (Singapore list prices, 2026-10-31). */
-export interface Price {
-  in: number;
-  out: number;
-  implicitHit: number;
-  explicitHit: number;
-  explicitCreate: number;
-}
-
-export const PRICES: Record<string, Price> = {
-  'qwen3.8-max': { in: 2, out: 6, implicitHit: 0.25, explicitHit: 0.17, explicitCreate: 2.5 },
-  // Only the cache-hit price was given for flash; creation is assumed at 125% of input, as for max.
-  'qwen3.8-flash': { in: 0.15, out: 0.47, implicitHit: 0.016, explicitHit: 0.016, explicitCreate: 0.1875 },
-  // Fallback model. Its cache price was not researched, so hits are billed at the full input price (an overstatement).
-  'qwen3.7-max': { in: 2.5, out: 7.5, implicitHit: 2.5, explicitHit: 2.5, explicitCreate: 3.125 },
-};
-
-/** Conservative price for models without a known price (third-party judges): no cache discount. */
-export const UNKNOWN_PRICE: Price = { in: 3, out: 15, implicitHit: 3, explicitHit: 3, explicitCreate: 3.75 };
-
-export function priceOf(model: string, table: Record<string, Price> = PRICES): Price {
-  return table[model] ?? UNKNOWN_PRICE;
-}
-
-export function creationTokens(u: Usage | null | undefined): number {
-  const d = u && u.prompt_tokens_details;
-  if (!d) return 0;
-  if (typeof d.cache_creation_input_tokens === 'number') return d.cache_creation_input_tokens;
-  if (d.cache_creation && typeof d.cache_creation === 'object') {
-    return Object.values(d.cache_creation).reduce((s, v) => s + (typeof v === 'number' ? v : 0), 0);
-  }
-  return 0;
-}
-
-export function cachedTokens(u: Usage | null | undefined): number {
-  return (u && u.prompt_tokens_details && u.prompt_tokens_details.cached_tokens) || 0;
-}
-
-/** List-price cost of one call: plain input, explicit-cache creation, cache reads (explicit or implicit) and output. */
-export function costOf(model: string, u: Usage | null | undefined, table: Record<string, Price> = PRICES): number {
-  if (!u) return 0;
-  const p = priceOf(model, table);
-  const prompt = u.prompt_tokens ?? 0;
-  const cached = cachedTokens(u);
-  const created = creationTokens(u);
-  const d = u.prompt_tokens_details;
-  const explicit = !!d && (d.cache_type === 'ephemeral' || created > 0);
-  const plain = Math.max(0, prompt - cached - created);
-  const hit = explicit ? p.explicitHit : p.implicitHit;
-  return (plain * p.in + created * p.explicitCreate + cached * hit + (u.completion_tokens ?? 0) * p.out) / 1e6;
-}
-
-/** Upper-bound cost when a stream ended without a usage record: every prompt character as an uncached token. */
-export function estimateCost(model: string, promptChars: number, outputChars: number, table: Record<string, Price> = PRICES): number {
-  const p = priceOf(model, table);
-  return ((promptChars / 3) * Math.max(p.in, p.explicitCreate) + (outputChars / 2) * p.out) / 1e6;
-}
+// Prices and cost functions live in pricing.ts (one table for the app, the eval ledger and tools/qwen/ask.ts).
+export { PRICES, UNKNOWN_PRICE, priceOf, creationTokens, cachedTokens, costOf, estimateCost } from './pricing.ts';
+export type { Price } from './pricing.ts';
 
 // ---------- watchdogs and cache tracking ----------
 
@@ -410,6 +362,11 @@ async function rawStream(o: RawStreamOptions, h: RawStreamHandlers): Promise<Raw
   let winner = -1;
   let firstByte: number | null = null;
   let lastByte = t0;
+  // Progress is a token (content or reasoning) or a finish reason. Bytes alone, such as SSE comments (": ping") or a role
+  // chunk with no content, keep the connection warm but are not progress: only progress resets the idle clock, and until
+  // the first token the first-byte timeout keeps running.
+  let lastProgress = t0;
+  let sawProgress = false;
   let maxGap = 0;
   let headersMs: number | null = null;
   let hedgeAtMs: number | null = null;
@@ -465,6 +422,10 @@ async function rawStream(o: RawStreamOptions, h: RawStreamHandlers): Promise<Raw
         return;
       }
       if (h.onReasoning) h.onReasoning(d.reasoning_content);
+    }
+    if ((typeof d.content === 'string' && d.content) || (typeof d.reasoning_content === 'string' && d.reasoning_content) || (typeof ch.finish_reason === 'string' && ch.finish_reason)) {
+      sawProgress = true;
+      lastProgress = now();
     }
     if (typeof d.content === 'string' && d.content) h.onContent(d.content, Math.round(now() - t0));
     if (typeof ch.finish_reason === 'string' && ch.finish_reason) {
@@ -542,7 +503,8 @@ async function rawStream(o: RawStreamOptions, h: RawStreamHandlers): Promise<Raw
         hedgeAtMs = Math.round(waited);
         launch();
       }
-    } else if (t - lastByte > idle) fail({ code: 'idle-timeout', message: `stream silent for more than ${idle} ms`, retryable: true });
+    } else if (!sawProgress && t - t0 > fb) fail({ code: 'first-byte-timeout', message: `no token within ${fb} ms`, retryable: true });
+    else if (sawProgress && t - lastProgress > idle) fail({ code: 'idle-timeout', message: `stream silent for more than ${idle} ms`, retryable: true });
     else if (t - t0 > total) fail({ code: 'total-timeout', message: `turn longer than ${total} ms`, retryable: true });
   }, tick);
 
@@ -653,10 +615,11 @@ export async function streamTurn(o: StreamTurnOptions): Promise<StreamResult> {
     } else if (op.t === 'req') {
       r.reqs.push(op.text);
       // validateOp has already resolved regions to open region ids and avoid to catalog ids, dropping the rest.
-      if ((op.regions && op.regions.length) || (op.avoid && op.avoid.length)) {
+      if ((op.regions && op.regions.length) || (op.avoid && op.avoid.length) || (op.lifts && op.lifts.length)) {
         const c: Constraint = { text: op.text };
         if (op.regions && op.regions.length) c.regions = [...op.regions];
         if (op.avoid && op.avoid.length) c.avoid = [...op.avoid];
+        if (op.lifts && op.lifts.length) c.lifts = [...op.lifts];
         r.constraints.push(c);
       }
     } else if (op.t === 'gap') r.gaps.push({ need: op.need, note: op.note });
@@ -721,8 +684,9 @@ export async function streamTurn(o: StreamTurnOptions): Promise<StreamResult> {
   if (r.usage) {
     r.costUsd = costOf(model, r.usage, o.prices);
     emit({ type: 'usage', usage: r.usage, costUsd: r.costUsd });
-  } else if (outcome.timings.headersMs !== null || r.content) {
-    // Billed tokens are unknown (the stream broke before the usage record): book an upper bound.
+  } else if ((outcome.timings.headersMs !== null || r.content) && !(outcome.error && outcome.error.status !== undefined && !r.content)) {
+    // Billed tokens are unknown (the stream broke before the usage record): book an upper bound. A request the provider
+    // rejected with an HTTP error (content filter 400, 429, 500) generated nothing and books $0.
     r.costUsd = estimateCost(model, promptChars, r.content.length, o.prices);
     r.costEstimated = true;
   }
@@ -840,6 +804,21 @@ export interface RunStatus {
  */
 export type ConstraintChecker = (input: { graph: Graph; says: readonly string[]; constraints: readonly Constraint[]; catalog: Catalog }) => Warning[];
 
+/**
+ * runTurn's default checker: validate.ts constraintChecker without region findings that rest only on client nodes
+ * (users, devices; catalog lane 'clients'). Such a label ("Australian customers") says where the users are, not where
+ * data or workloads go. Flagging it sent 6 of 351 turns of the Phase 1 eval to a needless repair turn and left 2 turns
+ * with an error the model could not fix (ko-trap-08-sydney).
+ */
+export function defaultConstraintChecker(input: Parameters<ConstraintChecker>[0]): Warning[] {
+  const nodes = input.graph.nodes ?? {};
+  const client = (id: string): boolean => {
+    const n = Object.prototype.hasOwnProperty.call(nodes, id) ? nodes[id] : undefined;
+    return !!n && input.catalog.byId.get(n.product)?.lane === 'clients';
+  };
+  return constraintChecker(input).filter((w) => !(w.code === 'constraint-region' && w.ids.length > 0 && w.ids.every(client)));
+}
+
 export interface RunTurnOptions {
   apiKey: string;
   baseUrl?: string;
@@ -852,7 +831,7 @@ export interface RunTurnOptions {
   watchdogs?: { warm?: Partial<Watchdogs>; cold?: Partial<Watchdogs> };
   /** Called when a fallback, retry, continuation, repair or summary call starts. Listener errors are ignored. */
   onStatus?: (s: RunStatus) => void;
-  /** Pinned-constraint checker. Default: validate.ts constraintChecker; null turns the check off. */
+  /** Pinned-constraint checker. Default: defaultConstraintChecker (validate.ts constraintChecker minus client-node region findings); null turns the check off. */
   checkConstraints?: ConstraintChecker | null;
   /** Prebuilt system prompt; default buildSystemPrompt(catalog). */
   system?: string;
@@ -982,13 +961,9 @@ export function lifecycleWarnings(graph: Graph, catalog: Catalog): Warning[] {
   const check = (product: string, ids: string[]): void => {
     const e = catalog.byId.get(product);
     if (!e) return;
-    if (e.status === 'retired') out.push({ code: 'retired-product', ids, msg: `'${e.id}' is retired`, severity: 'error', repaired: false });
-    else if (e.status === 'legacy' || e.status === 'no-new-purchases') {
-      const alt = e.successor ?? (e.alternatives ?? []).join(' or ');
-      out.push({ code: 'retired-product', ids, msg: `'${e.id}' is ${e.status}${alt ? `; prefer ${alt}` : ''}`, severity: 'warn', repaired: false });
-    }
-    if (e.availability === 'china-only') out.push({ code: 'china-only', ids, msg: `'${e.id}' is sold only on the China site`, severity: 'warn', repaired: false });
-    else if (e.availability === 'restricted') out.push({ code: 'restricted', ids, msg: `'${e.id}' is restricted for new international accounts`, severity: 'warn', repaired: false });
+    const lc = checkLifecycle(e, catalog.byId);
+    if (lc.status) out.push({ ...lc.status, ids });
+    if (lc.availability && lc.availability.severity !== 'info') out.push({ ...lc.availability, ids });
   };
   for (const n of Object.values(graph.nodes)) check(n.product, [n.id]);
   for (const r of graph.recs ?? []) check(r.product, [r.product]);
@@ -1021,21 +996,6 @@ function backoff(base: number, attempt: number, e: TurnError | undefined): numbe
 
 const ESCAPE_RE = /\\u[0-9a-fA-F]{4}/g;
 const STALL_CODES: ReadonlySet<string> = new Set(['first-byte-timeout', 'idle-timeout', 'total-timeout', 'unexpected-reasoning']);
-
-/** The streamed content up to its last complete line (a half-written last line is dropped unless it parses as JSON). */
-export function completeLines(content: string): string {
-  const text = content.replace(/\r\n/g, '\n');
-  const i = text.lastIndexOf('\n');
-  const tail = text.slice(i + 1).trim();
-  const head = i >= 0 ? text.slice(0, i) : '';
-  if (!tail) return head.trim();
-  try {
-    JSON.parse(tail);
-    return (head ? head + '\n' : '') + tail;
-  } catch {
-    return head.trim();
-  }
-}
 
 /** Why a stall moved the turn to the fallback model, as a status sentence. */
 function stallText(model: string, e: TurnError, fallback: string): string {
@@ -1146,9 +1106,12 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     if (aborted()) break;
   }
   const m = main!;
+  // A reply with no operation at all, not even a say line, is a failed turn: nothing to continue from, nothing to commit.
+  // (A question is a say line and done, so it is a normal turn.) The user sees a retryable error and the diagram is unchanged.
+  if (!m.error && m.ops.length === 0 && !aborted()) m.error = { code: 'empty-reply', message: 'the model returned no operations', retryable: true };
   const filtered = isFiltered(m.error);
   const hardFail = (!!m.error && m.ops.length === 0) || filtered;
-  const checker = opts.checkConstraints === undefined ? constraintChecker : opts.checkConstraints;
+  const checker = opts.checkConstraints === undefined ? defaultConstraintChecker : opts.checkConstraints;
   const checkC = (g: Graph, says: readonly string[], pinned: readonly Constraint[]): Warning[] => {
     if (!checker || !pinned.length) return [];
     try {
@@ -1157,7 +1120,24 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
       return []; // a checker bug must not fail the turn; the deterministic repairs still apply
     }
   };
-  let pinned = mergeConstraints(memory.constraints ?? [], m.constraints);
+  // Pinned constraints: a newer region requirement replaces the older region lists, and a req with lifts drops pins. What
+  // went is reported as info warnings, and the texts of replaced or lifted requirements leave the pinned requirements.
+  const pinNotes: Warning[] = [];
+  const replacedTexts: string[] = [];
+  const pin = (from: readonly Constraint[], added: Constraint[]): Constraint[] => {
+    const r = mergeConstraintsDetailed(from, added);
+    const keep = new Set(r.constraints.map((c) => c.text));
+    for (const o of r.superseded) {
+      const whole = !keep.has(o.text);
+      if (whole) replacedTexts.push(o.text);
+      pinNotes.push({ code: 'constraint-replaced', ids: [], msg: `the pinned requirement "${o.text}"${whole ? ' no longer applies' : ' lost its region list'}: a newer requirement replaced or lifted it`, severity: 'info', repaired: false });
+    }
+    for (const o of r.capped) {
+      pinNotes.push({ code: 'constraint-replaced', ids: [], msg: `the oldest pinned constraint "${o.text}" is no longer checked: at most twelve are kept`, severity: 'info', repaired: false });
+    }
+    return r.constraints;
+  };
+  let pinned = pin(memory.constraints ?? [], m.constraints);
   const warningsBefore = [...m.warnings, ...checkGraph(m.graph, catalog), ...checkC(m.graph, m.says, pinned)];
   const rep = repairGraph(m.graph, catalog, { constraints: pinned });
   let finalGraph = rep.graph;
@@ -1201,7 +1181,7 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     repairInfo = { kind, model: followModel, findings, ops: s.ops, content: s.content, usage: s.usage, costUsd: s.costUsd, firstOpMs: s.timings.firstOpMs, totalMs: s.timings.totalMs, doneSeen: s.doneSeen, error: s.error };
     if (!isFiltered(s.error)) {
       // A filtered follow-up is dropped whole: the main result stands.
-      pinned = mergeConstraints(pinned, s.constraints);
+      pinned = pin(pinned, s.constraints);
       const rep2 = repairGraph(s.graph, catalog, { constraints: pinned });
       finalGraph = rep2.graph;
       fixes.push(...rep2.warnings.filter((w) => w.repaired));
@@ -1217,6 +1197,7 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     }
   }
 
+  if (pinNotes.length) warningsAfter = [...warningsAfter, ...pinNotes];
   const diff = diffGraphs(memory.graph, finalGraph);
   const changes = compactChanges([diff]);
   const clippedAsk = Array.from(ask.trim()).slice(0, opts.maxAskChars ?? DEFAULT_MAX_ASK_CHARS).join('');
@@ -1224,7 +1205,7 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
   if (!hardFail) {
     next = {
       turns: [...memory.turns, { role: 'user', text: clippedAsk }, { role: 'assistant', text: m.says.join('\n'), changes }],
-      requirements: mergeRequirements(memory.requirements ?? [], m.reqs),
+      requirements: dropRequirements(mergeRequirements(memory.requirements ?? [], m.reqs), replacedTexts),
       graph: finalGraph,
       tombstones: [...(memory.tombstones ?? []), ...diff.tombstones].slice(-80),
     };

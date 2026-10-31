@@ -222,3 +222,21 @@ export function createLineParser(handlers: LineParserHandlers): LineParser {
     },
   };
 }
+
+/**
+ * The streamed content up to its last complete line: a half-written last line (a stream cut off mid-object) is dropped
+ * unless it parses as JSON. The one copy of this rule; llm.ts uses it to show the model its own cut-off reply.
+ */
+export function completeLines(content: string): string {
+  const text = content.replace(/\r\n/g, '\n');
+  const i = text.lastIndexOf('\n');
+  const tail = text.slice(i + 1).trim();
+  const head = i >= 0 ? text.slice(0, i) : '';
+  if (!tail) return head.trim();
+  try {
+    JSON.parse(tail);
+    return (head ? head + '\n' : '') + tail;
+  } catch {
+    return head.trim();
+  }
+}

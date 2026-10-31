@@ -59,14 +59,13 @@ class HttpError extends Error {
 const BASE_HEADERS: Record<string, string> = { 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' };
 const JSON_RE = /^application\/json\s*(;.*)?$/i;
 
+/** An oversized body is read and discarded up to this many bytes, so the client finishes sending and can read the 413; beyond it the socket is destroyed. */
+const DRAIN_CAP = 8 * 1024 * 1024;
+
 function readBody(req: IncomingMessage, limit: number): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const declared = Number(req.headers['content-length']);
-    if (Number.isFinite(declared) && declared > limit) {
-      req.resume();
-      reject(new HttpError(413, 'body-too-large', `body larger than ${limit} bytes`));
-      return;
-    }
+    const tooLarge = (): HttpError => new HttpError(413, 'body-too-large', `body larger than ${limit} bytes`);
     const chunks: Buffer[] = [];
     let size = 0;
     let done = false;
@@ -76,12 +75,15 @@ function readBody(req: IncomingMessage, limit: number): Promise<Buffer> {
       if (e) reject(e);
       else resolve(b!);
     };
+    if (Number.isFinite(declared) && declared > limit) finish(tooLarge()); // answer at once; the rest is drained below
     req.on('data', (c: Buffer) => {
-      if (done) return;
       size += c.length;
+      if (done) {
+        if (size > DRAIN_CAP) req.destroy(); // discarding; cap the waste
+        return;
+      }
       if (size > limit) {
-        finish(new HttpError(413, 'body-too-large', `body larger than ${limit} bytes`));
-        req.resume();
+        finish(tooLarge()); // keep reading (and discarding) so the 413 reaches the client
         return;
       }
       chunks.push(c);
@@ -121,8 +123,10 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
     const origin = typeof originHeader === 'string' ? originHeader.toLowerCase() : undefined;
     const reject = (status: number, code: string, message: string, extra: Record<string, string> = {}, cors: Record<string, string> = {}): void => {
       send(res, status, fatalBody(code, message, status === 429 || status === 409 || status === 503), { ...cors, ...extra });
-      log.write({ ts: new Date().toISOString(), outcome: 'rejected', route, method: req.method, status, code, serverMs: Date.now() - t0 });
-      line(`${req.method} ${route} ${status} ${code}`);
+      // the path is the client's: bound it, so a loop of bad requests cannot grow the log by the size of its URLs
+      const shown = route.length > 100 ? route.slice(0, 100) + '…' : route;
+      log.write({ ts: new Date().toISOString(), outcome: 'rejected', route: shown, method: req.method, status, code, serverMs: Date.now() - t0 });
+      line(`${req.method} ${shown} ${status} ${code}`);
     };
     if (!config.allowedHosts.includes(host)) return reject(403, 'bad-host', 'Host header not allowed');
     if (origin !== undefined && !config.allowedOrigins.includes(origin)) return reject(403, 'bad-origin', 'Origin not allowed');
@@ -161,7 +165,7 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
       raw = await readBody(req, config.maxBodyBytes);
     } catch (e) {
       const h = e instanceof HttpError ? e : new HttpError(400, 'bad-request', 'request body could not be read');
-      return reject(h.status, h.code, h.message, h.status === 413 ? { Connection: 'close' } : {}, cors);
+      return reject(h.status, h.code, h.message, {}, cors);
     }
     let body: unknown;
     try {
@@ -193,8 +197,10 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
       deadlineHit = true;
       ac.abort();
     }, config.turnDeadlineMs);
+    let committed = false;
     const emit = (e: WireEvent): void => {
       if (res.writableEnded || res.destroyed) return;
+      if (e.type === 'commit') committed = true;
       res.write(redact(JSON.stringify(e)) + '\n');
     };
     let outcome: TurnOutcome = { outcome: 'aborted', lang, statuses: [], summaryCostUsd: 0 };
@@ -214,11 +220,15 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
         emit({ type: 'fatal', code: 'turn-timeout', message: fatalMessage('turn-timeout', lang), retryable: true });
       }
     } catch {
-      // Never a stack trace or an exception message on the wire: a generic, localized line instead.
+      // Never a stack trace or an exception message on the wire: a generic, localized line instead. After a commit the
+      // turn stands (only the summary failed), so no fatal follows it.
       internal = true;
-      outcome.outcome = 'fatal';
-      outcome.fatalCode = 'internal';
-      emit({ type: 'fatal', code: 'internal', message: fatalMessage('internal', lang), retryable: true });
+      if (committed) outcome.outcome = 'commit';
+      else {
+        outcome.outcome = 'fatal';
+        outcome.fatalCode = 'internal';
+        emit({ type: 'fatal', code: 'internal', message: fatalMessage('internal', lang), retryable: true });
+      }
     } finally {
       clearTimeout(timer);
       sessions.delete(turnReq.sessionId);

@@ -1,0 +1,438 @@
+[
+  {
+    "id": "p1-req-residency-my",
+    "category": "multiturn",
+    "title": "Malaysian Web Shop Architecture Design",
+    "reference": "Everything in a Malaysian region (Kuala Lumpur or Johor); backups and disaster recovery use zones and in-region backups, never a region outside Malaysia; the residency requirement is pinned with its region ids.",
+    "turns": [
+      {
+        "ask": "We run an online retail store here in Malaysia and need you to design our cloud architecture, including a storefront, an order API, a relational database, and object storage for product images. Please keep in mind that local regulations require all customer data to remain physically within Malaysia at all times.",
+        "expect": {
+          "req": [
+            [
+              "malaysia",
+              "kuala lumpur",
+              "johor",
+              "ap-southeast-3",
+              "ap-southeast-8"
+            ]
+          ],
+          "pins": {
+            "regions": [
+              "ap-southeast-3",
+              "ap-southeast-8"
+            ]
+          },
+          "regions": {
+            "only": [
+              "kuala lumpur",
+              "johor",
+              "ap-southeast-3",
+              "ap-southeast-8"
+            ],
+            "min": 1
+          },
+          "residency": [
+            "ap-southeast-3",
+            "ap-southeast-8"
+          ]
+        }
+      },
+      {
+        "ask": "Please add backup and disaster recovery capabilities to this setup.",
+        "expect": {
+          "edit": {
+            "minChanged": 1
+          },
+          "residency": [
+            "ap-southeast-3",
+            "ap-southeast-8"
+          ]
+        },
+        "retain": {
+          "regions": {
+            "only": [
+              "kuala lumpur",
+              "johor",
+              "ap-southeast-3",
+              "ap-southeast-8"
+            ]
+          },
+          "req": [
+            [
+              "malaysia",
+              "kuala lumpur",
+              "johor",
+              "ap-southeast-3",
+              "ap-southeast-8"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "p1-req-avoid-fc",
+    "category": "multiturn",
+    "title": "Parcel tracking API backend architecture",
+    "reference": "SAE or ECS for the API and workers, a database, and a scheduled job that does not use Function Compute (for example SchedulerX or a worker on SAE); the ruled-out product is pinned as an avoid constraint.",
+    "turns": [
+      {
+        "ask": "We're a logistics company building a parcel-tracking API that serves both our couriers and customers over REST, backed by a database and a message queue for scan events. Please design this architecture, but absolutely do not include Function Compute because we got burned by its cold starts in a previous project and can't risk that latency again.",
+        "expect": {
+          "req": [
+            [
+              "function compute",
+              "fc"
+            ]
+          ],
+          "pins": {
+            "avoid": [
+              [
+                "fc"
+              ]
+            ]
+          },
+          "exclude": [
+            "fc"
+          ]
+        }
+      },
+      {
+        "ask": "Can you add a nightly job to purge expired tracking records?",
+        "expect": {
+          "edit": {
+            "minChanged": 1
+          },
+          "pins": {
+            "avoid": [
+              [
+                "fc"
+              ]
+            ]
+          }
+        },
+        "retain": {
+          "exclude": [
+            "fc"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "p1-attach-dify-ack",
+    "category": "pattern",
+    "title": "Deploy Dify on Singapore ACK cluster",
+    "reference": "Dify on ACK drawn as its own node with an edge from the ACK cluster (not as a badge), Model Studio for Qwen models, a PostgreSQL database (RDS or PolarDB), an ingress load balancer.",
+    "turns": [
+      {
+        "ask": "We already have an ACK cluster running in Singapore, and our product team needs Dify deployed on it so they can start building LLM workflows. Please design the architecture using Qwen models served through Model Studio and back it with a PostgreSQL database.",
+        "expect": {
+          "include": [
+            [
+              "dify-on-ack"
+            ],
+            [
+              "ack"
+            ],
+            [
+              "model-studio"
+            ]
+          ],
+          "noAttach": [
+            "dify-on-ack"
+          ],
+          "linked": [
+            {
+              "from": [
+                "ack"
+              ],
+              "to": [
+                "dify-on-ack"
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "p1-path-ddos-esa",
+    "category": "pattern",
+    "title": "Ticketing site Anti-DDoS and ESA order",
+    "reference": "Request path users -> ESA -> Anti-DDoS Proxy -> ALB -> web servers -> cache and database (Anti-DDoS Proxy sits behind ESA, not in front of it), with a short explanation of the order.",
+    "turns": [
+      {
+        "ask": "We run an online ticketing platform and every time a major event goes on sale we get hammered by DDoS attacks that take us down. I need you to design an architecture that puts Anti-DDoS Proxy at the very front of everything to absorb those attacks, followed by ESA for acceleration, then a load balancer distributing traffic to web servers across two availability zones with a database behind them.",
+        "expect": {
+          "include": [
+            [
+              "esa"
+            ],
+            [
+              "anti-ddos-proxy"
+            ],
+            [
+              "alb",
+              "nlb"
+            ]
+          ],
+          "linked": [
+            {
+              "from": [
+                "esa"
+              ],
+              "to": [
+                "anti-ddos-proxy"
+              ],
+              "directed": true
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "p1-vpc-no-group",
+    "category": "pattern",
+    "title": "Managed data tier in Singapore only",
+    "reference": "A Singapore region with a VPC holding PolarDB and Tair, a VPN Gateway or Express Connect to the on-premises data centre, nothing in the public path.",
+    "turns": [
+      {
+        "ask": "We run our application servers from our own data centre and only need a managed data layer in the Singapore region. Could you design a setup that includes a PolarDB MySQL cluster and a Tair cache there? Our on-premises machines should reach those database services through a private tunnel so no traffic crosses the open internet.",
+        "expect": {
+          "include": [
+            [
+              "polardb"
+            ],
+            [
+              "tair"
+            ],
+            [
+              "vpn-gateway",
+              "express-connect",
+              "sase",
+              "cen"
+            ]
+          ],
+          "placement": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "p1-avoid-tempted-k8s",
+    "category": "multiturn",
+    "title": "B2B Invoicing SaaS Backend Architecture",
+    "reference": "SAE (or ECS) for the API and workers on every turn, Container Registry and DevOps for the pipeline, MSE for service governance instead of a Kubernetes service mesh, autoscaling inside SAE; Kubernetes products never appear.",
+    "turns": [
+      {
+        "ask": "We're building a B2B invoicing SaaS and need a backend diagram showing a REST API, background workers, and PostgreSQL. Our CTO has a hard rule against Kubernetes, so please keep the design completely free of it.",
+        "expect": {
+          "req": [
+            [
+              "kubernetes",
+              "k8s"
+            ]
+          ],
+          "pins": {
+            "avoid": [
+              [
+                "ack"
+              ]
+            ]
+          },
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm",
+            "family:kubernetes"
+          ],
+          "include": [
+            [
+              "sae",
+              "ecs",
+              "fc",
+              "edas"
+            ]
+          ]
+        }
+      },
+      {
+        "ask": "Please package every service as a Docker image stored in a registry, and add a CI/CD pipeline that supports blue-green releases.",
+        "expect": {
+          "include": [
+            [
+              "acr",
+              "devops"
+            ]
+          ],
+          "pins": {
+            "avoid": [
+              [
+                "ack"
+              ]
+            ]
+          }
+        },
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm",
+            "family:kubernetes"
+          ]
+        }
+      },
+      {
+        "ask": "Since our traffic will grow tenfold soon, we need autoscaling and a service mesh to handle routing between services.",
+        "expect": {
+          "edit": {
+            "minChanged": 1
+          }
+        },
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm",
+            "family:kubernetes"
+          ],
+          "req": [
+            [
+              "kubernetes",
+              "k8s"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "p1-ko-residency",
+    "category": "i18n",
+    "lang": "ko",
+    "title": "Korean Fintech Mobile Banking Cloud Architecture",
+    "reference": "Everything in Seoul (ap-northeast-2); disaster recovery across zones with in-region backups, never another country; residency pinned with its region id; say and why text in Korean.",
+    "turns": [
+      {
+        "ask": "저희는 국내 핀테크 스타트업으로 모바일 뱅킹 앱을 개발하고 있는데, 금융 규제상 고객 데이터가 절대 해외로 반출되면 안 됩니다. 이 조건을 지키면서 API 서버와 데이터베이스 아키텍처를 설계해 주세요.",
+        "expect": {
+          "pins": {
+            "regions": [
+              "ap-northeast-2"
+            ]
+          },
+          "regions": {
+            "only": [
+              "seoul",
+              "서울",
+              "ap-northeast-2"
+            ],
+            "min": 1
+          },
+          "residency": [
+            "ap-northeast-2"
+          ]
+        }
+      },
+      {
+        "ask": "장애 발생 시 대비할 수 있도록 재해 복구 구성도 추가해 주세요.",
+        "expect": {
+          "edit": {
+            "minChanged": 1
+          },
+          "residency": [
+            "ap-northeast-2"
+          ]
+        },
+        "retain": {
+          "regions": {
+            "only": [
+              "seoul",
+              "서울",
+              "ap-northeast-2"
+            ]
+          },
+          "residency": [
+            "ap-northeast-2"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "p1-zh-residency",
+    "category": "i18n",
+    "lang": "zh",
+    "title": "Indonesian E-Commerce Cloud Architecture",
+    "reference": "Everything in Jakarta (ap-southeast-5); backups and disaster recovery inside Jakarta (zones, in-region backups), never another country; residency pinned with its region id; say and why text in Chinese.",
+    "turns": [
+      {
+        "ask": "我们是印尼的一家电商公司，需要设计一个在线商城的云架构，包含数据库和对象存储。根据当地法律规定，所有用户数据必须存放在印尼境内，请帮我们规划这套方案并画出架构图。",
+        "expect": {
+          "req": [
+            [
+              "印尼",
+              "印度尼西亚",
+              "雅加达",
+              "indonesia",
+              "jakarta",
+              "ap-southeast-5"
+            ]
+          ],
+          "pins": {
+            "regions": [
+              "ap-southeast-5"
+            ]
+          },
+          "regions": {
+            "only": [
+              "jakarta",
+              "雅加达",
+              "ap-southeast-5"
+            ],
+            "min": 1
+          },
+          "residency": [
+            "ap-southeast-5"
+          ]
+        }
+      },
+      {
+        "ask": "请再加上备份和容灾方案。",
+        "expect": {
+          "edit": {
+            "minChanged": 1
+          },
+          "residency": [
+            "ap-southeast-5"
+          ]
+        },
+        "retain": {
+          "regions": {
+            "only": [
+              "jakarta",
+              "雅加达",
+              "ap-southeast-5"
+            ]
+          },
+          "req": [
+            [
+              "印尼",
+              "印度尼西亚",
+              "雅加达",
+              "indonesia",
+              "jakarta",
+              "ap-southeast-5"
+            ]
+          ]
+        }
+      }
+    ]
+  }
+]

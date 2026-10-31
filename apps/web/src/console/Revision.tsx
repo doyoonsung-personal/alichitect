@@ -4,6 +4,7 @@ import { Fragment, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { Icon } from '../shell/Icon.tsx';
 import { ChangeList } from './ChangeList.tsx';
+import { Questions } from './Questions.tsx';
 import { Cursor, useNow } from './Cursor.tsx';
 import { autoFixLines, cursorSlot, drawProgress, errorText, fixSentences, fmtSeconds, footerItems, revisionCards, waitingLine } from './logic.ts';
 import type { Revision } from '../app/contracts.ts';
@@ -208,7 +209,7 @@ export function RevisionBlock({ ctx, r, onCollapse }: { ctx: ConsoleCtx; r: Revi
   const ended = r.status === 'failed' || r.status === 'stopped';
   const waiting = r.status === 'waiting';
   const now = useNow(waiting, 1000);
-  const quiet = r.status === 'done' && !r.changes.length && !r.fix.changes.length && !r.fix.autoFixes.length && r.fix.state === 'none' && !r.lifecycle.length;
+  const quiet = r.status === 'done' && !(r.asks?.length) && !r.changes.length && !r.fix.changes.length && !r.fix.autoFixes.length && r.fix.state === 'none' && !r.lifecycle.length;
   return (
     <article className="rev" aria-label={t('rec.revision', { n: r.n })} data-n={r.n} data-status={r.status} data-closable={onCollapse ? true : undefined}>
       <RevTag ctx={ctx} r={r} />
@@ -246,6 +247,7 @@ export function RevisionBlock({ ctx, r, onCollapse }: { ctx: ConsoleCtx; r: Revi
         {quiet ? <p className="rev__quiet">{t('rec.noChange')}</p> : null}
         <FixBlock ctx={ctx} r={r} slot={slot} />
         <ErrorBlock ctx={ctx} r={r} />
+        <Questions ctx={ctx} r={r} />
         <Footer ctx={ctx} r={r} />
       </div>
       {onCollapse ? (

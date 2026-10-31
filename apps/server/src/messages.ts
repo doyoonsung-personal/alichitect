@@ -58,6 +58,11 @@ export const FATAL_COPY: Record<string, Copy> = {
     ko: '작업 시간이 초과되어 중단되었습니다. 다시 시도해 주세요. 다이어그램은 변경되지 않았습니다.',
     zh: '本次操作超时已停止。请重试。您的图表未更改。',
   },
+  'empty-reply': {
+    en: 'The model returned no diagram changes. Please try again or rephrase your request. Your diagram is unchanged.',
+    ko: '모델이 다이어그램 변경 사항을 반환하지 않았습니다. 다시 시도하거나 요청을 다른 표현으로 바꿔 주세요. 다이어그램은 변경되지 않았습니다.',
+    zh: '模型没有返回任何图表更改。请重试或换个说法。您的图表未更改。',
+  },
   'unexpected-reasoning': {
     en: 'The response was not in the expected format. Please try again. Your diagram is unchanged.',
     ko: '응답 형식이 예상과 다릅니다. 다시 시도해 주세요. 다이어그램은 변경되지 않았습니다.',

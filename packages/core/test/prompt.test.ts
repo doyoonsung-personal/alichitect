@@ -10,6 +10,7 @@ import type { ApplyResult, Constraint, Graph, SessionMemory, Warning } from '../
 import { loadCatalog } from '../src/catalog-node.ts';
 import { PROMPT_ROW_FORMAT, estimateTokens, isRecommendable } from '../src/catalog.ts';
 import { createLineParser } from '../src/ndjson.ts';
+import { familyOfWord } from '../src/constraints.ts';
 import { applyOp, createCtx, emptyGraph } from '../src/reducer.ts';
 import { checkGraph, ingestGraph, repairGraph, validateOp } from '../src/validate.ts';
 import {
@@ -178,10 +179,11 @@ describe('system prompt', () => {
     assert.ok(SYSTEM.includes('"regions":["<region id'));
     assert.ok(SYSTEM.includes('"avoid":["<catalog id'));
     const ex = [...SYSTEM.matchAll(/(\{"t":"req"[^}]*\})/g)].map((m) => JSON.parse(m[1])).filter((o) => o.regions || o.avoid);
-    assert.equal(ex.length, 3, 'the op template and two examples');
-    const [, residency, avoid] = ex;
+    assert.equal(ex.length, 4, 'the op template and three examples');
+    const [, residency, avoid, relaxed] = ex;
+    assert.deepEqual(relaxed.regions, ['ap-southeast-1', 'ap-northeast-1']);
     assert.deepEqual(residency.regions, ['ap-southeast-1']);
-    for (const id of avoid.avoid) assert.ok(CAT.byId.has(id), id);
+    for (const id of avoid.avoid) assert.ok(CAT.byId.has(id) || familyOfWord(id), id);
     assert.ok(SYSTEM.includes('independent live diagram tool'));
     assert.ok(SYSTEM.includes('not an official Alibaba Cloud product'));
   });
@@ -613,8 +615,9 @@ describe('streamTurn', () => {
         )) as typeof fetch;
     for (const resolves of [true, false]) {
       const t0 = Date.now();
-      const r = await streamTurn({ apiKey: 'k', catalog: CAT, messages: [{ role: 'user', content: 'x' }], idleTimeoutMs: 80, fetchImpl: hang(resolves) });
-      assert.equal(r.error?.code, 'idle-timeout');
+      // one ": ping" comment, then silence: bytes without a token are not progress, so this is the first-byte timeout
+      const r = await streamTurn({ apiKey: 'k', catalog: CAT, messages: [{ role: 'user', content: 'x' }], firstByteTimeoutMs: 80, idleTimeoutMs: 80, fetchImpl: hang(resolves) });
+      assert.equal(r.error?.code, 'first-byte-timeout');
       assert.ok(Date.now() - t0 < 3000, `returned in ${Date.now() - t0} ms`);
     }
   });
@@ -921,16 +924,45 @@ describe('Phase 1 constraints', () => {
     ].join('\n');
     const mem: SessionMemory = { ...createMemory(), requirements: ['Team knows Java', 'Data stays in Asia'], constraints: [{ text: 'Data stays in Asia', regions: ['ap-southeast-1', 'ap-southeast-5'] }] };
     const r = await runTurn(mem, 'x', CAT, { apiKey: 'k', fetchImpl: mockFetch([{ body: sse(content) }], []) });
-    assert.deepEqual(r.memory.requirements, ['Team knows Java', 'Data stays in Asia', 'Customer data stays in Singapore', 'Avoid Kubernetes', 'Budget under $300 a month']);
+    // the new region pin replaces the older one ("Data stays in Asia"), and its requirement text leaves the pinned list
+    assert.deepEqual(r.memory.requirements, ['Team knows Java', 'Customer data stays in Singapore', 'Avoid Kubernetes', 'Budget under $300 a month']);
     assert.deepEqual(r.memory.constraints, [
-      { text: 'Data stays in Asia', regions: ['ap-southeast-1', 'ap-southeast-5'] },
       { text: 'Customer data stays in Singapore', regions: ['ap-southeast-1'] },
-      { text: 'Avoid Kubernetes', avoid: ['ack', 'acs', 'ack-one'] },
+      { text: 'Avoid Kubernetes', avoid: ['ack', 'acs', 'asm', 'ack-one', 'ack-serverless', 'ack-dedicated', 'ack-edge', 'dify-on-ack'] },
     ]);
+    assert.ok(r.stats.warningsAfter.some((w) => w.code === 'constraint-replaced' && w.severity === 'info' && /Data stays in Asia/.test(w.msg)));
     assert.deepEqual(r.constraints.map((c) => c.text), ['Customer data stays in Singapore', 'Avoid Kubernetes']);
     // a turn that pins nothing keeps the field out of memory
     const r2 = await runTurn(createMemory(), 'x', CAT, { apiKey: 'k', fetchImpl: mockFetch([{ body: OK_BODY() }], []) });
     assert.ok(!('constraints' in r2.memory));
+  });
+
+  test('relaxing a pin in chat: a req with the new regions replaces the old pin, so a Tokyo DR group is no error and no repair turn runs', async () => {
+    const content = [
+      opLine({ t: 'say', text: 'Understood, a disaster recovery replica in Tokyo is fine now.' }),
+      opLine({ t: 'req', text: 'Data may be in Singapore and Tokyo', regions: ['ap-southeast-1', 'ap-northeast-1'] }),
+      opLine({ t: 'group', id: 'tk', kind: 'region', label: 'Tokyo (ap-northeast-1)', parent: null }),
+      opLine({ t: 'group', id: 'tkv', kind: 'vpc', label: 'DR VPC', parent: 'tk' }),
+      opLine({ t: 'node', id: 'dr-db', product: 'rds', label: 'DR database', group: 'tkv' }),
+      opLine({ t: 'done', summary: 'ok' }),
+    ].join('\n');
+    const mem: SessionMemory = { ...createMemory(), requirements: ['Customer data stays in Singapore', 'Team knows Java'], constraints: [{ text: 'Customer data stays in Singapore', regions: ['ap-southeast-1'] }] };
+    const calls: Call[] = [];
+    const r = await runTurn(mem, 'Actually we changed our mind, a DR replica in Tokyo is fine', CAT, { apiKey: 'k', fetchImpl: mockFetch([{ body: sse(content) }], calls) });
+    assert.equal(calls.length, 1, 'no repair turn');
+    assert.deepEqual(r.memory.constraints, [{ text: 'Data may be in Singapore and Tokyo', regions: ['ap-southeast-1', 'ap-northeast-1'] }]);
+    assert.deepEqual(r.memory.requirements, ['Team knows Java', 'Data may be in Singapore and Tokyo'], 'the replaced requirement text leaves the pinned list');
+    assert.deepEqual(r.stats.warningsAfter.filter((w) => w.severity !== 'info'), []);
+    assert.ok(r.stats.warningsAfter.some((w) => w.code === 'constraint-replaced' && /Customer data stays in Singapore/.test(w.msg)));
+    assert.ok('dr-db' in r.memory.graph.nodes);
+  });
+
+  test('lifting a pin: a req with lifts regions drops the residency rule and its requirement text', async () => {
+    const content = [opLine({ t: 'say', text: 'The residency rule is lifted.' }), opLine({ t: 'req', text: 'Residency rule lifted', lifts: ['regions'] }), opLine({ t: 'done', summary: 'ok' })].join('\n');
+    const mem: SessionMemory = { ...createMemory(), requirements: ['Customer data stays in Singapore'], constraints: [{ text: 'Customer data stays in Singapore', regions: ['ap-southeast-1'] }, { text: 'No Kubernetes', avoid: ['ack'] }] };
+    const r = await runTurn(mem, 'drop the residency rule', CAT, { apiKey: 'k', fetchImpl: mockFetch([{ body: sse(content) }], []) });
+    assert.deepEqual(r.memory.constraints, [{ text: 'No Kubernetes', avoid: ['ack'] }]);
+    assert.deepEqual(r.memory.requirements, ['Residency rule lifted']);
   });
 
   test('constraints ride in the final user message with tags; the system prompt and the history prefix never change', () => {

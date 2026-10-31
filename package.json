@@ -2,7 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test \"packages/core/test/**/*.test.ts\" \"eval/test/**/*.test.ts\" \"apps/server/test/**/*.test.ts\"",
+    "test": "node --test --test-concurrency=1 \"packages/core/test/**/*.test.ts\" \"eval/test/**/*.test.ts\" \"apps/server/test/**/*.test.ts\"",
     "server": "node apps/server/src/main.ts",
     "smoke": "node apps/server/scripts/smoke.ts",
     "probe:watchdogs": "node eval/probe-watchdogs.ts"

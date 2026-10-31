@@ -21,12 +21,19 @@
               "ap-northeast-2"
             ],
             "min": 1
-          }
+          },
+          "residency": [
+            "ap-northeast-2"
+          ]
         }
       },
       {
         "ask": "We also need disaster recovery so the system stays up if something fails.",
-        "expect": {},
+        "expect": {
+          "edit": {
+            "minChanged": 1
+          }
+        },
         "retain": {
           "regions": {
             "only": [
@@ -40,6 +47,9 @@
               "seoul",
               "ap-northeast-2"
             ]
+          ],
+          "residency": [
+            "ap-northeast-2"
           ]
         }
       },
@@ -65,6 +75,9 @@
               "seoul",
               "ap-northeast-2"
             ]
+          ],
+          "residency": [
+            "ap-northeast-2"
           ]
         }
       }
@@ -86,7 +99,8 @@
           ],
           "exclude": [
             "ack",
-            "acs"
+            "acs",
+            "family:kubernetes"
           ]
         }
       },
@@ -105,7 +119,8 @@
           ],
           "exclude": [
             "ack",
-            "acs"
+            "acs",
+            "family:kubernetes"
           ]
         }
       }
@@ -214,7 +229,8 @@
             "acs",
             "anti-ddos-proxy",
             "hologres",
-            "maxcompute"
+            "maxcompute",
+            "family:kubernetes"
           ],
           "req": [
             [

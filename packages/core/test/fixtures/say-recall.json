@@ -1,0 +1,5037 @@
+{
+ "note": "Say lines for sayRegionFindings, one set per pinned region. violation: puts data outside the allowed region (an error is expected); ok: no error expected (refused or negated, a user location, a language name, an adverb, data kept inside). Singapore: drafted by qwen3.8-max (batch 1) plus 87 lines written by the Phase 1 backend reviewer. Seoul and Tokyo: two further qwen3.8-max batches written after the checker was built, then measured before any tuning (see the report). Labels read line by line.",
+ "sets": [
+  {
+   "id": "singapore",
+   "allowed": [
+    "ap-southeast-1"
+   ],
+   "items": [
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "I added a read replica in Tokyo for lower latency.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Backups are stored in Kuala Lumpur for safety.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We will keep a standby database in Johor.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Object storage replicas go to Jakarta automatically.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "A DR copy lives in Manila now.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Failover traffic routes to Bangkok if needed.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Logs sync to Seoul every five minutes.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We store archive backups in Hong Kong.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "The secondary database runs in Virginia.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Cache replicas are placed in Silicon Valley.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "DR failover targets our Mexico region.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We replicate customer data to Sao Paulo nightly.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "A backup copy is kept in Frankfurt.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Standby storage sits in London for resilience.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Queue messages replicate to Paris as well.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We maintain a disaster recovery site in Dubai.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Database replicas sync to KL every hour.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Backups are shipped to JB for safekeeping.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We keep a failover copy in HKG.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Storage replicas go to HK automatically.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "A warm standby runs in Osaka right now.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We push backup archives to Busan daily.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "DR replicas live in Ashburn just in case.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Customer logs replicate to California for analysis.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "A secondary database is hosted in Oregon.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We store backup copies in Sydney too.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Failover databases run in Mumbai now.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Archive storage replicates to Hyderabad nightly.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "A DR replica is maintained in Shanghai.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We sync backups to Beijing every hour.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Data replicas stay in mainland China as backup.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We replicate storage to Japan for redundancy.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Database failover targets Malaysia directly.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Backups replicate across the EU for compliance.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We keep a DR copy somewhere in Europe.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Storage syncs to North America for resilience.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicas fail over to US East automatically.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "A standby database runs in ap-northeast-1.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We replicate backups to eu-central-1 nightly.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Everything stays in SG, but we also replicate cross-region for DR.",
+     "src": "en-violations"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We do not replicate the database to Tokyo under any circumstances.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Tokyo replication is disabled for all customer data stores in this design.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Frankfurt backups are completely out of scope for this architecture.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The London region is excluded from our data storage plan.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Avoid copying data to Frankfurt or any other European region.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We could replicate to Seoul but we will not do that here.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "There is no cross-region replication configured for this deployment.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Cross-region sync to Virginia is explicitly refused by policy.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We never move backups outside Singapore for compliance reasons.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Replication to Osaka is turned off and stays off permanently.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Data migration to Mumbai is blocked at the network level entirely.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "All replicas stay within ap-southeast-1 availability zones only.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Backups are stored locally across three Singapore availability zones.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Our disaster recovery standby runs in another Singapore zone exclusively.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Failover happens between SG zones without leaving the region.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Database sync occurs strictly within Singapore zone A and B.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Object storage copies remain inside ap-southeast-1 at all times.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We keep all DR replicas local to Singapore for low latency.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Zone-level failover in Singapore ensures zero data loss during outages.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Users in Japan reach the app through the Singapore CDN edge.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Customers in the EU connect to our Singapore-hosted database securely.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Traffic from North America is routed directly into Singapore endpoints.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "European users access the application which stores data only in Singapore.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Clients in California send requests to our Singapore object storage buckets.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Shoppers from mainland China hit the Singapore origin server for data.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The Jakarta EE application server runs entirely inside Singapore today.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We process Java logs using a cache cluster based in Singapore.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The Jakarta specification docs are stored in our Singapore bucket.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Data migrates without downtime between two Singapore availability zones.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Backups replicate with no delay across Singapore zones for safety.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Sync completes with zero data loss within the Singapore region only.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Failover executes instantly without downtime inside ap-southeast-1 zones.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "All SG zones participate in the local backup rotation schedule.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We store primary data and replicas in SG region exclusively.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The SG endpoint handles all database writes without external sync.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Cache nodes in SG serve read replicas for faster local access.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "No data leaves SG even when serving customers based in Sydney.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Busan users experience low latency because SG handles everything locally.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We support Korean text processing while keeping all data in Singapore.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Japanese language logs are written to object storage in Singapore only.",
+     "src": "en-ok"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "데이터베이스 복제본을 도쿄 리전에 생성했습니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "백업 파일을 오사카에 안전하게 저장했어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "DR 스탠바이를 부산으로 구성했습니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "객체 저장소 데이터를 서울로 동기화해요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "홍콩 리전으로 페일오버 설정을 완료했습니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "쿠알라룸푸르에 데이터 복사본을 만들었어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "로그 백업을 중국 본토로 이관합니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "유럽 리전에 지리 중복 백업을 저장했어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "미국 동부로 데이터베이스 복제를 시작합니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "캘리포니아에 DR 백업을 지연 없이 전송했어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "프랑크푸르트 리전으로 캐시 데이터를 동기화합니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "다른 리전으로 교차 복제를 활성화했어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "해외 지역에 백업 사본을 안전하게 보관합니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "자카르타로 객체 저장소 데이터를 끊김 없이 옮겼어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "마닐라 리전에 대기 인스턴스를 배치했습니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "방콕으로 로그 데이터를 복제하고 있어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "실리콘밸리에 백업 저장소를 추가했습니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "버지니아 리전으로 페일오버를 안전하게 설정했어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "런던에 데이터베이스 복제본을 동기화합니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "파리 리전으로 큐 데이터를 이관했어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "두바이에 재해 복구용 백업을 저장합니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "시드니 리전으로 객체를 지연 없이 복제했어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "뭄바이에 데이터 복사본을 안전하게 보관합니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "하이데라바드로 로그를 동기화하고 있어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "상하이 리전에 DR 스탠바이를 구성했습니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "베이징으로 백업 데이터를 끊김 없이 전송해요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "북미 지역에 지리 중복 복제를 설정했어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "원격 리전에 오프사이트 백업을 저장합니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "HKG 리전으로 데이터베이스를 이관했어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "JB 리전에 캐시 복제본을 안전하게 만들었습니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "다른 리전으로의 복제는 수행하지 않습니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "해외 리전에는 절대 복제하지 마세요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "교차 리전 복제 없이 싱가포르에서만 운영해요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "도쿄로의 데이터 동기화는 비활성화되어 있습니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "유럽 백업은 현재 범위에서 제외되었어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "싱가포르 내 다중 가용 영역에 백업을 저장했습니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "일본 사용자의 데이터는 싱가포르에 안전하게 저장해요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "중국 시장 트래픽은 SG 리전에서 처리합니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "인도 사용자 정보는 싱가포르에만 보관해요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "일본어 번역 텍스트를 싱가포르 데이터베이스에 저장했어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "한국어 로그 파일은 싱가포르에 안전하게 보관합니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "중국어 지원 문서를 SG 객체 저장소에 올렸어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "모든 데이터베이스 백업은 싱가포르 안에서만 유지됩니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "페일오버 시에도 데이터는 싱가포르를 벗어나지 않아요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "서울에서 접속하지만 데이터는 싱가포르에 저장합니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "복제본은 싱가포르 단일 리전 내에서만 관리해요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "재해 복구는 싱가포르 내부 가용 영역 간에만 구성했어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "오사카 사용자를 위해 싱가포르에 캐시를 배치했습니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "지연 없이 싱가포르 내에서만 데이터를 동기화해요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "끊김 없이 SG 리전 안에서 백업이 완료되었습니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "안전하게 싱가포르 다중 존에 복제본을 만들었어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "유럽 고객의 요청도 싱가포르 데이터베이스에서 처리합니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "캘리포니아 팀이 쓰지만 데이터는 SG에 있어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "한국어 콘텐츠 저장은 싱가포르 스토리지에서 진행해요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "외부 리전으로의 마이그레이션은 지원하지 않습니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "도쿄 백업 계획은 취소되었고 싱가포르만 사용합니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "부산 페일오버 설정을 해제하고 SG로 돌렸어요.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "프랑크푸르트 동기화는 비활성화되어 있어 안전합니다.",
+     "src": "ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "홍콩 이관 작업은 범위에 포함되지 않아요.",
+     "src": "ko"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我們將資料庫副本同步到東京，確保資料安全。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "備份已無損地遷移至大阪的儲存桶中。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "系統會自動將日誌複製到首爾區域。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "快取資料已無縫同步到釜山的節點。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我們把物件儲存備份放到香港了。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "佇列訊息會沒有延遲地傳送到吉隆坡。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "所有使用者資料都複製到中國大陸的機房。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "容災副本已不間斷地同步到歐洲。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "資料庫的故障轉移目標設在歐盟區域。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "備份檔案被遷移到美國東部了。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "儲存副本無損地寫入加州的資料中心。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我們啟用跨地域複製來保護資料。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "系統配置了異地容災以防單點故障。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "已開啟地理冗餘副本功能。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我們會做境外備份以符合合規要求。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "不同地域的備份已經建立完成。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "We replicate the database to Frankfurt for safety.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "Backups are synced to Tokyo without any delay.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "The standby replica is placed in Seoul seamlessly.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "We store a copy of the logs in Busan.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "Object storage data migrates to Hong Kong continuously.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "Cache replicas fail over to Kuala Lumpur automatically.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "We keep a disaster recovery copy in mainland China.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "Queue backups sync to Europe with zero data loss.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "Storage replicas are geo-redundant across the EU region.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "Database copies move to Virginia without downtime.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "We place offsite backups in another country safely.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "A remote region holds our disaster recovery standby.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "Cross-region replication is enabled for all object storage.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "Logs are copied to California seamlessly every hour.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "不要複製到東京，資料必須留在新加坡。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "系統不會複製任何資料到其他區域。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "我們禁止跨地域同步客戶資料。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "此架構無需異地備份，全部在本地完成。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "跨區域複製功能已禁用。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "海外容災不在本次設計範圍內。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "資料庫在新加坡內的多個可用區進行備份。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "所有副本僅限於新加坡的三個可用區之間同步。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "We only back up within Singapore availability zones.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Local backups stay inside ap-southeast-1 zones.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "日本的使用者存取新加坡的資料庫，資料不外流。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "來自中國的流量會路由到新加坡的伺服器。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "European users connect to our Singapore storage directly.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "韓國市場的客戶讀取新加坡的快取資料。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "系統支援日語文字的儲存與檢索。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "資料庫欄位可以保存韓語內容。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "We process Japanese text locally in Singapore.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Korean language logs are stored in SG only.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "新加坡內的備份過程不間斷且高效。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "資料在新加坡可用區之間無損同步。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "本地副本切換時沒有延遲地恢復服務。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "SG內部的容災演練是無縫進行的。",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Backups within Singapore run without downtime.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Replicas in ap-southeast-1 sync with zero data loss.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Failover between Singapore zones happens seamlessly.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Storage copies in SG migrate without any delay.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "We do not replicate data outside Singapore at all.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Offsite backup is disabled for this architecture.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "No cross-region sync will be performed here.",
+     "src": "zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "All disaster recovery stays strictly within Singapore zones.",
+     "src": "zh"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate the database to Tokyo for DR.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Back up nightly to KL.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Back up nightly to Kuala-Lumpur.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Keep a standby copy in JB.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Mirror the data to HKG.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate to mainland China.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate to China.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "데이터를 중국 본토로 복제합니다.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "数据复制到中国大陆。",
+     "src": "review-c1"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "数据复制到东京。",
+     "src": "review-c1"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "도쿄로 DR 복제를 구성합니다.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "도쿄로 복제하지 않습니다.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "不要复制到东京。",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Backup to Tokyo without delay.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "No downtime: fail over to Tokyo.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate to Tokyo, with no Kubernetes.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate to Tokyo with no Kubernetes",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "The standby in Tokyo doesn't need any manual step; it replicates continuously.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Do not replicate to Tokyo.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Data never leaves Singapore, so there is no replication to Tokyo.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Singapore primary with cross-region replication for DR.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Database in Singapore, replicated cross-region to a standby region.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Cross-region replication to a standby region.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Set up geo-redundant storage.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Add an offsite backup in another country.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Keep a copy in a different region.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate to a remote region.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Use a secondary data center in another geography.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Enable geo-replication on OSS.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Store backups in Europe.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Store backups in Frankfurt.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Back up to the EU.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Back up to Ashburn.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Back up to N. Virginia.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Back up to US East.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Back up to East US.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Copy to California.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Sync to Osaka.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Sync to Busan.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Sync to Sydney.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Sync to Mumbai.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Sync to Hyderabad.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate to ap-northeast-1.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate to AP-NORTHEAST-1.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate to Ｔｏｋｙｏ.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate to TOKYO.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate to Tōkyō.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate to Tokyo-1",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate to tokyo_region",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate to Tokyo/Seoul",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Store assets in HK.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Store assets in Hong Kong SAR.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Use Jakarta EE application servers in Singapore.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Customers in Tokyo get low latency through the CDN in Singapore.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Store logs in Singapore.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Singapore only; Japanese users reach the app through the CDN.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Users in Japan store sessions in the browser.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "Localize the UI in Korean (한국어) and store translations in OSS.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "한국어 지원 및 번역 저장",
+     "src": "review-c1"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "일본어 번역을 저장합니다.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "인도 시장 대상 사용자 데이터는 싱가포르에 저장합니다.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Data stored in Singapore; users in the US.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We store customer data in Singapore (SG).",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "us can store data in Singapore",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Replicas stay in Singapore across zones A and B.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Backups are stored in Singapore, in a different zone.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Store data in Singapore. Dr. Smith approves.",
+     "src": "review-c1"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "实现不间断同步到东京",
+     "src": "review-c4"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "不仅在新加坡，还把数据复制到东京",
+     "src": "review-c4"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "无损复制到东京",
+     "src": "review-c4"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "没有延迟地备份到东京",
+     "src": "review-c4"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "不同地域的东京做容灾",
+     "src": "review-c4"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "지연 없이 도쿄로 복제합니다",
+     "src": "review-c4"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "도쿄로 끊김 없이 백업합니다",
+     "src": "review-c4"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "안전하게 도쿄로 복제합니다",
+     "src": "review-c4"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "도쿄로 복제하지 마세요",
+     "src": "review-c4"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "도쿄에는 복제하지 않습니다",
+     "src": "review-c4"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicate to Tokyo without downtime",
+     "src": "review-c4"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "No-downtime failover to Tokyo",
+     "src": "review-c4"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Nonstop replication to Tokyo",
+     "src": "review-c4"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Back up to Tokyo, not Seoul",
+     "src": "review-c4"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Do not use Tokyo; replicate within Singapore",
+     "src": "review-c4"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Data is never replicated to Tokyo",
+     "src": "review-c4"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Replication to Tokyo is disabled",
+     "src": "review-c4"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Tokyo replication is out of scope",
+     "src": "review-c4"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We could replicate to Tokyo but will not",
+     "src": "review-c4"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Avoid replicating to Tokyo",
+     "src": "review-c4"
+    }
+   ]
+  },
+  {
+   "id": "seoul",
+   "allowed": [
+    "ap-northeast-2"
+   ],
+   "items": [
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "I will add a database in Seoul, wire the cache and mirror it to Singapore for disaster recovery.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Seoul remains our primary region while users from Tokyo connect through the global load balancer.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Snapshots are replicated cross-region to ensure we never lose customer records during an outage.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Backups stay within Seoul availability zones so no data leaves Korea at any point.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We considered geo-redundant storage but decided against it since all archives must remain in Seoul.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "To serve partners in Frankfurt better I am routing their API traffic through the Seoul gateway.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "The object storage bucket syncs nightly with a replica in Kuala Lumpur for archival purposes.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Silicon Valley hosts our corporate office network but no customer logs or backups are stored there.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Customer databases will be migrated overseas next quarter to reduce latency for international users.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "I disabled the failover target in Osaka because all DR copies must reside in Seoul only.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "While Seoul handles the live queue, a warm standby database is being provisioned in Jakarta.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Zero data loss is guaranteed by keeping all snapshots and replicas inside Seoul zones.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Global replication of the transaction logs has been enabled to support our expansion into Europe.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "London users access the application frontend but their session data stays cached in Seoul.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Archives older than thirty days are automatically moved to offsite storage in another geography.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We cancelled the planned backup copy to Sydney after reviewing the data residency requirements.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "A secondary cache layer in Hong Kong ensures failover works smoothly if Seoul goes down.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Paris is where our design team sits; they do not host any customer database replicas.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "I am setting up a read replica in Manila so the analytics team can query without hitting Seoul.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Shanghai was evaluated for disaster recovery but rejected immediately due to the Seoul-only rule.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Database backups are streamed continuously to an archive bucket located in Sao Paulo.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Without downtime we rotated the encryption keys on the Seoul object storage buckets.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Cross-region sync between Seoul and Virginia keeps the DR environment fully updated at all times.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Our partners in Dubai use a dedicated portal that reads only from the Seoul database.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "I will keep the primary queue in Seoul and push a shadow copy to Tokyo for resilience.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Mumbai handles outbound marketing emails but no customer data or logs are stored there.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "All database snapshots are now configured to replicate to a geo-redundant vault outside Korea.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Beijing serves as the origin for our CDN but customer archives never leave Seoul.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Failover testing revealed we need a hot standby database ready in Amsterdam just in case.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The Korean language pack was deployed to the Seoul web servers this morning without issues.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Logs generated by Seoul instances are forwarded to an aggregation cluster in JB for long-term retention.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Australia was briefly discussed as a backup site but we confirmed everything stays in Seoul.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We mirrored the production database to Taipei so the regional team has local read access.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "JKT is out of scope for this architecture since all customer data must stay in Seoul.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "An asynchronous replication job pushes nightly database dumps to a storage account in SG.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "India-based support staff access the admin console but all underlying queues remain in Seoul.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "North America generates most of our traffic yet every single backup stays in Seoul.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "The migration script accidentally copied archived logs to a bucket in Mexico which I am fixing now.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Mainland China offices connect via private link but no database replicas exist outside Seoul.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Offsite in another geography is how we described the new snapshot destination before the audit caught it.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Texas was proposed for the DR site but compliance forced us to keep failover in Seoul.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We are moving the cold storage archive from Seoul to Frankfurt to save on operational costs.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Japan customers experience low latency because edge nodes cache static assets not database records.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "A backup copy job runs every hour sending compressed snapshots directly to Ohio.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The EU regulation review confirmed our Seoul-only storage posture already meets all requirements.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "I wired the message queue in Seoul to duplicate events into a standby topic in Paris.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "UAE partners requested a local replica but we declined and kept all data in Seoul.",
+     "src": "h-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Indonesia was selected as the secondary archive location for all objects originally uploaded in Seoul.",
+     "src": "h-en"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "서울 데이터베이스 스냅샷을 도쿄에 복제해서 재해 복구용으로 보관합니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "사용자 트래픽은 일본에서 오지만 모든 데이터는 서울 리전에 저장돼요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "백업 데이터를 해외로 전송하는 계획은 검토만 했고 실행하지 않았습니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "객체 저장소 로그를 싱가포르와 교차 리전 동기화하도록 설정했어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "일본어 로그 파일도 모두 서울 리전의 객체 저장소에 보관해요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "아카이브 데이터를 프랑크푸르트로 마이그레이션하는 작업이 완료되었어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "미국 팀이 접속하지만 캐시 데이터는 서울 가용영역 안에 유지됩니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "지리적 이중화를 위해 백업을 유럽으로 복사하는 설정을 추가했어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "다른 리전으로 스냅샷을 내보내는 대신 서울 로컬 백업만 사용해요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "큐 메시지를 버지니아로 페일오버할 수 있도록 라우팅을 바꿨습니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "데이터베이스 복제를 취소하고 서울 단일 리전 구성으로 되돌렸어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "실리콘밸리 객체 저장소에 백업 아카이브를 주기적으로 업로드합니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "홍콩 파트너사가 조회하지만 원본 데이터는 서울에만 있어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "재해 복구용 스냅샷을 쿠알라룸푸르로 이동시키는 파이프라인을 만들었어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "교차 리전 복제를 보류하고 당분간 서울 내부 동기화만 진행합니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "로그 아카이브를 인도 뭄바이로 전송해서 장기 보관하도록 했어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "자동으로 백업이 생성되며 모든 사본은 서울 리전에 남습니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "데이터베이스 읽기 전용 복제본을 시드니에 배포했습니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "오프사이트 백업을 다른 지리권에 두는 안건은 기각되었어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "캐시 스냅샷을 오사카로 복사하여 글로벌 장애 대응 체계를 갖췄어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "끊김 없이 운영되도록 서울 가용영역 간 로컬 페일오버만 구성했어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "메인 데이터베이스 백업을 상하이로 전송하는 일정을 잡았습니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "해외 복제 대신 서울 내 다중 가용영역 저장을 선택했어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "객체 저장소 아카이브를 자카르타로 마이그레이션하는 작업을 시작해요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "안전하게 서울 안에서만 데이터베이스 스냅샷을 관리합니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "큐 로그 백업을 런던으로 보내서 규정 준수를 맞추려고 해요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "북미로 데이터를 복제하는 요청은 범위에 없어서 제외했어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "파리 리전에 데이터베이스 스탠바이 노드를 프로비저닝했습니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "두바이 사무소에서 접근하지만 데이터 저장은 서울에서만 이루어져요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "스냅샷을 태국 방콕으로 동기화하여 백업 안정성을 높였어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "대만으로 로그 아카이브를 옮기는 계획은 아직 검토만 하고 있어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "글로벌 복제 정책을 적용해 모든 객체 저장소를 여러 대륙에 분산시켰어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "베트남 사용자 유입이 늘었지만 데이터베이스는 서울에 고정되어 있어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "장애 발생 시 텍사스로 자동 페일오버되도록 큐 설정을 변경했습니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "다른 리전 백업을 비활성화하고 서울 로컬 보관 정책만 켰어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "필리핀 마닐라에 데이터베이스 읽기 복제본을 추가했어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "중국 본토로 스냅샷을 내보내는 기능은 개발이 취소되었어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "암스테르담 객체 저장소로 로그 아카이브를 정기 전송합니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "호주 파트너가 분석하지만 원본 큐 데이터는 서울에 머물러요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "재해 복구 사이트를 멕시코에 구축하고 데이터베이스를 복제할게요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "UAE로 백업을 보내는 옵션은 말고를 고려하다 폐기했어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "상파울루 리전에 캐시 스냅샷을 보관하도록 파이프라인을 짰어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "인도네시아 JKT로 데이터를 마이그레이션하는 건 보류 상태입니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "서울 외부로 나가는 모든 데이터 복제는 차단되었고 로컬 동기화만 허용해요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "오하이오에 백업 아카이브를 저장하는 교차 리전 정책을 활성화했어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "일본어 인터페이스를 지원하지만 로그 데이터는 서울에만 기록돼요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "싱가포르 SG로 객체 저장소 복제본을 만드는 작업을 완료했습니다.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "유럽 EU 규정을 위해 백업을 옮기자는 제안은 거절되었어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "KL 조호르 리전에 데이터베이스 DR 스탠바이를 배치했어요.",
+     "src": "h-ko"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "数据库快照已同步至新加坡作为异地备份。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "日本用户的请求由首尔的缓存层处理，数据不离开韩国。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "我們不會將任何日誌或存檔複製到首爾以外的區域。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "对象存储的副本被发送到东京以实现跨地域容灾。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "暂不考虑将数据库备份迁移到吉隆坡的方案。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "為了確保零停機，資料庫備份僅保留在首爾可用區內。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "所有队列消息的归档都存放在法兰克福的存储桶中。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "来自美国的流量访问首尔的数据库，但数据本身不出境。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "禁止将任何客户数据的副本放置在境外区域。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我們會將資料庫快照同步到矽谷作為異地災備。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "仅考虑过将日志发往雅加达，但最终未采用该方案。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "快取層已部署在首爾，以不間斷的方式為本地應用提供服務。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "数据库的地理冗余副本分布在伦敦和巴黎。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "不要将任何备份或存档发送到北美或欧洲的数据中心。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我們將日誌歸檔在孟買，以實現跨區域資料保護。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "已取消将队列数据复制到曼谷的计划。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "首爾的資料庫以無損方式進行本地同步，不涉及其他城市。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "为了容灾，数据库的备用节点被建在大阪。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "澳洲合作夥伴讀取的是首爾資料庫的唯讀視圖，原始資料不移動。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "所有客户数据的备份均留在首尔，不会进行跨地域复制。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "佇列訊息的備份已被遷移到香港。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "我们拒绝将数据库快照存储到弗吉尼亚的请求。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "對象存儲的存檔副本會發送到墨西哥以實現異地冗餘。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "印尼用户通过首尔的缓存读取数据，存储位置未改变。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "暫不啟用向聖保羅同步資料庫備份的功能。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "数据库的故障转移目标设定为迪拜的备用集群。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "日誌歸檔僅在首爾本地進行，不會產生境外副本。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "我会在首尔内部署缓存的只读副本以实现零停机。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "快照透過跨地域同步機制被複製到了上海。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "来自欧洲的查询流量指向首尔的数据库，数据不出韩国。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我们将对象存储的灾备副本放在台北。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "禁止把任何客戶資料的備份或存檔放到韓國以外的地方。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "数据库主从同步被配置为跨越阿联酋和首尔。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "已取消向日志系统添加阿姆斯特丹存储节点的变更。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "佇列資料的異地備援節點設立在越南。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "日本办公室的员工访问首尔的数据库，但数据不迁移。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "資料庫的地理冗餘備份會自動寫入俄亥俄的儲存區。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "仅考虑过把快照发到约翰内斯堡，但该想法已被否决。",
+     "src": "h-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "快取資料以不間斷模式在首爾各可用區之間同步。",
+     "src": "h-zh"
+    }
+   ]
+  },
+  {
+   "id": "tokyo",
+   "allowed": [
+    "ap-northeast-1"
+   ],
+   "items": [
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "I'll add a read replica in the Singapore region for our APAC users.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "All database snapshots are now configured to stay within Tokyo zones only.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Backups will sync to Frankfurt nightly as part of the DR strategy.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We considered Seoul for failover but decided against it per compliance rules.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Object storage archive tier is being replicated cross-region to Virginia.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Adding three availability zones inside ap-northeast-1 for the primary database cluster.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Logs from our London office traffic will be stored locally in Tokyo.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Should we move cold data to Sydney? No, keeping everything in Japan.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Queue messages remain entirely within Tokyo without any cross-border replication.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Enabling geo-redundant backups across Europe and North America starting next sprint.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The new object storage bucket for Japanese partners stays in ap-northeast-1.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "I've disabled the overseas snapshot copy job that was pointing to KL.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Failover target changed from Tokyo to Busan due to capacity concerns.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "User sessions from India are routed here, but session data stays local.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We're setting up global replication for the transaction logs across all regions.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Archive storage policy updated; retention is 90 days inside Tokyo only.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Snapshots will be copied offsite to another geography for regulatory safety.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "No data leaves Japan; the Paris endpoint handles API traffic exclusively.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "I'll configure the DR database replica in Sao Paulo as a fallback.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Local backups in zone A and zone B cover our recovery needs.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Moving the analytics archive to Dubai to reduce latency for UAE teams.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Cross-region sync for the message queue has been cancelled indefinitely.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Are we storing copies in HKG? Confirmed no, strictly Tokyo placement.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Primary database remains in Tokyo; read replicas added in Jakarta and Manila.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Zero data loss architecture deployed entirely within ap-northeast-1 boundaries.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Offsite backup vault created in Silicon Valley for long-term retention.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The EU partner portal connects here, though no customer data goes to Europe.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We need a standby database in Seoul for Korean market expansion.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Snapshot schedule adjusted: runs every 4 hours, destination locked to Tokyo.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Log aggregation pipeline now mirrors data to an Ohio object storage bucket.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Disaster recovery plan scoped out; cross-region failover is explicitly excluded.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Archiving old records to mainland China for cost optimization purposes.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Cache invalidation happens globally, but cached data never leaves Tokyo servers.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Replicating the user database to Amsterdam so European staff can query faster.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "I'll keep all storage volumes pinned to Japan regardless of traffic origin.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Failover testing completed successfully between two Tokyo availability zones.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Data sync enabled between Tokyo and Taipei for the new branch office.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Overseas replication was proposed but rejected during yesterday's architecture review.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Backup copies routing through JB and SG to save on egress costs.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "All queues drain locally; no messages are forwarded outside ap-northeast-1.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Customer database migrating from the US to Tokyo this weekend.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Adding a local read replica inside Tokyo for reporting workloads.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "DR snapshots are automatically shipped to an Australia-based object store.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Language translation service calls Mumbai, yet translated text isn't stored there.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Geo-redundant object storage spanning Tokyo, Bangkok, and Kuala Lumpur activated.",
+     "src": "t-en"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Standby node provisioned in zone C; no external regions involved.",
+     "src": "t-en"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "도쿄 리전 내 가용존 간 데이터베이스 복제를 설정했습니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "백업 스냅샷을 싱가포르 리전으로 복사하는 작업을 시작해요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "재해 복구를 위해 서울에 대기 데이터베이스를 구성함.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "고객 트래픽은 유럽에서 유입되지만 모든 데이터는 도쿄에 저장합니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "로그 아카이브를 프랑크푸르트 오브젝트 스토리지로 전송할 예정이에요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "리전 간 동기화를 활성화하여 버지니아에 사본을 보관합니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "도쿄 ap-northeast-1 내에서만 백업을 유지하는 정책입니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "장애 발생 시 홍콩으로 자동 페일오버되도록 큐를 설정했어요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "상하이 파트너 사무소에서 접속하지만 데이터는 일본에만 둡니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "글로벌 복제 기능을 켜서 런던에도 스냅샷을 저장함.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "쿠알라룸푸르로의 로그 이전 요청은 거절되었습니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "인도네시아 리전에 데이터베이스 읽기 전용 복제본을 추가합니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "도쿄 로컬 백업만 사용하며 외부 리전 저장은 비활성화했어요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "자카르타에 DR 사이트를 구축하고 데이터를 동기화할 예정임.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "마닐라 고객 지원팀이 조회하지만 원본 데이터는 도쿄에 있습니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "방콕 오브젝트 스토리지로 아카이브 파일을 이동시켰어요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "해외 리전으로의 백업 전송은 범위에서 제외됩니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "실리콘밸리에 캐시 데이터를 복제하여 지연 시간을 줄임.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "도쿄 내 다중 가용존 배포로 무중단 운영을 보장합니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "멕시코 리전에 스냅샷 보관소를 새로 만들었어요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "서울 사무소 직원이 접근하나 데이터 저장 위치는 변경하지 않음.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "상호 지역 이중화를 위해 시드니와 도쿄 간 데이터를 동기화합니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "파리 리전으로의 데이터베이스 복제는 고려 대상이 아닙니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "두바이에 로그 백업을 저장하는 파이프라인을 구성했어요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "도쿄 단일 리전 내에서 모든 스냅샷을 관리함.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "암스테르담에 큐 메시지 사본을 보관하도록 설정할 예정입니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "베트남 개발팀이 테스트하지만 프로덕션 데이터는 도쿄에 고정돼요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "타이베이 리전으로 데이터베이스 전체를 마이그레이션했어요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "오프사이트 백업을 다른 지리적 위치로 보내는 계획은 중단됨.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "텍사스에 장애 복구용 스탠바이 스토리지를 배치합니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "일본어 로그 분석은 수행하지만 데이터는 도쿄 밖으로 나가지 않아요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "KL 리전으로 객체 저장소 데이터를 복제하는 작업을 실행함.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "다운타임 없이 도쿄 존 간 데이터베이스 전환을 완료했습니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "JKT에 백업 아카이브를 생성하여 장기 보관할 예정이에요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "중국 본토로의 데이터 전송 요구사항은 기각되었음.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "북미 리전에 사용자 데이터 사본을 저장하도록 동기화해요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "도쿄 외 리전 복제 금지 정책을 대시보드에 표시했습니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "SG 오브젝트 스토리지로 스냅샷을 이전하는 스크립트를 작성함.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "부산에 재해 복구용 데이터베이스 복제본을 두기로 했어요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "HKG 리전으로 로그를 내보내는 기능은 비활성화 상태입니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "미국 오하이오에 백업 저장소를 추가로 프로비저닝할 예정임.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "유럽 연합 내 데이터 저장을 검토했으나 도쿄 고수하기로 함.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "JB 리전의 캐시 서버로 세션 데이터를 복제했어요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "호주 파트너가 API를 호출하지만 데이터는 일본 내에 머물러요.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "UAE에 데이터베이스 스냅샷을 주기적으로 전송하는 크론 잡을 설정함.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "인도 뭄바이로 아카이브를 이동하면 규정 위반이 됩니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "서울과 도쿄 간 실시간 데이터 동기화 연결을 수립했습니다.",
+     "src": "t-ko"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "数据库主节点部署在东京ap-northeast-1，所有读写操作均在此区域完成。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "We will replicate the object storage backups to Singapore for disaster recovery purposes.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "計劃將資料庫快照同步至首爾，以實現跨區域容災。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "如果发生区域性故障，缓存数据将自动切换到吉隆坡的备用节点。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Log archives are kept strictly within Tokyo availability zones without any cross-region transfer.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我們已經把備份資料複製到了法蘭克福的儲存桶中。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "I'll configure the queue replicas to stay in ap-northeast-1 zones only, no overseas sync.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "為了滿足歐洲合規要求，部分日誌存檔將遷移至倫敦節點。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "The database failover target remains in Tokyo; users from North America connect via global acceleration but data stays local.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "计划将对象存储的异地副本放置在悉尼，确保澳洲用户访问速度。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "所有資料庫備份均保留在東京本地，不會進行任何跨區域同步。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "Snapshots of the primary cache will be shipped to Mumbai for long-term archive storage.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "We evaluated moving backups to Seoul but decided against it to comply with the Japan-only rule.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "如果主資料庫出現問題，系統會將資料同步到上海的備用中心。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "I have disabled cross-region replication so all object storage copies remain in Tokyo.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "佇列的災難復原站點已經設定在雅加達，以防東京發生全面故障。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Partners in mainland China access the API, but all database records are stored exclusively in ap-northeast-1.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我们将启用全球复制功能，把日志备份分发到新加坡和法兰克福。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Object storage archives are configured for zero data loss within Tokyo zones, not across regions.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "資料庫的異地備援節點將會部署在維吉尼亞，確保北美業務連續性。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "No snapshots or backups leave Japan; the DR plan relies solely on multi-zone setups in Tokyo.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "快取資料的備份已經被排程定期傳輸至曼谷的儲存伺服器。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "I'll keep all log archives inside ap-northeast-1 and reject any requests for overseas storage placement.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "为了降低延迟，我们会把数据库只读副本放在首尔供韩国用户查询。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Traffic from the US is routed to Tokyo where all database storage physically resides.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我們計畫將物件儲存的備援資料同步至矽谷的資料中心。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Conditionals apply: if a region fails, we rebuild from local Tokyo snapshots rather than failing over overseas.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "日誌檔案的長期歸檔將會被搬移到杜拜的儲存區域。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "All queue messages and their backups are processed and retained entirely within Tokyo boundaries.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "資料庫快照已透過跨區域複製功能傳送至阿姆斯特丹。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Offices in HKG generate traffic, yet all cache replicas are pinned to ap-northeast-1.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我們會把備份資料的離線副本存放在墨西哥，以符合地理冗餘策略。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Disaster recovery was considered for Busan but cancelled since customer data must stay in Tokyo.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "如果東京發生嚴重故障，系統將自動把資料庫切換到台北的待命節點。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Cache synchronization is restricted to Tokyo availability zones, preventing any data movement to other countries.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "對象存儲的歸檔層級已經配置為將舊資料移至聖保羅。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "我們將取消向胡志明市發送日誌備份的排程任務。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "Database replicas are actively syncing to Kuala Lumpur to support regional failover requirements.",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "所有備份與歸檔均限制在日本境內，不支援任何海外異地容災方案。",
+     "src": "t-zh"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "佇列訊息的備援副本會被寫入約翰內斯堡以外的另一個海外節點，即巴黎。",
+     "src": "t-zh"
+    }
+   ]
+  },
+  {
+   "id": "singapore-review2",
+   "allowed": [
+    "ap-southeast-1"
+   ],
+   "items": [
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We keep a geo-redundant vault in Frankfurt for disaster recovery purposes.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We evaluated storing backups in Tokyo but decided against it to meet compliance.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Nightly archives are shipped to our offsite facility in Kuala Lumpur without downtime.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The system will not replicate customer data to Seoul under any circumstances.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Should we failover to Mumbai? Yes, that is our confirmed strategy.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Our users connect from London offices, but all processing stays in Singapore.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Log forwarding sends audit trails to a bucket in ap-northeast-1 for analysis.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We disabled cross-region replication so no standby copies leave the Singapore region.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "A secondary replica lives in JB to ensure zero data loss during outages.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Instead of routing traffic to Paris, we handle everything within Singapore availability zones.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Workloads are balanced across Singapore and a second country for resilience.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The application supports Jakarta EE standards while hosting all data locally in Singapore.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Customer databases are mirrored to HKG as a non-stop backup solution.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "I cannot move your records to North America because our policy forbids it.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We maintain a standby site in Virginia instead of Singapore for DR.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Traffic originates from Sydney, yet every byte is processed inside Singapore.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Disaster recovery spins up identical workloads in eu-central-1 automatically.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Japanese text processing is handled by our NLP service running entirely in Singapore.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Backups are copied overseas to ensure business continuity during regional failures.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We considered Dubai for redundancy but rejected it due to data residency rules.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "To achieve high availability, replicas are placed in JKT and Singapore.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Cross-region copy is turned off, guaranteeing logs never leave Singapore.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Audit logs stream continuously to a warehouse in Silicon Valley.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Our Manila office staff access the dashboard, but data remains in Singapore.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Failover targets another region if the primary Singapore cluster goes down.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We refuse to store any customer information in Shanghai regardless of latency benefits.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "An encrypted snapshot travels to Bangkok nightly with no delay in transfer.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Multi-AZ deployment spans three Singapore zones without crossing regional boundaries.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We use a storage account in Europe as an offsite copy destination.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The option to failover to Taiwan was reviewed and explicitly cancelled.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Read replicas are provisioned in KL to serve Southeast Asian customers faster.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Users from Beijing access the API gateway, but backend data stays in Singapore.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "For compliance, we archive transaction logs to a vault in London.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Geo-redundancy is scoped strictly to Singapore local zones only.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "The DR plan involves restoring from backups kept in us-east-1.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We do not send any workload telemetry to servers outside Singapore.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Data is replicated to Hong Kong to provide a seamless failover experience.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Although our headquarters are in Frankfurt, the cloud infrastructure resides in Singapore.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "A warm standby copy sits in Mumbai ready for immediate activation.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Replication to ap-southeast-2 was proposed but ultimately denied by the security team.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We push container images and runtime logs to a registry in Paris.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The Jakarta namespace in Kubernetes holds only configuration, not customer data.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "In case of outage, traffic shifts to a mirror site in Seoul.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We will not enable log shipping to Virginia or any other external region.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Nightly ETL jobs copy raw datasets to a lake in Dubai.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "All disaster recovery drills are confined to Singapore availability zones.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We store redundant copies in Taipei instead of relying solely on Singapore.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The request to add a replica in Shanghai was declined immediately.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Continuous backup streams flow into an S3 bucket located in us-west-1.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "French language support does not require routing data through Paris.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "A tertiary failover node operates in Johor Bahru for extra safety.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Remote workers in Kuala Lumpur authenticate via Singapore-hosted identity providers.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "System metrics and application logs are aggregated in a cluster in London.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We explored using Sydney for archival but chose to keep it local.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Database snapshots are transferred cross-region to a secure vault in Frankfurt.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The feature to export data to overseas buckets has been permanently disabled.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Do we need a backup in Tokyo? Absolutely, it is already configured.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "I am unable to approve moving any workloads to Mumbai per policy.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Active-passive setup keeps the passive node in Silicon Valley without interruption.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Our Bangkok branch generates reports, but queries execute against Singapore databases.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "재해 복구를 위해 백업 데이터를 도쿄 리전으로 전송합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "도쿄로 데이터를 복제하지 않으며 모든 백업은 싱가포르에 보관됩니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "야간 아카이브 작업 시 고객 로그가 서울로 포워딩됩니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "서울 지사 직원들이 시스템에 접근하지만 데이터는 싱가포르에 유지됩니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "장애 조치 시 워크로드가 JB 리전의 대기 사이트로 전환됩니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "데이터 손실 없이 실시간으로 홍콩(HKG)에 복제본을 생성합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "HKG 리전은 사용자의 접속 출처일 뿐 데이터는 이동하지 않습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "jakarta ee 애플리케이션의 상태 로그를 JKT 리전으로 스트리밍합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "시스템은 jakarta ee 기반이지만 모든 데이터 처리는 싱가포르 내에서 완료됩니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "방콕 대신 싱가포르를 쓰면 어떨까요? 네, 백업은 방콕으로 보냅니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "방콕 대신 싱가포르 가용 영역만을 사용하여 DR을 구성합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "ap-northeast-1 리전에 스탠바이 복사본을 유지하여 지연 없는 서비스를 제공합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "ap-northeast-1 리전으로의 복제는 고려 대상이었지만 최종적으로 철회되었습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "마닐라에 위치한 오프사이트 볼트에도 동일한 데이터가 저장됩니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "일본어 텍스트 처리 모듈이 있으나 데이터는 싱가포르에만 존재합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "교차 지역 복제를 통해 버지니아에 보조 데이터베이스를 구축합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "버지니아 리전 사용을 제안하셨지만 고객 데이터 보호 정책상 거절합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "무중단 운영을 위해 실리콘밸리 리전에 읽기 전용 복제본을 둡니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "실리콘밸리 사무소 직원이 조회하지만 데이터 레지던시는 싱가포르입니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "프랑크푸르트 해외 리전으로 감사 로그를 자동 전달하도록 설정했습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "유럽 사용자가 유입되더라도 프랑크푸르트로 데이터가 나가지 않습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "런던에 두 번째 국가의 백업 센터를 마련해 재해에 대비합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "런던 리전 추가 방안은 비용 문제로 검토 후 기각되었습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "파리 리전을 활용한 글로벌 스탠바이 환경에서 워크로드를 분산 처리합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "파리 노드는 일본어 로케일 번역만 담당하며 데이터는 저장하지 않습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "두바이에 위치한 타 리전 저장소로 야간에 스냅샷을 동기화합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "두바이 고객의 트래픽을 처리하지만 데이터는 싱가포르 존에 머뭅니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "시드니에 지리적으로 분리된 재해 복구 사이트를 운영 중입니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "시드니로의 페일오버는 테스트 목적으로만 논의되었고 실제로 적용되지 않았습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "뭄바이 리전에 에러 로그를 장기간 보관하기 위해 전송합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "뭄바이 팀이 로그를 열람할 수 있지만 원본은 싱가포르에 있습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "상하이로 데이터를 넘기면 안 될까요? 맞습니다, 그렇게 진행하겠습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "상하이 리전 확장은 보안 규정 때문에 명확히 거부되었습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "베이징에 크로스 리전 복제 파이프라인을 구축해 중단 없는 서비스를 보장합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "베이징 오피스 직원의 접근을 허용하나 베이징으로의 데이터 복사는 금지됩니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "대만 지역의 외부 클라우드 저장소에 백업 이미지를 정기적으로 업로드합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "대만 사용자 트래픽이 증가했으나 데이터는 싱가포르 내 3개 존에 분산됩니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "유럽 내 다른 리전으로 워크로드를 이전하여 이중화를 달성합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "유럽 진출 계획이 있었으나 데이터 국외 반출 금지로 취소되었습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "북미 지역에 오프사이트 아카이빙을 수행하여 제로 데이터 손실을 구현합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "북미 리전을 이용한 백업을 고려했으나 싱가포르 단일 리전으로 결정했습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "싱가포르를 주 리전으로 쓰되, 재해 발생 시 도쿄로 전체를 전환합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "도쿄 리전 연동 기능이 관리자 설정에서 완전히 꺼져 있습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "논스톱 데이터 동기화를 위해 서울과 싱가포르 간 양방향 복제를 활성화합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "서울 리전으로의 마이그레이션을 요청하셨지만 규정에 따라 수용할 수 없습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "지연 시간 최소화 목적으로 뭄바이에 핫 스탠바이 인스턴스를 배치합니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "뭄바이 서버는 정적 웹 호스팅만 하며 고객 데이터는 포함하지 않습니다.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我们在ap-northeast-1保留了一份异地副本，以防新加坡节点故障。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "我们评估过将备份放在东京，但最终否决了该方案。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "所有夜间归档会无延迟地同步到吉隆坡的存储桶。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "系统不会将任何客户数据复制到首尔或欧洲区域。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "日志转发规则会将审计记录发送到HKG的数据中心。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "虽然用户在雅加达和曼谷访问，但数据仍留在新加坡。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "灾备站点设在JKT，确保零数据丢失切换。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Jakarta EE应用服务器部署在新加坡可用区内。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "数据库的地理冗余保险库位于弗吉尼亚州。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "跨区域复制功能已明确关闭，所有数据仅在新加坡。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "工作负载会在不停机的情况下迁移到矽谷节点。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "客户要求把数据存到上海，我们拒绝了该请求。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "备用拷贝存放在法兰克福，作为第二国家的容灾点。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "日文文本处理服务运行在新加坡的同一个区域内。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "如果主节点宕机，流量和数据会自动failover到伦敦。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "我们考虑过巴黎作为备选，但评估后决定不使用。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "Standby copies are shipped to Dubai for compliance.",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "灾难恢复演练完全在新加坡的三个可用区之间完成。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我们将快照复制到悉尼，而不是新加坡本地存储。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "北美办公室的员工可以访问系统，但数据不离开新加坡。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "数据库副本通过专线实时写入孟买的机房。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "我们不会启用向北京或台北的异步复制功能。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "所有交易日志都会offsite备份到马尼拉。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "尽管使用了欧洲标准加密算法，密钥和数据都在新加坡。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我们需要在另一个区域存放热备份，对吗？是的，已配置。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "原本计划用首尔做灾备，但该提议已被正式取消。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "客户资料通过跨境通道传输至柔佛的离线仓库。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "海外用户从吉隆坡连线，但后端数据库不跨区。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "为了高可用，workloads被分发到了ap-southeast-2。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "多可用区部署确保容灾仅限于新加坡内部。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "备份磁带每周运往海外的第三方托管设施。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "日语语音识别模块在新加坡区域处理所有音频数据。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "主库在新加坡，但从库会无中断地同步到台北。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "我们明确禁止将任何副本放置在北美地区。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "DR策略要求将所有状态数据镜像到曼谷集群。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "客户端位于伦敦，但服务端数据严格驻留新加坡。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我们在us-east-1维护了一个冷备站点。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "跨国团队的协作流量来自各地，存储却只在新加坡。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "系统自动将历史数据归档至上海的OSS bucket。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "向东京复制数据的定时任务已经被永久停用。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "日志聚合服务会把原始数据推送到巴黎的Kafka集群。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "产品名包含Sydney字样，但实际部署全在新加坡。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "我们在海外建立了一个影子数据库用于分析。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "有人建议把standby放在杜拜，但我们没有采纳。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "所有敏感字段会加密后传至KL的分析平台。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "新加坡区域内的跨AZ容灾不涉及任何境外节点。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "若发生区域性故障，数据会漂移到欧洲的备用中心。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "我们拒绝将日志导出到马尼拉的外部审计系统。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "夜间的ETL作业会将客户表抽取到矽谷的数据湖。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "虽然支持多国语言，底层存储始终绑定在新加坡。",
+     "src": "qwen3.8-max batch 2 (review pass 2, drafted after the first misses were fixed)"
+    }
+   ]
+  },
+  {
+   "id": "seoul-review2",
+   "allowed": [
+    "ap-northeast-2"
+   ],
+   "items": [
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Primary database runs in ap-northeast-2, and we stream nightly archives to a geo-redundant vault in Singapore.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We evaluated replicating customer records to Tokyo but rejected that option during the design review.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Should we keep a standby copy overseas? Yes, the DR site in Frankfurt holds a full replica.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Cross-region replication to Osaka is explicitly disabled in the current storage policy.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Log forwarding routes all audit trails to our central SIEM cluster in Virginia without any delay.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Our Jakarta EE application server processes transactions entirely within the Seoul region boundaries.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "For zero data loss, we maintain synchronous replicas between ap-northeast-2 and ap-northeast-1.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Users connecting from London and Paris are routed to the Seoul edge, but their data stays local.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "- Backup target: offsite copy pushed to JKT bucket every four hours.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "I cannot move the production database to Silicon Valley; all assets must remain in ap-northeast-2.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Failover workloads automatically spin up in Kuala Lumpur if the primary zone loses connectivity.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Instead of sending backups to Mumbai, we retain three copies across distinct availability zones in Seoul.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "The disaster recovery plan provisions a warm standby site in Sydney for non-stop operations.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Japanese text processing uses a translation microservice, but all customer payloads stay in Korea.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We mirror the object store to a second country, specifically the JB data center.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The cross-region backup feature was considered last sprint but ultimately turned off by the security team.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Database snapshots are exported to HKG for long-term compliance retention.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Traffic originates from offices in North America, though no customer data leaves ap-northeast-2.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "To ensure high availability, we replicate stateful workloads to Bangkok instead of Seoul.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Will we replicate to Europe? No, the architecture strictly forbids data egress outside Korea.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "All S3 buckets sync their contents to a secondary region in Shanghai without downtime.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We will not forward system logs to Dubai under any circumstances.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "The active-passive setup keeps the passive node in Manila, ready for immediate failover.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Our regional sales office in Taiwan handles contracts, but the backend databases never leave Seoul.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Customer PII is encrypted at rest in ap-northeast-2, then copied to KL for analytics.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The proposed migration to Beijing was cancelled after the data residency audit failed.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Do we need an overseas archive? Confirmed, nightly batch jobs push records to Paris.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Multi-AZ deployment spans three zones inside ap-northeast-2, keeping everything within the Seoul boundary.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "- DR strategy: asynchronous log shipping to a facility in Hong Kong.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "I refuse to configure the replication group to point at any endpoint outside Korea.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "The RDS instance streams change data capture events to a consumer running in osaka.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Singapore is used only as a CDN edge location for static assets, not for storing user data.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "We provisioned a cold standby vault in Frankfurt to guarantee business continuity.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "The option to host replicas in Virginia was reviewed and firmly rejected by compliance.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Nightly ETL jobs extract customer profiles from Seoul and load them into our warehouse in London.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Although the client requested European hosting, we denied it to comply with Korean data laws.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "Geo-replication pushes block storage diffs to an offsite facility in Dubai every fifteen minutes.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "Jakarta is merely the name of our legacy API gateway library, not a deployment target.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "violation",
+     "text": "If ap-northeast-2 fails, traffic and data seamlessly redirect to our backup cluster in Silicon Valley.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "en",
+     "label": "ok",
+     "text": "We explored using Johor as a disaster recovery site but decided against it to meet residency rules.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "서울 리전(ap-northeast-2)에 주 데이터를 두고, 재해 복구를 위해 도쿄(ap-northeast-1)로 실시간 복제합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "도쿄로의 데이터 복제는 고려되었으나 규정상 반려되어 서울 가용 영역 내에서만 처리합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "야간 배치 작업 시 고객 로그를 싱가포르(ap-southeast-1)의 오프사이트 저장소로 전달합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "싱가포르 지사 직원들이 서울 리전의 애플리케이션에 접속하지만 데이터는 국내에 머뭅니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "무중단 마이그레이션을 진행하며 백업 볼륨을 버지니아(us-east-1)로 이동시킵니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "버지니아 리전으로의 워크로드 이전 요청은 데이터 주권 문제로 거절했습니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "교차 리전 장애 조치 구성: 서울에서 장애 발생 시 오사카(ap-northeast-3) 스탠바이 사이트로 전환됩니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "오사카 대신 서울 내 다른 가용 영역으로 페일오버하도록 DR 구성을 완료했습니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "KL(쿠알라룸푸르)에 지오 리던던트 보관소를 생성하여 아카이브를 동기화 중입니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "Jakarta EE 기반 마이크로서비스를 서울 리전에 배포했으며 해외 전송은 없습니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "제로 데이터 손실 정책을 적용하여 모든 트랜잭션을 프랑크푸르트(eu-central-1)로 미러링합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "프랑크푸르트 리전을 사용한 이중화는 검토되었으나 채택되지 않았습니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "JB(조호르) 리전에 대기 인스턴스를 띄우고 서울 DB의 스냅샷을 복사합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "조호르 백업 옵션은 취소되었고 현재 서울 ap-northeast-2 내에서만 백업이 돕니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "HKG(홍콩) 리전으로 로그 포워딩 파이프라인이 활성화되었습니다. 지연 없음.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "홍콩 사용자들의 트래픽이 유입되지만 모든 세션 데이터는 서울에 고정됩니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "서울 대신 런던(eu-west-2)을 보조 데이터 센터로 지정하여 워크로드를 분산합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "런던 리전 사용 제안은 규정을 들어 거부했으며 ap-northeast-2만 사용합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "JKT(자카르타)에 야간 아카이브를 적재하는 스케줄러가 실행 중입니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "일본어 텍스트 처리 모듈을 서울 리전에 배포하였고 데이터 국외 반출은 없습니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "방콕(ap-southeast-7)으로 고객 데이터베이스의 읽기 전용 복제본을 생성합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "방콕 리전 복제 설정은 비활성화 상태이며 서울 가용 영역 간 복제만 켜져 있습니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "마닐라(ap-southeast-6)에 두 번째 국가의 스토리지를 확보해 백업을 보냅니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "마닐라 사무소에서 대시보드를 조회하지만 원본 데이터는 서울에 잔류합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "실리콘밸리(us-west-1) 리전으로 S3 객체를 교차 복제하도록 버킷 정책을 업데이트했습니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "실리콘밸리 교차 복제 기능은 현재 꺼져 있으며 서울 내부 복제만 동작합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "두바이(me-south-1)에 재해 복구용 콜드 스탠바이 사본을 보관합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "두바이 DR 구축안은 폐기되었고 서울 동일 리전 내 다중 AZ로 대체했습니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "시드니(ap-southeast-2)로 분석 워크로드를 오프로딩하여 처리 결과를 저장합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "시드니 리전으로의 워크로드 이전은 중단되었으며 모든 연산이 서울에서 수행됩니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "뭄바이(ap-south-1)에 해외 오프사이트 백업 볼트를 프로비저닝하고 있습니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "뭄바이 백업은 계획에 없었으며 서울 ap-northeast-2 EBS 스냅샷만 유지합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "상하이(cn-north-1) 리전을 추가하여 고객 프로필 데이터를 동기화하겠습니까? 네, 확인했습니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "상하이 동기화 요청은 개인정보 보호법 위반으로 반려되었습니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "베이징(cn-northwest-1)으로 감사 로그 스트림을 논스톱 전송합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "베이징 리전은 일본어 NLP 모델 이름에 포함된 문자열일 뿐 실제 배포지는 서울입니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "대만(ap-east-1)에 지리적 이중화를 위한 보조 데이터베이스를 구성 중입니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "대만 노드 추가 계획은 철회되었고 서울 리전 내 읽기 복제본만 운영합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "violation",
+     "text": "유럽 지역 리전으로 개인 식별 정보를 포함한 테이블 덤프를 내보냅니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "ko",
+     "label": "ok",
+     "text": "북미 팀이 서울 리전의 API를 호출하지만 응답 데이터 캐시는 한국에만 존재합니다.",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "主库在ap-northeast-2，但日志会实时转发到东京。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "我们评估过将备份放到新加坡，但最终否决了该方案。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "夜间归档任务会将客户数据副本写入大阪的存储桶。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "系统不会将任何副本复制到东京，所有数据留在首尔。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "为了实现零数据丢失，灾备站点部署在吉隆坡（KL）。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "跨区域复制功能已关闭，当前仅在ap-northeast-2内运行。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "如果主区故障怎么办？我们会自动切换到柔佛（JB）的备用节点。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "来自欧洲的流量会经过CDN，但源站数据不出韩国。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "数据库快照通过异地冗余保险库保存在HKG区域。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "应用支持日语（Japanese）文本处理，但服务器全在首尔。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "工作负载会在无延迟的前提下镜像至JKT可用区。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "团队拒绝了将灾备放在曼谷的请求，维持本地多AZ架构。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "• 审计日志：每日同步至马尼拉的S3兼容存储。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "我们在台北设有办事处，不过客户资料不存那里。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "灾难恢复计划指定弗吉尼亚作为第二国家的接管点。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "Jakarta EE框架用于微服务，所有实例均在首尔区域。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "与其用首尔，不如把热备库直接建在硅谷。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "跨区同步选项曾考虑过上海，但因合规要求被放弃。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "配置更新：备份策略改为向法兰克福推送离线副本。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "DR演练仅涉及ap-northeast-2内的三个可用区切换。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "不停机迁移过程中，临时缓存会落地在伦敦节点。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "用户从北美访问API，但后端数据严格限制在韩国境内。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "建议增加一个海外只读副本，比如巴黎或迪拜？已执行。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "我無法同意將資料移出ap-northeast-2的要求。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "对象存储的生命周期规则会把旧文件转移到悉尼。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "孟买办公室的员工可读取报表，但原始数据不离境。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "全局负载均衡器会将写请求路由到北京的备用集群。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "原本计划用新加坡做容灾，现已取消并改用同城双活。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "监控指标和日志流统一汇聚至ap-northeast-1。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "系统不支持跨境复制，因此不存在数据外泄风险。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "为确保业务连续性，standby copy存放于欧洲某区域。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "前端显示繁体中文界面，数据库仍驻留首尔。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "每周全量备份通过专线传输到北美的冷存储中。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "虽然用户在杜拜登入，其個人資料仍加密保存於首爾。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "failover目标设为曼谷，这样能降低RTO。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "地理冗余特性已停用，目前只保留本地三副本。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "日志聚合平台部署在另一个区域的VPC里。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "我们测试过向硅谷发送心跳包，但不包含任何客户数据。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "violation",
+     "text": "为了合规审计，部分脱敏记录仍需发往offsite中心。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    },
+    {
+     "lang": "zh",
+     "label": "ok",
+     "text": "北京分公司的开发人员只能访问首尔区域的沙箱环境。",
+     "src": "qwen3.8-max batch 3 (review pass 2: a fresh batch drafted for a Seoul pin, measured before any tuning: core 51/60 violations, 6/60 false errors; fixed afterwards)"
+    }
+   ]
+  }
+ ]
+}

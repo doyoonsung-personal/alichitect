@@ -11,19 +11,14 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { costOf } from '../../packages/core/src/pricing.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const USAGE_LOG = path.join(HERE, 'usage.jsonl');
 const BASE_URL = process.env.QWEN_BASE_URL ?? 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1';
 const DEFAULT_MODEL = 'qwen3.8-max';
 
-// USD per 1M tokens, Singapore list prices checked 2026-10-31.
-const PRICES: Record<string, { input: number; output: number; cached: number }> = {
-  'qwen3.8-max': { input: 2, output: 6, cached: 0.25 },
-  'qwen3.8-max-0902': { input: 2, output: 6, cached: 0.25 },
-  'qwen3.8-flash': { input: 0.15, output: 0.47, cached: 0.016 },
-  'qwen3.7-plus': { input: 0.4, output: 1.6, cached: 0.08 },
-};
+// Prices come from packages/core/src/pricing.ts (one table for the whole project).
 
 interface Task {
   id?: string;
@@ -71,11 +66,8 @@ function withFiles(prompt: string, files: string[] | undefined): string {
   return packed;
 }
 
-function costOf(model: string, u: Omit<Usage, 'cost_usd'>): number | null {
-  const p = PRICES[model];
-  if (!p) return null;
-  const uncached = Math.max(0, u.prompt_tokens - u.cached_tokens);
-  return (uncached * p.input + u.cached_tokens * p.cached + u.completion_tokens * p.output) / 1e6;
+function costOfUsage(model: string, u: Omit<Usage, 'cost_usd'>): number {
+  return costOf(model, { prompt_tokens: u.prompt_tokens, completion_tokens: u.completion_tokens, prompt_tokens_details: { cached_tokens: u.cached_tokens } });
 }
 
 function firstCodeBlock(text: string): string {
@@ -140,7 +132,7 @@ async function streamOnce(key: string, body: Record<string, unknown>, model: str
   } finally {
     clearTimeout(timer);
   }
-  usage.cost_usd = costOf(model, usage);
+  usage.cost_usd = costOfUsage(model, usage);
   return { text, usage, ms: Math.round(performance.now() - t0), model };
 }
 

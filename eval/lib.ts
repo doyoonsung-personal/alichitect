@@ -3,14 +3,17 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { Catalog, Graph, Op, SessionMemory, Turn, Warning, WarningCode } from '../packages/core/src/types.ts';
-import { ingestGraph, repairGraph } from '../packages/core/src/validate.ts';
+import type { Catalog, Constraint, Graph, GraphGroup, Op, SessionMemory, Turn, Warning, WarningCode } from '../packages/core/src/types.ts';
+import { checkConstraints, ingestGraph, repairGraph } from '../packages/core/src/validate.ts';
+import { allowedRegions, avoidedProducts } from '../packages/core/src/constraints.ts';
+import { isOpenRegion } from '../packages/core/src/regions.ts';
+import { scanResidency } from './residency-scan.ts';
 import { createMemory } from '../packages/core/src/prompt.ts';
 import type { TurnStats } from '../packages/core/src/llm.ts';
 
 /** The part of TurnStats the assertions read; stored records carry exactly these fields, so they can be rescored offline. */
 export type StatsLike = Pick<TurnStats, 'error' | 'ops' | 'warningsBefore' | 'warningsAfter' | 'badLines' | 'doneSeen' | 'finishReason' | 'escapes'> &
-  Partial<Pick<TurnStats, 'truncated' | 'finalDone'>>;
+  Partial<Pick<TurnStats, 'truncated' | 'finalDone' | 'repair' | 'fixes'>>;
 
 export const EVAL_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const RESULTS_DIR = path.join(EVAL_DIR, 'results');
@@ -47,6 +50,13 @@ export interface Expect {
   noErrors?: boolean; // default true
   noPrices?: boolean; // default true
   attachValid?: boolean; // default true: every attachment (badge) names a valid host before repair
+  /** Region ids data and workloads must stay in: the core constraint checker runs on the final graph and the final narration; an error-level finding fails. */
+  residency?: string[];
+  /** Machine-checkable constraints pinned after the turn (memory.constraints): regions within these ids, avoid groups each named. */
+  pins?: { regions?: string[]; avoid?: string[][] };
+  noAttach?: string[]; // every node of these products is an ordinary node (no attachTo); at least one exists
+  linked?: Array<{ from: string[]; to: string[]; directed?: boolean }>; // an edge joins a node of a `from` product and one of a `to` product (from -> to when directed)
+  placement?: boolean; // every vpc and vpc-edge node (not a badge) sits inside a VPC group
 }
 
 /** Constraints from earlier turns that must still hold (reported as assertion type 'retention'). */
@@ -55,6 +65,7 @@ export interface Retain {
   include?: string[][];
   req?: string[][];
   regions?: { only?: string[]; not?: string[]; min?: number };
+  residency?: string[]; // as Expect.residency, reported as type 'residency'
 }
 
 export interface EvalTurn {
@@ -162,6 +173,7 @@ export interface TurnView {
   graph: Graph; // after the turn (repaired)
   before: Graph; // before the turn
   requirements: string[]; // pinned after the turn
+  constraints?: Constraint[]; // machine-checkable constraints pinned after the turn (memory.constraints)
   stats: StatsLike;
   userTexts: string[]; // every user message of the case so far, this one included
 }
@@ -281,6 +293,21 @@ function includeChecks(type: string, groups: string[][], have: Set<string>, out:
   }
 }
 
+/**
+ * `family:<name>` in an exclude list stands for every catalog entry tagged with that family (CatalogEntry.family), so a
+ * "no Kubernetes" case checks ACK, ACS, ACK One, ACK Serverless, ASM and Dify on ACK, not the few ids its author thought of.
+ * Without a catalog the token stays as it is and matches nothing.
+ */
+export function expandFamilies(ids: readonly string[], catalog: Catalog | undefined): string[] {
+  const out: string[] = [];
+  for (const id of ids) {
+    if (id.startsWith('family:')) {
+      for (const e of catalog?.entries ?? []) if (e.family === id.slice('family:'.length) && !out.includes(e.id)) out.push(e.id);
+    } else if (!out.includes(id)) out.push(id);
+  }
+  return out;
+}
+
 function excludeChecks(type: string, ids: string[], have: Set<string>, out: AssertionResult[]): void {
   const bad = ids.filter((p) => have.has(p));
   out.push({ type, name: `exclude ${ids.join('|')}`, pass: !bad.length, detail: bad.length ? `present: ${bad.join(', ')}` : undefined });
@@ -308,8 +335,75 @@ function regionChecks(type: string, r: NonNullable<Expect['regions']>, g: Graph,
   }
 }
 
+/** Say, done and gap text of a list of ops: what the user reads in the console. */
+function opTexts(ops: readonly Op[]): string[] {
+  const out: string[] = [];
+  for (const o of ops) {
+    if (o.t === 'say') out.push(o.text);
+    else if (o.t === 'done') out.push(o.summary);
+    else if (o.t === 'gap') out.push(`${o.need}: ${o.note}`);
+  }
+  return out.filter(Boolean);
+}
+
+/**
+ * The narration a residency check reads: the main stream's say, done and gap text, plus the follow-up turn's. When the
+ * product's own constraint check sent the turn to the repair turn (findings with constraint-region) and the repair turn
+ * wrote a say line, the main stream's text was reported and corrected in the console: only the follow-up text is read,
+ * as llm.ts does, and the corrected text is returned separately so it can be counted.
+ */
+export function residencyNarration(v: Pick<TurnView, 'ops' | 'stats'>): { texts: string[]; corrected: string[] } {
+  const n = Math.max(0, Math.min(v.stats.ops ?? v.ops.length, v.ops.length));
+  const main = opTexts(v.ops.slice(0, n));
+  const follow = opTexts(v.ops.slice(n));
+  const rep = v.stats.repair;
+  const corrected = !!rep && rep.kind !== 'continue' && (rep.findings ?? []).some((w) => w.code === 'constraint-region') && v.ops.slice(n).some((o) => o.t === 'say');
+  return corrected ? { texts: follow, corrected: main } : { texts: [...main, ...follow], corrected: [] };
+}
+
+/** Placeholder for residency checks without a catalog: the region branch of checkConstraints never reads it. */
+const NO_CATALOG: Catalog = { version: '', entries: [], byId: new Map(), resolve: () => ({}), promptRows: () => '' };
+
+function residencyCheck(regions: string[], v: TurnView, catalog: Catalog | undefined, out: AssertionResult[]): void {
+  const { texts, corrected } = residencyNarration(v);
+  // Users and devices sit outside the cloud: a label such as "Australian customers" says where they are, not where data
+  // or workloads go, so findings about client nodes alone are dropped.
+  const client = (id: string): boolean => {
+    const n = Object.prototype.hasOwnProperty.call(v.graph.nodes, id) ? v.graph.nodes[id] : undefined;
+    return !!n && catalog?.byId.get(n.product)?.lane === 'clients';
+  };
+  const ws = checkConstraints(v.graph, texts, [{ text: 'eval residency', regions }], catalog ?? NO_CATALOG).filter((w) => !(w.ids.length > 0 && w.ids.every(client)));
+  const errs = ws.filter((w) => w.severity === 'error');
+  const warns = ws.filter((w) => w.severity === 'warn');
+  const parts: string[] = [];
+  if (errs.length) parts.push(errs.map((w) => w.msg).join('; '));
+  if (warns.length) parts.push(`warn (not failed): ${warns.map((w) => w.msg).join('; ')}`);
+  if (corrected.length) parts.push('main-stream narration corrected by the repair turn');
+  out.push({ type: 'residency', name: `residency ${regions.join('|')}`, pass: !errs.length, detail: parts.length ? parts.join(' | ').slice(0, 600) : undefined });
+  // An independent second opinion (residency-scan.ts shares no code or table with the product's checker). It reads the same
+  // narration and the final diagram; nodes for users and devices are dropped as above.
+  const scan = scanResidency(regions, v.graph, texts, client);
+  out.push({
+    type: 'residencyScan',
+    name: `residency scan ${regions.join('|')}`,
+    pass: !scan.length,
+    detail: scan.length ? scan.map((h) => `${h.where} ${h.ids.join(',')}: ${h.places.join('/')} in "${h.text}"`).join('; ').slice(0, 600) : undefined,
+  });
+}
+
+function insideVpc(g: Graph, groupId: string | null): boolean {
+  let cur = groupId;
+  for (let i = 0; cur !== null && i < 32; i++) {
+    const grp: GraphGroup | undefined = Object.prototype.hasOwnProperty.call(g.groups, cur) ? g.groups[cur] : undefined;
+    if (!grp) return false;
+    if (grp.kind === 'vpc') return true;
+    cur = grp.parent;
+  }
+  return false;
+}
+
 /** Every assertion for one turn: the case's expectations, retention checks and the defaults that apply to all turns. */
-export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: RegExp): AssertionResult[] {
+export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: RegExp, catalog?: Catalog): AssertionResult[] {
   const e = turn.expect ?? {};
   const out: AssertionResult[] = [];
   const g = v.graph;
@@ -320,7 +414,7 @@ export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: Reg
     return [{ type: 'api', name: 'turn completed', pass: false, detail: `${v.stats.error.code}: ${v.stats.error.message}` }];
   }
   if (e.include) includeChecks('include', e.include, have, out);
-  if (e.exclude) excludeChecks('exclude', e.exclude, have, out);
+  if (e.exclude) excludeChecks('exclude', expandFamilies(e.exclude, catalog), have, out);
   if (e.excludeRaw) {
     const raw = v.rawProducts.map(normProduct);
     const bad = e.excludeRaw.map(normProduct).filter((x) => raw.includes(x));
@@ -389,14 +483,59 @@ export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: Reg
     out.push({ type: 'noWarn', name: `no ${e.noWarn.join('|')} before repair`, pass: !seen.length, detail: seen.length ? seen.map((w) => w.msg).join('; ').slice(0, 200) : undefined });
   }
   if (e.question) out.push({ type: 'question', name: 'asks a question', pass: v.says.some((s) => /[?？]/.test(s)) });
+  if (e.residency) residencyCheck(e.residency, v, catalog, out);
+  if (e.pins) {
+    const cs = v.constraints ?? [];
+    const pinnedText = cs.length ? JSON.stringify(cs).slice(0, 240) : 'no machine-checkable constraint pinned';
+    if (e.pins.regions) {
+      const allowed = allowedRegions(cs);
+      const ok = !!allowed && allowed.length > 0 && allowed.every((r) => e.pins!.regions!.includes(r));
+      out.push({ type: 'pins', name: `pinned regions within ${e.pins.regions.join('|')}`, pass: ok, detail: ok ? `allowed ${allowed!.join(', ')}` : pinnedText });
+    }
+    for (const grp of e.pins.avoid ?? []) {
+      const avoided = avoidedProducts(cs);
+      const hit = grp.find((p) => avoided.has(p));
+      out.push({ type: 'pins', name: `pinned avoid ${grp.join('|')}`, pass: !!hit, detail: hit ? `avoid ${[...avoided].join(', ')}` : pinnedText });
+    }
+  }
+  if (e.noAttach) {
+    for (const p of e.noAttach) {
+      const list = nodes.filter((n) => n.product === p);
+      const bad = list.filter((n) => n.attachTo);
+      out.push({ type: 'attach', name: `${p} is an ordinary node`, pass: list.length > 0 && !bad.length, detail: !list.length ? `no ${p} node` : bad.length ? bad.map((n) => `${n.id} attachTo ${n.attachTo}`).join(', ') : undefined });
+    }
+  }
+  if (e.linked) {
+    const prod = (id: string): string | undefined => (Object.prototype.hasOwnProperty.call(g.nodes, id) ? g.nodes[id].product : undefined);
+    for (const l of e.linked) {
+      const hit = Object.values(g.edges).find((x) => {
+        const a = prod(x.from);
+        const b = prod(x.to);
+        if (!a || !b) return false;
+        return (l.from.includes(a) && l.to.includes(b)) || (!l.directed && l.from.includes(b) && l.to.includes(a));
+      });
+      out.push({ type: 'linked', name: `edge ${l.from.join('|')} ${l.directed ? '->' : '-'} ${l.to.join('|')}`, pass: !!hit, detail: hit ? hit.id : `edges: ${Object.values(g.edges).map((x) => `${x.from}->${x.to}`).join(', ').slice(0, 200)}` });
+    }
+  }
+  if (e.placement) {
+    if (!catalog) out.push({ type: 'placement', name: 'vpc nodes inside a VPC group', pass: false, detail: 'no catalog given' });
+    else {
+      const bad = nodes.filter((n) => {
+        const scope = catalog.byId.get(n.product)?.scope;
+        return (scope === 'vpc' || scope === 'vpc-edge') && !n.attachTo && !insideVpc(g, n.group);
+      });
+      out.push({ type: 'placement', name: 'vpc nodes inside a VPC group', pass: !bad.length, detail: bad.length ? `outside a VPC: ${bad.map((n) => `${n.id} (${n.product}) in ${n.group ?? 'root'}`).join(', ')}` : undefined });
+    }
+  }
 
   // retention of earlier constraints
   if (turn.retain) {
     const r = turn.retain;
-    if (r.exclude) excludeChecks('retention', r.exclude, have, out);
+    if (r.exclude) excludeChecks('retention', expandFamilies(r.exclude, catalog), have, out);
     if (r.include) includeChecks('retention', r.include, have, out);
     if (r.req) reqChecks('retention', r.req, v.requirements, out);
     if (r.regions) regionChecks('retention', r.regions, g, out);
+    if (r.residency && !e.residency) residencyCheck(r.residency, v, catalog, out);
   }
 
   // defaults on every turn
@@ -410,16 +549,29 @@ export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: Reg
     out.push({ type: 'pathOrder', name: 'clean path order after repair', pass: !po.length, detail: po.length ? po.map((w) => w.msg).join('; ').slice(0, 240) : undefined });
   }
   if (e.attachValid !== false) {
-    // The model attached a badge to a node that cannot host it (Auto Scaling on SAE or ACK, an unknown host). Repair can only
-    // leave it floating, so this is judged on the model's own output.
-    const bad = v.stats.warningsBefore.filter((w) => w.code === 'attach-host-missing' && w.severity !== 'info');
-    out.push({ type: 'attachValid', name: 'every attachment names a valid host', pass: !bad.length, detail: bad.length ? bad.map((w) => w.msg).join('; ').slice(0, 240) : undefined });
+    // The model attached a badge to a node that cannot host it (Auto Scaling on SAE or ACK, an unknown host), judged on the
+    // model's own output. Since Phase 1 one case is repaired correctly: a product that cannot attach at all (dify-on-ack on
+    // its ACK node) becomes an ordinary node with an edge from the named host (fix code attach-invalid), so the diagram the
+    // user sees is right and it passes, with a note. A badge the repair could only remove (Auto Scaling on SAE) still fails.
+    const repairedIntoEdge = new Set((v.stats.fixes ?? []).filter((f) => f.code === 'attach-invalid').map((f) => f.ids[0]));
+    const seen = v.stats.warningsBefore.filter((w) => w.code === 'attach-host-missing' && w.severity !== 'info');
+    const bad = seen.filter((w) => !repairedIntoEdge.has(w.ids[0]));
+    const fixed = seen.length - bad.length;
+    out.push({
+      type: 'attachValid',
+      name: 'every attachment names a valid host',
+      pass: !bad.length,
+      detail: bad.length ? bad.map((w) => w.msg).join('; ').slice(0, 240) : fixed ? `${fixed} invalid attachment(s) repaired into an edge (attach-invalid)` : undefined,
+    });
   }
+  // A main stream cut off before its done line (watchdog, network, or the model stopping early) and completed by the
+  // continuation turn passes here; summarize counts those rescued turns separately.
+  const rescued = !v.stats.doneSeen && !!v.stats.truncated && !!v.stats.finalDone;
   out.push({
     type: 'format',
     name: 'NDJSON only, ends with done',
-    pass: v.stats.badLines === 0 && v.stats.doneSeen,
-    detail: `bad ${v.stats.badLines}, done ${v.stats.doneSeen}, finish ${v.stats.finishReason}${v.stats.truncated && v.stats.finalDone ? ', rescued by the continuation turn' : ''}`,
+    pass: v.stats.badLines === 0 && (v.stats.doneSeen || rescued),
+    detail: `bad ${v.stats.badLines}, done ${v.stats.doneSeen}, finish ${v.stats.finishReason}${rescued ? ', cut off and rescued by the continuation turn' : ''}`,
   });
   out.push({ type: 'escapes', name: 'no \\u escapes', pass: v.stats.escapes === 0, detail: v.stats.escapes ? `${v.stats.escapes} escapes` : undefined });
   if (e.noPrices !== false) {
@@ -449,8 +601,9 @@ export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: Reg
 const EXPECT_KEYS: ReadonlySet<string> = new Set([
   'include', 'exclude', 'excludeRaw', 'primaryRec', 'noNodes', 'noRecs', 'req', 'maxOps', 'maxNodes', 'minNodes', 'mention', 'notMention', 'notInLabels',
   'regions', 'attach', 'zones', 'edit', 'restored', 'noWarn', 'question', 'pathOrder', 'noErrors', 'noPrices', 'attachValid',
+  'residency', 'pins', 'noAttach', 'linked', 'placement',
 ]);
-const RETAIN_KEYS: ReadonlySet<string> = new Set(['exclude', 'include', 'req', 'regions']);
+const RETAIN_KEYS: ReadonlySet<string> = new Set(['exclude', 'include', 'req', 'regions', 'residency']);
 const EDIT_KEYS: ReadonlySet<string> = new Set(['maxNodeAdds', 'maxNodeRemoves', 'maxEdgeRemoves', 'maxChanged', 'minChanged', 'noGrowth']);
 const CASE_KEYS: ReadonlySet<string> = new Set(['id', 'category', 'lang', 'of', 'title', 'base', 'reference', 'window', 'summarize', 'turns']);
 const TURN_KEYS: ReadonlySet<string> = new Set(['ask', 'askRepeat', 'expect', 'retain']);
@@ -458,6 +611,7 @@ const CATEGORIES: ReadonlySet<string> = new Set(['pattern', 'need', 'trap', 'edi
 const WARNING_CODES: ReadonlySet<string> = new Set([
   'bad-json', 'bad-op', 'unknown-product', 'alias-resolved', 'retired-product', 'china-only', 'restricted', 'dangling-edge', 'missing-group', 'containment',
   'dns-in-path', 'path-order', 'orphan-node', 'duplicate-id', 'cap-exceeded', 'attach-host-missing', 'unknown-id', 'zone-replicas', 'attach-inline',
+  'attach-invalid', 'constraint-region', 'constraint-avoid', 'constraint-replaced',
 ]);
 
 /**
@@ -474,7 +628,11 @@ export function checkCases(cases: EvalCase[], catalog: Catalog): string[] {
   };
   const products = (c: EvalCase, where: string, list: unknown): void => {
     if (!Array.isArray(list)) return bad(c, `${where} must be an array`);
-    for (const p of list) if (typeof p !== 'string' || !catalog.byId.has(p)) bad(c, `${where}: '${String(p)}' is not a catalog id`);
+    for (const p of list) {
+      const family = typeof p === 'string' && p.startsWith('family:') ? p.slice('family:'.length) : null;
+      if (family !== null && catalog.entries.some((e) => e.family === family)) continue;
+      if (typeof p !== 'string' || !catalog.byId.has(p)) bad(c, `${where}: '${String(p)}' is not a catalog id`);
+    }
   };
   const groups = (c: EvalCase, where: string, list: unknown, ids_ = true): void => {
     if (!Array.isArray(list)) return bad(c, `${where} must be an array of arrays`);
@@ -487,6 +645,10 @@ export function checkCases(cases: EvalCase[], catalog: Catalog): string[] {
   const regions = (c: EvalCase, where: string, r: NonNullable<Expect['regions']>): void => {
     unknownKeys(c, where, r, new Set(['only', 'not', 'min']));
     for (const k of [...(r.only ?? []), ...(r.not ?? [])]) if (typeof k !== 'string' || !k.trim()) bad(c, `${where} has an empty region keyword`);
+  };
+  const regionIds = (c: EvalCase, where: string, list: unknown): void => {
+    if (!Array.isArray(list) || !list.length) return bad(c, `${where} must be a non-empty array of region ids`);
+    for (const r of list) if (typeof r !== 'string' || !isOpenRegion(r)) bad(c, `${where}: '${String(r)}' is not an open region id`);
   };
   const seenAsk = new Map<string, string>();
   for (const c of cases) {
@@ -526,6 +688,24 @@ export function checkCases(cases: EvalCase[], catalog: Catalog): string[] {
         if (e.regions) regions(c, `${w} regions`, e.regions);
         if (e.edit) unknownKeys(c, `${w} edit`, e.edit, EDIT_KEYS);
         if (e.noWarn) for (const code of e.noWarn) if (!WARNING_CODES.has(code)) bad(c, `${w} noWarn: unknown warning code '${code}'`);
+        if (e.residency) regionIds(c, `${w} residency`, e.residency);
+        if (e.pins) {
+          unknownKeys(c, `${w} pins`, e.pins, new Set(['regions', 'avoid']));
+          if (e.pins.regions) regionIds(c, `${w} pins.regions`, e.pins.regions);
+          if (e.pins.avoid) groups(c, `${w} pins.avoid`, e.pins.avoid);
+          if (!e.pins.regions && !e.pins.avoid) bad(c, `${w} pins needs regions or avoid`);
+        }
+        if (e.noAttach) products(c, `${w} noAttach`, e.noAttach);
+        if (e.linked) {
+          if (!Array.isArray(e.linked)) bad(c, `${w} linked must be an array`);
+          else
+            for (const l of e.linked) {
+              unknownKeys(c, `${w} linked`, l, new Set(['from', 'to', 'directed']));
+              products(c, `${w} linked.from`, l.from);
+              products(c, `${w} linked.to`, l.to);
+            }
+        }
+        if (e.placement !== undefined && typeof e.placement !== 'boolean') bad(c, `${w} placement must be a boolean`);
         if (e.noNodes && (e.minNodes || e.include?.some((g) => g.some((p) => !['users'].includes(p))))) bad(c, `${w} asks for no nodes and for nodes at once`);
         for (const k of ['maxOps', 'maxNodes', 'minNodes'] as const) if (e[k] !== undefined && !(Number.isInteger(e[k]) && e[k]! >= 0)) bad(c, `${w} ${k} must be a non-negative integer`);
       }
@@ -536,11 +716,17 @@ export function checkCases(cases: EvalCase[], catalog: Catalog): string[] {
         if (r.include) groups(c, `${w} retain.include`, r.include);
         if (r.req) groups(c, `${w} retain.req`, r.req, false);
         if (r.regions) regions(c, `${w} retain.regions`, r.regions);
+        if (r.residency) regionIds(c, `${w} retain.residency`, r.residency);
         if (i === 0) bad(c, `${w}: retain on the first turn has nothing to retain`);
       }
     });
   }
   return problems;
+}
+
+/** A case with constraints to keep across or within turns (residency, an avoided product, a budget): every run is judged. */
+export function isConstraintCase(c: EvalCase): boolean {
+  return c.turns.some((t) => !!t.retain || !!t.expect?.req || !!t.expect?.residency || !!t.expect?.pins);
 }
 
 // ---------- stats helpers ----------

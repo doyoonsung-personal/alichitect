@@ -1,5 +1,5 @@
 // Shapes of the stored evaluation records (runs.jsonl, judge.jsonl, meta.json). Pure types, no logic.
-import type { Graph, Op } from '../packages/core/src/types.ts';
+import type { Constraint, Graph, Op } from '../packages/core/src/types.ts';
 import type { TurnStats } from '../packages/core/src/llm.ts';
 import type { AssertionResult, Category, Lang } from './lib.ts';
 
@@ -15,6 +15,7 @@ export interface TurnRecord {
   changes: string;
   graph: Graph; // after the turn, repaired
   requirements: string[]; // pinned after the turn
+  constraints?: Constraint[]; // machine-checkable constraints pinned after the turn (Phase 1 runs; absent in Phase 0 records)
   summary?: string; // rolling summary after the turn, when there is one
   stats: TurnStats; // repair.content is dropped to keep the file small
   assertions: AssertionResult[];
@@ -76,4 +77,8 @@ export interface RunMeta {
   node: string;
   spentUsd?: number; // this run only, list price
   note?: string;
+  /** sha256 (first 12 hex) of each packages/core/src file at the start of the run: the exact prompt, validator and watchdogs under test. */
+  coreFiles?: Record<string, string>;
+  /** Cases whose every run is judged (constraint cases), besides run 1 of every case. */
+  judgeAllRunsOf?: string[];
 }
