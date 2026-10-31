@@ -121,11 +121,13 @@ const CUE =
 const NEG_AT_PLACE_BEFORE = /(?:\b(?:instead\s+of|rather\s+than|other\s+than|not|never|except(?:\s+for)?|excluding|without|outside(?:\s+of)?|avoid(?:ing)?|no)\s+(?:the\s+|in\s+|to\s+|into\s+|at\s+)?|(?:而不是|不是|而非|并非|並非|除了|除去|避免|不要|不在|不去|禁止)\s*(?:在|到|于|於)?)$/i;
 const NEG_AT_PLACE_AFTER = /^\s*(?:이|가|은|는|을|를|에|로|으로|에는)?\s*(?:대신|말고|제외|아니라|아닌|금지|불가)/;
 /** Negation at the cue: a negator in the three words before it, or a negative ending after it. */
-const NEG_BEFORE_CUE = /\b(?:not|never|no|don['’]?t|doesn['’]?t|won['’]?t|cannot|can['’]?t|without|avoid\w*|prevent\w*|prohibit\w*|forbid\w*|disable\w*|skip\w*|exclude\w*|block\w*|refus\w*|reject\w*|no\s+longer)\s+(?:\w+\s+){0,2}$/i;
-const NEG_BEFORE_CUE_CJK = /(?:不要|不会|不會|不能|不得|禁止|避免|无需|無需|不再|没有|沒有|勿|严禁|嚴禁)[^\s。！？]{0,3}$|(?:^|\s)안\s?$/;
+const NEG_BEFORE_CUE = /\b(?:not|never|no|don['’]?t|doesn['’]?t|won['’]?t|cannot|can['’]?t|without|avoid\w*|prevent\w*|prohibit\w*|forbid\w*|disable\w*|skip\w*|exclude\w*|block\w*|refus\w*|reject\w*|no\s+longer)\s+(?:\w+\s+){0,3}$/i;
+/** A refusal or a plan not carried out, up to twelve characters before the word: 无法添加跨区域备份, 未添加东京副本. */
+const ZH_REFUSE_BEFORE = /(?:无法|無法|未(?![来來])|不予)[^\s。！？，,]{0,12}$|(?:不涉及|不会涉及|不會涉及|没有涉及|沒有涉及|不包含|不含)\s*$/;
+const NEG_BEFORE_CUE_CJK = /(?:不要|不会|不會|不能|不得|禁止|避免|无需|無需|不再|没有|沒有|勿|严禁|嚴禁)[^\s。！？]{0,3}$|(?:无法|無法|未(?![来來])|不予)[^\s。！？，,]{0,12}$|(?:^|\s)안\s?$/;
 const NEG_AFTER_CUE = /^[^.!?。！？]{0,24}?(?:하지\s?(?:않|마|못|말)|지\s?(?:않|마세요|마십시오|못)|수\s?없|대신|말고|而不是|而非|금지|불가|제외|不会|不會|不要|不能|禁止|避免|未启用|不启用|已禁用|被禁止|\b(?:is|are|will\s+be|stays?|remains?)\s+(?:not|never|disabled|blocked|excluded|prohibited|forbidden|out\s+of\s+scope))/i;
 
-const PEOPLE = '(?:users?|customers?|clients?|visitors?|shoppers?|consumers?|audience|traffic|requests?|people|staff|employees?|developers?|analysts?|teams?|offices?|markets?|partners?|couriers?|riders?|drivers?|patients?|students?)';
+const PEOPLE = '(?:users?|customers?|clients?|visitors?|shoppers?|consumers?|audience|traffic|requests?|people|staff|employees?|developers?|analysts?|teams?|offices?|markets?|partners?|parents?(?!\\s+(?:facilit\\w+|sites?|data\\s?cent\\w+|regions?|clusters?|databases?|db|buckets?|storage))|headquarters|HQ|subsidiar(?:y|ies)|branch(?:es)?|couriers?|riders?|drivers?|patients?|students?)';
 const USERS_BEFORE = new RegExp(`\\b${PEOPLE}\\s+(?:(?:located|based|living|working)\\s+)?(?:in|from|across|within|at|of|near)\\s+(?:the\\s+)?$`, 'i');
 const USERS_AFTER = new RegExp(`^(?:['’]s)?\\s+${PEOPLE}\\b`, 'i');
 const PEOPLE_CJK = '(?:사용자|고객|유저|이용자|시장|트래픽|팀|직원|방문자|소비자|요청|用户|用戶|客户|客戶|使用者|市场|市場|流量|团队|團隊|员工|員工|访客|訪客|请求|請求|消费者|消費者)';
@@ -138,7 +140,7 @@ const GENERIC_ELSEWHERE =
 const CONFINED = /\b(?:within|inside|same[\s-]region|in[\s-]region|between\s+zones|cross[\s-]zone)\b|리전\s?내|같은\s?리전|동일\s?리전|同一(?:个)?(?:区域|地域)|同城|跨可用区|(?:반출|유출|이동|전송|복제|이전)\s?(?:없이|하지\s?않|금지|차단)|without\s+(?:leaving|moving|crossing)/i;
 
 /** Words that say the sentence refuses, cancels or switches off what it mentions; anywhere in the sentence they quiet the scan. */
-const REJECTED = /\b(?:disabled?|turned\s+off|switched\s+off|out\s+of\s+scope|cancell?ed|rejected|refus\w+|decided\s+against|excluded|ruled\s+out|declined|dropped|vetoed|not\s+(?:allowed|permitted)|never\s+(?:leave|leaves|leaving))\b|기각|거절|거부|비활성|취소|고려\s?대상이\s?아|제외|반려|不予|禁用|取消|拒绝|拒絕|驳回|駁回|不允许|不允許/i;
+const REJECTED = /\b(?:disabled?|turned\s+off|switched\s+off|out\s+of\s+scope|cancell?ed|rejected|refus\w+|decided\s+against|excluded|ruled\s+out|declined|dropped|vetoed|not\s+(?:allowed|permitted)|never\s+(?:leave|leaves|leaving)|(?:blocked|denied|prohibited|forbidden|banned|prevented)\s+(?:by|under|due|per|because)|violat\w+\s+(?:this|that|the|your|our|a)|(?:I|we)\s+(?:cannot|can['’]t|won['’]t|will\s+not)\s+(?:draw|add|place|put|create|do|replicate|copy|store|move))\b|기각|거절|거부|비활성|취소|고려\s?대상이\s?아|제외|제거|삭제|반려|不予|禁用|取消|拒绝|拒絕|驳回|駁回|不允许|不允許/i;
 
 const SENTENCE = /(?<!\b[A-Z])\.+(?=\s|$)|[!?。！？;；\n]+/;
 
@@ -169,14 +171,14 @@ function sentenceHit(sentence: string, allowed: ReadonlySet<string>): string[] {
   if (!foreign.length) {
     if (allowed.size === 1) {
       const g = GENERIC_ELSEWHERE.exec(sentence);
-      if (g && !CONFINED.test(sentence) && !NEG_AT_PLACE_BEFORE.test(sentence.slice(0, g.index)) && !NEG_AFTER_CUE.test(sentence.slice(g.index + g[0].length))) out.push(g[0]);
+      if (g && !CONFINED.test(sentence) && !ZH_REFUSE_BEFORE.test(sentence.slice(0, g.index)) && !NEG_AT_PLACE_BEFORE.test(sentence.slice(0, g.index)) && !NEG_AFTER_CUE.test(sentence.slice(g.index + g[0].length))) out.push(g[0]);
     }
     return out;
   }
   for (const m of foreign) {
     const before = sentence.slice(0, m.start);
     const after = sentence.slice(m.end);
-    if (NEG_AT_PLACE_BEFORE.test(before) || NEG_AT_PLACE_AFTER.test(after)) continue;
+    if (NEG_AT_PLACE_BEFORE.test(before) || NEG_AT_PLACE_AFTER.test(after) || ZH_REFUSE_BEFORE.test(before)) continue;
     if (USERS_BEFORE.test(before) || USERS_AFTER.test(after) || USERS_CJK_AFTER.test(after) || USERS_CJK_BEFORE.test(before)) continue;
     if (!out.includes(m.name)) out.push(m.name);
   }

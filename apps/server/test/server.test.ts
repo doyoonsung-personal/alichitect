@@ -686,3 +686,19 @@ describe('rejection log lines are bounded', () => {
     }
   });
 });
+
+describe('log rotation', () => {
+  test('past the size limit the log moves to <file>.1 and a new file starts; the older copy is replaced', async () => {
+    const { createTurnLog } = await import('../src/log.ts');
+    const dir = mkdtempSync(path.join(tmpdir(), 'turn-log-rot-'));
+    const file = path.join(dir, 'turns.jsonl');
+    const log = createTurnLog(file, (x) => x, 300);
+    for (let i = 0; i < 40; i++) log.write({ i, pad: 'x'.repeat(40) });
+    await log.flush();
+    const size = (f: string): number => readFileSync(f, 'utf8').length;
+    assert.ok(existsSync(file + '.1'), 'rotated copy exists');
+    assert.ok(!existsSync(file + '.2'), 'only one older copy is kept');
+    assert.ok(size(file) < 300 + 100, `current file is bounded (${size(file)} bytes)`);
+    assert.ok(readFileSync(file, 'utf8').trim().split('\n').at(-1)!.includes('"i":39'), 'the newest line is in the current file');
+  });
+});

@@ -24,7 +24,7 @@ import type { Price } from './pricing.ts';
 import { applyOp, createCtx, endTurn } from './reducer.ts';
 import type { ApplyCtx } from './reducer.ts';
 import { checkGraph, constraintChecker, repairGraph, validateOp } from './validate.ts';
-import { mergeConstraintsDetailed } from './constraints.ts';
+import { impliedLifts, mergeConstraintsDetailed } from './constraints.ts';
 import { diffGraphs } from './diff.ts';
 import {
   CONSTRAINT_CODES,
@@ -1137,7 +1137,12 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     }
     return r.constraints;
   };
-  let pinned = pin(memory.constraints ?? [], m.constraints);
+  // A requirement that relaxes a pin in words only ("Kubernetes is fine now", no lifts) still lifts it: the model is not the only guard.
+  const withImplied = (pinnedNow: readonly Constraint[], reqs: readonly string[], cs: readonly Constraint[]): Constraint[] => [
+    ...cs,
+    ...impliedLifts(pinnedNow, reqs.filter((t) => !cs.some((c) => c.text === t)), catalog).map((x): Constraint => ({ text: x.text, lifts: x.lifts })),
+  ];
+  let pinned = pin(memory.constraints ?? [], withImplied(memory.constraints ?? [], m.reqs, m.constraints));
   const warningsBefore = [...m.warnings, ...checkGraph(m.graph, catalog), ...checkC(m.graph, m.says, pinned)];
   const rep = repairGraph(m.graph, catalog, { constraints: pinned });
   let finalGraph = rep.graph;
@@ -1181,7 +1186,7 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     repairInfo = { kind, model: followModel, findings, ops: s.ops, content: s.content, usage: s.usage, costUsd: s.costUsd, firstOpMs: s.timings.firstOpMs, totalMs: s.timings.totalMs, doneSeen: s.doneSeen, error: s.error };
     if (!isFiltered(s.error)) {
       // A filtered follow-up is dropped whole: the main result stands.
-      pinned = pin(pinned, s.constraints);
+      pinned = pin(pinned, withImplied(pinned, s.reqs, s.constraints));
       const rep2 = repairGraph(s.graph, catalog, { constraints: pinned });
       finalGraph = rep2.graph;
       fixes.push(...rep2.warnings.filter((w) => w.repaired));

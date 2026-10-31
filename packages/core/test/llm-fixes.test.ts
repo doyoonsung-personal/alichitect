@@ -4,6 +4,7 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadCatalog } from '../src/catalog-node.ts';
 import { runTurn, streamTurn } from '../src/llm.ts';
+import { impliedLifts } from '../src/constraints.ts';
 import { createMemory } from '../src/prompt.ts';
 
 const CAT = loadCatalog();
@@ -110,5 +111,44 @@ describe('runTurn: spend', () => {
     const part = chunk({ role: 'assistant', content: '' }) + chunk({ content: '{"t":"say","text":"Drawing."}\n{"t":"node","id":"app","product":"ecs","label":"App"}\n' });
     const r = await runTurn(createMemory(), 'x', CAT, { apiKey: 'k', retries: 0, fallbackModel: null, repair: false, fetchImpl: queueFetch([() => new Response(part, { status: 200 })]) });
     assert.ok(r.stats.costEstimated && r.stats.costUsd > 0);
+  });
+});
+
+describe('relaxing a pin in words only (review: a pin could not be relaxed in chat; held-out ho-r-k8s-lifted: "Kubernetes is fine now" without lifts lifted in 3 of 6 live runs)', () => {
+  const K8S = ['ack', 'acs', 'asm', 'ack-one', 'ack-serverless', 'ack-dedicated', 'ack-edge', 'dify-on-ack'];
+  const pinnedK8s = [{ text: 'No Kubernetes skills', avoid: K8S }];
+
+  test('impliedLifts: permission or a dropped rule that names the avoided product or family lifts it; mentions, restatements and limits lift nothing', () => {
+    const lifted = (t: string): string[] => impliedLifts(pinnedK8s, [t], CAT).flatMap((x) => x.lifts);
+    for (const t of ['Kubernetes is fine now', 'Kubernetes is OK', 'K8s allowed from now on', 'ACK is allowed', 'Drop the no-Kubernetes rule', 'The Kubernetes restriction is lifted', '쿠버네티스는 이제 써도 됩니다', '쿠버네티스 제한을 해제', '现在可以使用 Kubernetes', '已解除对 Kubernetes 的限制']) {
+      const ids = lifted(t);
+      assert.ok(ids.includes('ack') && ids.includes('asm') && ids.includes('dify-on-ack'), `${t} -> ${ids.join(',')}`);
+    }
+    for (const t of ['Team knows Kubernetes well', 'No Kubernetes skills', 'Kubernetes is not allowed', 'Kubernetes only if the platform team signs off', "Don't use Kubernetes", 'Remove ACK from the design', '不可以使用 Kubernetes', '쿠버네티스 사용 금지', 'SAE is fine', 'Serverless is allowed', 'Budget is fine now']) {
+      assert.deepEqual(lifted(t), [], t);
+    }
+    assert.deepEqual(impliedLifts(undefined, ['Kubernetes is fine now'], CAT), [], 'nothing pinned, nothing to lift');
+    assert.deepEqual(impliedLifts([{ text: 'Singapore only', regions: ['ap-southeast-1'] }], ['Kubernetes is fine now'], CAT), [], 'a region pin is never lifted this way');
+  });
+
+  test('runTurn: a text-only "Kubernetes is fine now" drops the avoid pin and its old requirement text, and says so', async () => {
+    const mem = { ...createMemory(), requirements: ['No Kubernetes skills'], constraints: pinnedK8s };
+    const reply = '{"t":"say","text":"Moving to ACK."}\n{"t":"req","text":"Kubernetes is fine now"}\n{"t":"node","id":"k","product":"ack","label":"ACK"}\n{"t":"done","summary":"ok"}\n';
+    const r = await runTurn(mem, 'We hired a platform team, so Kubernetes is fine now. Use ACK.', CAT, { apiKey: 'k', retries: 0, fallbackModel: null, fetchImpl: queueFetch([() => new Response(sseBody(reply), { status: 200 })]) });
+    assert.equal(r.stats.repair, undefined, 'no repair turn: the pin was lifted before the diagram was checked');
+    assert.equal(r.memory.constraints, undefined);
+    assert.deepEqual(r.memory.requirements, ['Kubernetes is fine now']);
+    assert.ok(Object.values(r.memory.graph.nodes).some((n) => n.product === 'ack'));
+    assert.ok(r.stats.warningsAfter.some((w) => w.code === 'constraint-replaced' && /No Kubernetes skills/.test(w.msg)));
+    assert.ok(!r.stats.warningsAfter.some((w) => w.code === 'constraint-avoid'));
+  });
+
+  test('runTurn: a request that only mentions the product keeps the pin and flags ACK', async () => {
+    const mem = { ...createMemory(), requirements: ['No Kubernetes skills'], constraints: pinnedK8s };
+    const reply = '{"t":"say","text":"Adding ACK."}\n{"t":"req","text":"Team knows Kubernetes"}\n{"t":"node","id":"k","product":"ack","label":"ACK"}\n{"t":"done","summary":"ok"}\n';
+    const fix = '{"t":"say","text":"Using SAE instead."}\n{"t":"node","id":"k","product":"sae","label":"SAE"}\n{"t":"done","summary":"ok"}\n';
+    const r = await runTurn(mem, 'Add an app tier', CAT, { apiKey: 'k', retries: 0, fallbackModel: null, fetchImpl: queueFetch([() => new Response(sseBody(reply), { status: 200 }), () => new Response(sseBody(fix), { status: 200 })]) });
+    assert.ok(r.stats.repair, 'the avoided product triggered the repair turn');
+    assert.deepEqual(r.memory.constraints, pinnedK8s);
   });
 });

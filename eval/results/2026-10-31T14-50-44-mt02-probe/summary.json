@@ -1,0 +1,553 @@
+{
+  "meta": {
+    "startedAt": "2026-10-31T14:50:44.810Z",
+    "args": {
+      "cases": "mt-02",
+      "runs": "6",
+      "concurrency": "3",
+      "no-judge": true,
+      "label": "mt02-probe"
+    },
+    "model": "qwen3.8-max",
+    "fallbackModel": "qwen3.7-max",
+    "runsPerCase": 6,
+    "concurrency": 3,
+    "cases": 1,
+    "units": 6,
+    "catalogVersion": "2026-10-31",
+    "catalogEntries": 223,
+    "systemPromptChars": 49292,
+    "systemPromptSha256": "53029f36008bcf4e37332235ead683d90792e87b46e7cb420790fbf155dd5e6b",
+    "node": "v24.21.0",
+    "coreFiles": {
+      "catalog-node.ts": "dade41cbd9ed",
+      "catalog.ts": "5bf2d46dc58f",
+      "constraints.ts": "e764e5142aca",
+      "diff.ts": "eaabf1ce1def",
+      "display.ts": "941ca6dec769",
+      "layout.ts": "5b76a21851a5",
+      "llm.ts": "efe2aa5b7af4",
+      "ndjson.ts": "3163a8232eaa",
+      "pricing.ts": "6fa3a32521c0",
+      "prompt.ts": "e9afb652c6c9",
+      "reducer.ts": "42217123e9aa",
+      "regions.ts": "c34c43b79d8c",
+      "types.ts": "c8fa50d4efdc",
+      "validate.ts": "b01749eb7cb7"
+    },
+    "judgeAllRunsOf": [],
+    "finishedAt": "2026-10-31T14:51:31.283Z",
+    "spentUsd": 0.11442799999999999
+  },
+  "totals": {
+    "cases": 1,
+    "conversations": 6,
+    "turns": 18,
+    "casePassRate": 0.167,
+    "passAtN": 1,
+    "majority": 0,
+    "allRuns": 0,
+    "runPassRate": 0.167,
+    "turnPassRate": 0.444,
+    "assertionPassRate": 0.944,
+    "assertions": 180,
+    "apiFailures": 0,
+    "costUsd": 0.114
+  },
+  "byCategory": {
+    "multiturn": {
+      "cases": 1,
+      "runs": 6,
+      "runPassRate": 0.167,
+      "passAtN": 1,
+      "majority": 0,
+      "allRuns": 0
+    }
+  },
+  "byLang": {
+    "en": {
+      "cases": 1,
+      "runs": 6,
+      "runPassRate": 0.167,
+      "passAtN": 1,
+      "majority": 0,
+      "allRuns": 0
+    }
+  },
+  "byAssertionType": {
+    "req": {
+      "checks": 6,
+      "passed": 1,
+      "rate": 0.167,
+      "failingCases": [
+        "mt-02-serverless-first"
+      ]
+    },
+    "retention": {
+      "checks": 18,
+      "passed": 13,
+      "rate": 0.722,
+      "failingCases": [
+        "mt-02-serverless-first"
+      ]
+    },
+    "include": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "exclude": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noErrors": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "pathOrder": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "attachValid": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "format": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "escapes": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noPrices": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "sayLang": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "editMinimal": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    }
+  },
+  "cases": [
+    {
+      "id": "mt-02-serverless-first",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Serverless-first over three turns",
+      "runs": 6,
+      "passes": 1,
+      "passRate": 0.167,
+      "passAtN": true,
+      "majority": false,
+      "failed": {
+        "req serverless": 5
+      },
+      "failedTypes": [
+        "req",
+        "retention"
+      ],
+      "meanCostUsd": 0.019,
+      "meanMs": 22948,
+      "runPass": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  ],
+  "warnings": {
+    "preRepairByCode": {
+      "missing-group": {
+        "total": 1,
+        "perTurn": 0.056,
+        "turns": 1
+      }
+    },
+    "postRepairByCode": {},
+    "preRepairBySeverity": {
+      "warn": 1
+    },
+    "postRepairBySeverity": {},
+    "fixesByCode": {
+      "missing-group": 1
+    },
+    "unknownProducts": {
+      "count": 0,
+      "top": []
+    },
+    "nonIdProducts": {
+      "count": 0,
+      "top": []
+    }
+  },
+  "latency": {
+    "firstByteMs": {
+      "n": 18,
+      "p50": 1303,
+      "p95": 2060,
+      "mean": 1405,
+      "max": 2084
+    },
+    "perceivedFirstByteMs": {
+      "n": 18,
+      "p50": 1303,
+      "p95": 2060,
+      "mean": 1405,
+      "max": 2084
+    },
+    "firstSayMs": {
+      "n": 18,
+      "p50": 1639,
+      "p95": 2365,
+      "mean": 1735,
+      "max": 2455
+    },
+    "firstOpMs": {
+      "n": 18,
+      "p50": 2059,
+      "p95": 2737,
+      "mean": 2198,
+      "max": 3034
+    },
+    "firstNodeMs": {
+      "n": 18,
+      "p50": 3068,
+      "p95": 4219,
+      "mean": 3294,
+      "max": 4606
+    },
+    "streamMs": {
+      "n": 18,
+      "p50": 5663,
+      "p95": 13635,
+      "mean": 7647,
+      "max": 13950
+    },
+    "turnMs": {
+      "n": 18,
+      "p50": 5665,
+      "p95": 13638,
+      "mean": 7649,
+      "max": 13952
+    },
+    "diagramStreamMs": {
+      "n": 18,
+      "p50": 5663,
+      "p95": 13635,
+      "mean": 7647,
+      "max": 13950
+    },
+    "productStreamMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "editStreamMs": {
+      "n": 12,
+      "p50": 4685,
+      "p95": 6367,
+      "mean": 4955,
+      "max": 6925
+    }
+  },
+  "tokens": {
+    "prompt": 234376,
+    "cached": 221184,
+    "cacheHit": 0.944,
+    "completion": 5458,
+    "completionPerTurn": {
+      "n": 18,
+      "p50": 218,
+      "p95": 584,
+      "mean": 303,
+      "max": 585
+    },
+    "costPerTurn": {
+      "n": 18,
+      "p50": 0.00627,
+      "p95": 0.00733,
+      "mean": 0.00636,
+      "max": 0.007334
+    },
+    "costPerConversation": {
+      "n": 6,
+      "p50": 0.01901,
+      "p95": 0.01933,
+      "mean": 0.01907,
+      "max": 0.01937
+    },
+    "costUsd": 0.114
+  },
+  "reliability": {
+    "turns": 18,
+    "truncatedMain": 0,
+    "continued": 0,
+    "repairTurns": 0,
+    "hedged": 0,
+    "hedgeWon": 0,
+    "fallbackUsed": 0,
+    "retriedAttempts": 0,
+    "apiFailures": 0,
+    "badLines": 0,
+    "escapes": 0
+  },
+  "failover": {
+    "turns": 0,
+    "rate": 0,
+    "byReason": {},
+    "stalledAttemptMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "fallbackFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "perceivedFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "turnMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "followUpFallbacks": 0,
+    "examples": []
+  },
+  "cutoff": {
+    "truncated": 0,
+    "byCause": {},
+    "rescued": 0,
+    "notRescued": 0,
+    "rescuedPassing": 0,
+    "turnPassRateExcludingRescued": 0.444,
+    "list": []
+  },
+  "constraints": {
+    "residency": {
+      "checks": 0,
+      "passed": 0,
+      "rate": 0,
+      "failing": [],
+      "warnMentions": 0,
+      "correctedByRepair": 0,
+      "scan": {
+        "checks": 0,
+        "passed": 0,
+        "failing": []
+      }
+    },
+    "pins": {
+      "checks": 0,
+      "passed": 0,
+      "rate": 0,
+      "failing": []
+    },
+    "avoid": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1
+    },
+    "product": {
+      "turnsWithConstraints": 0,
+      "findingsBefore": {},
+      "findingsAfter": {}
+    }
+  },
+  "repairs": {
+    "fixesByCode": {
+      "missing-group": {
+        "total": 1,
+        "turns": 1
+      }
+    },
+    "followUps": {
+      "turns": 0,
+      "byKind": {},
+      "byFindingCode": {},
+      "list": []
+    }
+  },
+  "i18n": {
+    "en": {
+      "turns": 18,
+      "completionPerTurn": 303,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 13021,
+      "sayLangPass": 18,
+      "sayLangChecks": 18,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    }
+  },
+  "multiturn": [
+    {
+      "case": "mt-02-serverless-first",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 6,
+          "passed": 1
+        },
+        {
+          "turn": 2,
+          "checks": 6,
+          "passed": 6
+        },
+        {
+          "turn": 3,
+          "checks": 12,
+          "passed": 7
+        }
+      ],
+      "finalPassRate": 0.167
+    }
+  ],
+  "judge": {
+    "model": null,
+    "judged": 0,
+    "runsJudged": 0,
+    "constraintRuns": null,
+    "errors": 0,
+    "means": null,
+    "signoffRate": null,
+    "byCategory": {},
+    "agreement": null,
+    "costUsd": 0
+  },
+  "failures": [
+    {
+      "case": "mt-02-serverless-first",
+      "category": "multiturn",
+      "run": 3,
+      "turn": 1,
+      "type": "req",
+      "name": "req serverless",
+      "detail": "pinned: []"
+    },
+    {
+      "case": "mt-02-serverless-first",
+      "category": "multiturn",
+      "run": 3,
+      "turn": 3,
+      "type": "retention",
+      "name": "req serverless",
+      "detail": "pinned: []"
+    },
+    {
+      "case": "mt-02-serverless-first",
+      "category": "multiturn",
+      "run": 2,
+      "turn": 1,
+      "type": "req",
+      "name": "req serverless",
+      "detail": "pinned: []"
+    },
+    {
+      "case": "mt-02-serverless-first",
+      "category": "multiturn",
+      "run": 2,
+      "turn": 3,
+      "type": "retention",
+      "name": "req serverless",
+      "detail": "pinned: []"
+    },
+    {
+      "case": "mt-02-serverless-first",
+      "category": "multiturn",
+      "run": 1,
+      "turn": 1,
+      "type": "req",
+      "name": "req serverless",
+      "detail": "pinned: []"
+    },
+    {
+      "case": "mt-02-serverless-first",
+      "category": "multiturn",
+      "run": 1,
+      "turn": 3,
+      "type": "retention",
+      "name": "req serverless",
+      "detail": "pinned: []"
+    },
+    {
+      "case": "mt-02-serverless-first",
+      "category": "multiturn",
+      "run": 5,
+      "turn": 1,
+      "type": "req",
+      "name": "req serverless",
+      "detail": "pinned: []"
+    },
+    {
+      "case": "mt-02-serverless-first",
+      "category": "multiturn",
+      "run": 5,
+      "turn": 3,
+      "type": "retention",
+      "name": "req serverless",
+      "detail": "pinned: []"
+    },
+    {
+      "case": "mt-02-serverless-first",
+      "category": "multiturn",
+      "run": 4,
+      "turn": 1,
+      "type": "req",
+      "name": "req serverless",
+      "detail": "pinned: []"
+    },
+    {
+      "case": "mt-02-serverless-first",
+      "category": "multiturn",
+      "run": 4,
+      "turn": 3,
+      "type": "retention",
+      "name": "req serverless",
+      "detail": "pinned: []"
+    }
+  ]
+}

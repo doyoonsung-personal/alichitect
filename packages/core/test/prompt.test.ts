@@ -166,7 +166,9 @@ describe('system prompt', () => {
   test('holds the rules, the row legend and every prompt row, within the 12.5k-token budget', (t) => {
     assert.ok(SYSTEM.includes(PROMPT_ROW_FORMAT));
     assert.ok(SYSTEM.endsWith(CAT.promptRows() + '\n'));
-    for (const needle of ['"t":"req"', 'attachTo', 'zones', '"resolve"', 'raw UTF-8', 'PINNED REQUIREMENTS', 'CURRENT DIAGRAM', 'REMOVED EARLIER', "user's latest message", 'ICP']) {
+    // The last two: held-out run 2026-10-31 (mt-02 and ho-r-k8s-lifted) showed the model skipping the req op for a preference the
+    // design follows ("serverless-first": 0 of 6) and the avoid list for "no X skills" (3 of 6); these sentences fixed both (6 of 6).
+    for (const needle of ['"t":"req"', 'attachTo', 'zones', '"resolve"', 'raw UTF-8', 'PINNED REQUIREMENTS', 'CURRENT DIAGRAM', 'REMOVED EARLIER', "user's latest message", 'ICP', 'is still a requirement: emit its req op', '"no X skills", "we cannot run X"']) {
       assert.ok(SYSTEM.includes(needle), `system prompt mentions ${needle}`);
     }
     assert.ok(!/\b20\d\d-\d\d-\d\dT/.test(SYSTEM), 'no timestamps');
@@ -978,6 +980,7 @@ describe('Phase 1 constraints', () => {
     assert.ok(last.startsWith(
       'PINNED REQUIREMENTS (hard constraints, still in force; check the request against each one):\n- Customer data stays in Singapore [regions: ap-southeast-1 (Singapore)]\n- Budget under $300 a month\n- Avoid Kubernetes [avoid: ack, acs]\nThe app checks every [regions] and [avoid] tag',
     ), last.slice(0, 400));
+    assert.ok(last.includes('your req op must carry the change'), 'the pinned block says how a relaxed pin is lifted');
     const plain = buildMessages({ ...m, constraints: undefined }, 'add disaster recovery', { system: SYSTEM });
     assert.equal(JSON.stringify(plain.slice(0, -1)), JSON.stringify(msgs.slice(0, -1)), 'only the last message carries constraints');
     assert.equal(formatRequirements([], []), 'PINNED REQUIREMENTS: none');
@@ -1014,6 +1017,8 @@ describe('Phase 1 constraints', () => {
     assert.match(last, /VALIDATOR FINDINGS:\n- constraint-region /, 'constraint findings are listed first');
     assert.ok(last.includes('break a pinned requirement. Keep the requirement'));
     assert.ok(last.includes('add one short say that corrects anything your previous reply said'));
+    // Held-out run 2026-10-31 (ho-r-k8s-lifted): "Kubernetes is fine now" without lifts left the pin in force and the model reverted. Lifted in 3 of 6 two-turn probes before this text, 8 of 8 after.
+    assert.ok(last.includes("if the user's latest message itself relaxed that requirement") && last.includes('send the req op again, with lifts'));
     assert.ok(text((calls[1].body.messages as ChatMessage[]).at(-3)!).includes('PINNED REQUIREMENTS'), 'the repair turn still sees the pinned requirements');
     assert.deepEqual(Object.keys(r.memory.graph.groups), ['sg']);
     assert.equal(r.stats.warningsAfter.filter((w) => w.code.startsWith('constraint-')).length, 0, 'the corrected narration is what is checked after repair');

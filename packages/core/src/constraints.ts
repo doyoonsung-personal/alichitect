@@ -163,6 +163,60 @@ export function avoidedProducts(constraints: readonly Constraint[] | undefined, 
   return catalog ? new Set(expandAvoid(catalog, out)) : out;
 }
 
+// ---------- relaxing in words only ----------
+
+/** The rule itself is dropped: "drop the no-Kubernetes rule", "the restriction is lifted", 제한을 해제, 解除了限制. */
+const LIFT_RULE =
+  /\b(?:lift(?:ed|s)?|drop(?:ped|s)?|remov(?:e|ed|es)|revok(?:e|ed|es)|rescind(?:ed|s)?|waiv(?:e|ed|es)|relax(?:ed|es)?|cancel(?:l?ed|s)?|end(?:ed|s)?)\s+(?:the\s+|that\s+|this\s+|our\s+|my\s+)?(?:[\w-]+[\s-]+){0,3}(?:rule|restriction|requirement|ban|constraint|limit|limitation|pin|policy|prohibition)s?\b|\b(?:rule|restriction|requirement|ban|constraint|limit|limitation|pin|policy|prohibition)s?\s+(?:is\s+|was\s+|has\s+been\s+|are\s+|were\s+)?(?:now\s+)?(?:lifted|dropped|removed|revoked|rescinded|waived|relaxed|cancel(?:l?ed)|void|over)\b|(?:규칙|제한|금지|요건|제약|조건)\S*\s?(?:을|를|은|는|이|가)?\s?(?:해제|철회|폐지|취소|풀)|(?:해제|철회|폐지)(?:했|합|하)|(?:解除|取消|撤销|撤銷|放宽|放寬|废除|廢除)(?:了|掉)?.{0,24}(?:限制|规则|規則|要求|禁令|约束|約束|条件|條件)|(?:限制|规则|規則|要求|禁令|约束|約束)(?:已经|已經|已)?(?:解除|取消|撤销|撤銷|放宽|放寬)/i;
+/** Permission: "Kubernetes is fine now", "ACK is allowed", 쿠버네티스를 써도 됩니다, 现在可以使用 Kubernetes. */
+const PERMIT =
+  /\b(?:fine|ok|okay|allowed?|permitted|acceptable|welcome|approved|enabled|(?:can|may|could)\s+(?:use|have|go\s+with)|go\s+ahead)\b|허용|괜찮|써도|사용해도|사용\s?가능|쓸\s?수\s?있|허락|승인|可以|允许|允許|没问题|沒問題|同意|批准|行了/i;
+/** A word that forbids or limits: any of these beside a permission keeps the pin ("not allowed", "no Kubernetes", 不可以, 금지). */
+const FORBID =
+  /\b(?:no|not|never|avoid\w*|without|free\s+of|[a-z0-9]+-free|ban(?:s|ned)?|forbid\w*|prohibit\w*|cannot|can['’]t|don['’]t|do\s+not|disallow\w*|only\s+if|unless|except)\b|금지|불가|하지\s?(?:마|않)|없이|못|말고|쓰지|不要|不能|不可|不得|不用|不使用|禁止|无需|無需|避免|没有|沒有|别|別|勿/i;
+const BENIGN_NO = /\b(?:no\s+problem|no\s+issues?|not\s+a\s+problem|not\s+an\s+issue)\b|没问题|沒問題/gi;
+
+/**
+ * Backstop for a model that relaxes a pin in words only: "Kubernetes is fine now" as a plain requirement, with no `lifts`.
+ * A requirement text that names an avoided product or family (by family word, catalog id, name or alias) and either drops
+ * the rule or grants permission, with no word that forbids or limits it, lifts the avoided products it names (a family
+ * with its members). Texts that only mention the product ("Team knows Kubernetes"), restate the ban ("No Kubernetes
+ * skills") or limit the permission ("Kubernetes only for batch jobs") lift nothing. Regions cannot be implied this way:
+ * a relaxed region pin needs the complete new list, which only a req op with `regions` carries.
+ */
+export function impliedLifts(constraints: readonly Constraint[] | undefined, texts: readonly string[], catalog: Catalog): Array<{ text: string; lifts: string[] }> {
+  const avoided = avoidedProducts(constraints);
+  if (!avoided.size) return [];
+  const out: Array<{ text: string; lifts: string[] }> = [];
+  for (const text of texts) {
+    if (typeof text !== 'string' || !text.trim()) continue;
+    const folded = text.normalize('NFKC');
+    const permit = LIFT_RULE.test(folded) || (PERMIT.test(folded) && !FORBID.test(folded.replace(BENIGN_NO, ' ')));
+    if (!permit) continue;
+    const named = new Set<string>();
+    const lower = folded.toLowerCase();
+    for (const [family, words] of Object.entries(FAMILY_WORDS)) {
+      if (words.some((w) => (isLatinWord(w) ? new RegExp(`(?<![a-z0-9])${escapeRe(w)}(?![a-z0-9])`).test(lower) : lower.includes(w)))) {
+        for (const m of familyMembers(catalog, family)) if (avoided.has(m)) named.add(m);
+      }
+    }
+    for (const id of avoided) {
+      const e = catalog.byId.get(id);
+      if (!e) continue;
+      for (const name of [e.id, e.name, e.short, ...(e.aliases ?? [])]) {
+        const n = typeof name === 'string' ? name.normalize('NFKC').toLowerCase().trim() : '';
+        if (n.length < 3) continue;
+        if (isLatinWord(n) ? new RegExp(`(?<![a-z0-9])${escapeRe(n)}(?![a-z0-9])`).test(lower) : lower.includes(n)) named.add(id);
+      }
+    }
+    if (named.size) out.push({ text, lifts: expandAvoid(catalog, named) });
+  }
+  return out;
+}
+
+const isLatinWord = (s: string): boolean => /^[\x00-\x7f]+$/.test(s);
+const escapeRe = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // ---------- say lines ----------
 
 /** Words that move, store or keep a copy of data somewhere (English, Korean, Chinese). */
@@ -196,18 +250,18 @@ const EN_NEG_BEFORE =
 /** "instead of replicating", "rather than copying": the contrast directly before the verb. "...in Virginia instead of Singapore for DR" does not negate DR. */
 const INSTEAD_BEFORE = /\b(?:instead\s+of|rather\s+than)\s+(?:\w+\s+)?$/i;
 const EN_NEG_AFTER =
-  /\b(?:(?:is|are|was|were|be|been|being|gets?|got|remains?|stays?|has\s+been|have\s+been|will\s+be|would\s+be)\s+(?:\w+\s+){0,4}(?:not|never|disabled|turned\s+off|switched\s+off|off|excluded|out\s+of\s+scope|ruled\s+out|blocked|refused|rejected|prohibited|forbidden|banned|cancell?ed|dropped|unavailable|unsupported|prevented|denied|skipped|omitted|removed|declined)|(?:will|would|do|does|did|can|could|should|shall|may|might|must)\s+not|(?:won|don|doesn|didn|can|isn|aren|wasn|weren|shouldn|wouldn|couldn)['’]?t|cannot|never|not\s+(?:allowed|permitted|used|needed|required|configured|enabled|applicable|supported|part|included|in\s+scope|planned|happen\w*|done)|no\s+longer|out\s+of\s+scope|(?:still|only)\s+(?:under\s+review|being\s+(?:reviewed|considered|evaluated|discussed)))\b/i;
+  /\b(?:(?:is|are|was|were|be|been|being|gets?|got|remains?|stays?|has\s+been|have\s+been|will\s+be|would\s+be)\s+(?:\w+\s+){0,4}(?:not|never|disabled|turned\s+off|switched\s+off|off|excluded|out\s+of\s+scope|ruled\s+out|blocked|refused|rejected|prohibited|forbidden|banned|cancell?ed|dropped|unavailable|unsupported|prevented|denied|skipped|omitted|removed|declined)|(?:will|would|do|does|did|can|could|should|shall|may|might|must)\s+not|(?:won|don|doesn|didn|can|isn|aren|wasn|weren|shouldn|wouldn|couldn)['’]?t|cannot|never|not\s+(?:allowed|permitted|used|needed|required|configured|enabled|applicable|supported|part|included|in\s+scope|planned|happen\w*|done)|no\s+longer|out\s+of\s+scope|(?:blocked|refused|rejected|denied|prohibited|forbidden|banned|declined|disallowed|vetoed)\s+(?:by|under|due|per|because)|(?:violate|breach|contravene)s?|(?:still|only)\s+(?:under\s+review|being\s+(?:reviewed|considered|evaluated|discussed)))\b/i;
 // Korean puts the negation after the verb (복제하지 않습니다, 복제 금지), so look right after the data word.
 const KO_NEG_AFTER =
-  /^[가-힣]{0,4}\s?(?:[가-힣]{1,3}\s?)?(?:하지|지)\s?(?:않|마|못|말)|^[을를은는이가도]?\s?없(?:이|는|음|습니다|어요|다)|^.{0,14}?(?:꺼져|꺼진|폐기|철회|계획에\s?없|[가-힣]{0,4}려면|위반|안\s?됩니다|불가능|검토\s?(?:만|중|했|하였)|고려\s?중|논의\s?중|거절|기각|보류|반려|철회|수\s?없|대신|말고|아니라|아닌|결코|절대로?|전혀|금지|불가|비활성|제외|해제|취소|중단|중지|차단|거부|미지원|범위\s?밖|범위에\s?(?:포함되지|없)|아닙니다|아니에요|필요\s?(?:가\s?)?없|필요하지|사용하지|지원하지|수행하지|허용되지|포함되지)/;
+  /^[가-힣]{0,4}\s?(?:[가-힣]{1,3}\s?)?(?:하지|지)\s?(?:않|마|못|말)|^[을를은는이가도]?\s?없(?:이|는|음|습니다|어요|다)|^.{0,14}?(?:꺼져|꺼진|폐기|철회|제거|삭제|없애|없앴|방지|막았|막아|계획에\s?없|[가-힣]{0,4}려면|위반|안\s?됩니다|불가능|검토\s?(?:만|중|했|하였)|고려\s?중|논의\s?중|거절|기각|보류|반려|철회|수\s?없|대신|말고|아니라|아닌|결코|절대로?|전혀|금지|불가|비활성|제외|해제|취소|중단|중지|차단|거부|미지원|범위\s?밖|범위에\s?(?:포함되지|없)|아닙니다|아니에요|필요\s?(?:가\s?)?없|필요하지|사용하지|지원하지|수행하지|허용되지|포함되지)/;
 const KO_NEG_BEFORE = /(?:^|\s)(?:안|못)\s?$/;
 // A Korean clause ends with its predicate, so a strong negative ending governs every data word before it.
-const KO_NEG_TAIL = /(?:하지\s?(?:않|마|못|말)|지\s?(?:않|마세요|마십시오|못)|수\s?없|(?:결코|절대로?|전혀)\s?없|위반|검토\s?(?:만|중|했|하였)|고려\s?중|논의\s?중|거절|기각|보류|반려|철회|금지|불가|비활성|제외|취소|해제|중단|중지|차단|거부|미지원|아닙니다|아니에요)[^가-힣]*[가-힣]{0,6}[^가-힣]*$/;
+const KO_NEG_TAIL = /(?:하지\s?(?:않|마|못|말)|지\s?(?:않|마세요|마십시오|못)|수\s?없|(?:결코|절대로?|전혀)\s?없|위반|검토\s?(?:만|중|했|하였)|고려\s?중|논의\s?중|거절|기각|보류|반려|철회|제거|삭제|방지|금지|불가|비활성|제외|취소|해제|중단|중지|차단|거부|미지원|아닙니다|아니에요)[^가-힣]*[가-힣]{0,6}[^가-힣]*$/;
 // Chinese puts it before the verb (不要复制, 禁止跨地域同步, 无需异地备份) or states it after (已禁用, 不在范围内).
 const ZH_NEG_BEFORE =
   /(?:不要|不会|不會|不能|不得|不可|不应|不應|不再|不|没有|沒有|没|沒|无需|無需|无须|無須|无法|無法|无|無|未(?![来來])|勿|禁止|避免|严禁|嚴禁|拒绝|拒絕|取消|停止|关闭|關閉|禁用|停用)/;
 // Strong negators reach further (禁止将任何客户数据的副本放置在...): sixteen characters instead of eight.
-const ZH_NEG_STRONG = /(?:不会|不會|不能|不可以|不再|不予|不支持|不支援|禁止|避免|严禁|嚴禁|拒绝|拒絕|取消|停止|关闭|關閉|禁用|停用|不要|无需|無需)/;
+const ZH_NEG_STRONG = /(?:不会|不會|不能|不可以|不再|不予|不支持|不支援|禁止|避免|严禁|嚴禁|拒绝|拒絕|取消|停止|关闭|關閉|禁用|停用|不要|无需|無需|无法|無法)/;
 const ZH_NEG_AFTER = /^.{0,12}?(?:仅考虑|僅考慮|仅评估|僅評估|暂不|暫不|尚未|还未|還未|仍在评估|仍在評估|而非|而不是|取代|已?(?:禁用|停用|关闭|關閉|取消)|不在|未啟用|未启用|不支持|不支援|不予|不做|不需要|不必|不需|范围外|範圍外|不适用|不適用|不涉及|並未|并未|不採用|不采用|不允许|不允許|不启用|不啟用|被禁止|已禁止|不使用|不会发生|不會發生)/;
 
 /** A clause that rejects what the clause before it proposed ("but rejected immediately", "decided against it", "we confirmed everything stays in Seoul"). */
@@ -251,7 +305,7 @@ function crossRegionIn(clause: string): boolean {
 }
 
 /** A place named only to say where people are (users in Japan, 日本的使用者), not where data goes. */
-const PEOPLE_EN = '(?:users?|customers?|clients?|visitors?|shoppers?|consumers?|audience|traffic|requests?|people|staff|employees?|developers?|analysts?|workers?|teams?|offices?|markets?|population|partners?)';
+const PEOPLE_EN = '(?:parents?(?!\\s+(?:facilit\\w+|sites?|data\\s?cent\\w+|regions?|clusters?|databases?|db|buckets?|storage))|head\\s*offices?|headquarters|HQ|subsidiar(?:y|ies)|branch(?:es)?|affiliates?|users?|customers?|clients?|visitors?|shoppers?|consumers?|audience|traffic|requests?|people|staff|employees?|developers?|analysts?|workers?|teams?|offices?|markets?|population|partners?)';
 const USERS_BEFORE = new RegExp(`\\b${PEOPLE_EN}\\s+(?:(?:located\\s+|based\\s+|living\\s+|working\\s+)?(?:in|from|across|within|at|of|near)\\s+)(?:the\\s+)?$`, 'i');
 const USERS_AFTER = new RegExp(`^(?:['’]s)?\\s+${PEOPLE_EN}\\b`, 'i');
 const USERS_AFTER_CJK = /^(?:의|에서\s?오는|에\s?있는|발|쪽|지역|현지|的|地区的|地區的|境内的|境內的)?\s?(?:사용자|고객|유저|이용자|시장|트래픽|팀|직원|방문자|소비자|요청|거래처|파트너|用户|用戶|客户|客戶|使用者|市场|市場|流量|团队|團隊|员工|員工|访客|訪客|请求|請求|消费者|消費者)/;

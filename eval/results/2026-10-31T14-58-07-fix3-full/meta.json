@@ -1,0 +1,53 @@
+{
+  "startedAt": "2026-10-31T14:58:07.458Z",
+  "args": {
+    "runs": "3",
+    "concurrency": "6",
+    "label": "fix3-full"
+  },
+  "model": "qwen3.8-max",
+  "fallbackModel": "qwen3.7-max",
+  "judgeModel": "kimi-k3",
+  "runsPerCase": 3,
+  "concurrency": 6,
+  "cases": 88,
+  "units": 264,
+  "catalogVersion": "2026-10-31",
+  "catalogEntries": 223,
+  "systemPromptChars": 49687,
+  "systemPromptSha256": "ad75dbaaa9c26569831e40382b6642eedb632201f3148e57b9050a611a3d355a",
+  "node": "v24.21.0",
+  "coreFiles": {
+    "catalog-node.ts": "dade41cbd9ed",
+    "catalog.ts": "5bf2d46dc58f",
+    "constraints.ts": "e764e5142aca",
+    "diff.ts": "eaabf1ce1def",
+    "display.ts": "941ca6dec769",
+    "layout.ts": "5b76a21851a5",
+    "llm.ts": "efe2aa5b7af4",
+    "ndjson.ts": "3163a8232eaa",
+    "pricing.ts": "6fa3a32521c0",
+    "prompt.ts": "b22797ef7026",
+    "reducer.ts": "42217123e9aa",
+    "regions.ts": "c34c43b79d8c",
+    "types.ts": "c8fa50d4efdc",
+    "validate.ts": "b01749eb7cb7"
+  },
+  "judgeAllRunsOf": [
+    "mt-01-avoid-k8s",
+    "mt-02-serverless-first",
+    "mt-03-data-in-singapore",
+    "mt-04-budget",
+    "ko-mt-01-avoid-k8s",
+    "zh-mt-01-avoid-k8s",
+    "mt-05-mixed-five-turns",
+    "mt-06-summary-window",
+    "p1-req-residency-my",
+    "p1-req-avoid-fc",
+    "p1-avoid-tempted-k8s",
+    "p1-ko-residency",
+    "p1-zh-residency"
+  ],
+  "finishedAt": "2026-10-31T15:10:55.211Z",
+  "spentUsd": 3.931328943333333
+}

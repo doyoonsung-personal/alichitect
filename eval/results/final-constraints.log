@@ -1,0 +1,195 @@
+2026-10-31T15-44-27-final-constraints: 13 cases, 65 of 65 conversations to run (concurrency 6, model qwen3.8-max, fallback qwen3.7-max)
+[1/65] mt-04-budget#1 PASS 3/3 turns 19s $0.019
+[2/65] mt-02-serverless-first#1 PASS 3/3 turns 23s $0.020
+[3/65] ko-mt-01-avoid-k8s#1 PASS 3/3 turns 32s $0.026
+[4/65] zh-mt-01-avoid-k8s#1 PASS 3/3 turns 33s $0.026
+[5/65] mt-03-data-in-singapore#1 PASS 4/4 turns 35s $0.032
+[6/65] mt-01-avoid-k8s#1 PASS 4/4 turns 42s $0.034
+[7/65] p1-req-avoid-fc#1 PASS 2/2 turns 23s $0.016
+[8/65] p1-req-residency-my#1 PASS 2/2 turns 26s $0.018
+[9/65] mt-05-mixed-five-turns#1 PASS 5/5 turns 42s $0.039
+[10/65] p1-avoid-tempted-k8s#1 PASS 3/3 turns 31s $0.025
+[11/65] p1-ko-residency#1 PASS 2/2 turns 34s $0.020
+[12/65] p1-zh-residency#1 PASS 2/2 turns 23s $0.017
+[13/65] mt-06-summary-window#1 PASS 5/5 turns 60s $0.049
+[14/65] mt-02-serverless-first#2 PASS 3/3 turns 26s $0.021
+[15/65] mt-01-avoid-k8s#2 PASS 4/4 turns 37s $0.031
+[16/65] mt-04-budget#2 PASS 3/3 turns 20s $0.019
+[17/65] mt-03-data-in-singapore#2 PASS 4/4 turns 34s $0.033
+[18/65] ko-mt-01-avoid-k8s#2 PASS 3/3 turns 35s $0.027
+[19/65] zh-mt-01-avoid-k8s#2 PASS 3/3 turns 33s $0.027
+[20/65] mt-05-mixed-five-turns#2 PASS 5/5 turns 30s $0.035
+[21/65] p1-req-residency-my#2 PASS 2/2 turns 25s $0.017
+[22/65] p1-req-avoid-fc#2 FAIL 2/2 turns 24s $0.017 failed: pins
+[23/65] p1-zh-residency#2 PASS 2/2 turns 23s $0.017
+[24/65] p1-ko-residency#2 PASS 2/2 turns 26s $0.018
+[25/65] mt-02-serverless-first#3 PASS 3/3 turns 22s $0.020
+[26/65] p1-avoid-tempted-k8s#2 PASS 3/3 turns 34s $0.027
+[27/65] mt-06-summary-window#2 PASS 5/5 turns 55s $0.048
+[28/65] mt-01-avoid-k8s#3 PASS 4/4 turns 37s $0.032
+[29/65] mt-04-budget#3 PASS 3/3 turns 23s $0.021
+[30/65] mt-03-data-in-singapore#3 PASS 4/4 turns 37s $0.033
+[31/65] zh-mt-01-avoid-k8s#3 PASS 3/3 turns 31s $0.026
+[32/65] ko-mt-01-avoid-k8s#3 PASS 3/3 turns 34s $0.025
+[33/65] mt-05-mixed-five-turns#3 PASS 5/5 turns 33s $0.036
+[34/65] p1-req-residency-my#3 PASS 2/2 turns 25s $0.017
+[35/65] p1-req-avoid-fc#3 PASS 2/2 turns 23s $0.017
+[36/65] p1-zh-residency#3 PASS 2/2 turns 26s $0.017
+[37/65] p1-ko-residency#3 PASS 2/2 turns 32s $0.020
+[38/65] p1-avoid-tempted-k8s#3 PASS 3/3 turns 38s $0.027
+[39/65] mt-02-serverless-first#4 PASS 3/3 turns 21s $0.020
+[40/65] mt-06-summary-window#3 PASS 5/5 turns 64s $0.052
+[41/65] mt-04-budget#4 PASS 3/3 turns 18s $0.018
+[42/65] mt-01-avoid-k8s#4 PASS 4/4 turns 42s $0.034
+[43/65] mt-03-data-in-singapore#4 PASS 4/4 turns 40s $0.034
+[44/65] ko-mt-01-avoid-k8s#4 PASS 3/3 turns 34s $0.025
+[45/65] zh-mt-01-avoid-k8s#4 PASS 3/3 turns 35s $0.027
+[46/65] p1-req-residency-my#4 PASS 2/2 turns 29s $0.019
+[47/65] mt-05-mixed-five-turns#4 PASS 5/5 turns 45s $0.041
+[48/65] p1-req-avoid-fc#4 PASS 2/2 turns 24s $0.017
+[49/65] p1-zh-residency#4 PASS 2/2 turns 27s $0.017
+[50/65] p1-avoid-tempted-k8s#4 PASS 3/3 turns 37s $0.026
+[51/65] p1-ko-residency#4 PASS 2/2 turns 36s $0.020
+[52/65] mt-06-summary-window#4 PASS 5/5 turns 63s $0.050
+[53/65] mt-02-serverless-first#5 PASS 3/3 turns 23s $0.020
+[54/65] mt-01-avoid-k8s#5 PASS 4/4 turns 42s $0.033
+[55/65] mt-04-budget#5 FAIL 3/3 turns 21s $0.019 failed: editMinimal
+[56/65] mt-03-data-in-singapore#5 PASS 4/4 turns 51s $0.090
+[57/65] p1-req-residency-my#5 PASS 2/2 turns 32s $0.046
+[58/65] zh-mt-01-avoid-k8s#5 PASS 3/3 turns 51s $0.085
+[59/65] ko-mt-01-avoid-k8s#5 PASS 3/3 turns 55s $0.088
+[60/65] mt-05-mixed-five-turns#5 PASS 5/5 turns 52s $0.093
+[61/65] p1-req-avoid-fc#5 PASS 2/2 turns 27s $0.017
+[62/65] p1-zh-residency#5 PASS 2/2 turns 26s $0.017
+[63/65] p1-ko-residency#5 PASS 2/2 turns 29s $0.018
+[64/65] mt-06-summary-window#5 PASS 5/5 turns 68s $0.050
+[65/65] p1-avoid-tempted-k8s#5 FAIL 3/3 turns 37s $0.027 failed: attachValid
+judge kimi-k3: 65 runs to score
+judge mt-01-avoid-k8s#3: 5/4/4/4 signoff yes
+judge mt-01-avoid-k8s#5: 5/4/4/4 signoff yes
+judge mt-01-avoid-k8s#4: 5/4/4/5 signoff yes
+judge mt-01-avoid-k8s#1: 5/5/5/4 signoff yes
+judge mt-02-serverless-first#1: 5/4/4/5 signoff yes
+judge mt-01-avoid-k8s#2: 5/4/4/4 signoff yes
+judge mt-02-serverless-first#5: 5/5/5/5 signoff yes
+judge mt-03-data-in-singapore#1: 5/5/4/5 signoff yes
+judge mt-02-serverless-first#2: 5/4/4/4 signoff yes
+judge mt-03-data-in-singapore#2: 5/4/4/5 signoff yes
+judge mt-02-serverless-first#3: 5/4/4/5 signoff yes
+judge mt-02-serverless-first#4: 5/4/4/5 signoff yes
+judge mt-04-budget#2: 5/5/4/5 signoff yes
+judge mt-03-data-in-singapore#3: 5/4/4/5 signoff yes
+judge mt-03-data-in-singapore#5: 5/4/4/5 signoff yes
+judge mt-04-budget#1: 4/4/3/4 signoff no
+judge mt-03-data-in-singapore#4: 5/4/4/5 signoff yes
+judge mt-04-budget#3: 4/3/2/4 signoff no
+judge mt-04-budget#4: 4/4/3/4 signoff no
+judge ko-mt-01-avoid-k8s#2: 5/5/5/5 signoff yes
+judge mt-04-budget#5: 4/3/3/4 signoff no
+judge ko-mt-01-avoid-k8s#3: 5/4/4/4 signoff yes
+judge ko-mt-01-avoid-k8s#1: 5/4/4/4 signoff yes
+judge zh-mt-01-avoid-k8s#1: 5/5/4/4 signoff yes
+judge ko-mt-01-avoid-k8s#5: 5/4/4/5 signoff yes
+judge zh-mt-01-avoid-k8s#2: 5/4/4/4 signoff yes
+judge zh-mt-01-avoid-k8s#4: 5/4/4/4 signoff yes
+judge zh-mt-01-avoid-k8s#3: 5/4/4/4 signoff yes
+judge ko-mt-01-avoid-k8s#4: 5/5/5/4 signoff yes
+judge zh-mt-01-avoid-k8s#5: 5/5/4/5 signoff yes
+judge mt-05-mixed-five-turns#1: 5/4/4/5 signoff yes
+judge mt-05-mixed-five-turns#2: 5/4/4/4 signoff yes
+judge mt-05-mixed-five-turns#3: 5/4/4/5 signoff yes
+judge mt-05-mixed-five-turns#4: 5/4/4/5 signoff yes
+judge mt-06-summary-window#1: 5/4/4/4 signoff yes
+judge mt-05-mixed-five-turns#5: 5/4/4/4 signoff yes
+judge mt-06-summary-window#2: 5/4/4/4 signoff yes
+judge mt-06-summary-window#3: 4/4/4/4 signoff yes
+judge p1-req-residency-my#1: 4/4/4/4 signoff yes
+judge mt-06-summary-window#4: 5/4/4/4 signoff yes
+judge p1-req-residency-my#2: 5/4/4/5 signoff yes
+judge mt-06-summary-window#5: 5/4/4/4 signoff yes
+judge p1-req-residency-my#3: 4/4/4/4 signoff yes
+judge p1-req-avoid-fc#2: 5/5/5/5 signoff yes
+judge p1-req-residency-my#4: 5/5/4/5 signoff yes
+judge p1-req-avoid-fc#1: 5/5/5/5 signoff yes
+judge p1-req-residency-my#5: 5/4/4/5 signoff yes
+judge p1-req-avoid-fc#3: 5/5/4/5 signoff yes
+judge p1-req-avoid-fc#4: 5/5/4/5 signoff yes
+judge p1-req-avoid-fc#5: 5/5/5/5 signoff yes
+judge p1-avoid-tempted-k8s#1: 5/4/4/4 signoff yes
+judge p1-avoid-tempted-k8s#2: 5/4/5/5 signoff yes
+judge p1-avoid-tempted-k8s#4: 5/5/5/4 signoff yes
+judge p1-avoid-tempted-k8s#3: 5/4/4/4 signoff yes
+judge p1-avoid-tempted-k8s#5: 5/4/4/4 signoff yes
+judge p1-ko-residency#1: 4/4/3/4 signoff no
+judge p1-ko-residency#2: 5/4/4/5 signoff yes
+judge p1-ko-residency#3: 4/4/4/4 signoff yes
+judge p1-ko-residency#4: 4/4/4/4 signoff yes
+judge p1-zh-residency#1: 4/4/4/4 signoff yes
+judge p1-zh-residency#2: 4/4/4/5 signoff yes
+judge p1-zh-residency#3: 5/4/4/5 signoff yes
+judge p1-ko-residency#5: 4/4/4/4 signoff yes
+judge p1-zh-residency#5: 5/5/4/5 signoff yes
+judge p1-zh-residency#4: 5/5/4/5 signoff yes
+
+results: C:\Users\mendo\ali_catalog\eval\results\2026-10-31T15-44-27-final-constraints
+spent this run: USD 2.689 (ledger total USD 37.097)
+# Evaluation summary
+
+Model qwen3.8-max (fallback qwen3.7-max), catalog 2026-10-31 (223 entries), system prompt 49687 chars (sha256 ad75dbaaa9c2), 5 runs per case, started 2026-10-31T15:44:27.040Z.
+
+## Overall
+
+**pass@1 95%, all 5 runs pass 77%** (13 cases). pass@5 is best-of-5 and is listed last.
+
+| measure | value |
+| --- | ---: |
+| cases / conversations / turns | 13 / 65 / 205 |
+| pass@1 (mean case pass rate) | 95% |
+| all runs pass | 77% |
+| majority (over half the runs pass) | 100% |
+| pass@5 (some run passes) | 100% |
+| conversations passing every assertion | 95% |
+| turns passing every assertion | 98% |
+| assertions passing (2275 checks) | 100% |
+| conversations that hit an API failure | 0 |
+| list-price cost of the model runs | $1.97 |
+
+## By category
+
+| category | cases | runs | run pass | all runs | majority | pass@5 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| multiturn | 9 | 45 | 93% | 67% | 100% | 100% |
+| i18n | 4 | 20 | 100% | 100% | 100% | 100% |
+
+## By language
+
+| language | cases | runs | run pass | all runs | majority | pass@5 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| en | 9 | 45 | 93% | 67% | 100% | 100% |
+| ko | 2 | 10 | 100% | 100% | 100% | 100% |
+| zh | 2 | 10 | 100% | 100% | 100% | 100% |
+
+## By assertion type (worst first)
+
+| type | checks | passed | rate | cases that failed it |
+| --- | ---: | ---: | ---: | ---: |
+| pins | 35 | 33 | 94% | 1 |
+| editMinimal | 70 | 69 | 99% | 1 |
+| attachValid | 205 | 204 | 100% | 1 |
+| exclude | 45 | 45 | 100% | 0 |
+| req | 75 | 75 | 100% | 0 |
+| size | 10 | 10 | 100% | 0 |
+| noErrors | 205 | 205 | 100% | 0 |
+| pathOrder | 205 | 205 | 100% | 0 |
+| format | 205 | 205 | 100% | 0 |
+| escapes | 205 | 205 | 100% | 0 |
+| noPrices | 205 | 205 | 100% | 0 |
+| sayLang | 205 | 205 | 100% | 0 |
+| retention | 255 | 255 | 100% | 0 |
+| mention | 5 | 5 | 100% | 0 |
+| include | 100 | 100 | 100% | 0 |
+| whyLang | 50 | 50 | 100% | 0 |
+| region | 45 | 45 | 100% | 0 |
+| residency | 75 | 75 | 100% | 0 |
+| residencyScan | 75 | 75 | 100% | 0 |
+

@@ -2,7 +2,7 @@
 // warning codes; never the key, never provider error messages, and never the ask or the reply unless LOG_CONTENT=1.
 // Every line passes through the redactor. A logging failure never affects a turn.
 import { createHash } from 'node:crypto';
-import { appendFile, mkdir } from 'node:fs/promises';
+import { appendFile, mkdir, rename, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 export type Redactor = (s: string) => string;
@@ -46,7 +46,10 @@ export interface TurnLog {
   flush(): Promise<void>;
 }
 
-export function createTurnLog(file: string | null, redact: Redactor): TurnLog {
+/** The log is moved to `<file>.1` (replacing the older copy) once it passes this size, so a local loop of bad requests cannot grow it without limit. */
+export const MAX_LOG_BYTES = 5_000_000;
+
+export function createTurnLog(file: string | null, redact: Redactor, maxBytes = MAX_LOG_BYTES): TurnLog {
   let chain: Promise<void> = Promise.resolve();
   let dirReady: Promise<unknown> | null = null;
   return {
@@ -60,7 +63,14 @@ export function createTurnLog(file: string | null, redact: Redactor): TurnLog {
       }
       dirReady ??= mkdir(path.dirname(file), { recursive: true }).catch(() => undefined);
       const ready = dirReady;
-      chain = chain.then(() => ready).then(() => appendFile(file, line, 'utf8')).catch(() => undefined);
+      chain = chain
+        .then(() => ready)
+        .then(async () => {
+          const size = await stat(file).then((x) => x.size, () => 0);
+          if (size >= maxBytes) await rename(file, file + '.1');
+          await appendFile(file, line, 'utf8');
+        })
+        .catch(() => undefined);
     },
     flush: () => chain,
   };

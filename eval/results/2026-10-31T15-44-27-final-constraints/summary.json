@@ -1,0 +1,1686 @@
+{
+  "meta": {
+    "startedAt": "2026-10-31T15:44:27.040Z",
+    "args": {
+      "cases": "mt-01,mt-02,mt-03,mt-04,ko-mt-01,zh-mt-01,mt-05,mt-06,p1-req,p1-avoid,p1-ko-residency,p1-zh-residency",
+      "runs": "5",
+      "concurrency": "6",
+      "budget": "300",
+      "label": "final-constraints"
+    },
+    "model": "qwen3.8-max",
+    "fallbackModel": "qwen3.7-max",
+    "judgeModel": "kimi-k3",
+    "runsPerCase": 5,
+    "concurrency": 6,
+    "cases": 13,
+    "units": 65,
+    "catalogVersion": "2026-10-31",
+    "catalogEntries": 223,
+    "systemPromptChars": 49687,
+    "systemPromptSha256": "ad75dbaaa9c26569831e40382b6642eedb632201f3148e57b9050a611a3d355a",
+    "node": "v24.21.0",
+    "coreFiles": {
+      "catalog-node.ts": "dade41cbd9ed",
+      "catalog.ts": "5bf2d46dc58f",
+      "constraints.ts": "96b67a585416",
+      "diff.ts": "eaabf1ce1def",
+      "display.ts": "941ca6dec769",
+      "layout.ts": "5b76a21851a5",
+      "llm.ts": "7bff9cc8e8bd",
+      "ndjson.ts": "3163a8232eaa",
+      "pricing.ts": "6fa3a32521c0",
+      "prompt.ts": "0903a232e8de",
+      "reducer.ts": "42217123e9aa",
+      "regions.ts": "c34c43b79d8c",
+      "types.ts": "c8fa50d4efdc",
+      "validate.ts": "b01749eb7cb7"
+    },
+    "judgeAllRunsOf": [
+      "mt-01-avoid-k8s",
+      "mt-02-serverless-first",
+      "mt-03-data-in-singapore",
+      "mt-04-budget",
+      "ko-mt-01-avoid-k8s",
+      "zh-mt-01-avoid-k8s",
+      "mt-05-mixed-five-turns",
+      "mt-06-summary-window",
+      "p1-req-residency-my",
+      "p1-req-avoid-fc",
+      "p1-avoid-tempted-k8s",
+      "p1-ko-residency",
+      "p1-zh-residency"
+    ],
+    "finishedAt": "2026-10-31T15:52:07.882Z",
+    "spentUsd": 2.6893694
+  },
+  "totals": {
+    "cases": 13,
+    "conversations": 65,
+    "turns": 205,
+    "casePassRate": 0.954,
+    "passAtN": 1,
+    "majority": 1,
+    "allRuns": 0.769,
+    "runPassRate": 0.954,
+    "turnPassRate": 0.98,
+    "assertionPassRate": 0.998,
+    "assertions": 2275,
+    "apiFailures": 0,
+    "costUsd": 1.974
+  },
+  "byCategory": {
+    "multiturn": {
+      "cases": 9,
+      "runs": 45,
+      "runPassRate": 0.933,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 0.667
+    },
+    "i18n": {
+      "cases": 4,
+      "runs": 20,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    }
+  },
+  "byLang": {
+    "en": {
+      "cases": 9,
+      "runs": 45,
+      "runPassRate": 0.933,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 0.667
+    },
+    "ko": {
+      "cases": 2,
+      "runs": 10,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "zh": {
+      "cases": 2,
+      "runs": 10,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    }
+  },
+  "byAssertionType": {
+    "pins": {
+      "checks": 35,
+      "passed": 33,
+      "rate": 0.943,
+      "failingCases": [
+        "p1-req-avoid-fc"
+      ]
+    },
+    "editMinimal": {
+      "checks": 70,
+      "passed": 69,
+      "rate": 0.986,
+      "failingCases": [
+        "mt-04-budget"
+      ]
+    },
+    "attachValid": {
+      "checks": 205,
+      "passed": 204,
+      "rate": 0.995,
+      "failingCases": [
+        "p1-avoid-tempted-k8s"
+      ]
+    },
+    "exclude": {
+      "checks": 45,
+      "passed": 45,
+      "rate": 1,
+      "failingCases": []
+    },
+    "req": {
+      "checks": 75,
+      "passed": 75,
+      "rate": 1,
+      "failingCases": []
+    },
+    "size": {
+      "checks": 10,
+      "passed": 10,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noErrors": {
+      "checks": 205,
+      "passed": 205,
+      "rate": 1,
+      "failingCases": []
+    },
+    "pathOrder": {
+      "checks": 205,
+      "passed": 205,
+      "rate": 1,
+      "failingCases": []
+    },
+    "format": {
+      "checks": 205,
+      "passed": 205,
+      "rate": 1,
+      "failingCases": []
+    },
+    "escapes": {
+      "checks": 205,
+      "passed": 205,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noPrices": {
+      "checks": 205,
+      "passed": 205,
+      "rate": 1,
+      "failingCases": []
+    },
+    "sayLang": {
+      "checks": 205,
+      "passed": 205,
+      "rate": 1,
+      "failingCases": []
+    },
+    "retention": {
+      "checks": 255,
+      "passed": 255,
+      "rate": 1,
+      "failingCases": []
+    },
+    "mention": {
+      "checks": 5,
+      "passed": 5,
+      "rate": 1,
+      "failingCases": []
+    },
+    "include": {
+      "checks": 100,
+      "passed": 100,
+      "rate": 1,
+      "failingCases": []
+    },
+    "whyLang": {
+      "checks": 50,
+      "passed": 50,
+      "rate": 1,
+      "failingCases": []
+    },
+    "region": {
+      "checks": 45,
+      "passed": 45,
+      "rate": 1,
+      "failingCases": []
+    },
+    "residency": {
+      "checks": 75,
+      "passed": 75,
+      "rate": 1,
+      "failingCases": []
+    },
+    "residencyScan": {
+      "checks": 75,
+      "passed": 75,
+      "rate": 1,
+      "failingCases": []
+    }
+  },
+  "cases": [
+    {
+      "id": "mt-01-avoid-k8s",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Avoid Kubernetes over four turns",
+      "runs": 5,
+      "passes": 5,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.033,
+      "meanMs": 39870,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          4
+        ],
+        "defects": [
+          "Turn 4 narration does not explain how customer queries reach the assistant (via existing API gateway and microservices)",
+          "Two separate Tair nodes (session and menu cache) could be justified or consolidated, though separation is defensible"
+        ],
+        "reasons": [
+          "Kubernetes avoided on every turn via SAE; all pinned requirements honoured",
+          "AI assistant correctly built with AI Gateway -> Model Studio plus Milvus for menu vector search; placement rules respected (WAF badge, OSS/SLS/ARMS/Model Studio outside VPC, multi-zone as single nodes)",
+          "Narration is clear and in the user's language, but turn 4 could briefly note the dish-finder request flow (app -> API gateway -> microservice -> AI gateway)"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "mt-02-serverless-first",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Serverless-first over three turns",
+      "runs": 5,
+      "passes": 5,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.02,
+      "meanMs": 22844,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          4,
+          5
+        ],
+        "defects": [
+          "No API Gateway despite the user framing this as an image-processing API; ESA fronts uploads but the API layer is implicit",
+          "Report output written to the image output bucket rather than a dedicated reports bucket or delivery path",
+          "User accounts stored in Tablestore with no mention of auth/identity handling for the API"
+        ],
+        "reasons": [
+          "Fully serverless design: OSS, FC, Tablestore, SchedulerX, SLS; no ECS/ACK anywhere",
+          "Nightly job correctly added as SchedulerX triggering an FC report function reading Tablestore and writing reports to OSS",
+          "All products current per catalog; placement rules respected (regional services outside VPC, DNS as resolve hop)"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "mt-03-data-in-singapore",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Data must stay in Singapore over four turns",
+      "runs": 5,
+      "passes": 5,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.044,
+      "meanMs": 39554,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          4,
+          5
+        ],
+        "defects": [
+          "GA and ESA paths both terminate on the same ALB with no note on how they coexist (e.g., GA as alternate entry or ESA in front of GA); minor redundancy in entry paths"
+        ],
+        "reasons": [
+          "All data and compute stay in Singapore; DR is multi-zone plus Cloud Backup within the region, honoring residency",
+          "European latency addressed with ESA plus Global Accelerator anycast-to-backbone without moving data",
+          "Placement rules respected: WAF as badge on ALB, DNS off data path, OSS/SLS/KMS/Model Studio outside VPC"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "mt-04-budget",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Startup budget over three turns",
+      "runs": 5,
+      "passes": 4,
+      "passRate": 0.8,
+      "passAtN": true,
+      "majority": true,
+      "failed": {
+        "edit {\"minChanged\":1}": 1
+      },
+      "failedTypes": [
+        "editMinimal"
+      ],
+      "meanCostUsd": 0.019,
+      "meanMs": 20333,
+      "judge": {
+        "run": 1,
+        "mean": 3.75,
+        "signoff": false,
+        "scores": [
+          4,
+          4,
+          3,
+          4
+        ],
+        "defects": [
+          "Elasticsearch 'Listings Search' remains single-zone while the user asked to make the app highly available; no note explaining the exception",
+          "Pinned budget of under $200/month is acknowledged as likely breached with no alternative or cost-control recommendation",
+          "ALB is already multi-zone by design; marking it zones a,b is redundant though harmless",
+          "No mention of RDS HA edition vs basic edition cost implications for staying near budget"
+        ],
+        "reasons": [
+          "HA request is addressed by adding zones a,b to ALB, ECS and RDS, which is the right minimal move",
+          "Search node left single-zone, so the design is not fully highly available as requested",
+          "Narration admits the change likely exceeds the pinned $200 budget but offers no mitigation (e.g., smaller instances, SAE, or noting the trade-off explicitly as a choice)"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true,
+        true,
+        false
+      ]
+    },
+    {
+      "id": "ko-mt-01-avoid-k8s",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "Avoid Kubernetes over three turns (Korean)",
+      "runs": 5,
+      "passes": 5,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.038,
+      "meanMs": 37937,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Tair 캐시(세션)와 메뉴 캐시가 별도 인스턴스 2개로 존재 — 하나의 Tair 인스턴스로 통합하거나 분리 이유 설명 필요",
+          "3턴 내레이션이 '확장 설정을 업데이트하겠습니다' 수준으로 구체성 부족 (SAE 오토스케일링, RDS 읽기 복제본, PTS 부하 테스트 언급 없음)",
+          "RDS 읽기 전용 복제본 추가가 why 텍스트에만 있고 별도 노드/엣지로 표현되지 않음"
+        ],
+        "reasons": [
+          "쿠버네티스 없이 SAE 기반 마이크로서비스, RocketMQ 이벤트, Tair 메뉴 캐시, RDS, 확장 대응까지 3턴 요구사항을 모두 충족",
+          "배치 규칙 준수: WAF는 게이트웨이 배지, OSS/SLS/ARMS는 VPC 외부, DNS는 데이터 경로 미포함, 다중 AZ는 단일 노드",
+          "세션 캐시와 메뉴 캐시가 Tair 인스턴스 2개로 중복 구성된 점과 3턴 내레이션이 다소 간략한 점이 아쉬움"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "zh-mt-01-avoid-k8s",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "Avoid Kubernetes over three turns (Chinese)",
+      "runs": 5,
+      "passes": 5,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.038,
+      "meanMs": 36649,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          4,
+          4
+        ],
+        "defects": [
+          "通用 Tair 缓存与专用菜单缓存两个 Tair 节点功能重叠，可考虑合并为一个实例以简化架构",
+          "第三轮叙述较简略，未说明 ESA 边缘缓存和 RDS 只读副本之外的扩展细节（如 MQ 顺序性保障）"
+        ],
+        "reasons": [
+          "全程未使用 Kubernetes，SAE + MSE + RocketMQ + Tair + RDS 组合完全契合需求",
+          "第三轮为网关、SAE、MQ、缓存、数据库均给出了具体的 5 倍扩容策略",
+          "中文说明清晰，架构分层与连线规范（DNS 不在数据路径、WAF 作为网关徽章、多可用区单节点）"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "mt-05-mixed-five-turns",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Mobile game backend over five turns",
+      "runs": 5,
+      "passes": 5,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.049,
+      "meanMs": 40388,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          4,
+          5
+        ],
+        "defects": [
+          "Flink is a relatively heavy, costly component for a $500/month launch budget; a lighter SLS SQL/scheduled-query approach could have been offered as a budget alternative.",
+          "Clients connect to the MQTT chat broker directly without any acceleration path, which sits oddly next to the turn-4 lag complaint that motivated GA.",
+          "Turn 2 narration references swapping RocketMQ for SMQ although RocketMQ never appears in the architecture, which may confuse."
+        ],
+        "reasons": [
+          "All five turns covered: serverless API, queue-based matchmaking, Tair leaderboards, Tablestore profiles, MQTT chat, GA for Korea/Japan lag, and Flink anti-cheat; no Kubernetes anywhere and budget kept visible.",
+          "Placement follows the rules: SLS/Tablestore/SMQ/MQTT outside VPC, gateway and Tair as single multi-zone nodes, ESA providing edge WAF without a standalone WAF hop, HTTPDNS not a data-path hop.",
+          "Narration is specific, addresses each new requirement, and repeatedly ties choices back to the $500 budget."
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "mt-06-summary-window",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Ride-hailing platform with summary window",
+      "runs": 5,
+      "passes": 5,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.05,
+      "meanMs": 62141,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "PolarDB DR standby in the same zones a,b as primary is redundant with PolarDB's built-in multi-AZ; a clearer DR story would note this or use Cloud Backup cross-zone vault as the real DR tier",
+          "Turn 4 narration says 'ESA serving' driver documents but no ESA->OSS edge exists in the diagram; narration/diagram mismatch",
+          "No backup/replication coverage for Tair cache or Hologres analytics data in the DR turn"
+        ],
+        "reasons": [
+          "All five turns covered: 8 SAE microservices, gateway, PolarDB, Tair, SMQ, Flink/Hologres/Quick BI analytics, OSS documents, and in-country DR",
+          "Data residency honoured: everything stays in Jakarta (ap-southeast-5), DR is zone-level not cross-country; no Kubernetes anywhere",
+          "DR additions are proportionate: PolarDB multi-zone standby, OSS replica, Cloud Backup for DB and OSS"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "p1-req-residency-my",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Malaysian Web Shop Architecture Design",
+      "runs": 5,
+      "passes": 5,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.023,
+      "meanMs": 27176,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Turn 2 narration promises a PolarDB standby node that was never added to the architecture — narration/graph mismatch",
+          "No explicit DR runbook or restore-path explanation beyond backup edges; DR is backup-only with no stated RTO/RPO handling",
+          "ESA caches product images globally at the edge, which could be questioned against strict residency, though origin remains in Malaysia"
+        ],
+        "reasons": [
+          "All components including backup stay in ap-southeast-3 (Kuala Lumpur), honoring the Malaysia residency pin",
+          "Cloud Backup correctly covers ECS, RDS and OSS with in-region backup; multi-zone ALB/ECS/RDS provides HA",
+          "Narration mentions a 'cross-zone PolarDB standby' that does not exist in the graph (RDS is used, not PolarDB)"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "p1-req-avoid-fc",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Parcel tracking API backend architecture",
+      "runs": 5,
+      "passes": 4,
+      "passRate": 0.8,
+      "passAtN": true,
+      "majority": true,
+      "failed": {
+        "pinned avoid fc": 1
+      },
+      "failedTypes": [
+        "pins"
+      ],
+      "meanCostUsd": 0.017,
+      "meanMs": 24047,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Function Compute avoided as pinned; SchedulerX used for the nightly purge",
+          "Placement rules respected: WAF as badge on ALB, SLS/SchedulerX regional outside VPC, DNS not a data-path hop",
+          "Multi-zone ALB, gateway, SAE and RDS give proper HA; narration is concise and in the user's language"
+        ]
+      },
+      "runPass": [
+        true,
+        false,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "p1-avoid-tempted-k8s",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "B2B Invoicing SaaS Backend Architecture",
+      "runs": 5,
+      "passes": 4,
+      "passRate": 0.8,
+      "passAtN": true,
+      "majority": true,
+      "failed": {
+        "every attachment names a valid host": 1
+      },
+      "failedTypes": [
+        "attachValid"
+      ],
+      "meanCostUsd": 0.027,
+      "meanMs": 35419,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Turn 1 narration says 'serverless-free backend' while recommending SAE (Serverless App Engine) — confusing wording.",
+          "DevOps OpenAPI endpoint is cn-hangzhou only; international availability caveat not mentioned for a Singapore deployment.",
+          "MSE node lacks zone/HA detail and workers likely don't need to register as service providers (they consume a queue), though harmless."
+        ],
+        "reasons": [
+          "All three turns' requirements covered: SAE API/workers, ACR+DevOps blue-green pipeline, autoscaling, and MSE for service governance — zero Kubernetes.",
+          "Placement follows the rules: OSS/SLS/ACR outside VPC, WAF as badge on ALB, DNS not a data-path hop, multi-zone as single nodes.",
+          "MSE is the correct non-Kubernetes answer for service discovery/routing with SAE."
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true,
+        true,
+        false
+      ]
+    },
+    {
+      "id": "p1-ko-residency",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "Korean Fintech Mobile Banking Cloud Architecture",
+      "runs": 5,
+      "passes": 5,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.019,
+      "meanMs": 31467,
+      "judge": {
+        "run": 1,
+        "mean": 3.75,
+        "signoff": false,
+        "scores": [
+          4,
+          4,
+          3,
+          4
+        ],
+        "defects": [
+          "DR 노드(alb-dr, gw-dr, api-dr)가 주 스택과 동일한 zones a,b, 동일 VPC에 배치되어 AZ 장애 시 함께 다운됨 — 차라리 기존 이중 AZ 구성의 자동 페일오버를 설명하거나 별도 AZ/서브넷 구성이 필요",
+          "DR 스택으로의 트래픽 전환 경로(ESA/DNS에서 ALB-DR로의 failover edge)가 없어 실제 전환 동작이 표현되지 않음",
+          "ESA는 글로벌 엣지 서비스이므로 고객 데이터가 해외 엣지를 경유한다는 점에 대한 데이터 레지던시 설명(캐싱 비활성화 등)이 누락",
+          "narration에서 'PolarDB와 Tair의 교차 AZ 복제 활성화'를 언급하지만 다이어그램에 복제 관계나 설정이 반영되지 않음"
+        ],
+        "reasons": [
+          "데이터 반출 금지 요건을 서울 리전 내 AZ 간 DR로 충실히 반영",
+          "DR 구성이 같은 VPC·같은 AZ(a,b)에 중복 스택을 추가한 형태라 실제 재해 복구 효과가 불명확",
+          "ESA가 글로벌 엣지 서비스라 데이터 경유지에 대한 설명이 없음"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "p1-zh-residency",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "Indonesian E-Commerce Cloud Architecture",
+      "runs": 5,
+      "passes": 5,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.017,
+      "meanMs": 24891,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "容灾方案仅限同区域双可用区+备份，未说明可用区级灾难的恢复目标(RTO/RPO)，灾备深度描述偏薄",
+          "DNS节点未分组且标注为resolve hop，符合规则，但narration未提及备份保留策略或跨区域限制的技术实现(如OSS跨区域复制未启用)",
+          "未明确说明Tair会话缓存数据是否纳入备份范围"
+        ],
+        "reasons": [
+          "All components including backup stay in Jakarta (ap-southeast-5), honoring the data residency pin",
+          "Cloud Backup correctly placed as regional service outside VPC with async backup edges from RDS and OSS",
+          "Multi-zone HA for ALB/ECS/Tair/RDS is sound; WAF as badge on ALB and ESS as badge on ECS follow placement rules"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    }
+  ],
+  "warnings": {
+    "preRepairByCode": {
+      "orphan-node": {
+        "total": 4,
+        "perTurn": 0.02,
+        "turns": 3
+      },
+      "containment": {
+        "total": 4,
+        "perTurn": 0.02,
+        "turns": 4
+      },
+      "unknown-id": {
+        "total": 1,
+        "perTurn": 0.005,
+        "turns": 1
+      },
+      "constraint-region": {
+        "total": 1,
+        "perTurn": 0.005,
+        "turns": 1
+      },
+      "attach-host-missing": {
+        "total": 1,
+        "perTurn": 0.005,
+        "turns": 1
+      }
+    },
+    "postRepairByCode": {
+      "orphan-node": {
+        "total": 2,
+        "perTurn": 0.01,
+        "turns": 2
+      },
+      "constraint-region": {
+        "total": 1,
+        "perTurn": 0.005,
+        "turns": 1
+      }
+    },
+    "preRepairBySeverity": {
+      "error": 4,
+      "warn": 4,
+      "info": 3
+    },
+    "postRepairBySeverity": {
+      "info": 2,
+      "warn": 1
+    },
+    "fixesByCode": {
+      "containment": 4,
+      "orphan-node": 2,
+      "attach-host-missing": 1
+    },
+    "unknownProducts": {
+      "count": 0,
+      "top": []
+    },
+    "nonIdProducts": {
+      "count": 0,
+      "top": []
+    }
+  },
+  "latency": {
+    "firstByteMs": {
+      "n": 205,
+      "p50": 1137,
+      "p95": 1692,
+      "mean": 1179,
+      "max": 2328
+    },
+    "perceivedFirstByteMs": {
+      "n": 205,
+      "p50": 1143,
+      "p95": 2215,
+      "mean": 1536,
+      "max": 9668
+    },
+    "firstSayMs": {
+      "n": 205,
+      "p50": 1457,
+      "p95": 2184,
+      "mean": 1521,
+      "max": 2682
+    },
+    "firstOpMs": {
+      "n": 205,
+      "p50": 1918,
+      "p95": 2748,
+      "mean": 1977,
+      "max": 3109
+    },
+    "firstNodeMs": {
+      "n": 200,
+      "p50": 3447,
+      "p95": 4639,
+      "mean": 3492,
+      "max": 5690
+    },
+    "streamMs": {
+      "n": 205,
+      "p50": 6915,
+      "p95": 23299,
+      "mean": 10273,
+      "max": 37493
+    },
+    "turnMs": {
+      "n": 205,
+      "p50": 7862,
+      "p95": 23300,
+      "mean": 10797,
+      "max": 37499
+    },
+    "diagramStreamMs": {
+      "n": 205,
+      "p50": 6915,
+      "p95": 23299,
+      "mean": 10273,
+      "max": 37493
+    },
+    "productStreamMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "editStreamMs": {
+      "n": 140,
+      "p50": 5264,
+      "p95": 8764,
+      "mean": 5642,
+      "max": 11078
+    }
+  },
+  "tokens": {
+    "prompt": 2775984,
+    "cached": 2521344,
+    "cacheHit": 0.908,
+    "completion": 98327,
+    "completionPerTurn": {
+      "n": 205,
+      "p50": 279,
+      "p95": 1205,
+      "mean": 480,
+      "max": 1888
+    },
+    "costPerTurn": {
+      "n": 205,
+      "p50": 0.008,
+      "p95": 0.01513,
+      "mean": 0.00962,
+      "max": 0.0389225
+    },
+    "costPerConversation": {
+      "n": 65,
+      "p50": 0.02559,
+      "p95": 0.07807,
+      "mean": 0.03038,
+      "max": 0.093274
+    },
+    "costUsd": 1.974
+  },
+  "reliability": {
+    "turns": 205,
+    "truncatedMain": 0,
+    "continued": 0,
+    "repairTurns": 0,
+    "hedged": 0,
+    "hedgeWon": 0,
+    "fallbackUsed": 9,
+    "retriedAttempts": 9,
+    "apiFailures": 0,
+    "badLines": 0,
+    "escapes": 0
+  },
+  "failover": {
+    "turns": 9,
+    "rate": 0.044,
+    "byReason": {
+      "first-byte-timeout": 9
+    },
+    "stalledAttemptMs": {
+      "n": 9,
+      "p50": 8212,
+      "p95": 8256,
+      "mean": 8143,
+      "max": 8258
+    },
+    "fallbackFirstByteMs": {
+      "n": 9,
+      "p50": 1233,
+      "p95": 1532,
+      "mean": 1246,
+      "max": 1582
+    },
+    "perceivedFirstByteMs": {
+      "n": 9,
+      "p50": 9446,
+      "p95": 9650,
+      "mean": 9389,
+      "max": 9668
+    },
+    "turnMs": {
+      "n": 9,
+      "p50": 12002,
+      "p95": 15558,
+      "mean": 12814,
+      "max": 15958
+    },
+    "followUpFallbacks": 0,
+    "examples": [
+      {
+        "case": "mt-03-data-in-singapore",
+        "run": 5,
+        "turn": 3,
+        "reasons": [
+          "first-byte-timeout"
+        ],
+        "stalledMs": 8213,
+        "fallbackFirstByteMs": 1233
+      },
+      {
+        "case": "mt-03-data-in-singapore",
+        "run": 5,
+        "turn": 4,
+        "reasons": [
+          "first-byte-timeout"
+        ],
+        "stalledMs": 8023,
+        "fallbackFirstByteMs": 991
+      },
+      {
+        "case": "p1-req-residency-my",
+        "run": 5,
+        "turn": 2,
+        "reasons": [
+          "first-byte-timeout"
+        ],
+        "stalledMs": 8041,
+        "fallbackFirstByteMs": 1582
+      },
+      {
+        "case": "zh-mt-01-avoid-k8s",
+        "run": 5,
+        "turn": 2,
+        "reasons": [
+          "first-byte-timeout"
+        ],
+        "stalledMs": 8258,
+        "fallbackFirstByteMs": 1303
+      },
+      {
+        "case": "zh-mt-01-avoid-k8s",
+        "run": 5,
+        "turn": 3,
+        "reasons": [
+          "first-byte-timeout"
+        ],
+        "stalledMs": 8252,
+        "fallbackFirstByteMs": 1071
+      },
+      {
+        "case": "ko-mt-01-avoid-k8s",
+        "run": 5,
+        "turn": 2,
+        "reasons": [
+          "first-byte-timeout"
+        ],
+        "stalledMs": 8023,
+        "fallbackFirstByteMs": 1295
+      },
+      {
+        "case": "ko-mt-01-avoid-k8s",
+        "run": 5,
+        "turn": 3,
+        "reasons": [
+          "first-byte-timeout"
+        ],
+        "stalledMs": 8020,
+        "fallbackFirstByteMs": 1070
+      },
+      {
+        "case": "mt-05-mixed-five-turns",
+        "run": 5,
+        "turn": 3,
+        "reasons": [
+          "first-byte-timeout"
+        ],
+        "stalledMs": 8248,
+        "fallbackFirstByteMs": 1213
+      },
+      {
+        "case": "mt-05-mixed-five-turns",
+        "run": 5,
+        "turn": 4,
+        "reasons": [
+          "first-byte-timeout"
+        ],
+        "stalledMs": 8212,
+        "fallbackFirstByteMs": 1456
+      }
+    ]
+  },
+  "cutoff": {
+    "truncated": 0,
+    "byCause": {},
+    "rescued": 0,
+    "notRescued": 0,
+    "rescuedPassing": 0,
+    "turnPassRateExcludingRescued": 0.98,
+    "list": []
+  },
+  "constraints": {
+    "residency": {
+      "checks": 75,
+      "passed": 75,
+      "rate": 1,
+      "failing": [],
+      "warnMentions": 1,
+      "correctedByRepair": 0,
+      "scan": {
+        "checks": 75,
+        "passed": 75,
+        "failing": []
+      }
+    },
+    "pins": {
+      "checks": 35,
+      "passed": 33,
+      "rate": 0.943,
+      "failing": [
+        {
+          "case": "p1-req-avoid-fc",
+          "run": 2,
+          "turn": 1,
+          "name": "pinned avoid fc",
+          "detail": "no machine-checkable constraint pinned"
+        },
+        {
+          "case": "p1-req-avoid-fc",
+          "run": 2,
+          "turn": 2,
+          "name": "pinned avoid fc",
+          "detail": "no machine-checkable constraint pinned"
+        }
+      ]
+    },
+    "avoid": {
+      "checks": 155,
+      "passed": 155,
+      "rate": 1
+    },
+    "product": {
+      "turnsWithConstraints": 170,
+      "findingsBefore": {
+        "constraint-region": {
+          "total": 1,
+          "turns": 1,
+          "error": 0
+        }
+      },
+      "findingsAfter": {
+        "constraint-region": {
+          "total": 1,
+          "turns": 1,
+          "error": 0
+        }
+      }
+    }
+  },
+  "repairs": {
+    "fixesByCode": {
+      "containment": {
+        "total": 4,
+        "turns": 4
+      },
+      "orphan-node": {
+        "total": 2,
+        "turns": 1
+      },
+      "attach-host-missing": {
+        "total": 1,
+        "turns": 1
+      }
+    },
+    "followUps": {
+      "turns": 0,
+      "byKind": {},
+      "byFindingCode": {},
+      "list": []
+    }
+  },
+  "i18n": {
+    "en": {
+      "turns": 155,
+      "completionPerTurn": 440,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 13575,
+      "sayLangPass": 155,
+      "sayLangChecks": 155,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    },
+    "ko": {
+      "turns": 25,
+      "completionPerTurn": 635,
+      "ratioVsEnglish": 1.051,
+      "promptPerTurn": 13471,
+      "sayLangPass": 25,
+      "sayLangChecks": 25,
+      "whyLangPass": 25,
+      "whyLangChecks": 25,
+      "escapes": 0
+    },
+    "zh": {
+      "turns": 25,
+      "completionPerTurn": 571,
+      "ratioVsEnglish": 0.972,
+      "promptPerTurn": 13406,
+      "sayLangPass": 25,
+      "sayLangChecks": 25,
+      "whyLangPass": 25,
+      "whyLangChecks": 25,
+      "escapes": 0
+    }
+  },
+  "multiturn": [
+    {
+      "case": "mt-01-avoid-k8s",
+      "turns": 4,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 5,
+          "passed": 5
+        },
+        {
+          "turn": 2,
+          "checks": 5,
+          "passed": 5
+        },
+        {
+          "turn": 3,
+          "checks": 10,
+          "passed": 10
+        },
+        {
+          "turn": 4,
+          "checks": 10,
+          "passed": 10
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "mt-02-serverless-first",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 5,
+          "passed": 5
+        },
+        {
+          "turn": 2,
+          "checks": 5,
+          "passed": 5
+        },
+        {
+          "turn": 3,
+          "checks": 10,
+          "passed": 10
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "mt-03-data-in-singapore",
+      "turns": 4,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 10,
+          "passed": 10
+        },
+        {
+          "turn": 2,
+          "checks": 15,
+          "passed": 15
+        },
+        {
+          "turn": 3,
+          "checks": 10,
+          "passed": 10
+        },
+        {
+          "turn": 4,
+          "checks": 10,
+          "passed": 10
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "mt-04-budget",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 5,
+          "passed": 5
+        },
+        {
+          "turn": 2,
+          "checks": 10,
+          "passed": 10
+        },
+        {
+          "turn": 3,
+          "checks": 5,
+          "passed": 5
+        }
+      ],
+      "finalPassRate": 0.8
+    },
+    {
+      "case": "ko-mt-01-avoid-k8s",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 5,
+          "passed": 5
+        },
+        {
+          "turn": 2,
+          "checks": 5,
+          "passed": 5
+        },
+        {
+          "turn": 3,
+          "checks": 10,
+          "passed": 10
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "zh-mt-01-avoid-k8s",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 5,
+          "passed": 5
+        },
+        {
+          "turn": 2,
+          "checks": 5,
+          "passed": 5
+        },
+        {
+          "turn": 3,
+          "checks": 10,
+          "passed": 10
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "mt-05-mixed-five-turns",
+      "turns": 5,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 10,
+          "passed": 10
+        },
+        {
+          "turn": 2,
+          "checks": 15,
+          "passed": 15
+        },
+        {
+          "turn": 3,
+          "checks": 15,
+          "passed": 15
+        },
+        {
+          "turn": 4,
+          "checks": 15,
+          "passed": 15
+        },
+        {
+          "turn": 5,
+          "checks": 15,
+          "passed": 15
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "mt-06-summary-window",
+      "turns": 5,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 15,
+          "passed": 15
+        },
+        {
+          "turn": 2,
+          "checks": 15,
+          "passed": 15
+        },
+        {
+          "turn": 3,
+          "checks": 15,
+          "passed": 15
+        },
+        {
+          "turn": 4,
+          "checks": 15,
+          "passed": 15
+        },
+        {
+          "turn": 5,
+          "checks": 25,
+          "passed": 25
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "p1-req-residency-my",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 10,
+          "passed": 10
+        },
+        {
+          "turn": 2,
+          "checks": 15,
+          "passed": 15
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "p1-req-avoid-fc",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 5,
+          "passed": 5
+        },
+        {
+          "turn": 2,
+          "checks": 5,
+          "passed": 5
+        }
+      ],
+      "finalPassRate": 0.8
+    },
+    {
+      "case": "p1-avoid-tempted-k8s",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 5,
+          "passed": 5
+        },
+        {
+          "turn": 2,
+          "checks": 5,
+          "passed": 5
+        },
+        {
+          "turn": 3,
+          "checks": 10,
+          "passed": 10
+        }
+      ],
+      "finalPassRate": 0.8
+    },
+    {
+      "case": "p1-ko-residency",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 5,
+          "passed": 5
+        },
+        {
+          "turn": 2,
+          "checks": 10,
+          "passed": 10
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "p1-zh-residency",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 10,
+          "passed": 10
+        },
+        {
+          "turn": 2,
+          "checks": 15,
+          "passed": 15
+        }
+      ],
+      "finalPassRate": 1
+    }
+  ],
+  "judge": {
+    "model": "kimi-k3",
+    "judged": 13,
+    "runsJudged": 65,
+    "constraintRuns": {
+      "runs": 65,
+      "signoff": 0.923,
+      "overall": 4.388,
+      "noSignoff": [
+        {
+          "case": "mt-04-budget",
+          "run": 1,
+          "defects": [
+            "Elasticsearch 'Listings Search' remains single-zone while the user asked to make the app highly available; no note explaining the exception",
+            "Pinned budget of under $200/month is acknowledged as likely breached with no alternative or cost-control recommendation",
+            "ALB is already multi-zone by design; marking it zones a,b is redundant though harmless"
+          ]
+        },
+        {
+          "case": "mt-04-budget",
+          "run": 3,
+          "defects": [
+            "GTM added for cross-region DNS failover but there is only one region (Singapore) and no second region is proposed or budgeted; GTM is a dangling node with no real failover target",
+            "Turn 3 narration claims HA is achieved, but db uses RDS MySQL Basic edition (single-node, no standby), so the database is a single point of failure; should be High-availability edition with a note on cost",
+            "Adding GTM plus already-added Elasticsearch likely pushes the total over the pinned $200/month budget, and the answer never reconciles this"
+          ]
+        },
+        {
+          "case": "mt-04-budget",
+          "run": 4,
+          "defects": [
+            "Final design exceeds the pinned $200/month budget without offering a cost-saving variant (e.g., keep search single-zone, smaller RDS HA, or SAE)",
+            "Making Elasticsearch multi-zone is the least cost-effective HA choice for a startup MVP; search resilience could be sacrificed",
+            "No load balancer or SLB mentioned for the two-zone web tier, so users->web directly to a multi-zone ECS node glosses over how traffic reaches both zones"
+          ]
+        },
+        {
+          "case": "mt-04-budget",
+          "run": 5,
+          "defects": [
+            "App + DB on the same ECS nodes labeled 'zones a,b' implies multi-zone DB, but ECS with local disk cannot span zones; no RDS or replication is specified, so the database tier is not actually highly available",
+            "Full-text search (turn 2 requirement) has no corresponding node or config in the final state; the design silently dropped it",
+            "ALB added for HA but the app nodes are a single ECS resource stretched across zones rather than two instances behind the ALB, which misrepresents how ECS/ALB HA works"
+          ]
+        },
+        {
+          "case": "p1-ko-residency",
+          "run": 1,
+          "defects": [
+            "DR 노드(alb-dr, gw-dr, api-dr)가 주 스택과 동일한 zones a,b, 동일 VPC에 배치되어 AZ 장애 시 함께 다운됨 — 차라리 기존 이중 AZ 구성의 자동 페일오버를 설명하거나 별도 AZ/서브넷 구성이 필요",
+            "DR 스택으로의 트래픽 전환 경로(ESA/DNS에서 ALB-DR로의 failover edge)가 없어 실제 전환 동작이 표현되지 않음",
+            "ESA는 글로벌 엣지 서비스이므로 고객 데이터가 해외 엣지를 경유한다는 점에 대한 데이터 레지던시 설명(캐싱 비활성화 등)이 누락"
+          ]
+        }
+      ]
+    },
+    "errors": 0,
+    "means": {
+      "completeness": 4.692,
+      "accuracy": 4.308,
+      "rationality": 4,
+      "readability": 4.308,
+      "overall": 4.327
+    },
+    "signoffRate": 0.846,
+    "byCategory": {
+      "multiturn": {
+        "n": 9,
+        "overall": 4.417,
+        "signoff": 0.889
+      },
+      "i18n": {
+        "n": 4,
+        "overall": 4.125,
+        "signoff": 0.75
+      }
+    },
+    "agreement": {
+      "n": 13,
+      "agree": 11,
+      "rate": 0.846,
+      "tp": 11,
+      "tn": 0,
+      "fp": 2,
+      "fn": 0,
+      "meanScorePass": 4.327,
+      "meanScoreFail": null,
+      "pointBiserial": null,
+      "disagreements": [
+        {
+          "case": "mt-04-budget",
+          "run": 1,
+          "assertions": "pass",
+          "judge": "no",
+          "failed": [],
+          "defects": [
+            "Elasticsearch 'Listings Search' remains single-zone while the user asked to make the app highly available; no note explaining the exception",
+            "Pinned budget of under $200/month is acknowledged as likely breached with no alternative or cost-control recommendation",
+            "ALB is already multi-zone by design; marking it zones a,b is redundant though harmless"
+          ]
+        },
+        {
+          "case": "p1-ko-residency",
+          "run": 1,
+          "assertions": "pass",
+          "judge": "no",
+          "failed": [],
+          "defects": [
+            "DR 노드(alb-dr, gw-dr, api-dr)가 주 스택과 동일한 zones a,b, 동일 VPC에 배치되어 AZ 장애 시 함께 다운됨 — 차라리 기존 이중 AZ 구성의 자동 페일오버를 설명하거나 별도 AZ/서브넷 구성이 필요",
+            "DR 스택으로의 트래픽 전환 경로(ESA/DNS에서 ALB-DR로의 failover edge)가 없어 실제 전환 동작이 표현되지 않음",
+            "ESA는 글로벌 엣지 서비스이므로 고객 데이터가 해외 엣지를 경유한다는 점에 대한 데이터 레지던시 설명(캐싱 비활성화 등)이 누락"
+          ]
+        }
+      ]
+    },
+    "costUsd": 0.715
+  },
+  "failures": [
+    {
+      "case": "p1-req-avoid-fc",
+      "category": "multiturn",
+      "run": 2,
+      "turn": 1,
+      "type": "pins",
+      "name": "pinned avoid fc",
+      "detail": "no machine-checkable constraint pinned"
+    },
+    {
+      "case": "p1-req-avoid-fc",
+      "category": "multiturn",
+      "run": 2,
+      "turn": 2,
+      "type": "pins",
+      "name": "pinned avoid fc",
+      "detail": "no machine-checkable constraint pinned"
+    },
+    {
+      "case": "mt-04-budget",
+      "category": "multiturn",
+      "run": 5,
+      "turn": 2,
+      "type": "editMinimal",
+      "name": "edit {\"minChanged\":1}",
+      "detail": "{\"nodeAdds\":0,\"nodeRemoves\":0,\"nodeUpdates\":0,\"edgeAdds\":0,\"edgeRemoves\":0}"
+    },
+    {
+      "case": "p1-avoid-tempted-k8s",
+      "category": "multiturn",
+      "run": 5,
+      "turn": 3,
+      "type": "attachValid",
+      "name": "every attachment names a valid host",
+      "detail": "'scaling' attaches to 'api': 'api' (sae) is not an attach host for ess"
+    }
+  ]
+}
