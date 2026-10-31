@@ -12,6 +12,7 @@ import './canvas.css';
 import { ARCH_X0, GEOMETRY, cardBounds, fitCamera } from '@ali/core/layout.ts';
 import type { LayoutState, Rect } from '@ali/core/layout.ts';
 import type { CanvasProps } from '../app/contracts.ts';
+import { TOOLS } from '../app/tools.ts';
 import { planEdges } from '../routing/plan.ts';
 import { routeChannels } from '../routing/channel.ts';
 import { routeWithBudget, ROUTE_BUDGET_MS } from '../routing/budget.ts';
@@ -98,6 +99,7 @@ interface RoutingNote {
   edges: number;
 }
 function noteRouting(n: RoutingNote): void {
+  if (!TOOLS) return;
   const w = window as unknown as { __abCanvas?: { routing: RoutingNote[] } };
   const log = (w.__abCanvas ??= { routing: [] }).routing;
   log.push(n);

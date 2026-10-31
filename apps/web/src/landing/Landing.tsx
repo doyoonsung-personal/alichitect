@@ -6,6 +6,7 @@ import { BrandMark } from '../brand/BrandMark.tsx';
 import { Icon } from '../shell/Icon.tsx';
 import { LanguageSwitch, SessionsMenu } from '../shell/controls.tsx';
 import { OfflineNotice } from '../shell/OfflineNotice.tsx';
+import { AccountMenu } from '../shell/AccountMenu.tsx';
 import { useAppState, useController, useT } from '../store/react.tsx';
 import { catalog as bundled } from '../catalog/catalog.ts';
 import { DEFAULT_MAX_ASK_CHARS } from '@ali/core/prompt.ts';
@@ -27,12 +28,14 @@ const EXAMPLES = examples.examples as Example[];
 
 const selConn = (s: AppState) => s.conn;
 const selHandoff = (s: AppState) => s.ui.handoff;
+const selDraft = (s: AppState) => s.ui.composerDraft;
 
 export function Landing(): ReactElement {
   const { lang, t } = useT();
   const c = useController();
   const conn = useAppState(selConn);
   const handoff = useAppState(selHandoff);
+  const draft = useAppState(selDraft);
   const [text, setText] = useState('');
   const [composing, setComposing] = useState(false);
   const [notice, setNotice] = useState<'offline' | null>(null);
@@ -48,6 +51,14 @@ export function Landing(): ReactElement {
   useEffect(() => {
     box.current?.focus();
   }, []);
+
+  // a brief that the end of the session cut off comes back after sign-in (the controller puts it in the draft)
+  const draftSeq = draft?.seq;
+  useEffect(() => {
+    if (!draft) return;
+    setText((cur) => cur || draft.text);
+    c.draftTaken();
+  }, [draft, draftSeq, c]);
 
   // grows from 136 to 280 px with its content, then scrolls inside
   useLayoutEffect(() => {
@@ -91,6 +102,7 @@ export function Landing(): ReactElement {
       <div className="landing__util">
         <LanguageSwitch />
         <SessionsMenu />
+        <AccountMenu />
       </div>
       <div className="landing__stack">
         <h1 className="landing__lockup">

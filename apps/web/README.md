@@ -11,7 +11,9 @@ Design truth: `PRODUCT.md`, `.impeccable/surfaces/app.md` (direction), `.impecca
 | `npm run dev` | Vite on **5174** (strict), `/api` proxied to `http://127.0.0.1:8787` (`API_TARGET` overrides) |
 | `npm run typecheck` | strict `tsc` |
 | `npm test` | `node:test` over `src/**` and `scripts/**` (the alias hook `scripts/alias.mjs` maps `@ali/core` for Node) |
-| `npm run build` | production build to `dist/` |
+| `npm run build` | production build to `dist/` (what the Worker serves), then `check:dist` |
+| `npm run check:dist` | fails if a test or demo tool is in `dist/`; prints the file count and size against the Workers static-asset limits |
+| `vite build --mode review` | the same app with the tools on, for the screenshot and check scripts (`flow.mjs` and `motion/*` build this way) |
 | `npm run replay:build` | rebuilds `src/replay/fixtures/*.json` from `eval/results` and `research/probes/streams.json` (read-only) |
 | `npm run replay:asks` | rewrites only the four `asks-*` fixtures and their manifest entries (no eval results needed) |
 | `npm run icons:ui` | regenerates `src/shell/ui-icons.generated.ts` from `.qwen/icons.json` |
@@ -24,7 +26,25 @@ Design truth: `PRODUCT.md`, `.impeccable/surfaces/app.md` (direction), `.impecca
 | `node --import ./scripts/alias.mjs scripts/finish/render-pdf.ts <pdf> <dir>` | renders an exported proposal's pages to PNG with pdf.js and prints page sizes |
 | `node scripts/finish/sheet.mjs <out.png> <cols> <width> <png>...` | a contact sheet of screenshots, to review many in one look |
 
-Open `http://127.0.0.1:5174/?replay=<id>&speed=1x|4x|instant&lang=en|ko|zh` to play a recorded conversation with no server.
+Open `http://127.0.0.1:5174/?replay=<id>&speed=1x|4x|instant&lang=en|ko|zh` to play a recorded conversation with no server (development and review builds only, see below).
+
+## Production build and the test tools
+
+`npm run build` is the build the Worker serves at architect.alikorea-demo.com. `src/app/tools.ts` reads `__AB_TOOLS__`, which `vite.config.ts` sets to true for `vite` and `vite build --mode review`, and to false for the production build. Behind it, and so absent from `dist/`:
+
+- `window.__ab` (the store and controller) and `window.__abCanvas` (the routing log);
+- the `?replay=` and `?speed=` URL switches;
+- the synthetic replay sessions (`stub-*`, `asks-*`) and `chinese-fix`.
+
+The seven real recordings stay (`ecommerce`, `ecommerce-k8s`, `ha`, `residency`, `ai-agent`, `korean`, `chinese`, about 200 kB, each its own chunk loaded only on click) because the offline notice's "Replay a recorded session" button plays them: when the drawing service does not answer, a presenter still has a drawing to show. `scripts/check-dist.mjs` runs after every `npm run build` and fails it if any of the tools is found.
+
+## The hosted Worker
+
+Only `apps/worker` has these routes; the local turn server has none of them and the app behaves as before.
+
+- **Account control** (`src/shell/AccountMenu.tsx`, the same `Menu` as Sessions): GET `/api/me` once at boot and again after each turn. It shows the name (else the address), today's turns against the quota (admins: no limit, with the reset time in the person's own zone), Account settings, Admin (admins only) and Sign out (a form POST to the address `/api/me` names). It is in the working header and at the top right of the landing. When `/api/me` fails or is not JSON in the Worker's shape, nothing renders.
+- **The session ends mid-turn** (`src/app/controller.ts`, `src/stream/account.ts`): a fatal `signed-out` (401, or a 401 with no body) sends the page to `/login?next=<this path>`, and `not-approved` to `/pending`. The ask is kept in `sessionStorage` (`ab.pending.ask`) and put back in the composer, or the landing box, after sign-in. A `{ ok: true }` answer from `/api/health` (the Worker is up but no longer knows this browser) does the same when Try again is pressed. One trip to the same page in 15 s at most, so a Worker that disagreed with itself could not loop the tab.
+- **Every other fatal code** (`quota-exceeded`, `user-busy`, `rate-limited`, any unknown code) shows the server's own message, already in the person's language, in the failed revision.
 
 ## Replay fixtures
 

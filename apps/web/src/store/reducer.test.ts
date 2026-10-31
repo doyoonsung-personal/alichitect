@@ -354,3 +354,18 @@ test('requirement states from the commit warnings: error-level is Not met, warni
   assert.ok(withWarnings('error').every((r) => r.state === 'broken' && r.stateRev === 1));
   assert.ok(withWarnings('warn').every((r) => r.state === 'atRisk'));
 });
+
+test('a draft stays until the composer takes it, then it is gone; the account survives a new session', () => {
+  const store = newStore();
+  store.dispatch({ type: 'ui/draft', text: 'an ask kept across sign-in' });
+  assert.equal(store.getState().ui.composerDraft?.text, 'an ask kept across sign-in');
+  store.dispatch({ type: 'ui/draftTaken' });
+  assert.equal(store.getState().ui.composerDraft, null);
+  const before = store.getState();
+  store.dispatch({ type: 'ui/draftTaken' });
+  assert.equal(store.getState(), before, 'nothing to take: the state object is unchanged');
+  const account = { email: 'mina@example.com', name: 'Mina Park', role: 'member' as const, turnsToday: 2, turnsPerDay: 60, links: { account: '/account', admin: null, signOut: '/auth/logout' } };
+  store.dispatch({ type: 'account/set', account });
+  store.dispatch({ type: 'session/new', id: 'fresh', now: 5 });
+  assert.deepEqual(store.getState().account, account);
+});

@@ -52,6 +52,8 @@ export interface ConsoleActions {
   unpin(text: string): void;
   undoUnpin(): void;
   clearToast(): void;
+  /** Call once the draft is in the composer; the shell then forgets it (so it cannot be applied again). */
+  draftTaken(): void;
   /** Highlight cards on the canvas while a change line, a revision tag or a row is hovered or focused. Pass null to clear. */
   highlight(h: Highlight | null): void;
   /** Pan the canvas to cards (click or Enter on a source, never on hover). */

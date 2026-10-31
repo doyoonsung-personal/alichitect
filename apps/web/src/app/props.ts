@@ -39,6 +39,7 @@ export function useConsoleProps(): ConsoleProps {
       unpin: c.unpin,
       undoUnpin: c.undoUnpin,
       clearToast: c.clearToast,
+      draftTaken: c.draftTaken,
       highlight: c.highlight,
       panTo: c.panTo,
       checkHealth: c.checkHealth,

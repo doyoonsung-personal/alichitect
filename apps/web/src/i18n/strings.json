@@ -235,7 +235,20 @@
     "ask.answer": "Answer: {answer}",
     "ask.replied": "Replied in revision {n}",
     "live.asked": "Qwen asks: {text}",
-    "live.askedMore": "Qwen has {count} questions. First: {text}"
+    "live.askedMore": "Qwen has {count} questions. First: {text}",
+    "account.menu": "Account",
+    "account.turnsToday": "Turns today",
+    "account.turnsOf": "{used} of {limit}",
+    "account.turnsUnlimited": "{used}, no limit",
+    "account.resets": "Resets at {time}",
+    "account.limitReached": "Daily limit reached. Resets at {time}.",
+    "account.settings": "Account settings",
+    "account.settingsMeta": "Name, password",
+    "account.admin": "Admin",
+    "account.adminMeta": "Requests and access",
+    "account.signOut": "Sign out",
+    "offline.bodyHosted": "The drawing service did not answer. Check your connection, then try again. Recorded sessions still replay.",
+    "error.signedOut": "Your session ended. Sign in again to continue. Your diagram is unchanged."
   },
   "ko": {
     "app.name": "아키텍처 빌더",
@@ -472,7 +485,20 @@
     "ask.answer": "답변: {answer}",
     "ask.replied": "리비전 {n}에서 답변함",
     "live.asked": "Qwen의 질문: {text}",
-    "live.askedMore": "Qwen의 질문이 {count}개 있습니다. 첫 번째: {text}"
+    "live.askedMore": "Qwen의 질문이 {count}개 있습니다. 첫 번째: {text}",
+    "account.menu": "계정",
+    "account.turnsToday": "오늘 사용한 요청",
+    "account.turnsOf": "{used} / {limit}회",
+    "account.turnsUnlimited": "{used}회, 제한 없음",
+    "account.resets": "{time}에 초기화",
+    "account.limitReached": "일일 한도에 도달했습니다. {time}에 초기화됩니다.",
+    "account.settings": "계정 설정",
+    "account.settingsMeta": "이름, 비밀번호",
+    "account.admin": "관리자",
+    "account.adminMeta": "요청 및 접근 관리",
+    "account.signOut": "로그아웃",
+    "offline.bodyHosted": "그리기 서비스가 응답하지 않습니다. 연결을 확인한 후 다시 시도해 주세요. 기록된 세션은 계속 재생할 수 있습니다.",
+    "error.signedOut": "세션이 종료되었습니다. 계속하려면 다시 로그인해 주세요. 다이어그램은 변경되지 않았습니다."
   },
   "zh": {
     "app.name": "架构构建器",
@@ -709,6 +735,19 @@
     "ask.answer": "回答：{answer}",
     "ask.replied": "已在修订 {n} 中回复",
     "live.asked": "Qwen 提问：{text}",
-    "live.askedMore": "Qwen 有 {count} 个问题。第一个：{text}"
+    "live.askedMore": "Qwen 有 {count} 个问题。第一个：{text}",
+    "account.menu": "账号",
+    "account.turnsToday": "今日请求",
+    "account.turnsOf": "{used} / {limit} 次",
+    "account.turnsUnlimited": "{used} 次，无限制",
+    "account.resets": "{time} 重置",
+    "account.limitReached": "已达每日上限。将于 {time} 重置。",
+    "account.settings": "账号设置",
+    "account.settingsMeta": "姓名、密码",
+    "account.admin": "管理员",
+    "account.adminMeta": "申请与访问权限",
+    "account.signOut": "退出登录",
+    "offline.bodyHosted": "绘图服务没有响应。请检查网络连接后重试。已录制的会话仍可回放。",
+    "error.signedOut": "会话已结束。请重新登录后继续。您的图表未更改。"
   }
 }

@@ -32,13 +32,41 @@ function turnResponse(fx: Fixture, turn = 0, upTo = Infinity): Response {
   );
 }
 
-function setup(o: { health?: unknown; turn?: () => Response | Promise<Response>; sessions?: ReturnType<typeof createSessionStore>; resumeId?: string | null } = {}) {
+const ME = { email: 'mina@example.com', name: 'Mina Park', role: 'member', status: 'approved', lang: 'en', createdAt: 1, turnsToday: 3, turnsPerDay: 60, links: { account: '/account', admin: null, signOut: '/auth/logout' } };
+const json = (body: unknown, status = 200): Response => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+
+function setup(o: { health?: unknown; me?: unknown | (() => unknown); turn?: () => Response | Promise<Response>; sessions?: ReturnType<typeof createSessionStore>; resumeId?: string | null; hosted?: boolean; leaveOk?: boolean; keptAsk?: string } = {}) {
   const store = newStore();
   const timers = new Map<number, () => void>();
   let n = 0;
   const sessions = o.sessions ?? createSessionStore(memStorage());
   const requests: Array<{ url: string; body?: unknown }> = [];
+  const left: string[] = [];
+  const kept: string[] = [];
+  let pendingAsk: string | null = o.keptAsk ?? null;
+  let signedOutVia: string | null = null;
   const env: ControllerEnv = {
+    ...(o.hosted
+      ? {
+          leave: (to: string) => {
+            left.push(to);
+            return o.leaveOk !== false;
+          },
+          path: () => '/?x=1',
+          keepAsk: (a: string) => {
+            kept.push(a);
+            pendingAsk = a;
+          },
+          takeAsk: () => {
+            const a = pendingAsk;
+            pendingAsk = null;
+            return a;
+          },
+          signOut: (url: string) => {
+            signedOutVia = url;
+          },
+        }
+      : {}),
     sessions,
     now: () => Date.now(),
     setTimeout: (fn) => {
@@ -60,6 +88,11 @@ function setup(o: { health?: unknown; turn?: () => Response | Promise<Response>;
     fetchImpl: (async (url: string, init?: RequestInit) => {
       requests.push({ url, body: init?.body ? JSON.parse(String(init.body)) : undefined });
       if (String(url).endsWith('/api/health')) return o.health === null ? Promise.reject(new TypeError('fetch failed')) : new Response(JSON.stringify(o.health ?? HEALTH));
+      // the local turn server has no /api/me
+      if (String(url).endsWith('/api/me')) {
+        const me = typeof o.me === 'function' ? (o.me as () => unknown)() : o.me;
+        return me === undefined ? json({ error: 'not-found' }, 404) : json(me, me === null ? 401 : 200);
+      }
       return o.turn ? o.turn() : turnResponse(loadFixtureFile('ha'));
     }) as typeof fetch,
   };
@@ -70,7 +103,7 @@ function setup(o: { health?: unknown; turn?: () => Response | Promise<Response>;
       fn();
     }
   };
-  return { store, c, sessions, requests, flushTimers };
+  return { store, c, sessions, requests, flushTimers, left, kept, signedOutVia: () => signedOutVia };
 }
 
 async function until(f: () => boolean, ms = 3000): Promise<void> {
@@ -213,4 +246,101 @@ test('a refresh reopens the session the tab was showing; a new tab, an unsaved i
     await fresh.c.boot();
     assert.equal(fresh.store.getState().view, 'landing');
   }
+});
+
+// ---------- the hosted Worker: account and session handoffs ----------
+
+const fatalResponse = (status: number, code: string, message: string): Response => json({ type: 'fatal', code, message, retryable: false }, status);
+
+test('boot reads /api/me into the store; the local server has no such route and leaves no account', async () => {
+  const hosted = setup({ hosted: true, me: ME });
+  await hosted.c.boot();
+  await until(() => hosted.store.getState().account !== null);
+  assert.equal(hosted.store.getState().account?.name, 'Mina Park');
+  assert.equal(hosted.store.getState().account?.turnsPerDay, 60);
+  const local = setup();
+  await local.c.boot();
+  await new Promise((r) => setTimeout(r, 30));
+  assert.equal(local.store.getState().account, null);
+  assert.equal(local.store.getState().conn.mode, 'live', 'the missing route changes nothing else');
+});
+
+test('the usage count is read again after a turn, and a failed read keeps the last account', async () => {
+  let used = 3;
+  let down = false;
+  const t = setup({ hosted: true, me: () => (down ? null : { ...ME, turnsToday: used }) });
+  await t.c.boot();
+  await until(() => t.store.getState().account !== null);
+  assert.equal(t.store.getState().account?.turnsToday, 3);
+  used = 4;
+  t.c.submit('We run an online store');
+  await until(() => t.store.getState().account?.turnsToday === 4);
+  down = true;
+  await t.c.loadAccount();
+  assert.equal(t.store.getState().account?.turnsToday, 4, 'a failed read keeps the last account');
+});
+
+test('a 401 signed-out fatal sends the person to /login?next=<this page> and keeps the ask for after sign-in', async () => {
+  const t = setup({ hosted: true, me: ME, turn: () => fatalResponse(401, 'signed-out', 'Your session ended.') });
+  await t.c.boot();
+  t.c.submit('We run an online store');
+  await until(() => t.left.length > 0);
+  assert.deepEqual(t.left, ['/login?next=%2F%3Fx%3D1']);
+  assert.deepEqual(t.kept, ['We run an online store']);
+});
+
+test('after sign-in the kept ask comes back as the draft', async () => {
+  const t = setup({ hosted: true, me: ME, keptAsk: 'We run an online store' });
+  await t.c.boot();
+  assert.equal(t.store.getState().ui.composerDraft?.text, 'We run an online store');
+  const next = setup({ hosted: true, me: ME });
+  await next.c.boot();
+  assert.equal(next.store.getState().ui.composerDraft, null, 'nothing is invented');
+});
+
+test('not-approved goes to /pending; quota, busy, rate-limited and unknown codes stay in the console with the server words', async () => {
+  const a = setup({ hosted: true, me: ME, turn: () => fatalResponse(403, 'not-approved', 'Waiting for approval.') });
+  await a.c.boot();
+  a.c.submit('We run an online store');
+  await until(() => a.left.length > 0);
+  assert.deepEqual(a.left, ['/pending']);
+  for (const [status, code, message] of [
+    [429, 'quota-exceeded', 'Du har brugt dagens 60 ture.'],
+    [409, 'user-busy', 'Another turn is running.'],
+    [429, 'rate-limited', '요청이 너무 많습니다.'],
+    [500, 'something-new', '新的错误说明'],
+  ] as const) {
+    const t = setup({ hosted: true, me: ME, turn: () => fatalResponse(status, code, message) });
+    await t.c.boot();
+    t.c.submit('We run an online store');
+    await until(() => t.store.getState().session.revisions[0]?.status === 'failed');
+    assert.deepEqual(t.left, [], `${code} does not leave the page`);
+    assert.equal(t.store.getState().session.revisions[0].error?.message, message, `${code} shows the server's message`);
+  }
+});
+
+test('a 401 without a usable body is treated as signed-out too; when the page may not leave, the error stays', async () => {
+  const t = setup({ hosted: true, me: ME, leaveOk: false, turn: () => new Response('nope', { status: 401 }) });
+  await t.c.boot();
+  t.c.submit('We run an online store');
+  await until(() => t.left.length > 0);
+  await until(() => t.store.getState().session.revisions[0]?.status === 'failed');
+  assert.equal(t.store.getState().session.revisions[0].error?.code, 'http-401');
+});
+
+test('Try again after the Worker only said { ok: true }: the session ended while the page was open', async () => {
+  const t = setup({ hosted: true, me: ME, health: { ok: true } });
+  await t.c.boot();
+  assert.deepEqual(t.left, ['/login?next=%2F%3Fx%3D1']);
+  assert.equal(t.store.getState().conn.mode, 'offline');
+});
+
+test('sign out posts to the address /api/me gave', async () => {
+  const t = setup({ hosted: true, me: ME });
+  t.c.signOut();
+  assert.equal(t.signedOutVia(), null, 'nothing to do before the account is known');
+  await t.c.boot();
+  await until(() => t.store.getState().account !== null);
+  t.c.signOut();
+  assert.equal(t.signedOutVia(), '/auth/logout');
 });

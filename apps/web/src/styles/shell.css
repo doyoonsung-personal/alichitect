@@ -131,6 +131,79 @@
   min-width: 320px;
 }
 
+.menu--account .menu__list {
+  min-width: 288px;
+}
+
+a.menu__item {
+  text-decoration: none;
+}
+
+/* The account menu: who, then today's turns. Read-only lines above the items, in the menu's own type scale. */
+.menu__who {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu__head {
+  padding: 8px 12px 10px;
+}
+
+.menu__head p {
+  margin: 0;
+}
+
+.acct__name {
+  font-size: var(--t-14);
+  line-height: var(--lh-14);
+  font-weight: var(--w-medium);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.acct__email {
+  font-size: var(--t-12);
+  line-height: var(--lh-12);
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+
+.menu__head .acct__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-5);
+  margin-top: var(--s-4);
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+}
+
+.acct__label {
+  color: var(--ink-2);
+}
+
+.acct__num {
+  color: var(--ink);
+  font-weight: var(--w-medium);
+  font-variant-numeric: var(--num);
+  text-align: right;
+}
+
+.menu__head .acct__reset {
+  margin-top: var(--s-1);
+  font-size: var(--t-12);
+  line-height: var(--lh-12);
+  color: var(--ink-3);
+  font-variant-numeric: var(--num);
+}
+
+.menu__head .acct__num--out,
+.menu__head .acct__reset--out {
+  color: var(--danger);
+}
+
 .menu__item {
   display: flex;
   flex-direction: column;

@@ -5,6 +5,7 @@ import type { ApplyCtx } from '@ali/core/reducer.ts';
 import type { LayoutState } from '@ali/core/layout.ts';
 import type { Lang } from '../i18n/t.ts';
 import type { Health, Phase, StatusCode } from '../stream/events.ts';
+import type { Account } from '../stream/account.ts';
 
 // ---------- the record: revisions, change lines, requirements ----------
 
@@ -299,6 +300,8 @@ export interface AppState {
   lang: Lang;
   view: 'landing' | 'working';
   conn: { mode: ConnMode; health: Health | null; checkedAt: number | null };
+  /** Who is signed in, from GET /api/me on the hosted Worker. null on the local server, which has no such route. */
+  account: Account | null;
   session: SessionRecord;
   turn: TurnStatus;
   work: TurnWork | null;

@@ -21,7 +21,7 @@ const ONLY_EXTRA = args.includes('--no-390');
 // The app is built once and served by `vite preview`, so a Phase 1a edit in packages/core cannot hot-reload a page mid-run.
 const DIST = path.resolve(arg('--dist', path.join(process.env.TEMP ?? WEB, 'ab-flow-dist')));
 if (!args.includes('--no-build')) {
-  const b = spawnSync(process.execPath, ['node_modules/vite/bin/vite.js', 'build', '--outDir', DIST, '--emptyOutDir'], { cwd: WEB, encoding: 'utf8' });
+  const b = spawnSync(process.execPath, ['node_modules/vite/bin/vite.js', 'build', '--mode', 'review', '--outDir', DIST, '--emptyOutDir'], { cwd: WEB, encoding: 'utf8' });
   if (b.status !== 0) { process.stdout.write(b.stdout + b.stderr); process.exit(1); }
 }
 async function startVite(apiTarget, skip = new Set()) {

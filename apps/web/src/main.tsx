@@ -11,6 +11,7 @@ import { catalog } from './catalog/catalog.ts';
 import { langFromTag, isLang } from './i18n/t.ts';
 import type { Lang } from './i18n/t.ts';
 import { loadFixture } from './replay/registry.ts';
+import { TOOLS } from './app/tools.ts';
 import { createInitialState } from './store/reducer.ts';
 import { AppProvider } from './store/react.tsx';
 import { createSessionStore } from './store/sessions.ts';
@@ -46,7 +47,51 @@ function tabSession(): string | null {
     return null;
   }
 }
-const resumeId = new URLSearchParams(location.search).has('replay') ? null : tabSession();
+const resumeId = TOOLS && new URLSearchParams(location.search).has('replay') ? null : tabSession();
+
+// The ask of a turn that the end of the session cut off, kept in this tab across the trip to /login.
+const ASK_KEY = 'ab.pending.ask';
+function keepAsk(ask: string): void {
+  try {
+    sessionStorage.setItem(ASK_KEY, ask.slice(0, 20000));
+  } catch {
+    /* storage unavailable: the ask is lost, the diagram is not */
+  }
+}
+function takeAsk(): string | null {
+  try {
+    const v = sessionStorage.getItem(ASK_KEY);
+    sessionStorage.removeItem(ASK_KEY);
+    return v;
+  } catch {
+    return null;
+  }
+}
+
+// One trip to the same Worker page in 15 s. If the Worker sent the page straight back (it should never), the error
+// stays on screen instead of the page looping between /login and the app.
+const LEAVE_KEY = 'ab.auth.left';
+function leave(to: string): boolean {
+  try {
+    const [at, where] = (sessionStorage.getItem(LEAVE_KEY) ?? '').split(' ');
+    if (where === to && Date.now() - Number(at) < 15000) return false;
+    sessionStorage.setItem(LEAVE_KEY, `${Date.now()} ${to}`);
+  } catch {
+    /* no storage: no guard either */
+  }
+  location.assign(to);
+  return true;
+}
+
+// Sign out is a same-origin form POST (the Worker checks Origin), so the browser follows its redirect to /login.
+function signOut(url: string): void {
+  const f = document.createElement('form');
+  f.method = 'post';
+  f.action = url;
+  f.hidden = true;
+  document.body.appendChild(f);
+  f.submit();
+}
 
 const lang = storedLang();
 document.documentElement.lang = lang;
@@ -63,6 +108,11 @@ const controller = createController(store, {
   search: location.search,
   setLanguage,
   resumeId,
+  leave,
+  path: () => location.pathname + location.search,
+  keepAsk,
+  takeAsk,
+  signOut,
 });
 
 store.subscribe(() => {
@@ -76,8 +126,9 @@ store.subscribe(() => {
   }
 });
 
-// handles for headless checks and the builders' screenshots: window.__ab.store.getState(), window.__ab.controller.startReplay('ha')
-(window as unknown as { __ab: unknown }).__ab = { store, controller };
+// handles for headless checks and the builders' screenshots: window.__ab.store.getState(), window.__ab.controller.startReplay('ha').
+// Not in the production build (src/app/tools.ts).
+if (TOOLS) (window as unknown as { __ab: unknown }).__ab = { store, controller };
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -2,6 +2,7 @@
 // the working view. Try again re-checks /api/health; Replay plays a recorded session through the same pipeline.
 import type { ReactElement } from 'react';
 import type { TFn } from '../i18n/t.ts';
+import { TOOLS } from '../app/tools.ts';
 
 export interface OfflineNoticeProps {
   t: TFn;
@@ -16,7 +17,8 @@ export function OfflineNotice(p: OfflineNoticeProps): ReactElement {
   return (
     <section className={`notice ${p.className ?? ''}`} aria-label={p.t('offline.title')} role="status">
       <h2 className="notice__title">{p.t('offline.title')}</h2>
-      <p className="notice__body">{p.t('offline.body')}</p>
+      {/* the local-server wording belongs to the dev and review builds; the production build is the hosted app */}
+      <p className="notice__body">{p.t(TOOLS ? 'offline.body' : 'offline.bodyHosted')}</p>
       <div className="notice__actions">
         <button type="button" className="btn btn--secondary" onClick={p.onRetry} disabled={p.checking}>
           {p.checking ? p.t('offline.checking') : p.t('offline.retry')}

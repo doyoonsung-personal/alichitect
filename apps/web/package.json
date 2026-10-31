@@ -6,7 +6,8 @@
   "description": "Alibaba Cloud architecture builder: landing prompt, revision console, canvas and products panel",
   "scripts": {
     "dev": "vite --port 5174 --strictPort",
-    "build": "vite build",
+    "build": "vite build && node scripts/check-dist.mjs",
+    "check:dist": "node scripts/check-dist.mjs",
     "preview": "vite preview --port 5174 --strictPort",
     "typecheck": "tsc -p tsconfig.json",
     "test": "node --import ./scripts/alias.mjs --test \"src/**/*.test.ts\" \"scripts/**/*.test.ts\"",

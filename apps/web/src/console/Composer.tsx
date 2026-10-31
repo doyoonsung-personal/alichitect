@@ -24,12 +24,13 @@ export function Composer({ ctx }: { ctx: ConsoleCtx }): ReactElement {
   const empty = !text.trim();
   const canSend = !empty && !tooLong && !readOnly;
 
-  // Edit and resend, and Undo: put the text back and leave the caret at its end
+  // Edit and resend, Undo, and an ask kept across sign-in: put the text back, leave the caret at its end, and tell the
+  // shell the draft is taken (a draft already waiting when the composer mounts counts, so a remount cannot lose it or apply it twice)
   const draftSeq = draft?.seq;
-  const seen = useRef(draftSeq);
+  const { draftTaken } = actions;
   useEffect(() => {
-    if (!draft || draftSeq === seen.current) return;
-    seen.current = draftSeq;
+    if (!draft) return;
+    draftTaken();
     setText(draft.text);
     requestAnimationFrame(() => {
       const el = field.current;
@@ -37,7 +38,7 @@ export function Composer({ ctx }: { ctx: ConsoleCtx }): ReactElement {
       el.focus();
       el.setSelectionRange(draft.text.length, draft.text.length);
     });
-  }, [draft, draftSeq]);
+  }, [draft, draftSeq, draftTaken]);
 
   // grows from one line (48 px) to eight, then scrolls inside
   useLayoutEffect(() => {

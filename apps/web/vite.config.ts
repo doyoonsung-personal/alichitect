@@ -9,8 +9,10 @@ const catalog = fileURLToPath(new URL('../../packages/core/catalog', import.meta
 // The local turn server (apps/server). The Host header is rewritten to the target's, as the server's DNS-rebinding check requires.
 const api = { target: process.env.API_TARGET ?? 'http://127.0.0.1:8787', changeOrigin: true };
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
+  // see src/app/tools.ts: the test and demo tools are in every build except the production one (`npm run build`)
+  define: { __AB_TOOLS__: JSON.stringify(mode !== 'production') },
   resolve: { alias: { '@ali/core': core, '@ali/catalog': catalog } },
   server: {
     port: 5174,
@@ -21,4 +23,4 @@ export default defineConfig({
   preview: { port: 5174, strictPort: true, proxy: { '/api': api } },
   worker: { format: 'es' },
   build: { target: 'es2022' },
-});
+}));

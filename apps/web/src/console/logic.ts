@@ -380,6 +380,7 @@ export function cursorSlot(r: Revision, turn: TurnStatus): CursorSlot {
 export function errorText(e: RevisionError, t: TFn): string {
   if (e.message) return e.message;
   if (e.code === 'network') return t('error.network');
+  if (e.code === 'http-401' || e.code === 'signed-out') return t('error.signedOut');
   const http = /^http-(\d+)$/.exec(e.code);
   if (http) return t('error.http', { code: http[1] });
   return t('error.http', { code: e.code });

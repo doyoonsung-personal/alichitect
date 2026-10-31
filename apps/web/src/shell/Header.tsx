@@ -4,6 +4,7 @@ import { BrandMark } from '../brand/BrandMark.tsx';
 import { ExportButton } from '../export/ExportButton.tsx';
 import { Icon } from './Icon.tsx';
 import { LanguageMenu, ModeState, SessionsMenu } from './controls.tsx';
+import { AccountMenu } from './AccountMenu.tsx';
 import { useAppState, useController, useT } from '../store/react.tsx';
 import { isStreaming } from '../store/selectors.ts';
 import type { AppState } from '../store/types.ts';
@@ -36,6 +37,7 @@ export function Header(): ReactElement {
           <span>{t('header.newSession')}</span>
         </button>
         <LanguageMenu />
+        <AccountMenu />
       </div>
     </header>
   );

@@ -38,6 +38,7 @@ import type {
   TurnWork,
 } from './types.ts';
 import type { Health } from '../stream/events.ts';
+import type { Account } from '../stream/account.ts';
 
 export interface StoreDeps {
   catalog: Catalog;
@@ -49,6 +50,7 @@ export type Action =
   | { type: 'app/init'; lang: Lang; sessions: SessionSummary[]; canvas?: CanvasSize }
   | { type: 'lang/set'; lang: Lang }
   | { type: 'conn/set'; mode: ConnMode; health: Health | null; now: number }
+  | { type: 'account/set'; account: Account | null }
   | { type: 'session/new'; id: string; now: number }
   | { type: 'session/open'; record: SessionRecord; now: number }
   | { type: 'sessions/list'; sessions: SessionSummary[] }
@@ -68,6 +70,8 @@ export type Action =
   | { type: 'ui/toastClear' }
   | { type: 'ui/handoff'; on: boolean }
   | { type: 'ui/draft'; text: string }
+  /** The composer (or the landing box) has put the draft in its field: forget it, so a remount cannot apply it twice. */
+  | { type: 'ui/draftTaken' }
   | { type: 'req/unpin'; text: string; now: number }
   | { type: 'req/undo' }
   | { type: 'replay/set'; replay: AppState['replay'] }
@@ -102,6 +106,7 @@ export function createInitialState(init: { lang: Lang; sessions?: SessionSummary
     lang: init.lang,
     view: 'landing',
     conn: { mode: 'checking', health: null, checkedAt: null },
+    account: null,
     session: newSessionRecord(init.id ?? 'session-0', init.now ?? 0),
     turn: { phase: 'idle', lastTextAt: null, startedAt: null },
     work: null,
@@ -229,12 +234,15 @@ export function reduce(state: AppState, action: Action, deps: StoreDeps): AppSta
       const mode = state.replay && action.mode !== 'replay' ? 'replay' : action.mode;
       return { ...state, conn: { mode, health: action.health, checkedAt: action.now } };
     }
+    case 'account/set':
+      return { ...state, account: action.account };
     case 'sessions/list':
       return { ...state, sessions: action.sessions, sessionsVersion: state.sessionsVersion + 1 };
     case 'session/new':
       return {
         ...createInitialState({ lang: state.lang, sessions: state.sessions, canvas: state.canvas, id: action.id, now: action.now }),
         conn: state.conn.mode === 'replay' && state.replay ? { ...state.conn, mode: state.conn.health ? 'live' : 'offline' } : state.conn,
+        account: state.account,
         sessionsVersion: state.sessionsVersion,
         ui: { ...state.ui, highlight: null, panTo: null, reveal: null, hoverCard: null, toast: null, live: null, handoff: false, composerDraft: null, panelOpen: false, focusDiagram: false },
       };
@@ -291,6 +299,8 @@ export function reduce(state: AppState, action: Action, deps: StoreDeps): AppSta
       return state.ui.toast ? { ...state, ui: { ...state.ui, toast: null } } : state;
     case 'ui/handoff':
       return { ...state, ui: { ...state.ui, handoff: action.on } };
+    case 'ui/draftTaken':
+      return state.ui.composerDraft ? { ...state, ui: { ...state.ui, composerDraft: null } } : state;
     case 'ui/draft':
       return { ...state, ui: { ...state.ui, composerDraft: { text: action.text, seq: (state.ui.composerDraft?.seq ?? 0) + 1 } } };
     case 'req/unpin': {

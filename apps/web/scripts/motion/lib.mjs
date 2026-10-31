@@ -9,7 +9,7 @@ import { WEB, freePort, sleep } from '../console/lib.mjs';
 export const DIST = path.join(process.env.TEMP ?? WEB, 'ab-motion-dist');
 
 export function build(dist = DIST) {
-  const b = spawnSync(process.execPath, ['node_modules/vite/bin/vite.js', 'build', '--outDir', dist, '--emptyOutDir'], { cwd: WEB, encoding: 'utf8' });
+  const b = spawnSync(process.execPath, ['node_modules/vite/bin/vite.js', 'build', '--mode', 'review', '--outDir', dist, '--emptyOutDir'], { cwd: WEB, encoding: 'utf8' });
   if (b.status !== 0) {
     process.stdout.write(b.stdout + b.stderr);
     throw new Error('build failed');

@@ -11,6 +11,8 @@ export interface MenuItem {
   meta?: ReactNode;
   current?: boolean;
   lang?: string;
+  /** A link to another page of the site: rendered as an anchor, so it opens like any link. */
+  href?: string;
   onSelect(): void;
 }
 
@@ -26,6 +28,8 @@ export interface MenuProps {
   align?: 'start' | 'end';
   /** A fixed row at the end of the list (for example New session), separated by a rule. */
   footer?: MenuItem;
+  /** Read-only lines above the items (who is signed in, today's usage), set off by a rule. */
+  head?: ReactNode;
   className?: string;
 }
 
@@ -68,7 +72,13 @@ export function Menu(p: MenuProps): ReactElement {
     items[next].focus();
   };
 
-  const row = (it: MenuItem): ReactElement => (
+  const row = (it: MenuItem): ReactElement =>
+    it.href ? (
+      <a key={it.key} role="menuitem" className="menu__item" href={it.href} lang={it.lang}>
+        <span className="menu__label">{it.label}</span>
+        {it.meta ? <span className="menu__meta">{it.meta}</span> : null}
+      </a>
+    ) : (
     <button
       key={it.key}
       type="button"
@@ -84,7 +94,7 @@ export function Menu(p: MenuProps): ReactElement {
       <span className="menu__label">{it.label}</span>
       {it.meta ? <span className="menu__meta">{it.meta}</span> : null}
     </button>
-  );
+    );
 
   return (
     <div className={`menu ${p.className ?? ''}`} ref={root} onKeyDown={onKey}>
@@ -104,6 +114,14 @@ export function Menu(p: MenuProps): ReactElement {
       </button>
       {open ? (
         <div id={id} role="menu" aria-label={p.triggerLabel} className={`menu__list menu__list--${p.align ?? 'end'}`}>
+          {p.head ? (
+            <>
+              <div className="menu__head" role="group" aria-label={p.triggerLabel}>
+                {p.head}
+              </div>
+              <div className="menu__rule" role="separator" />
+            </>
+          ) : null}
           {p.items.length ? p.items.map(row) : <p className="menu__empty">{p.empty}</p>}
           {p.footer ? (
             <>

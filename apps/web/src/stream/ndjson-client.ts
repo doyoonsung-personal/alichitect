@@ -109,8 +109,17 @@ export async function postTurn(req: TurnRequest, o: PostTurnOptions): Promise<Tu
   return end ?? { kind: 'network', reason: 'stream ended without commit or fatal' };
 }
 
-/** GET /api/health with a short timeout. Resolves to null when the server is unreachable or answers something else. */
-export async function fetchHealth(o: { url?: string; fetchImpl?: typeof fetch; signal?: AbortSignal; timeoutMs?: number } = {}): Promise<Health | null> {
+export interface HealthProbe {
+  health: Health | null;
+  /**
+   * The hosted Worker answered `{ ok: true }` and nothing else: it is up, but it does not know this browser as a signed-in,
+   * approved person (anonymous callers learn nothing more). The local turn server never answers that way.
+   */
+  anonymous: boolean;
+}
+
+/** GET /api/health with a short timeout. Resolves to health: null when the server is unreachable or answers something else. */
+export async function probeHealth(o: { url?: string; fetchImpl?: typeof fetch; signal?: AbortSignal; timeoutMs?: number } = {}): Promise<HealthProbe> {
   const f = o.fetchImpl ?? fetch;
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), o.timeoutMs ?? 3000);
@@ -118,13 +127,20 @@ export async function fetchHealth(o: { url?: string; fetchImpl?: typeof fetch; s
   o.signal?.addEventListener('abort', onAbort, { once: true });
   try {
     const res = await f(o.url ?? '/api/health', { signal: ac.signal, cache: 'no-store' });
-    if (!res.ok) return null;
+    if (!res.ok) return { health: null, anonymous: false };
     const body: unknown = await res.json();
-    return isHealth(body) ? body : null;
+    if (isHealth(body)) return { health: body, anonymous: false };
+    const keys = typeof body === 'object' && body !== null ? Object.keys(body) : [];
+    return { health: null, anonymous: keys.length === 1 && keys[0] === 'ok' && (body as { ok: unknown }).ok === true };
   } catch {
-    return null;
+    return { health: null, anonymous: false };
   } finally {
     clearTimeout(timer);
     o.signal?.removeEventListener('abort', onAbort);
   }
+}
+
+/** GET /api/health with a short timeout. Resolves to null when the server is unreachable or answers something else. */
+export async function fetchHealth(o: { url?: string; fetchImpl?: typeof fetch; signal?: AbortSignal; timeoutMs?: number } = {}): Promise<Health | null> {
+  return (await probeHealth(o)).health;
 }

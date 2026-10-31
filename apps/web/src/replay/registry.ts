@@ -1,11 +1,17 @@
-// The app's view of the recorded conversations: the manifest, and each fixture loaded on demand (one chunk each, so
-// the landing page does not carry them). Tests read the same JSON files from disk instead (src/test/fixtures.ts).
-import manifestJson from './fixtures/index.json';
-import type { Fixture, FixtureInfo } from './plan.ts';
+// The app's view of the recorded conversations, each loaded on demand (one chunk each, so the landing page does not
+// carry them). Tests read the same JSON files from disk instead (src/test/fixtures.ts).
+//
+// Two sets, because the production build ships less (src/app/tools.ts):
+//  - shipped: the real recordings the offline notice offers ("Replay a recorded session"), one per language and per
+//    example brief, as defaultFixtureFor below picks them. They are the only fixtures in the production bundle.
+//  - the rest (the synthetic stub-* and asks-* sessions that the screenshot scripts use for error and ask states, and
+//    chinese-fix): loaded only when the tools are on, so the production bundle holds none of them.
+import type { Fixture } from './plan.ts';
 
-export const manifest: FixtureInfo[] = manifestJson as FixtureInfo[];
-
-const loaders = import.meta.glob(['./fixtures/*.json', '!./fixtures/index.json'], { import: 'default' }) as Record<string, () => Promise<unknown>>;
+const shipped = import.meta.glob(['./fixtures/*.json', '!./fixtures/index.json', '!./fixtures/stub-*.json', '!./fixtures/asks-*.json', '!./fixtures/chinese-fix.json'], { import: 'default' }) as Record<string, () => Promise<unknown>>;
+// __AB_TOOLS__ is written out here, not read through TOOLS: the bundler folds the literal and drops the unused chunks
+const extra = (typeof __AB_TOOLS__ !== 'undefined' && __AB_TOOLS__ ? import.meta.glob(['./fixtures/stub-*.json', './fixtures/asks-*.json', './fixtures/chinese-fix.json'], { import: 'default' }) : {}) as Record<string, () => Promise<unknown>>;
+const loaders: Record<string, () => Promise<unknown>> = { ...shipped, ...extra };
 
 export function hasFixture(id: string): boolean {
   return Object.hasOwn(loaders, `./fixtures/${id}.json`);

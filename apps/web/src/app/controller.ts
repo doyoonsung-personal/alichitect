@@ -3,7 +3,9 @@
 // actions, so the console, canvas and panel only ever read state and call the functions on `Controller`.
 import type { TurnRequest } from '@ali/core/types.ts';
 import { DEFAULT_MAX_ASK_CHARS } from '@ali/core/prompt.ts';
-import { fetchHealth, postTurn } from '../stream/ndjson-client.ts';
+import { postTurn, probeHealth } from '../stream/ndjson-client.ts';
+import { authHandoff, fetchAccount, loginUrl } from '../stream/account.ts';
+import { TOOLS } from './tools.ts';
 import type { WireEvent } from '../stream/events.ts';
 import { createPlayer, BATCH_MS } from '../replay/player.ts';
 import type { Player } from '../replay/player.ts';
@@ -30,6 +32,19 @@ export interface ControllerEnv {
   setLanguage(lang: Lang): void;
   /** The id of the session this tab was showing before a refresh: boot reopens it (when it was saved) instead of the landing. */
   resumeId?: string | null;
+  /**
+   * Hosted Worker only. Sends the browser to another page of the site (a full navigation). Returns false when it
+   * declined, so the caller leaves the error on screen: main.tsx allows one such trip in 15 s, which stops a sign-in
+   * loop if the Worker ever disagrees with itself.
+   */
+  leave?(to: string): boolean;
+  /** The page's path and query, for /login?next=. */
+  path?(): string;
+  /** Keeps the ask of a turn that the session's end cut off, for this tab, and hands it back on the next boot. */
+  keepAsk?(ask: string): void;
+  takeAsk?(): string | null;
+  /** POSTs to the Worker's sign-out address (a form post, so the browser follows its redirect to /login). */
+  signOut?(url: string): void;
 }
 
 export type SubmitResult = 'started' | 'empty' | 'busy' | 'offline' | 'too-long' | 'read-only';
@@ -38,6 +53,10 @@ export interface Controller {
   boot(): Promise<void>;
   /** Checks /api/health again (the Try again button of the offline notice). */
   checkHealth(): Promise<void>;
+  /** Reads GET /api/me (who is signed in, today's turns). Nothing happens where there is no such route. */
+  loadAccount(): Promise<void>;
+  /** Ends the hosted session. */
+  signOut(): void;
   /** The landing box and the composer both call this. */
   submit(ask: string, o?: { exampleId?: string }): SubmitResult;
   stop(): void;
@@ -59,6 +78,8 @@ export interface Controller {
   /** Highlights a revision's cards on the canvas and scrolls the record to it. */
   revealRevision(n: number): void;
   clearToast(): void;
+  /** The composer or the landing box has taken the draft (Edit and resend, Undo, an ask kept across sign-in). */
+  draftTaken(): void;
   endHandoff(): void;
   startReplay(id: string, o?: { speed?: ReplaySpeed }): Promise<boolean>;
   restartReplay(): void;
@@ -75,6 +96,8 @@ export function createController(store: Store, env: ControllerEnv): Controller {
   let flushTimer: unknown = null;
   let player: Player | null = null;
   let healthAc: AbortController | null = null;
+  let accountAc: AbortController | null = null;
+  let lastAsk = '';
   let disposed = false;
 
   const d = (a: Action): void => store.dispatch(a);
@@ -103,19 +126,52 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     if (ev.type === 'op') scheduleFlush();
     if (ev.type === 'commit' || ev.type === 'fatal') clearFlush();
     if (ev.type === 'commit' || ev.type === 'summary') saveSession();
+    if (ev.type === 'commit' || ev.type === 'fatal') void refreshAccount();
+    if (ev.type === 'fatal') {
+      const to = authHandoff(ev.code);
+      if (to) leaveForAuth(to, lastAsk);
+    }
+  };
+
+  /**
+   * The hosted Worker ended or refused the session (401 signed-out, or not-approved): send the person to sign in again,
+   * to come back to this page, or to the waiting page. The ask goes with the tab so the next boot can put it back.
+   */
+  function leaveForAuth(to: 'login' | 'pending', ask: string): void {
+    if (!env.leave) return;
+    const target = to === 'login' ? loginUrl(env.path?.() ?? '/') : '/pending';
+    if (ask.trim()) env.keepAsk?.(ask);
+    env.leave(target);
+  }
+
+  async function loadAccount(): Promise<void> {
+    accountAc?.abort();
+    const mine = new AbortController();
+    accountAc = mine;
+    const a = await fetchAccount({ fetchImpl: env.fetchImpl, signal: mine.signal });
+    // a failed refresh keeps the last known account: a dropped request must not make the menu vanish
+    if (disposed || accountAc !== mine || !a) return;
+    d({ type: 'account/set', account: a });
+  }
+  /** After a turn the day's count has changed. Only where an account was found (the local server has no /api/me). */
+  const refreshAccount = async (): Promise<void> => {
+    if (st().account) await loadAccount();
   };
 
   async function checkHealth(): Promise<void> {
     healthAc?.abort();
     healthAc = new AbortController();
     d({ type: 'conn/set', mode: 'checking', health: null, now: env.now() });
-    const h = await fetchHealth({ fetchImpl: env.fetchImpl, signal: healthAc.signal });
+    const { health: h, anonymous } = await probeHealth({ fetchImpl: env.fetchImpl, signal: healthAc.signal });
     if (disposed) return;
+    // the Worker is up but no longer knows this browser: the session ended while the page was open
+    if (anonymous) leaveForAuth('login', lastFailedAsk() ?? '');
     d({ type: 'conn/set', mode: h && h.keyConfigured ? 'live' : 'offline', health: h, now: env.now() });
   }
 
   function start(ask: string, replaceLast: boolean): void {
     const text = ask.trim();
+    lastAsk = text;
     ac?.abort();
     const mine = new AbortController();
     ac = mine;
@@ -202,12 +258,16 @@ export function createController(store: Store, env: ControllerEnv): Controller {
         d({ type: 'lang/set', lang });
       }
       d({ type: 'sessions/list', sessions: env.sessions.list() });
-      const replay = q.get('replay');
+      // ?replay= and ?speed= are test and demo switches: the production build has no recordings to play
+      const replay = TOOLS ? q.get('replay') : null;
       // a refresh returns to the session on screen, as saved at its last commit; a new tab starts on the landing
       if (!replay && env.resumeId && env.sessions.get(env.resumeId)) {
         const rec = env.sessions.get(env.resumeId);
         if (rec && rec.revisions.length > 0) d({ type: 'session/open', record: rec, now: env.now() });
       }
+      void loadAccount();
+      const kept = env.takeAsk?.();
+      if (kept && !replay) d({ type: 'ui/draft', text: kept });
       const speed = q.get('speed');
       const sp = SPEEDS.find((x) => x === speed);
       if (replay) {
@@ -219,6 +279,11 @@ export function createController(store: Store, env: ControllerEnv): Controller {
       await checkHealth();
     },
     checkHealth,
+    loadAccount,
+    signOut() {
+      const url = st().account?.links.signOut;
+      if (url) env.signOut?.(url);
+    },
     submit,
     stop,
     retry() {
@@ -275,6 +340,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     hoverCard: (id) => d({ type: 'ui/hoverCard', id }),
     revealRevision: (n) => d({ type: 'ui/reveal', revision: n }),
     clearToast: () => d({ type: 'ui/toastClear' }),
+    draftTaken: () => d({ type: 'ui/draftTaken' }),
     endHandoff: () => d({ type: 'ui/handoff', on: false }),
     startReplay,
     restartReplay() {
@@ -294,6 +360,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
       disposed = true;
       ac?.abort();
       healthAc?.abort();
+      accountAc?.abort();
       clearFlush();
       player?.stop();
     },
