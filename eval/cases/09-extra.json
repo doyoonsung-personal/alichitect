@@ -1,0 +1,597 @@
+[
+  {
+    "id": "trap-01b-lingma-license",
+    "category": "trap",
+    "title": "Lingma licenses for Singapore team",
+    "reference": "Explains that Lingma became Qoder for international users and recommends Qoder Teams, without stating a price (the app shows dated prices itself).",
+    "turns": [
+      {
+        "ask": "Our developers really love Lingma. We need 8 licenses for the team here in Singapore. What does it cost per seat?",
+        "expect": {
+          "primaryRec": [
+            "qoder-teams",
+            "qoder",
+            "qoder-enterprise"
+          ],
+          "exclude": [
+            "lingma",
+            "qoder-cn"
+          ],
+          "excludeRaw": [
+            "lingma",
+            "tongyi-lingma",
+            "qoder-cn"
+          ],
+          "noWarn": [
+            "retired-product",
+            "china-only"
+          ],
+          "noNodes": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "trap-04b-redis-leaderboard",
+    "category": "trap",
+    "title": "Redis cluster for game leaderboards",
+    "reference": "Tair (the renamed Redis-compatible service) in the VPC, across zones, next to the game servers.",
+    "turns": [
+      {
+        "ask": "I need an ApsaraDB for Redis cluster to power the leaderboards for our new mobile game. Can you set that up?",
+        "expect": {
+          "include": [
+            [
+              "tair"
+            ]
+          ],
+          "excludeRaw": [
+            "apsaradb-for-redis",
+            "redis",
+            "kvstore",
+            "apsaradb-redis"
+          ],
+          "noWarn": [
+            "alias-resolved"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "trap-05b-apigw-partner",
+    "category": "trap",
+    "title": "Partner API with API Gateway",
+    "reference": "Cloud-native API Gateway, because the classic API Gateway stopped new sales on 2026-08-23.",
+    "turns": [
+      {
+        "ask": "We need a partner-facing REST API layer with API keys, rate limiting and per-partner quotas. We currently use API Gateway today, so something similar would be great.",
+        "expect": {
+          "include": [
+            [
+              "cloud-native-api-gateway"
+            ]
+          ],
+          "exclude": [
+            "api-gateway"
+          ],
+          "excludeRaw": [
+            "api-gateway",
+            "api-gateway-classic"
+          ],
+          "noWarn": [
+            "retired-product"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "trap-06b-kb-hr",
+    "category": "trap",
+    "title": "Model Studio knowledge base for HR",
+    "reference": "Builds RAG from Model Studio APIs plus a vector store, OSS and Function Compute or SAE, because the Model Studio knowledge base and app builder are closed to new international accounts.",
+    "turns": [
+      {
+        "ask": "Create a Model Studio knowledge-base app that answers HR policy questions for our employees.",
+        "expect": {
+          "exclude": [
+            "model-studio-apps"
+          ],
+          "include": [
+            [
+              "model-studio"
+            ],
+            [
+              "milvus",
+              "opensearch",
+              "elasticsearch",
+              "analyticdb",
+              "dashvector",
+              "lindorm",
+              "polardb"
+            ]
+          ],
+          "noWarn": [
+            "restricted"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "trap-07b-icp-beijing",
+    "category": "trap",
+    "title": "E-commerce site in Beijing region",
+    "reference": "Warns that a public website in a mainland China region needs ICP filing and a China-site account, and suggests Hong Kong or Singapore with edge acceleration otherwise.",
+    "turns": [
+      {
+        "ask": "I want to host our public e-commerce site in the Beijing region so it's fast for customers in mainland China.",
+        "expect": {
+          "mention": [
+            [
+              "ICP"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "need-01b-eng-org-audit",
+    "category": "need",
+    "title": "AI coding assistant for 60 devs",
+    "reference": "Qoder Enterprise (governance, audit logs) or Qoder Teams as the primary answer.",
+    "turns": [
+      {
+        "ask": "Which AI coding assistant should our engineering department of about 60 developers standardize on? We absolutely need SSO, audit logs and spend controls.",
+        "expect": {
+          "primaryRec": [
+            "qoder-enterprise",
+            "qoder-teams"
+          ],
+          "exclude": [
+            "qoder-cn",
+            "lingma",
+            "coding-plan"
+          ],
+          "noNodes": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "edit-09-swap-queue",
+    "category": "edit",
+    "title": "Swap RocketMQ for Kafka",
+    "base": "shop-sg",
+    "reference": "Swaps the product on the existing queue node (same node id) so its connections stay, and changes nothing else.",
+    "turns": [
+      {
+        "ask": "Can we use Kafka instead of RocketMQ for the order events?",
+        "expect": {
+          "include": [
+            [
+              "kafka"
+            ]
+          ],
+          "exclude": [
+            "rocketmq"
+          ],
+          "edit": {
+            "maxNodeAdds": 0,
+            "maxNodeRemoves": 0,
+            "maxEdgeRemoves": 0
+          },
+          "maxOps": 5
+        }
+      }
+    ]
+  },
+  {
+    "id": "pat-13-internal-portal",
+    "category": "pattern",
+    "title": "Internal HR portal in Seoul",
+    "reference": "Seoul region, private connectivity from the office (Express Connect or VPN Gateway), an internal load balancer, app tier across two zones, RDS or PolarDB for PostgreSQL, OSS or NAS for attachments, SSO through CloudSSO or IDaaS; no public edge services.",
+    "turns": [
+      {
+        "ask": "Our HR team needs an internal portal for 5,000 employees in Seoul. It must be reachable only from the company network, support single sign-on, use a PostgreSQL database and allow file attachments.",
+        "expect": {
+          "include": [
+            [
+              "alb",
+              "nlb"
+            ],
+            [
+              "ecs",
+              "sae",
+              "ack",
+              "acs",
+              "fc"
+            ],
+            [
+              "rds",
+              "polardb"
+            ],
+            [
+              "oss",
+              "nas"
+            ],
+            [
+              "cloudsso",
+              "idaas",
+              "ram"
+            ],
+            [
+              "vpn-gateway",
+              "express-connect",
+              "sase",
+              "cen",
+              "transit-router"
+            ]
+          ],
+          "exclude": [
+            "esa",
+            "cdn",
+            "anti-ddos-proxy"
+          ],
+          "regions": {
+            "only": [
+              "seoul",
+              "ap-northeast-2"
+            ],
+            "min": 1
+          },
+          "minNodes": 6,
+          "maxNodes": 25
+        }
+      }
+    ]
+  },
+  {
+    "id": "mt-05-mixed-five-turns",
+    "category": "multiturn",
+    "title": "Mobile game backend over five turns",
+    "reference": "SAE or Function Compute with an API gateway, queue for matchmaking events, Tair for leaderboards, a database for profiles; no Kubernetes on any turn; the budget stays visible as a pinned requirement.",
+    "turns": [
+      {
+        "ask": "We are a small team building the backend of a mobile game. We need player profiles, leaderboards, and matchmaking events. Please avoid Kubernetes and prefer serverless where it makes sense.",
+        "expect": {
+          "req": [
+            [
+              "kubernetes",
+              "k8s"
+            ],
+            [
+              "serverless"
+            ]
+          ],
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ],
+          "include": [
+            [
+              "fc",
+              "sae"
+            ]
+          ]
+        }
+      },
+      {
+        "ask": "Our budget is about 500 dollars a month at launch. Keep that in mind.",
+        "expect": {
+          "req": [
+            [
+              "500",
+              "budget"
+            ]
+          ]
+        },
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ],
+          "req": [
+            [
+              "kubernetes",
+              "k8s"
+            ]
+          ]
+        }
+      },
+      {
+        "ask": "Add in-game chat between players.",
+        "expect": {},
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ],
+          "req": [
+            [
+              "kubernetes",
+              "k8s"
+            ],
+            [
+              "500",
+              "budget"
+            ]
+          ]
+        }
+      },
+      {
+        "ask": "Players in Korea and Japan complain about lag. How can we fix that?",
+        "expect": {
+          "edit": {
+            "minChanged": 1
+          }
+        },
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ],
+          "req": [
+            [
+              "kubernetes",
+              "k8s"
+            ],
+            [
+              "500",
+              "budget"
+            ]
+          ]
+        }
+      },
+      {
+        "ask": "We also need anti-cheat analytics on the gameplay logs. Add that to the architecture.",
+        "expect": {
+          "include": [
+            [
+              "sls",
+              "maxcompute",
+              "hologres",
+              "flink",
+              "emr",
+              "dataworks",
+              "elasticsearch",
+              "analyticdb",
+              "clickhouse",
+              "dlf",
+              "lindorm"
+            ]
+          ]
+        },
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ],
+          "req": [
+            [
+              "kubernetes",
+              "k8s"
+            ],
+            [
+              "500",
+              "budget"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "mt-06-summary-window",
+    "category": "multiturn",
+    "window": 2,
+    "summarize": true,
+    "title": "Ride-hailing platform with summary window",
+    "reference": "Everything stays in the Jakarta region (zone-level disaster recovery and backups rather than a second country), no Kubernetes on any turn.",
+    "turns": [
+      {
+        "ask": "We are building a ride-hailing platform in Indonesia. Customer data must stay in Indonesia and we want to avoid Kubernetes. Design the backend with an API gateway, about 8 microservices, a relational database and a cache.",
+        "expect": {
+          "req": [
+            [
+              "indonesia",
+              "jakarta",
+              "ap-southeast-5"
+            ],
+            [
+              "kubernetes",
+              "k8s"
+            ]
+          ],
+          "regions": {
+            "only": [
+              "jakarta",
+              "ap-southeast-5",
+              "indonesia"
+            ],
+            "min": 1
+          },
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ],
+          "include": [
+            [
+              "sae",
+              "fc",
+              "ecs",
+              "edas"
+            ]
+          ]
+        }
+      },
+      {
+        "ask": "Add a message queue for trip events.",
+        "expect": {
+          "include": [
+            [
+              "rocketmq",
+              "kafka",
+              "smq",
+              "rabbitmq",
+              "eventbridge"
+            ]
+          ]
+        },
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ],
+          "regions": {
+            "only": [
+              "jakarta",
+              "ap-southeast-5",
+              "indonesia"
+            ]
+          }
+        }
+      },
+      {
+        "ask": "Add real-time trip analytics dashboards.",
+        "expect": {
+          "include": [
+            [
+              "quick-bi",
+              "datav",
+              "quick-bi-aipro",
+              "grafana"
+            ]
+          ]
+        },
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ],
+          "regions": {
+            "only": [
+              "jakarta",
+              "ap-southeast-5",
+              "indonesia"
+            ]
+          }
+        }
+      },
+      {
+        "ask": "Add object storage for driver documents like ID photos.",
+        "expect": {
+          "include": [
+            [
+              "oss"
+            ]
+          ]
+        },
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ],
+          "regions": {
+            "only": [
+              "jakarta",
+              "ap-southeast-5",
+              "indonesia"
+            ]
+          }
+        }
+      },
+      {
+        "ask": "Finally, add disaster recovery to the architecture.",
+        "expect": {},
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ],
+          "regions": {
+            "only": [
+              "jakarta",
+              "ap-southeast-5",
+              "indonesia"
+            ]
+          },
+          "req": [
+            [
+              "indonesia",
+              "jakarta",
+              "ap-southeast-5"
+            ],
+            [
+              "kubernetes",
+              "k8s"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ko-trap-07-icp",
+    "category": "i18n",
+    "lang": "ko",
+    "of": "trap-07-icp",
+    "title": "Public site in mainland China (Korean)",
+    "reference": "Warns that a public website in a mainland China region needs ICP filing and a China-site account and suggests Hong Kong or Singapore otherwise. Say and why text in Korean.",
+    "turns": [
+      {
+        "ask": "중국 본토 고객을 위한 공개 마케팅 웹사이트를 상하이 리전에 호스팅해 주세요.",
+        "expect": {
+          "mention": [
+            [
+              "ICP"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "zh-trap-07-icp",
+    "category": "i18n",
+    "lang": "zh",
+    "of": "trap-07-icp",
+    "title": "Public site in mainland China (Chinese)",
+    "reference": "Warns that a public website in a mainland China region needs ICP filing and a China-site account and suggests Hong Kong or Singapore otherwise. Say and why text in Chinese.",
+    "turns": [
+      {
+        "ask": "请把面向中国大陆客户的公开营销网站托管在上海地域。",
+        "expect": {
+          "mention": [
+            [
+              "ICP",
+              "备案"
+            ]
+          ]
+        }
+      }
+    ]
+  }
+]

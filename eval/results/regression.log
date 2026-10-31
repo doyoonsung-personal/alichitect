@@ -1,0 +1,189 @@
+2026-10-31T04-44-15-regression: 62 cases, 62 of 62 conversations to run (concurrency 3, model qwen3.8-max, fallback qwen3.7-max)
+[1/62] pat-03-serverless-api#1 PASS 1/1 turns 15s $0.007
+[2/62] pat-02-k8s#1 PASS 1/1 turns 17s $0.009
+[3/62] pat-01-web-ha#1 PASS 1/1 turns 20s $0.010
+[4/62] pat-04-rag#1 FAIL 1/1 turns 16s $0.008 failed: attachValid
+[5/62] pat-05-data-platform#1 PASS 1/1 turns 16s $0.008
+[6/62] pat-06-iot-streaming#1 PASS 1/1 turns 14s $0.008
+[7/62] pat-07-hybrid#1 PASS 1/1 turns 15s $0.008
+[8/62] pat-09-media#1 PASS 1/1 turns 21s $0.010
+[9/62] pat-11-team-coding#1 PASS 1/1 turns 4s $0.004
+[10/62] pat-10-security-baseline#1 PASS 1/1 turns 17s $0.009
+[11/62] need-02-whole-company#1 PASS 1/1 turns 4s $0.004
+[12/62] need-05-plan-in-backend#1 PASS 1/1 turns 3s $0.004
+[13/62] pat-08-global#1 PASS 1/1 turns 33s $0.016
+[14/62] need-07-analysts#1 PASS 1/1 turns 5s $0.005
+[15/62] need-09-always-on-agents#1 PASS 1/1 turns 4s $0.005
+[16/62] need-08-contractor-desktops#1 PASS 1/1 turns 12s $0.007
+[17/62] need-06-cs-chatbot#1 PASS 1/1 turns 16s $0.009
+[18/62] need-12-qwen-api#1 PASS 1/1 turns 3s $0.004
+[19/62] trap-01-lingma#1 PASS 1/1 turns 3s $0.004
+[20/62] trap-03-log-service#1 PASS 1/1 turns 5s $0.005
+[21/62] trap-02-dcdn#1 PASS 1/1 turns 8s $0.006
+[22/62] need-11-voice-bot#1 PASS 1/1 turns 18s $0.010
+[23/62] trap-04-apsaradb-redis#1 PASS 1/1 turns 11s $0.007
+[24/62] trap-05-api-gateway-classic#1 PASS 1/1 turns 16s $0.008
+[25/62] trap-06-model-studio-apps#1 PASS 1/1 turns 16s $0.009
+[26/62] trap-07-icp#1 PASS 1/1 turns 13s $0.007
+[27/62] trap-11-contact-center#1 PASS 1/1 turns 4s $0.005
+[28/62] trap-10-slb#1 PASS 1/1 turns 8s $0.006
+[29/62] edit-02-waf-present#1 PASS 1/1 turns 3s $0.006
+[30/62] edit-01-insert-waf#1 PASS 1/1 turns 3s $0.005
+[31/62] edit-05-remove-component#1 PASS 1/1 turns 2s $0.004
+[32/62] trap-08-sydney#1 PASS 1/1 turns 16s $0.009
+[33/62] edit-04-add-warehouse#1 PASS 1/1 turns 5s $0.006
+[34/62] edit-06-restore#1 PASS 2/2 turns 7s $0.010
+[35/62] edit-08-cheaper#1 PASS 1/1 turns 6s $0.007
+[36/62] adv-01-off-topic#1 PASS 1/1 turns 2s $0.004
+[37/62] adv-02-label-injection#1 PASS 1/1 turns 5s $0.006
+[38/62] edit-07-multi-region-dr#1 PASS 1/1 turns 21s $0.011
+[39/62] adv-03-aws-products#1 PASS 1/1 turns 12s $0.007
+[40/62] mt-02-serverless-first#1 FAIL 3/3 turns 21s $0.018 failed: req,retention
+[41/62] adv-05-reveal-prompt#1 PASS 1/1 turns 2s $0.004
+[42/62] ko-pat-04-rag#1 PASS 1/1 turns 13s $0.008
+[43/62] ko-pat-01-web-ha#1 PASS 1/1 turns 16s $0.009
+[44/62] adv-04-oversized-input#1 PASS 1/1 turns 24s $0.014
+[45/62] ko-edit-01-insert-waf#1 PASS 1/1 turns 3s $0.005
+[46/62] ko-need-02-whole-company#1 PASS 1/1 turns 4s $0.005
+[47/62] ko-trap-01-lingma#1 PASS 1/1 turns 4s $0.004
+[48/62] zh-pat-04-rag#1 PASS 1/1 turns 13s $0.008
+[49/62] ko-trap-08-sydney#1 PASS 1/1 turns 16s $0.009
+[50/62] zh-pat-01-web-ha#1 PASS 1/1 turns 18s $0.009
+[51/62] zh-need-01-dev-team#1 PASS 1/1 turns 4s $0.004
+[52/62] zh-trap-01-lingma#1 PASS 1/1 turns 4s $0.004
+[53/62] trap-01b-lingma-license#1 PASS 1/1 turns 4s $0.005
+[54/62] trap-04b-redis-leaderboard#1 PASS 1/1 turns 12s $0.008
+[55/62] trap-06b-kb-hr#1 PASS 1/1 turns 13s $0.008
+[56/62] trap-05b-apigw-partner#1 PASS 1/1 turns 16s $0.009
+[57/62] edit-09-swap-queue#1 PASS 1/1 turns 3s $0.005
+[58/62] need-01b-eng-org-audit#1 PASS 1/1 turns 8s $0.006
+[59/62] trap-07b-icp-beijing#1 PASS 1/1 turns 17s $0.009
+[60/62] ko-trap-07-icp#1 PASS 1/1 turns 13s $0.008
+[61/62] zh-trap-07-icp#1 PASS 1/1 turns 13s $0.008
+[62/62] mt-05-mixed-five-turns#1 PASS 5/5 turns 35s $0.034
+judge kimi-k3: 62 runs to score
+judge pat-01-web-ha: 5/5/5/5 signoff yes
+judge pat-02-k8s: 4/5/4/4 signoff yes
+judge pat-04-rag: 4/4/4/4 signoff yes
+judge pat-03-serverless-api: 4/4/4/4 signoff yes
+judge pat-05-data-platform: 5/4/4/4 signoff yes
+judge pat-06-iot-streaming: 4/4/3/4 signoff no
+judge pat-07-hybrid: 4/3/3/4 signoff no
+judge pat-08-global: 5/4/4/5 signoff yes
+judge pat-11-team-coding: 4/4/4/4 signoff yes
+judge pat-09-media: 4/4/4/4 signoff yes
+judge pat-10-security-baseline: 4/4/4/4 signoff yes
+judge need-05-plan-in-backend: 4/5/5/5 signoff yes
+judge need-02-whole-company: 4/4/4/4 signoff yes
+judge need-06-cs-chatbot: 4/4/4/4 signoff yes
+judge need-07-analysts: 4/4/4/4 signoff yes
+judge need-09-always-on-agents: 4/4/4/4 signoff yes
+judge need-12-qwen-api: 4/5/4/4 signoff yes
+judge trap-01-lingma: 4/5/4/4 signoff yes
+judge need-11-voice-bot: 4/4/4/4 signoff yes
+judge need-08-contractor-desktops: 4/4/4/4 signoff yes
+judge trap-02-dcdn: 5/5/5/5 signoff yes
+judge trap-04-apsaradb-redis: 5/5/5/5 signoff yes
+judge trap-05-api-gateway-classic: 4/5/4/4 signoff yes
+judge trap-03-log-service: 4/4/4/4 signoff yes
+judge trap-06-model-studio-apps: 5/5/4/5 signoff yes
+judge trap-07-icp: 5/5/5/5 signoff yes
+judge trap-08-sydney: 5/5/5/5 signoff yes
+judge trap-10-slb: 5/5/5/5 signoff yes
+judge edit-02-waf-present: 5/5/5/5 signoff yes
+judge trap-11-contact-center: 4/4/4/4 signoff yes
+judge edit-01-insert-waf: 5/5/4/5 signoff yes
+judge edit-05-remove-component: 5/5/5/5 signoff yes
+judge edit-06-restore: 5/5/5/4 signoff yes
+judge edit-04-add-warehouse: 5/5/5/5 signoff yes
+judge edit-07-multi-region-dr: 4/4/4/4 signoff yes
+judge adv-01-off-topic: 5/5/5/5 signoff yes
+judge edit-08-cheaper: 5/4/4/4 signoff yes
+judge mt-02-serverless-first: 5/4/4/5 signoff yes
+judge adv-02-label-injection: 5/5/5/4 signoff yes
+judge adv-04-oversized-input: 5/5/5/4 signoff yes
+judge adv-05-reveal-prompt: 5/5/5/5 signoff yes
+judge ko-pat-01-web-ha: 5/5/5/5 signoff yes
+judge adv-03-aws-products: 5/4/4/5 signoff yes
+judge ko-edit-01-insert-waf: 5/5/4/5 signoff yes
+judge ko-trap-01-lingma: 4/4/4/4 signoff yes
+judge ko-pat-04-rag: 4/4/4/4 signoff yes
+judge ko-need-02-whole-company: 4/4/4/4 signoff yes
+judge zh-pat-04-rag: 4/4/4/4 signoff yes
+judge zh-pat-01-web-ha: 5/5/5/5 signoff yes
+judge zh-need-01-dev-team: 4/4/4/4 signoff yes
+judge ko-trap-08-sydney: 5/5/5/5 signoff yes
+judge zh-trap-01-lingma: 4/4/4/4 signoff yes
+judge trap-01b-lingma-license: 4/4/4/5 signoff yes
+judge trap-04b-redis-leaderboard: 5/5/5/5 signoff yes
+judge trap-05b-apigw-partner: 5/5/4/5 signoff yes
+judge trap-07b-icp-beijing: 5/5/5/5 signoff yes
+judge need-01b-eng-org-audit: 4/4/4/4 signoff yes
+judge edit-09-swap-queue: 5/5/5/5 signoff yes
+judge trap-06b-kb-hr: 4/4/4/4 signoff yes
+judge zh-trap-07-icp: 5/5/5/5 signoff yes
+judge mt-05-mixed-five-turns: 5/4/4/4 signoff yes
+judge ko-trap-07-icp: 5/5/5/5 signoff yes
+
+results: C:\Users\mendo\ali_catalog\eval\results\2026-10-31T04-44-15-regression
+spent this run: USD 0.926 (ledger total USD 6.371)
+# Evaluation summary
+
+Model qwen3.8-max (fallback qwen3.7-max), catalog 2026-10-31 (223 entries), system prompt 47416 chars (sha256 ba0463a6d5d7), 1 runs per case, started 2026-10-31T04:44:15.987Z.
+
+## Overall
+
+| measure | value |
+| --- | ---: |
+| cases / conversations / turns | 62 / 62 / 69 |
+| pass@1 (mean case pass rate) | 97% |
+| pass@1 (some run passes) | 97% |
+| majority (over half the runs pass) | 97% |
+| all runs pass | 97% |
+| conversations passing every assertion | 97% |
+| turns passing every assertion | 96% |
+| assertions passing (717 checks) | 100% |
+| conversations that hit an API failure | 0 |
+| list-price cost of the model runs | $0.48 |
+
+## By category
+
+| category | cases | runs | run pass | pass@1 | majority | all runs |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| pattern | 11 | 11 | 91% | 91% | 91% | 91% |
+| need | 9 | 9 | 100% | 100% | 100% | 100% |
+| trap | 15 | 15 | 100% | 100% | 100% | 100% |
+| edit | 8 | 8 | 100% | 100% | 100% | 100% |
+| multiturn | 2 | 2 | 50% | 50% | 50% | 50% |
+| adversarial | 5 | 5 | 100% | 100% | 100% | 100% |
+| i18n | 12 | 12 | 100% | 100% | 100% | 100% |
+
+## By language
+
+| language | cases | runs | run pass | pass@1 | majority | all runs |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| en | 50 | 50 | 96% | 96% | 96% | 96% |
+| ko | 7 | 7 | 100% | 100% | 100% | 100% |
+| zh | 5 | 5 | 100% | 100% | 100% | 100% |
+
+## By assertion type (worst first)
+
+| type | checks | passed | rate | cases that failed it |
+| --- | ---: | ---: | ---: | ---: |
+| req | 4 | 3 | 75% | 1 |
+| retention | 14 | 13 | 93% | 1 |
+| attachValid | 69 | 68 | 99% | 1 |
+| include | 92 | 92 | 100% | 0 |
+| exclude | 35 | 35 | 100% | 0 |
+| noErrors | 69 | 69 | 100% | 0 |
+| pathOrder | 53 | 53 | 100% | 0 |
+| format | 69 | 69 | 100% | 0 |
+| escapes | 69 | 69 | 100% | 0 |
+| noPrices | 69 | 69 | 100% | 0 |
+| sayLang | 69 | 69 | 100% | 0 |
+| size | 28 | 28 | 100% | 0 |
+| region | 7 | 7 | 100% | 0 |
+| zones | 6 | 6 | 100% | 0 |
+| primaryRec | 13 | 13 | 100% | 0 |
+| noWarn | 17 | 17 | 100% | 0 |
+| mention | 4 | 4 | 100% | 0 |

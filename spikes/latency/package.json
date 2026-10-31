@@ -1,0 +1,11 @@
+{
+  "name": "@ali/spike-latency",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Phase 0 spike: latency and prompt-cache test matrix for qwen3.8-max on Model Studio Singapore",
+  "scripts": {
+    "smoke": "node run.ts smoke",
+    "analyze": "node analyze.ts"
+  }
+}

@@ -1,0 +1,104 @@
+/* Canvas visual language: tinted container frames with small-caps labels, quiet cards with a lane-tinted glyph tile,
+   orthogonal edges with rounded corners, and one accent for the request path. Tokens live in ui/tokens.css. */
+
+.app { display: grid; grid-template-rows: auto 1fr; height: 100%; background: var(--bg); }
+.stage { position: relative; min-height: 0; }
+
+.ask { position: absolute; top: 14px; left: 16px; z-index: 5; margin: 0; max-width: min(720px, 70%); padding: 6px 12px 7px; font-size: 12.5px; line-height: 1.4; color: var(--ink-2); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow-card); text-wrap: pretty; }
+.ask-k { margin-right: 6px; font-size: 10.5px; font-weight: 650; letter-spacing: 0.06em; font-variant-caps: all-small-caps; color: var(--ink-3); }
+
+/* React Flow surface */
+.react-flow { background: var(--bg); }
+.react-flow__pane { cursor: grab; }
+.react-flow__pane.dragging { cursor: grabbing; }
+.react-flow__attribution { background: transparent !important; padding: 2px 8px !important; font-size: 10px; }
+.react-flow__attribution a { color: var(--ink-3) !important; }
+.react-flow__node { cursor: default; }
+/* React Flow turns pointer events off on nodes that are neither draggable nor selectable; cards still need hover */
+.react-flow__node-card { pointer-events: all !important; }
+.react-flow__node.is-moving { transition: transform var(--dur-move) var(--ease-out); will-change: transform; }
+.react-flow__node.is-moving .frame { transition: width var(--dur-move) var(--ease-out), height var(--dur-move) var(--ease-out); }
+
+/* ---------- frames ---------- */
+.frame { position: relative; border-radius: var(--radius-frame); border: 1px solid transparent; animation: frame-in 260ms var(--ease-out) both; }
+.frame[data-kind="region"] { background: var(--frame-region-bg); border-color: var(--frame-region-line); }
+.frame[data-kind="vpc"] { background: var(--frame-vpc-bg); border-color: var(--frame-vpc-line); border-radius: 12px; }
+.frame[data-kind="zone"] { background: var(--frame-zone-bg); border: 1px dashed var(--frame-zone-line); border-radius: 10px; }
+.frame[data-kind="edge"] { background: var(--frame-edge-bg); border-color: var(--frame-edge-line); }
+.frame[data-kind="external"], .frame[data-kind="onprem"], .frame[data-kind="outside"], .frame[data-kind="solution"] { background: var(--frame-ext-bg); border-color: var(--frame-ext-line); }
+.frame[data-kind="account"], .frame[data-kind="saas"], .frame[data-kind="recs"] { background: var(--frame-side-bg); border-color: var(--frame-side-line); }
+.frame[data-kind="lane"] { background: none; border: 0; border-radius: 0; }
+.frame-label { position: absolute; left: 12px; top: 9px; display: flex; align-items: baseline; gap: 7px; max-width: calc(100% - 24px); font-size: 11px; line-height: 16px; font-weight: 650; letter-spacing: 0.07em; font-variant-caps: all-small-caps; color: var(--frame-label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.frame-caption { font-variant-caps: normal; letter-spacing: 0; font-weight: 500; font-size: 11px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; }
+.frame[data-kind="lane"] .frame-label { left: 0; top: 2px; max-width: 100%; }
+.frame[data-kind="zone"] .frame-label { left: 8px; top: 6px; }
+.frame-empty { position: absolute; inset: 40px 14px 16px; display: grid; place-items: center; border: 1px dashed var(--line-strong); border-radius: var(--radius-card); font-size: 11.5px; color: var(--ink-3); }
+@keyframes frame-in { from { opacity: 0; } }
+
+/* ---------- cards ---------- */
+.card { --hue-fg: var(--hue-ops-fg); --hue-bg: var(--hue-ops-bg); position: relative; width: 188px; height: 52px; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-card); box-shadow: var(--shadow-card); color: var(--ink); transition: border-color 150ms var(--ease-out), box-shadow 150ms var(--ease-out); outline: none; }
+.card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-hover); }
+.card:focus-visible { border-color: var(--line-strong); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus); }
+.card-glyph { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; background: var(--hue-bg); color: var(--hue-fg); }
+.card-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.card-label { font-size: 12.5px; line-height: 16px; font-weight: 600; letter-spacing: -0.006em; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-sub { font-size: 11px; line-height: 14px; font-weight: 450; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-zones { position: absolute; right: 10px; bottom: -8px; display: flex; gap: 3px; padding: 1px 4px; background: var(--surface); border: 1px solid var(--frame-zone-line); border-radius: 999px; }
+.card-zones i { font-style: normal; font-size: 9px; line-height: 12px; font-weight: 700; letter-spacing: 0.02em; color: var(--hue-ingress-fg); padding: 0 2px; }
+.card-fit { position: absolute; right: 10px; top: -9px; padding: 0 7px; font-size: 10px; line-height: 16px; font-weight: 650; letter-spacing: 0.06em; font-variant-caps: all-small-caps; color: var(--accent-ink); background: var(--accent); border-radius: 999px; }
+.card[data-fit="primary"] { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow-card); }
+.card-badge { position: absolute; display: grid; place-items: center; border-radius: 50%; background: var(--surface); color: var(--hue-fg); border: 1px solid color-mix(in srgb, var(--hue-fg) 45%, transparent); box-shadow: 0 1px 2px rgba(16, 24, 40, 0.1); outline: none; }
+.card-badge:focus-visible { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus); }
+.card-attach { position: absolute; display: inline-flex; align-items: center; gap: 4px; padding: 0 8px 0 6px; font-size: 10.5px; font-weight: 550; line-height: 18px; white-space: nowrap; color: var(--ink-2); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 999px; }
+.card-attach .glyph { color: var(--hue-fg); }
+
+/* lane tints (cards, badges and attachments carry data-hue) */
+[data-hue="external"] { --hue-fg: var(--hue-external-fg); --hue-bg: var(--hue-external-bg); }
+[data-hue="edge"] { --hue-fg: var(--hue-edge-fg); --hue-bg: var(--hue-edge-bg); }
+[data-hue="ingress"] { --hue-fg: var(--hue-ingress-fg); --hue-bg: var(--hue-ingress-bg); }
+[data-hue="compute"] { --hue-fg: var(--hue-compute-fg); --hue-bg: var(--hue-compute-bg); }
+[data-hue="data"] { --hue-fg: var(--hue-data-fg); --hue-bg: var(--hue-data-bg); }
+[data-hue="integration"] { --hue-fg: var(--hue-integration-fg); --hue-bg: var(--hue-integration-bg); }
+[data-hue="ai"] { --hue-fg: var(--hue-ai-fg); --hue-bg: var(--hue-ai-bg); }
+[data-hue="analytics"] { --hue-fg: var(--hue-analytics-fg); --hue-bg: var(--hue-analytics-bg); }
+[data-hue="ops"] { --hue-fg: var(--hue-ops-fg); --hue-bg: var(--hue-ops-bg); }
+[data-hue="security"] { --hue-fg: var(--hue-security-fg); --hue-bg: var(--hue-security-bg); }
+[data-hue="saas"] { --hue-fg: var(--hue-saas-fg); --hue-bg: var(--hue-saas-bg); }
+
+/* enter, exit */
+.card.is-entering { animation: card-in var(--dur-enter) var(--ease-out) both; animation-delay: var(--stagger, 0ms); }
+.card.is-exiting { animation: card-out var(--dur-exit) cubic-bezier(0.4, 0, 1, 1) both; pointer-events: none; }
+@keyframes card-in { from { opacity: 0; transform: scale(0.92); } }
+@keyframes card-out { to { opacity: 0; transform: scale(0.96); } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }
+
+/* ---------- edges ---------- */
+.edge-line { fill: none; stroke: var(--edge); stroke-width: 1.25; }
+.edge-arrow { fill: none; stroke: var(--edge); stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
+.edge-bar { stroke: var(--edge); stroke-width: 2.5; stroke-linecap: round; }
+.edge[data-path] .edge-line { stroke: var(--edge-path); stroke-width: 1.5; }
+.edge[data-path] .edge-arrow { stroke: var(--edge-path); stroke-width: 1.5; }
+.edge[data-kind="async"] .edge-line { stroke-dasharray: 5 4; }
+.edge[data-kind="resolve"] .edge-line, .edge[data-kind="control"] .edge-line { stroke: var(--edge-muted); stroke-dasharray: 1 4; stroke-linecap: round; stroke-width: 1.5; }
+.edge[data-kind="resolve"] .edge-arrow, .edge[data-kind="control"] .edge-arrow { stroke: var(--edge-muted); }
+.edge-flow { fill: none; stroke: var(--edge-path); stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 0.01 12; opacity: 0.5; animation: flow 1.8s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -12.01; } }
+.edge { transition: opacity 150ms var(--ease-out); }
+.edge[data-hot="dim"] { opacity: 0.22; }
+.edge[data-hot="hot"] .edge-line { stroke-width: 2; }
+.edge[data-state="stale"] { opacity: 0; transition: opacity 90ms linear; }
+.edge[data-state="draw"][data-kind="data"] .edge-line { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: draw var(--dur-edge) var(--ease-out) forwards; }
+.edge[data-state="draw"] .edge-arrow, .edge[data-state="draw"]:not([data-kind="data"]) .edge-line { animation: fade-in var(--dur-edge) var(--ease-out) both; }
+.edge[data-state="draw"][data-path] .edge-flow { animation: fade-in var(--dur-edge) var(--ease-out) both, flow 1.8s linear infinite; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .card.is-entering { animation-name: fade-in; animation-delay: 0ms; }
+  .card.is-exiting { animation-name: fade-out; }
+  .edge-flow { animation: none; opacity: 0; }
+  .edge[data-state="draw"][data-kind="data"] .edge-line { stroke-dasharray: none; animation: fade-in var(--dur-edge) linear both; }
+}
+
+/* capture mode keeps the attribution quiet */
+.app[data-capture] .react-flow__attribution { opacity: 0.6; }

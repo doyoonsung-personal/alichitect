@@ -1,0 +1,1416 @@
+{
+  "meta": {
+    "startedAt": "2026-10-31T04:36:57.362Z",
+    "args": {
+      "failing-from": "eval/results/2026-10-31T04-04-43-baseline",
+      "runs": "3",
+      "concurrency": "3",
+      "label": "postfix2"
+    },
+    "model": "qwen3.8-max",
+    "fallbackModel": "qwen3.7-max",
+    "judgeModel": "kimi-k3",
+    "runsPerCase": 3,
+    "concurrency": 3,
+    "cases": 18,
+    "units": 54,
+    "catalogVersion": "2026-10-31",
+    "catalogEntries": 223,
+    "systemPromptChars": 47416,
+    "systemPromptSha256": "ba0463a6d5d79afa8ae77a047078cd4bc582298246ccc9f5a27d496f4dade9d0",
+    "node": "v24.21.0",
+    "finishedAt": "2026-10-31T04:44:15.785Z",
+    "spentUsd": 1.0409465629824564
+  },
+  "totals": {
+    "cases": 18,
+    "conversations": 54,
+    "turns": 102,
+    "casePassRate": 0.945,
+    "passAtN": 1,
+    "majority": 1,
+    "allRuns": 0.833,
+    "runPassRate": 0.944,
+    "turnPassRate": 0.961,
+    "assertionPassRate": 0.996,
+    "assertions": 1039,
+    "apiFailures": 0,
+    "costUsd": 0.894
+  },
+  "byCategory": {
+    "pattern": {
+      "cases": 2,
+      "runs": 6,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "need": {
+      "cases": 4,
+      "runs": 12,
+      "runPassRate": 0.917,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 0.75
+    },
+    "trap": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "edit": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "multiturn": {
+      "cases": 4,
+      "runs": 12,
+      "runPassRate": 0.917,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 0.75
+    },
+    "i18n": {
+      "cases": 6,
+      "runs": 18,
+      "runPassRate": 0.944,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 0.833
+    }
+  },
+  "byLang": {
+    "en": {
+      "cases": 12,
+      "runs": 36,
+      "runPassRate": 0.944,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 0.833
+    },
+    "ko": {
+      "cases": 2,
+      "runs": 6,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "zh": {
+      "cases": 4,
+      "runs": 12,
+      "runPassRate": 0.917,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 0.75
+    }
+  },
+  "byAssertionType": {
+    "question": {
+      "checks": 3,
+      "passed": 2,
+      "rate": 0.667,
+      "failingCases": [
+        "need-03-ambiguous-team"
+      ]
+    },
+    "retention": {
+      "checks": 84,
+      "passed": 83,
+      "rate": 0.988,
+      "failingCases": [
+        "mt-06-summary-window"
+      ]
+    },
+    "attachValid": {
+      "checks": 102,
+      "passed": 101,
+      "rate": 0.99,
+      "failingCases": [
+        "zh-mt-01-avoid-k8s"
+      ]
+    },
+    "format": {
+      "checks": 102,
+      "passed": 101,
+      "rate": 0.99,
+      "failingCases": [
+        "zh-mt-01-avoid-k8s"
+      ]
+    },
+    "exclude": {
+      "checks": 27,
+      "passed": 27,
+      "rate": 1,
+      "failingCases": []
+    },
+    "primaryRec": {
+      "checks": 15,
+      "passed": 15,
+      "rate": 1,
+      "failingCases": []
+    },
+    "size": {
+      "checks": 36,
+      "passed": 36,
+      "rate": 1,
+      "failingCases": []
+    },
+    "notMention": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noErrors": {
+      "checks": 102,
+      "passed": 102,
+      "rate": 1,
+      "failingCases": []
+    },
+    "escapes": {
+      "checks": 102,
+      "passed": 102,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noPrices": {
+      "checks": 102,
+      "passed": 102,
+      "rate": 1,
+      "failingCases": []
+    },
+    "sayLang": {
+      "checks": 102,
+      "passed": 102,
+      "rate": 1,
+      "failingCases": []
+    },
+    "region": {
+      "checks": 21,
+      "passed": 21,
+      "rate": 1,
+      "failingCases": []
+    },
+    "pathOrder": {
+      "checks": 87,
+      "passed": 87,
+      "rate": 1,
+      "failingCases": []
+    },
+    "include": {
+      "checks": 81,
+      "passed": 81,
+      "rate": 1,
+      "failingCases": []
+    },
+    "attach": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "editMinimal": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "req": {
+      "checks": 21,
+      "passed": 21,
+      "rate": 1,
+      "failingCases": []
+    },
+    "mention": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "whyLang": {
+      "checks": 28,
+      "passed": 28,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noWarn": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    }
+  },
+  "cases": [
+    {
+      "id": "pat-12-ecommerce-security",
+      "category": "pattern",
+      "lang": "en",
+      "title": "P12 e-commerce security",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.016,
+      "meanMs": 17866,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          4,
+          5
+        ],
+        "defects": [
+          "Tair session cache described as helping fast-reject credential stuffing is a slightly stretched justification, though the component itself is reasonable"
+        ],
+        "reasons": [
+          "Covers all three threats: DDoS via ESA, bots via Captcha and Fraud Detection, credential stuffing via WAF and risk scoring",
+          "Placement follows rules: WAF as badge on ESA, DNS off data path, SLS outside VPC, multi-zone as single nodes",
+          "Sensible complement recommendation of Anti-DDoS Proxy for attacks beyond ESA capacity"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "need-01-dev-team",
+      "category": "need",
+      "lang": "en",
+      "title": "AI agent for a team of developers",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.004,
+      "meanMs": 4324,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Token Plan is Singapore-only; answer does not flag the regional restriction",
+          "No mention of Qoder Enterprise as an option if governance is needed"
+        ],
+        "reasons": [
+          "Qoder Teams is the correct primary answer for a 15-developer team",
+          "Token Plan is a reasonable complement for model access",
+          "Narration is concise and in the user's language"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "need-03-ambiguous-team",
+      "category": "need",
+      "lang": "en",
+      "title": "AI agent for an unspecified team",
+      "runs": 3,
+      "passes": 2,
+      "passRate": 0.667,
+      "passAtN": true,
+      "majority": true,
+      "failed": {
+        "asks a question": 1
+      },
+      "failedTypes": [
+        "question"
+      ],
+      "meanCostUsd": 0.005,
+      "meanMs": 5142,
+      "judge": {
+        "run": 1,
+        "mean": 3.75,
+        "signoff": false,
+        "scores": [
+          4,
+          4,
+          3,
+          4
+        ],
+        "defects": [
+          "token-plan recommended despite scope restriction and Singapore-only availability, with no caveat",
+          "Both Qoder Teams and QwenWork recommended at once even though the catalog marks each as not for the other's audience; the answer should pick one pending the user's answer",
+          "Narration does not mention QwenWork preview status or that Token Plan is Singapore-only"
+        ],
+        "reasons": [
+          "Covers both audiences (Qoder for devs, QwenWork for non-devs) and narration asks the right clarifying question",
+          "Token Plan is flagged 'not for App backends or automation scripts' and is Singapore-only; recommending it as a complement for an unspecified team is questionable",
+          "Recommending both Qoder Teams and QwenWork simultaneously without knowing the audience is premature; should ask first, recommend after"
+        ]
+      },
+      "runPass": [
+        false,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "need-04-claude-code",
+      "category": "need",
+      "lang": "en",
+      "title": "Qwen in Claude Code and Cursor for a team",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.004,
+      "meanMs": 3699,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          4,
+          5,
+          5,
+          4
+        ],
+        "defects": [
+          "Narration could mention that keys are per-member and that it is Singapore-only, which matters for procurement",
+          "No mention that Token Plan covers both Claude Code and Cursor via the same subscription"
+        ],
+        "reasons": [
+          "Token Plan is exactly the right product: team seats, per-member keys, predictable monthly cost for interactive coding tools",
+          "Correctly avoids Coding Plan (individual only) and notes nothing about app backends",
+          "Narration is concise and directly addresses the 20-seat team need"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "need-10-build-agents",
+      "category": "need",
+      "lang": "en",
+      "title": "Build and govern our own agents",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.01,
+      "meanMs": 21553,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Approval flow is one-way (EventBridge -> FC) with no edge showing the approval result resuming the agent in AgentCore.",
+          "Runtime/sandbox layer (AgentRun, AgentBay) from the expected pattern is not represented.",
+          "Narration is very brief and does not explain the governance components (ASC, ACGC, RAM) or the approval loop."
+        ],
+        "reasons": [
+          "Covers build, govern, MCP tools and human approval with current products (AgentCore, AI Gateway, ASC, EventBridge+FC).",
+          "Placement mostly correct: managed services outside VPC, DNS as resolve hop, multi-zone ALB as one node.",
+          "Minor gaps: no AgentRun/AgentBay runtime-sandbox mention and no explicit approval callback edge back to AgentCore."
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "trap-09-mumbai",
+      "category": "trap",
+      "lang": "en",
+      "title": "Closed Mumbai region",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.007,
+      "meanMs": 12070,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Correctly identifies Mumbai as closed and pivots to Singapore with ESA edge acceleration for India users",
+          "Sound architecture: multi-zone ALB/ECS/RDS in VPC, ESA at edge, DNS off data path",
+          "Clear, concise narration and labels in the user's language"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "edit-03-swap-k8s",
+      "category": "edit",
+      "lang": "en",
+      "title": "Swap the app tier to Kubernetes",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.005,
+      "meanMs": 3583,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "ECS app tier cleanly swapped to a multi-zone ACK cluster with all existing connections preserved",
+          "ESS badge correctly removed since ACK manages its own node pool scaling",
+          "Narration is concise and explains the Auto Scaling removal"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "mt-01-avoid-k8s",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Avoid Kubernetes over four turns",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.031,
+      "meanMs": 39580,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          4,
+          5
+        ],
+        "defects": [
+          "PolarDB read replica attached to an RDS 'Orders DB' primary mixes database engines; should be same engine family",
+          "AI Dish Assistant service has no logging/tracing edges to SLS/ARMS unlike the other SAE services",
+          "Turn 3 narration claims SAE/RocketMQ autoscaling but no explicit autoscaling configuration is shown for the 5x write/event load"
+        ],
+        "reasons": [
+          "Kubernetes avoided on every turn via SAE; all four asks covered (microservices, cache, scaling, AI assistant)",
+          "Placement rules respected: WAF as badge on gateway, OSS/SLS/Model Studio outside VPC, multi-zone as single nodes",
+          "Minor: PolarDB read replica alongside RDS primary is a mixed-engine pairing; a PolarDB primary or RDS read replica would be cleaner",
+          "Minor: svc-ai lacks SLS/ARMS observability edges that other services have"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "mt-03-data-in-singapore",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Data must stay in Singapore over four turns",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.03,
+      "meanMs": 39507,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          4,
+          5
+        ],
+        "defects": [
+          "ESA and GA both drawn as parallel user entry paths without explaining they are alternative options, which could confuse",
+          "GA -> ALB edge bypasses the Cloud Firewall/ESA inspection shown for the main path, leaving the GA path's security posture unstated",
+          "Turn 2 narration mentions OSS cross-zone replication but no cross-zone replication node/config is shown for OSS"
+        ],
+        "reasons": [
+          "All data stays in Singapore; GA correctly added as network-path acceleration only",
+          "Multi-zone HA, backups, WAF, KMS, and chatbot stack are complete and well explained",
+          "Minor redundancy: ESA and GA both sit on the user path without clarifying they are alternatives"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "mt-04-budget",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Startup budget over three turns",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.019,
+      "meanMs": 24570,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          4,
+          5
+        ],
+        "defects": [
+          "HA across two zones plus a 2-zone Elasticsearch cluster may strain the $200/month budget; a cheaper search option or smaller specs could be suggested",
+          "Turn 2's 1-node Elasticsearch contradicts the later 2-zone HA claim for search; the cost jump could be quantified more explicitly"
+        ],
+        "reasons": [
+          "All three turns' requirements are covered: MVP, full-text search, and HA across two zones",
+          "Products are current, correctly placed (OSS/SLS regional outside VPC, DNS not a data-path hop), and multi-zone resources are single nodes with zones a,b",
+          "Narration honestly flags the cost impact of HA, respecting the budget constraint"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ko-need-01-dev-team",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "AI agent for developers (Korean)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.005,
+      "meanMs": 5450,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Token Plan이 Qoder Teams 사용에 반드시 필요한지, 선택 사항인지 명확한 설명 없음",
+          "추천 이유(why text)가 한 줄로 간결하여 SSO, 프라이버시 모드, 사용량 분석 등 구체적 이점 언급 부족"
+        ],
+        "reasons": [
+          "Qoder Teams가 15명 개발팀의 코딩 에이전트 요구에 정확히 부합",
+          "Token Plan을 보완재로 제시한 것은 합리적이나 필수 여부 설명이 없음",
+          "설명이 한국어로 제공되었으나 다소 간결하여 근거가 부족"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ko-mt-01-avoid-k8s",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "Avoid Kubernetes over three turns (Korean)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.034,
+      "meanMs": 41705,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          4,
+          5
+        ],
+        "defects": [
+          "세션/메뉴 캐시와 메뉴 전용 캐시 두 Tair 인스턴스가 다소 중복적(2턴에서 분리 결정은 합리적이나 통합 대안 검토 부재)",
+          "RDS 읽기 복제본 추가 외에 RDS 쓰기 확장(스펙 업) 언급이 없음"
+        ],
+        "reasons": [
+          "쿠버네티스 금지 요구사항을 SAE로 충실히 이행하고 3턴 모두 일관되게 유지함",
+          "5배 트래픽 대비 SAE 오토스케일링, RDS 읽기 복제본, Tair 스케일아웃 등 적절한 확장 수단 추가",
+          "모든 제품이 카탈로그 기준 현행이며 배치(엣지/VPC/리전)와 WAF 배지 처리가 규칙에 부합"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "zh-need-02-whole-company",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "AI assistant for the whole company (Chinese)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.004,
+      "meanMs": 4982,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "未说明 QwenWork 处于 preview 阶段及 Premium 才提供 SSO/专属 VPC（企业全员场景相关）",
+          "DingTalk 国际版 AI 能力低置信度未在说明中提示"
+        ],
+        "reasons": [
+          "QwenWork 作为主推荐完全契合全员文档/幻灯片/调研需求",
+          "中文说明简洁清晰",
+          "DingTalk 作为补充合理但未提及其国际版 AI 功能与价格未发布的低置信度"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "zh-edit-01-insert-waf",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "Add WAF (Chinese)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.005,
+      "meanMs": 3875,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          4,
+          5
+        ],
+        "defects": [
+          "Does not mention that ESA already provides baseline WAF, so standalone WAF 3.0 on ALB is for deeper rules (minor omission, not an error)"
+        ],
+        "reasons": [
+          "WAF correctly added as a badge on ALB in cloud-native mode, no extra hop or DNS change",
+          "Narration and why text are in Chinese as required, concise and specific",
+          "Minor: ESA already includes WAF; a brief note that standalone WAF adds deeper rule sets would be ideal"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "zh-trap-08-sydney",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "Closed Sydney region (Chinese)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.009,
+      "meanMs": 16319,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "正确说明悉尼地域已关闭并改用新加坡，符合用户约束",
+          "ESA 边缘加速服务澳大利亚用户，架构层次完整（DNS/边缘/ALB/ECS/缓存/RDS/OSS/SLS）",
+          "WAF 作为 ALB 徽章、ESS 作为 ECS 徽章、多可用区单节点等画法均符合规范，中文说明清晰"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "zh-mt-01-avoid-k8s",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "Avoid Kubernetes over three turns (Chinese)",
+      "runs": 3,
+      "passes": 2,
+      "passRate": 0.667,
+      "passAtN": true,
+      "majority": true,
+      "failed": {
+        "NDJSON only, ends with done": 1,
+        "every attachment names a valid host": 1
+      },
+      "failedTypes": [
+        "format",
+        "attachValid"
+      ],
+      "meanCostUsd": 0.047,
+      "meanMs": 40866,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          4,
+          5
+        ],
+        "defects": [
+          "RDS 主库本身未说明扩容或升级路径，5 倍写入压力下可能成为瓶颈",
+          "MQ 与 MSE 的扩展性未在第三轮提及，仅覆盖计算、缓存和读库"
+        ],
+        "reasons": [
+          "全程避开 Kubernetes，SAE+网关+RocketMQ+Tair+RDS 组合贴合需求",
+          "第三轮通过 SAE 弹性、Tair 在线扩容和 RDS 只读实例合理应对 5 倍流量",
+          "中文说明简洁具体，产品均为当前版本且放置正确"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        false
+      ]
+    },
+    {
+      "id": "pat-13-internal-portal",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Internal HR portal in Seoul",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.017,
+      "meanMs": 19652,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "All four pinned requirements are met: private access via VPN Gateway, SSO via IDaaS, PostgreSQL via RDS, attachments via OSS.",
+          "Placement follows the rules: OSS and SLS are regional nodes outside the VPC, ALB is a single multi-zone node, no public edge services.",
+          "Narration is concise, in the user's language, and explains each product choice."
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "mt-06-summary-window",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Ride-hailing platform with summary window",
+      "runs": 3,
+      "passes": 2,
+      "passRate": 0.667,
+      "passAtN": true,
+      "majority": true,
+      "failed": {
+        "regions only jakarta|ap-southeast-5|indonesia": 1
+      },
+      "failedTypes": [
+        "retention"
+      ],
+      "meanCostUsd": 0.045,
+      "meanMs": 63272,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          4,
+          5
+        ],
+        "defects": [
+          "DTS replication node has only an incoming edge from PolarDB with no stated target, so the DR replication destination is ambiguous (a standby PolarDB in another Jakarta zone is implied but not shown).",
+          "Narration for turn 5 does not explicitly explain why DR stays in-region rather than cross-region, though the constraint is honored."
+        ],
+        "reasons": [
+          "All five turns covered: gateway, 8 SAE microservices, PolarDB, Tair, SMQ, Flink/Hologres/Quick BI analytics, OSS documents, and DR via Cloud Backup + DTS, all in Jakarta with no Kubernetes.",
+          "Placement rules respected: regional services (SMQ, SLS, OSS, Quick BI, Cloud Backup, DTS) outside VPC, WAF as badge on gateway, multi-zone nodes as single nodes with zones a,b.",
+          "DR approach correctly stays in-region (zone-level redundancy + backups + replication) honoring the Indonesia data-residency constraint."
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        false
+      ]
+    }
+  ],
+  "warnings": {
+    "preRepairByCode": {
+      "orphan-node": {
+        "total": 10,
+        "perTurn": 0.098,
+        "turns": 10
+      },
+      "containment": {
+        "total": 4,
+        "perTurn": 0.039,
+        "turns": 4
+      },
+      "bad-json": {
+        "total": 1,
+        "perTurn": 0.01,
+        "turns": 1
+      },
+      "attach-host-missing": {
+        "total": 1,
+        "perTurn": 0.01,
+        "turns": 1
+      }
+    },
+    "postRepairByCode": {
+      "orphan-node": {
+        "total": 11,
+        "perTurn": 0.108,
+        "turns": 11
+      }
+    },
+    "preRepairBySeverity": {
+      "info": 10,
+      "error": 4,
+      "warn": 2
+    },
+    "postRepairBySeverity": {
+      "info": 10,
+      "warn": 1
+    },
+    "fixesByCode": {
+      "containment": 4,
+      "attach-host-missing": 1
+    },
+    "unknownProducts": {
+      "count": 0,
+      "top": []
+    },
+    "nonIdProducts": {
+      "count": 0,
+      "top": []
+    }
+  },
+  "latency": {
+    "firstSayMs": {
+      "n": 102,
+      "p50": 1718,
+      "p95": 4239,
+      "mean": 2087,
+      "max": 14139
+    },
+    "firstOpMs": {
+      "n": 102,
+      "p50": 2143,
+      "p95": 4734,
+      "mean": 2544,
+      "max": 14542
+    },
+    "firstNodeMs": {
+      "n": 83,
+      "p50": 3658,
+      "p95": 6082,
+      "mean": 4106,
+      "max": 17036
+    },
+    "streamMs": {
+      "n": 102,
+      "p50": 7105,
+      "p95": 25093,
+      "mean": 10416,
+      "max": 35642
+    },
+    "turnMs": {
+      "n": 102,
+      "p50": 8148,
+      "p95": 25308,
+      "mean": 10824,
+      "max": 40441
+    },
+    "diagramStreamMs": {
+      "n": 87,
+      "p50": 8320,
+      "p95": 25259,
+      "mean": 11398,
+      "max": 35642
+    },
+    "productStreamMs": {
+      "n": 15,
+      "p50": 4535,
+      "p95": 7055,
+      "mean": 4718,
+      "max": 7964
+    },
+    "editStreamMs": {
+      "n": 54,
+      "p50": 5398,
+      "p95": 9256,
+      "mean": 6037,
+      "max": 17429
+    }
+  },
+  "tokens": {
+    "prompt": 1306606,
+    "cached": 1213440,
+    "cacheHit": 0.929,
+    "completion": 46869,
+    "completionPerTurn": {
+      "n": 102,
+      "p50": 270,
+      "p95": 1187,
+      "mean": 460,
+      "max": 1871
+    },
+    "costPerTurn": {
+      "n": 102,
+      "p50": 0.00726,
+      "p95": 0.01409,
+      "mean": 0.00875,
+      "max": 0.0792644298245614
+    },
+    "costPerConversation": {
+      "n": 54,
+      "p50": 0.0086,
+      "p95": 0.04561,
+      "mean": 0.01655,
+      "max": 0.09255242982456141
+    },
+    "costUsd": 0.894
+  },
+  "reliability": {
+    "turns": 102,
+    "truncatedMain": 1,
+    "continued": 1,
+    "repairTurns": 0,
+    "hedged": 2,
+    "hedgeWon": 2,
+    "fallbackUsed": 0,
+    "retriedAttempts": 0,
+    "apiFailures": 0,
+    "badLines": 1,
+    "escapes": 0
+  },
+  "i18n": {
+    "en": {
+      "turns": 72,
+      "completionPerTurn": 464,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 12834,
+      "sayLangPass": 72,
+      "sayLangChecks": 72,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    },
+    "ko": {
+      "turns": 12,
+      "completionPerTurn": 470,
+      "ratioVsEnglish": 1.017,
+      "promptPerTurn": 12759,
+      "sayLangPass": 12,
+      "sayLangChecks": 12,
+      "whyLangPass": 12,
+      "whyLangChecks": 12,
+      "escapes": 0
+    },
+    "zh": {
+      "turns": 18,
+      "completionPerTurn": 435,
+      "ratioVsEnglish": 0.864,
+      "promptPerTurn": 12749,
+      "sayLangPass": 18,
+      "sayLangChecks": 18,
+      "whyLangPass": 16,
+      "whyLangChecks": 16,
+      "escapes": 0
+    }
+  },
+  "multiturn": [
+    {
+      "case": "mt-01-avoid-k8s",
+      "turns": 4,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 2,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 3,
+          "checks": 6,
+          "passed": 6
+        },
+        {
+          "turn": 4,
+          "checks": 6,
+          "passed": 6
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "mt-03-data-in-singapore",
+      "turns": 4,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 2,
+          "checks": 6,
+          "passed": 6
+        },
+        {
+          "turn": 3,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 4,
+          "checks": 3,
+          "passed": 3
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "mt-04-budget",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 2,
+          "checks": 6,
+          "passed": 6
+        },
+        {
+          "turn": 3,
+          "checks": 3,
+          "passed": 3
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "ko-mt-01-avoid-k8s",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 2,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 3,
+          "checks": 6,
+          "passed": 6
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "zh-mt-01-avoid-k8s",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 2,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 3,
+          "checks": 6,
+          "passed": 6
+        }
+      ],
+      "finalPassRate": 0.667
+    },
+    {
+      "case": "mt-06-summary-window",
+      "turns": 5,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 6,
+          "passed": 6
+        },
+        {
+          "turn": 2,
+          "checks": 6,
+          "passed": 6
+        },
+        {
+          "turn": 3,
+          "checks": 6,
+          "passed": 6
+        },
+        {
+          "turn": 4,
+          "checks": 6,
+          "passed": 6
+        },
+        {
+          "turn": 5,
+          "checks": 12,
+          "passed": 11
+        }
+      ],
+      "finalPassRate": 0.667
+    }
+  ],
+  "judge": {
+    "model": "kimi-k3",
+    "judged": 18,
+    "errors": 0,
+    "means": {
+      "completeness": 4.667,
+      "accuracy": 4.556,
+      "rationality": 4.222,
+      "readability": 4.667,
+      "overall": 4.528
+    },
+    "signoffRate": 0.944,
+    "byCategory": {
+      "pattern": {
+        "n": 2,
+        "overall": 4.875,
+        "signoff": 1
+      },
+      "need": {
+        "n": 4,
+        "overall": 4.063,
+        "signoff": 0.75
+      },
+      "trap": {
+        "n": 1,
+        "overall": 5,
+        "signoff": 1
+      },
+      "edit": {
+        "n": 1,
+        "overall": 5,
+        "signoff": 1
+      },
+      "multiturn": {
+        "n": 4,
+        "overall": 4.563,
+        "signoff": 1
+      },
+      "i18n": {
+        "n": 6,
+        "overall": 4.542,
+        "signoff": 1
+      }
+    },
+    "agreement": {
+      "n": 18,
+      "agree": 18,
+      "rate": 1,
+      "tp": 17,
+      "tn": 1,
+      "fp": 0,
+      "fn": 0,
+      "meanScorePass": 4.574,
+      "meanScoreFail": 3.75,
+      "pointBiserial": 0.473,
+      "disagreements": []
+    },
+    "costUsd": 0.147
+  },
+  "failures": [
+    {
+      "case": "need-03-ambiguous-team",
+      "category": "need",
+      "run": 1,
+      "turn": 1,
+      "type": "question",
+      "name": "asks a question",
+      "detail": ""
+    },
+    {
+      "case": "zh-mt-01-avoid-k8s",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "format",
+      "name": "NDJSON only, ends with done",
+      "detail": "bad 1, done false, finish null, rescued by the continuation turn"
+    },
+    {
+      "case": "zh-mt-01-avoid-k8s",
+      "category": "i18n",
+      "run": 3,
+      "turn": 3,
+      "type": "attachValid",
+      "name": "every attachment names a valid host",
+      "detail": "'scaling' attaches to 'services': 'services' (sae) is not an attach host for ess"
+    },
+    {
+      "case": "mt-06-summary-window",
+      "category": "multiturn",
+      "run": 3,
+      "turn": 5,
+      "type": "retention",
+      "name": "regions only jakarta|ap-southeast-5|indonesia",
+      "detail": "outside: singapore (ap-southeast-1) sg"
+    }
+  ]
+}

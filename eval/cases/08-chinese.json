@@ -1,0 +1,313 @@
+[
+  {
+    "id": "zh-pat-01-web-ha",
+    "category": "i18n",
+    "lang": "zh",
+    "of": "pat-01-web-ha",
+    "title": "P1 highly available web store (Chinese)",
+    "reference": "Same as the English case: Singapore region, DNS to ESA or CDN, ALB and compute across two zones, Tair, PolarDB or RDS high availability, OSS. Say and why text in Chinese; product names as in the catalog.",
+    "turns": [
+      {
+        "ask": "我们在东南亚运营一家网上商店，每天大约 3 万用户，大促期间流量激增。请设计一个高可用的 Web 架构。",
+        "expect": {
+          "include": [
+            [
+              "alb",
+              "nlb"
+            ],
+            [
+              "ecs",
+              "ack",
+              "acs",
+              "sae"
+            ],
+            [
+              "rds",
+              "polardb"
+            ],
+            [
+              "esa",
+              "cdn"
+            ]
+          ],
+          "zones": [
+            [
+              "ecs",
+              "ack",
+              "acs",
+              "sae"
+            ],
+            [
+              "rds",
+              "polardb"
+            ]
+          ],
+          "regions": {
+            "min": 1
+          },
+          "minNodes": 6,
+          "maxNodes": 30
+        }
+      }
+    ]
+  },
+  {
+    "id": "zh-pat-04-rag",
+    "category": "i18n",
+    "lang": "zh",
+    "of": "pat-04-rag",
+    "title": "P4 RAG assistant (Chinese)",
+    "reference": "Same as the English case: Model Studio Qwen, a vector store (Milvus or OpenSearch), documents in OSS, compute on Function Compute, SAE or ACK; never the Model Studio knowledge base. Say and why text in Chinese.",
+    "turns": [
+      {
+        "ask": "我们想用通义千问（Qwen）模型做一个内部助手，根据公司的制度文档和 Wiki 回答员工的问题。",
+        "expect": {
+          "include": [
+            [
+              "model-studio"
+            ],
+            [
+              "milvus",
+              "opensearch",
+              "elasticsearch",
+              "analyticdb",
+              "dashvector",
+              "lindorm",
+              "polardb"
+            ],
+            [
+              "oss"
+            ],
+            [
+              "fc",
+              "sae",
+              "ack",
+              "acs",
+              "ecs",
+              "agentcore",
+              "agentrun"
+            ]
+          ],
+          "exclude": [
+            "model-studio-apps"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "zh-need-01-dev-team",
+    "category": "i18n",
+    "lang": "zh",
+    "of": "need-01-dev-team",
+    "title": "AI agent for developers (Chinese)",
+    "reference": "Qoder Teams as the primary answer (Qoder Enterprise if governed); no Lingma or Qoder CN. Say and why text in Chinese.",
+    "turns": [
+      {
+        "ask": "我需要一个 AI 智能体，给我们 15 人的软件开发团队写代码用。",
+        "expect": {
+          "primaryRec": [
+            "qoder-teams",
+            "qoder-enterprise"
+          ],
+          "exclude": [
+            "qoder-cn",
+            "lingma",
+            "coding-plan"
+          ],
+          "noNodes": true,
+          "notMention": [
+            "Lingma",
+            "灵码"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "zh-need-02-whole-company",
+    "category": "i18n",
+    "lang": "zh",
+    "of": "need-02-whole-company",
+    "title": "AI assistant for the whole company (Chinese)",
+    "reference": "QwenWork as the primary answer. Say and why text in Chinese.",
+    "turns": [
+      {
+        "ask": "我们希望公司所有员工（销售、人事、财务）都能用一个 AI 助手来写文档、做幻灯片和做调研。",
+        "expect": {
+          "primaryRec": [
+            "qwenwork"
+          ],
+          "noNodes": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "zh-edit-01-insert-waf",
+    "category": "i18n",
+    "lang": "zh",
+    "of": "edit-01-insert-waf",
+    "title": "Add WAF (Chinese)",
+    "base": "shop-sg",
+    "reference": "Adds WAF as a badge on the ALB (or ESA) and nothing else. Say and why text in Chinese even though the earlier turns were in English.",
+    "turns": [
+      {
+        "ask": "再加一个 WAF。",
+        "expect": {
+          "include": [
+            [
+              "waf"
+            ]
+          ],
+          "attach": [
+            {
+              "product": "waf",
+              "hosts": [
+                "alb",
+                "esa",
+                "cloud-native-api-gateway"
+              ]
+            }
+          ],
+          "edit": {
+            "maxNodeAdds": 1,
+            "maxNodeRemoves": 0,
+            "maxEdgeRemoves": 1
+          },
+          "noWarn": [
+            "attach-inline"
+          ],
+          "maxOps": 6
+        }
+      }
+    ]
+  },
+  {
+    "id": "zh-trap-01-lingma",
+    "category": "i18n",
+    "lang": "zh",
+    "of": "trap-01-lingma",
+    "title": "Tongyi Lingma trap (Chinese)",
+    "reference": "Explains that Lingma is now Qoder for international users (Qoder CN is China-only) and recommends Qoder Teams. Say and why text in Chinese.",
+    "turns": [
+      {
+        "ask": "请为我们在新加坡的 10 名开发者开通通义灵码。",
+        "expect": {
+          "primaryRec": [
+            "qoder-teams",
+            "qoder",
+            "qoder-enterprise"
+          ],
+          "exclude": [
+            "lingma",
+            "qoder-cn"
+          ],
+          "excludeRaw": [
+            "lingma",
+            "tongyi-lingma",
+            "qoder-cn",
+            "通义灵码"
+          ],
+          "noWarn": [
+            "retired-product",
+            "china-only"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "zh-trap-08-sydney",
+    "category": "i18n",
+    "lang": "zh",
+    "of": "trap-08-sydney",
+    "title": "Closed Sydney region (Chinese)",
+    "reference": "Says the Sydney region is closed and uses Singapore with edge acceleration. Say and why text in Chinese.",
+    "turns": [
+      {
+        "ask": "请把我们的 Web 应用部署到悉尼地域，服务澳大利亚的客户。",
+        "expect": {
+          "regions": {
+            "not": [
+              "sydney",
+              "ap-southeast-2",
+              "悉尼"
+            ]
+          },
+          "minNodes": 4
+        }
+      }
+    ]
+  },
+  {
+    "id": "zh-mt-01-avoid-k8s",
+    "category": "i18n",
+    "lang": "zh",
+    "of": "mt-01-avoid-k8s",
+    "title": "Avoid Kubernetes over three turns (Chinese)",
+    "reference": "SAE or Function Compute for the microservices, a message queue for order events, a database, Tair for menus, scaling without Kubernetes on every turn. Say and why text in Chinese.",
+    "turns": [
+      {
+        "ask": "我们在做一个外卖应用的后端：大约 12 个微服务、给移动端的 REST API，还有订单事件。团队没有 Kubernetes 经验，请不要使用 Kubernetes。",
+        "expect": {
+          "req": [
+            [
+              "kubernetes",
+              "k8s"
+            ]
+          ],
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ],
+          "include": [
+            [
+              "sae",
+              "fc",
+              "ecs",
+              "edas"
+            ]
+          ]
+        }
+      },
+      {
+        "ask": "为餐厅菜单加一个缓存。",
+        "expect": {
+          "include": [
+            [
+              "tair"
+            ]
+          ]
+        },
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ]
+        }
+      },
+      {
+        "ask": "预计明年流量会增长 5 倍，请让架构能够扩展。",
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ],
+          "req": [
+            [
+              "kubernetes",
+              "k8s"
+            ]
+          ]
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "lib": ["ES2024"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "skipLibCheck": true,
+    "typeRoots": ["../../spikes/canvas/node_modules/@types"],
+    "types": ["node"]
+  },
+  "include": [
+    "src",
+    "test",
+    "scripts",
+    "../../packages/core/src/llm.ts",
+    "../../packages/core/src/prompt.ts",
+    "../../packages/core/test/prompt.test.ts",
+    "../../eval/probe-watchdogs.ts"
+  ]
+}

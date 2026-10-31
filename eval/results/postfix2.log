@@ -1,0 +1,137 @@
+2026-10-31T04-36-57-postfix2: 18 cases, 54 of 54 conversations to run (concurrency 3, model qwen3.8-max, fallback qwen3.7-max)
+[1/54] need-01-dev-team#1 PASS 1/1 turns 4s $0.004
+[2/54] need-03-ambiguous-team#1 FAIL 1/1 turns 5s $0.005 failed: question
+[3/54] need-04-claude-code#1 PASS 1/1 turns 3s $0.004
+[4/54] trap-09-mumbai#1 PASS 1/1 turns 10s $0.007
+[5/54] pat-12-ecommerce-security#1 PASS 1/1 turns 19s $0.030
+[6/54] edit-03-swap-k8s#1 PASS 1/1 turns 4s $0.006
+[7/54] need-10-build-agents#1 PASS 1/1 turns 21s $0.010
+[8/54] mt-04-budget#1 PASS 3/3 turns 21s $0.018
+[9/54] ko-need-01-dev-team#1 PASS 1/1 turns 4s $0.004
+[10/54] mt-01-avoid-k8s#1 PASS 4/4 turns 39s $0.031
+[11/54] mt-03-data-in-singapore#1 PASS 4/4 turns 38s $0.030
+[12/54] zh-edit-01-insert-waf#1 PASS 1/1 turns 3s $0.005
+[13/54] zh-need-02-whole-company#1 PASS 1/1 turns 4s $0.004
+[14/54] zh-trap-08-sydney#1 PASS 1/1 turns 16s $0.009
+[15/54] ko-mt-01-avoid-k8s#1 PASS 3/3 turns 36s $0.024
+[16/54] pat-13-internal-portal#1 PASS 1/1 turns 17s $0.008
+[17/54] zh-mt-01-avoid-k8s#1 PASS 3/3 turns 34s $0.024
+[18/54] need-01-dev-team#2 PASS 1/1 turns 4s $0.004
+[19/54] need-03-ambiguous-team#2 PASS 1/1 turns 5s $0.005
+[20/54] need-04-claude-code#2 PASS 1/1 turns 5s $0.004
+[21/54] pat-12-ecommerce-security#2 PASS 1/1 turns 21s $0.009
+[22/54] trap-09-mumbai#2 PASS 1/1 turns 16s $0.009
+[23/54] need-10-build-agents#2 PASS 1/1 turns 24s $0.010
+[24/54] edit-03-swap-k8s#2 PASS 1/1 turns 4s $0.005
+[25/54] mt-06-summary-window#1 PASS 5/5 turns 62s $0.044
+[26/54] mt-04-budget#2 PASS 3/3 turns 24s $0.019
+[27/54] mt-03-data-in-singapore#2 PASS 4/4 turns 40s $0.031
+[28/54] ko-need-01-dev-team#2 PASS 1/1 turns 5s $0.004
+[29/54] mt-01-avoid-k8s#2 PASS 4/4 turns 44s $0.032
+[30/54] zh-need-02-whole-company#2 PASS 1/1 turns 4s $0.004
+[31/54] zh-edit-01-insert-waf#2 PASS 1/1 turns 4s $0.005
+[32/54] zh-trap-08-sydney#2 PASS 1/1 turns 17s $0.009
+[33/54] pat-13-internal-portal#2 PASS 1/1 turns 15s $0.008
+[34/54] ko-mt-01-avoid-k8s#2 PASS 3/3 turns 38s $0.025
+[35/54] zh-mt-01-avoid-k8s#2 PASS 3/3 turns 36s $0.025
+[36/54] need-01-dev-team#3 PASS 1/1 turns 5s $0.005
+[37/54] need-03-ambiguous-team#3 PASS 1/1 turns 5s $0.005
+[38/54] pat-12-ecommerce-security#3 PASS 1/1 turns 14s $0.008
+[39/54] need-04-claude-code#3 PASS 1/1 turns 3s $0.004
+[40/54] trap-09-mumbai#3 PASS 1/1 turns 10s $0.007
+[41/54] edit-03-swap-k8s#3 PASS 1/1 turns 3s $0.005
+[42/54] need-10-build-agents#3 PASS 1/1 turns 20s $0.010
+[43/54] mt-06-summary-window#2 PASS 5/5 turns 60s $0.044
+[44/54] mt-01-avoid-k8s#3 PASS 4/4 turns 36s $0.029
+[45/54] ko-need-01-dev-team#3 PASS 1/1 turns 8s $0.005
+[46/54] mt-03-data-in-singapore#3 PASS 4/4 turns 41s $0.031
+[47/54] zh-need-02-whole-company#3 PASS 1/1 turns 7s $0.004
+[48/54] zh-edit-01-insert-waf#3 PASS 1/1 turns 5s $0.005
+[49/54] mt-04-budget#3 PASS 3/3 turns 28s $0.020
+[50/54] zh-trap-08-sydney#3 PASS 1/1 turns 16s $0.009
+[51/54] ko-mt-01-avoid-k8s#3 PASS 3/3 turns 51s $0.052
+[52/54] pat-13-internal-portal#3 PASS 1/1 turns 27s $0.033
+[53/54] zh-mt-01-avoid-k8s#3 FAIL 3/3 turns 53s $0.093 failed: format,attachValid
+[54/54] mt-06-summary-window#3 FAIL 5/5 turns 68s $0.048 failed: retention
+judge kimi-k3: 18 runs to score
+judge pat-12-ecommerce-security: 5/5/4/5 signoff yes
+judge need-01-dev-team: 4/4/4/4 signoff yes
+judge need-04-claude-code: 4/5/5/4 signoff yes
+judge need-03-ambiguous-team: 4/4/3/4 signoff no
+judge trap-09-mumbai: 5/5/5/5 signoff yes
+judge edit-03-swap-k8s: 5/5/5/5 signoff yes
+judge need-10-build-agents: 4/4/4/4 signoff yes
+judge mt-03-data-in-singapore: 5/4/4/5 signoff yes
+judge mt-04-budget: 5/5/4/5 signoff yes
+judge mt-01-avoid-k8s: 5/4/4/5 signoff yes
+judge zh-need-02-whole-company: 4/4/4/4 signoff yes
+judge ko-need-01-dev-team: 4/4/4/4 signoff yes
+judge zh-edit-01-insert-waf: 5/5/4/5 signoff yes
+judge ko-mt-01-avoid-k8s: 5/5/4/5 signoff yes
+judge zh-trap-08-sydney: 5/5/5/5 signoff yes
+judge pat-13-internal-portal: 5/5/5/5 signoff yes
+judge zh-mt-01-avoid-k8s: 5/5/4/5 signoff yes
+judge mt-06-summary-window: 5/4/4/5 signoff yes
+
+results: C:\Users\mendo\ali_catalog\eval\results\2026-10-31T04-36-57-postfix2
+spent this run: USD 1.041 (ledger total USD 5.446)
+# Evaluation summary
+
+Model qwen3.8-max (fallback qwen3.7-max), catalog 2026-10-31 (223 entries), system prompt 47416 chars (sha256 ba0463a6d5d7), 3 runs per case, started 2026-10-31T04:36:57.362Z.
+
+## Overall
+
+| measure | value |
+| --- | ---: |
+| cases / conversations / turns | 18 / 54 / 102 |
+| pass@1 (mean case pass rate) | 95% |
+| pass@3 (some run passes) | 100% |
+| majority (over half the runs pass) | 100% |
+| all runs pass | 83% |
+| conversations passing every assertion | 94% |
+| turns passing every assertion | 96% |
+| assertions passing (1039 checks) | 100% |
+| conversations that hit an API failure | 0 |
+| list-price cost of the model runs | $0.89 |
+
+## By category
+
+| category | cases | runs | run pass | pass@3 | majority | all runs |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| pattern | 2 | 6 | 100% | 100% | 100% | 100% |
+| need | 4 | 12 | 92% | 100% | 100% | 75% |
+| trap | 1 | 3 | 100% | 100% | 100% | 100% |
+| edit | 1 | 3 | 100% | 100% | 100% | 100% |
+| multiturn | 4 | 12 | 92% | 100% | 100% | 75% |
+| i18n | 6 | 18 | 94% | 100% | 100% | 83% |
+
+## By language
+
+| language | cases | runs | run pass | pass@3 | majority | all runs |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| en | 12 | 36 | 94% | 100% | 100% | 83% |
+| ko | 2 | 6 | 100% | 100% | 100% | 100% |
+| zh | 4 | 12 | 92% | 100% | 100% | 75% |
+
+## By assertion type (worst first)
+
+| type | checks | passed | rate | cases that failed it |
+| --- | ---: | ---: | ---: | ---: |
+| question | 3 | 2 | 67% | 1 |
+| retention | 84 | 83 | 99% | 1 |
+| attachValid | 102 | 101 | 99% | 1 |
+| format | 102 | 101 | 99% | 1 |
+| exclude | 27 | 27 | 100% | 0 |
+| primaryRec | 15 | 15 | 100% | 0 |
+| size | 36 | 36 | 100% | 0 |
+| notMention | 6 | 6 | 100% | 0 |
+| noErrors | 102 | 102 | 100% | 0 |
+| escapes | 102 | 102 | 100% | 0 |
+| noPrices | 102 | 102 | 100% | 0 |
+| sayLang | 102 | 102 | 100% | 0 |
+| region | 21 | 21 | 100% | 0 |
+| pathOrder | 87 | 87 | 100% | 0 |
+| include | 81 | 81 | 100% | 0 |
+| attach | 6 | 6 | 100% | 0 |
+| editMinimal | 6 | 6 | 100% | 0 |
+| req | 21 | 21 | 100% | 0 |

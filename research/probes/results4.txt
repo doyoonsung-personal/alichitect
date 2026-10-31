@@ -1,0 +1,98 @@
+base state after F+B4+B5: 9 groups, 23 nodes (users,dns,anti_ddos,waf,esa,cdn,alb,ecs,ecs,auto_scaling,polardb,tair,oss,opensearch,rocketmq,sls,arms,cloudmonitor,security_center,nat,maxcompute,dataworks,quick_bi), 21 edges
+== H1_micro_with_history  model=qwen3.8-max  params=[model,enable_thinking]  HTTP 200
+   first byte 1.6s | first reasoning - | first content 1.6s | first tool - | total 15.6s | finish=stop
+   tokens: prompt 4641 (cached 1024) | completion 799 (reasoning -) | reasoning chars 0
+   visible-output rate ~57 tok/s after first visible token
+   ops 33 {"say":2,"remove":14,"group":2,"node":3,"edge":11,"done":1} | bad json 0 | problems 0
+   op arrival: first 2.3s, 25% 4.0s, 50% 6.4s, 75% 11.3s, last 15.6s
+   2.3s  {"t":"say","text":"With 12 microservices and a small team avoiding Kubernetes, Serverless App Engine (SAE) is the perfect fit."}
+   2.6s  {"t":"remove","id":"ecs-a"}
+   2.7s  {"t":"remove","id":"ecs-b"}
+   2.9s  {"t":"remove","id":"asg"}
+   3.1s  {"t":"remove","id":"e-alb-ecs-a"}
+   3.3s  {"t":"remove","id":"e-alb-ecs-b"}
+   3.5s  {"t":"remove","id":"e-asg-ecs"}
+   3.8s  {"t":"remove","id":"e-ecs-polardb"}
+   4.0s  {"t":"remove","id":"e-ecs-tair"}
+   4.1s  {"t":"remove","id":"e-ecs-oss"}
+   4.4s  {"t":"remove","id":"e-ecs-search"}
+   4.6s  {"t":"remove","id":"e-ecs-mq"}
+   4.8s  {"t":"remove","id":"e-ecs-sls"}
+   5.1s  {"t":"remove","id":"e-ecs-arms"}
+   5.2s  {"t":"remove","id":"e-ecs-nat"}
+   5.8s  {"t":"group","id":"zone-a","kind":"zone","label":"Zone A","parent":"vpc"}
+   6.4s  {"t":"group","id":"zone-b","kind":"zone","label":"Zone B","parent":"vpc"}
+   7.2s  {"t":"node","id":"api-gw","product":"api_gateway","label":"API Gateway","group":"vpc","why":"Central entry point to route, throttle, and auth 12 microservices"}
+   8.2s  {"t":"node","id":"sae-a","product":"sae","label":"Microservices (AZ-A)","group":"zone-a","why":"Serverless containers for ~12 microservices without K8s overhead"}
+   8.9s  {"t":"node","id":"sae-b","product":"sae","label":"Microservices (AZ-B)","group":"zone-b","why":"Multi-zone SAE deployment for high availability"}
+   9.4s  {"t":"edge","id":"e-alb-apigw","from":"alb","to":"api-gw","label":"route"}
+   9.9s  {"t":"edge","id":"e-apigw-sae-a","from":"api-gw","to":"sae-a","label":"HTTP"}
+   10.4s  {"t":"edge","id":"e-apigw-sae-b","from":"api-gw","to":"sae-b","label":"HTTP"}
+   10.9s  {"t":"edge","id":"e-sae-polardb","from":"sae-a","to":"polardb","label":"SQL"}
+   11.3s  {"t":"edge","id":"e-sae-tair","from":"sae-a","to":"tair","label":"cache"}
+   11.7s  {"t":"edge","id":"e-sae-oss","from":"sae-a","to":"oss","label":"upload"}
+   12.3s  {"t":"edge","id":"e-sae-search","from":"sae-a","to":"opensearch","label":"query"}
+   12.8s  {"t":"edge","id":"e-sae-mq","from":"sae-a","to":"rocketmq","label":"orders"}
+   13.3s  {"t":"edge","id":"e-sae-sls","from":"sae-a","to":"sls","label":"logs"}
+   13.8s  {"t":"edge","id":"e-sae-arms","from":"sae-a","to":"arms","label":"traces"}
+   14.3s  {"t":"edge","id":"e-sae-nat","from":"sae-a","to":"nat","label":"outbound"}
+   15.1s  {"t":"say","text":"I also added API Gateway in front of SAE to manage routing, throttling, and auth across your 12 services."}
+   15.6s  {"t":"done","summary":"Replaced ECS and Auto Scaling with SAE for serverless microservices, plus API Gateway for centralized traffic management."}
+== H1c_micro_no_history  model=qwen3.8-max  params=[model,enable_thinking]  HTTP 200
+   first byte 2.8s | first reasoning - | first content 2.8s | first tool - | total 12.5s | finish=stop
+   tokens: prompt 2323 (cached 1024) | completion 578 (reasoning -) | reasoning chars 0
+   visible-output rate ~60 tok/s after first visible token
+   ops 27 {"say":2,"remove":14,"node":1,"edge":9,"done":1} | bad json 0 | problems 0
+   op arrival: first 3.5s, 25% 4.5s, 50% 5.9s, 75% 8.9s, last 12.5s
+   3.5s  {"t":"say","text":"To split the monolith into 12 microservices, I'll replace the ECS fleet with an ACK Kubernetes cluster."}
+   3.6s  {"t":"remove","id":"ecs-a"}
+   3.7s  {"t":"remove","id":"ecs-b"}
+   3.9s  {"t":"remove","id":"asg"}
+   4.1s  {"t":"remove","id":"e-alb-ecs-a"}
+   4.3s  {"t":"remove","id":"e-alb-ecs-b"}
+   4.5s  {"t":"remove","id":"e-asg-ecs"}
+   4.8s  {"t":"remove","id":"e-ecs-polardb"}
+   4.9s  {"t":"remove","id":"e-ecs-tair"}
+   5.1s  {"t":"remove","id":"e-ecs-oss"}
+   5.2s  {"t":"remove","id":"e-ecs-search"}
+   5.5s  {"t":"remove","id":"e-ecs-mq"}
+   5.7s  {"t":"remove","id":"e-ecs-sls"}
+   5.9s  {"t":"remove","id":"e-ecs-arms"}
+   6.1s  {"t":"remove","id":"e-ecs-nat"}
+   7.1s  {"t":"node","id":"ack","product":"ack","label":"ACK (12 Microservices)","group":"vpc","why":"Managed Kubernetes to orchestrate the 12 decoupled microservices across zones."}
+   7.5s  {"t":"edge","id":"e-alb-ack","from":"alb","to":"ack","label":"Ingress"}
+   8.0s  {"t":"edge","id":"e-ack-polardb","from":"ack","to":"polardb","label":"SQL"}
+   8.5s  {"t":"edge","id":"e-ack-tair","from":"ack","to":"tair","label":"cache"}
+   8.9s  {"t":"edge","id":"e-ack-oss","from":"ack","to":"oss","label":"upload"}
+   9.3s  {"t":"edge","id":"e-ack-search","from":"ack","to":"opensearch","label":"query"}
+   9.8s  {"t":"edge","id":"e-ack-mq","from":"ack","to":"rocketmq","label":"orders"}
+   10.2s  {"t":"edge","id":"e-ack-sls","from":"ack","to":"sls","label":"logs"}
+   10.7s  {"t":"edge","id":"e-ack-arms","from":"ack","to":"arms","label":"traces"}
+   11.2s  {"t":"edge","id":"e-ack-nat","from":"ack","to":"nat","label":"outbound"}
+   11.8s  {"t":"say","text":"I've wired ACK to all existing data, integration, and ops layers so your microservices have full connectivity."}
+   12.5s  {"t":"done","summary":"Replaced ECS Auto Scaling group with an ACK cluster to host the 12 microservices, rewiring all downstream edges."}
+== H2_restore_with_history  model=qwen3.8-max  params=[model,enable_thinking]  HTTP 200
+   first byte 1.7s | first reasoning - | first content 1.7s | first tool - | total 6.2s | finish=stop
+   tokens: prompt 4635 (cached 4352) | completion 241 (reasoning -) | reasoning chars 0
+   visible-output rate ~54 tok/s after first visible token
+   ops 7 {"say":1,"node":2,"edge":3,"done":1} | bad json 0 | problems 0
+   op arrival: first 2.4s, 25% 3.2s, 50% 4.5s, 75% 5.0s, last 6.2s
+   2.4s  {"t":"say","text":"Bringing back the AI chatbot, but routing it through API Gateway for proper auth and throttling."}
+   3.2s  {"t":"node","id":"api-gw","product":"api_gateway","label":"API Gateway","group":"vpc","why":"Auth, throttling, and routing for chatbot API calls"}
+   4.0s  {"t":"node","id":"model-studio","product":"model_studio","label":"Model Studio (Qwen)","group":"ai-grp","why":"AI shopping assistant chatbot with RAG over products"}
+   4.5s  {"t":"edge","id":"e-esa-apigw","from":"esa","to":"api-gw","label":"chat"}
+   5.0s  {"t":"edge","id":"e-apigw-ai","from":"api-gw","to":"model-studio","label":"LLM API"}
+   5.5s  {"t":"edge","id":"e-ai-search","from":"model-studio","to":"opensearch","label":"RAG"}
+   6.2s  {"t":"done","summary":"Chatbot restored behind API Gateway for secure, throttled access to Qwen via Model Studio with OpenSearch RAG."}
+== H2c_restore_no_history  model=qwen3.8-max  params=[model,enable_thinking]  HTTP 200
+   first byte 1.9s | first reasoning - | first content 1.9s | first tool - | total 6.1s | finish=stop
+   tokens: prompt 2317 (cached 1024) | completion 200 (reasoning -) | reasoning chars 0
+   visible-output rate ~48 tok/s after first visible token
+   ops 6 {"say":1,"node":2,"edge":2,"done":1} | bad json 0 | problems 0
+   op arrival: first 2.5s, 25% 3.4s, 50% 4.3s, 75% 4.9s, last 6.1s
+   2.5s  {"t":"say","text":"I'll bring back the chatbot behind API Gateway with Model Studio for Qwen."}
+   3.4s  {"t":"node","id":"api-gw","product":"api_gateway","label":"API Gateway","group":"vpc","why":"Manages and secures chatbot API traffic"}
+   4.3s  {"t":"node","id":"model-studio","product":"model_studio","label":"Model Studio (Qwen)","group":"ai-grp","why":"Powers conversational AI for the chatbot"}
+   4.9s  {"t":"edge","id":"e-esa-apigw","from":"esa","to":"api-gw","label":"chat API"}
+   5.4s  {"t":"edge","id":"e-apigw-model","from":"api-gw","to":"model-studio","label":"LLM calls"}
+   6.1s  {"t":"done","summary":"Chatbot restored: ESA routes chat traffic to API Gateway, which proxies requests to Model Studio Qwen."}

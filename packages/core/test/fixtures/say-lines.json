@@ -1,0 +1,365 @@
+{
+ "note": "Say lines for the constraint check, pinned region Singapore (ap-southeast-1). Drafted by qwen3.8-max (tools/qwen/ask.ts), labels checked by hand. error: names another region with a data action; negated: names one but says the action will not happen; mention: no data action.",
+ "items": [
+  {
+   "lang": "en",
+   "label": "error",
+   "text": "We replicate the database to Tokyo for disaster recovery."
+  },
+  {
+   "lang": "en",
+   "label": "error",
+   "text": "Object storage syncs customer files to Frankfurt automatically."
+  },
+  {
+   "lang": "en",
+   "label": "error",
+   "text": "Backups are copied to Jakarta every night."
+  },
+  {
+   "lang": "en",
+   "label": "error",
+   "text": "The cache migrates session data to Seoul hourly."
+  },
+  {
+   "lang": "en",
+   "label": "error",
+   "text": "We store a copy of the database in Kuala Lumpur."
+  },
+  {
+   "lang": "en",
+   "label": "error",
+   "text": "Customer records are backed up to Hong Kong daily."
+  },
+  {
+   "lang": "en",
+   "label": "error",
+   "text": "On failure, data fails over to the Bangkok standby."
+  },
+  {
+   "lang": "en",
+   "label": "error",
+   "text": "A replica is kept as a standby in Japan."
+  },
+  {
+   "lang": "en",
+   "label": "negated",
+   "text": "We do not replicate the database to Tokyo at all."
+  },
+  {
+   "lang": "en",
+   "label": "negated",
+   "text": "Backups will never be copied to Jakarta or anywhere else."
+  },
+  {
+   "lang": "en",
+   "label": "negated",
+   "text": "Instead of syncing to Frankfurt, we keep everything local."
+  },
+  {
+   "lang": "en",
+   "label": "negated",
+   "text": "The cache won't migrate any data to Seoul."
+  },
+  {
+   "lang": "en",
+   "label": "negated",
+   "text": "We avoid storing object storage copies in Kuala Lumpur."
+  },
+  {
+   "lang": "en",
+   "label": "negated",
+   "text": "Data is not backed up to Hong Kong under any circumstances."
+  },
+  {
+   "lang": "en",
+   "label": "negated",
+   "text": "Failover to Bangkok does not move customer data there."
+  },
+  {
+   "lang": "en",
+   "label": "negated",
+   "text": "We never keep a standby replica in Japan."
+  },
+  {
+   "lang": "en",
+   "label": "mention",
+   "text": "The load balancer routes visitors from Malaysia to our edge."
+  },
+  {
+   "lang": "en",
+   "label": "mention",
+   "text": "Users in Tokyo experience low latency via the CDN."
+  },
+  {
+   "lang": "en",
+   "label": "mention",
+   "text": "Our old office in Jakarta was closed last year."
+  },
+  {
+   "lang": "en",
+   "label": "mention",
+   "text": "The CDN caches static assets near users in Frankfurt."
+  },
+  {
+   "lang": "en",
+   "label": "mention",
+   "text": "Visitors from Seoul connect through the nearest load balancer."
+  },
+  {
+   "lang": "en",
+   "label": "mention",
+   "text": "We have many active customers located in Kuala Lumpur."
+  },
+  {
+   "lang": "en",
+   "label": "mention",
+   "text": "Traffic from Hong Kong is handled by the global CDN."
+  },
+  {
+   "lang": "en",
+   "label": "mention",
+   "text": "The architecture serves mobile users across Japan seamlessly."
+  },
+  {
+   "lang": "ko",
+   "label": "error",
+   "text": "데이터베이스를 도쿄로 복제하여 재해 복구에 대비합니다."
+  },
+  {
+   "lang": "ko",
+   "label": "error",
+   "text": "객체 스토리지가 고객 파일을 프랑크푸르트로 자동 동기화합니다."
+  },
+  {
+   "lang": "ko",
+   "label": "error",
+   "text": "백업은 매일 밤 자카르타로 복사됩니다."
+  },
+  {
+   "lang": "ko",
+   "label": "error",
+   "text": "캐시가 세션 데이터를 서울로 매시간 마이그레이션합니다."
+  },
+  {
+   "lang": "ko",
+   "label": "error",
+   "text": "데이터베이스 사본을 쿠알라룸푸르에 저장합니다."
+  },
+  {
+   "lang": "ko",
+   "label": "error",
+   "text": "고객 기록은 홍콩으로 매일 백업됩니다."
+  },
+  {
+   "lang": "ko",
+   "label": "error",
+   "text": "장애 발생 시 데이터가 방콕 대기 시스템으로 페일오버됩니다."
+  },
+  {
+   "lang": "ko",
+   "label": "error",
+   "text": "일본에 복제본을 대기로 유지합니다."
+  },
+  {
+   "lang": "ko",
+   "label": "negated",
+   "text": "데이터베이스를 도쿄로 절대 복제하지 않습니다."
+  },
+  {
+   "lang": "ko",
+   "label": "negated",
+   "text": "백업을 자카르타로 복사하는 일은 결코 없습니다."
+  },
+  {
+   "lang": "ko",
+   "label": "negated",
+   "text": "프랑크푸르트로 동기화하는 대신 모든 것을 로컬에 둡니다."
+  },
+  {
+   "lang": "ko",
+   "label": "negated",
+   "text": "캐시는 어떤 데이터도 서울로 마이그레이션하지 않습니다."
+  },
+  {
+   "lang": "ko",
+   "label": "negated",
+   "text": "객체 스토리지 사본을 쿠알라룸푸르에 저장하지 않습니다."
+  },
+  {
+   "lang": "ko",
+   "label": "negated",
+   "text": "어떤 경우에도 데이터를 홍콩으로 백업하지 않습니다."
+  },
+  {
+   "lang": "ko",
+   "label": "negated",
+   "text": "방콕으로 페일오버해도 고객 데이터를 이동시키지 않습니다."
+  },
+  {
+   "lang": "ko",
+   "label": "negated",
+   "text": "일본에 대기 복제본을 유지하지 않습니다."
+  },
+  {
+   "lang": "ko",
+   "label": "mention",
+   "text": "로드 밸런서가 말레이시아 방문자를 엣지로 라우팅합니다."
+  },
+  {
+   "lang": "ko",
+   "label": "mention",
+   "text": "도쿄 사용자는 CDN을 통해 낮은 지연 시간을 경험합니다."
+  },
+  {
+   "lang": "ko",
+   "label": "mention",
+   "text": "자카르타의 기존 사무소는 작년에 폐쇄되었습니다."
+  },
+  {
+   "lang": "ko",
+   "label": "mention",
+   "text": "CDN이 프랑크푸르트 사용자 근처에 정적 자산을 캐싱합니다."
+  },
+  {
+   "lang": "ko",
+   "label": "mention",
+   "text": "서울 방문자는 가장 가까운 로드 밸런서를 통해 연결됩니다."
+  },
+  {
+   "lang": "ko",
+   "label": "mention",
+   "text": "쿠알라룸푸르에 많은 활성 고객이 있습니다."
+  },
+  {
+   "lang": "ko",
+   "label": "mention",
+   "text": "홍콩에서 오는 트래픽은 글로벌 CDN이 처리합니다."
+  },
+  {
+   "lang": "ko",
+   "label": "mention",
+   "text": "이 아키텍처는 일본 전역의 모바일 사용자에게 서비스를 제공합니다."
+  },
+  {
+   "lang": "zh",
+   "label": "error",
+   "text": "我们将数据库复制到东京用于灾难恢复。"
+  },
+  {
+   "lang": "zh",
+   "label": "error",
+   "text": "对象存储自动将客户文件同步到法兰克福。"
+  },
+  {
+   "lang": "zh",
+   "label": "error",
+   "text": "备份每晚都会复制到雅加达。"
+  },
+  {
+   "lang": "zh",
+   "label": "error",
+   "text": "缓存每小时将会话数据迁移到首尔。"
+  },
+  {
+   "lang": "zh",
+   "label": "error",
+   "text": "我们在吉隆坡存储一份数据库副本。"
+  },
+  {
+   "lang": "zh",
+   "label": "error",
+   "text": "客户记录每天备份到香港。"
+  },
+  {
+   "lang": "zh",
+   "label": "error",
+   "text": "发生故障时，数据会故障转移到曼谷备用节点。"
+  },
+  {
+   "lang": "zh",
+   "label": "error",
+   "text": "我们在日本保留一个副本作为备用。"
+  },
+  {
+   "lang": "zh",
+   "label": "negated",
+   "text": "我们绝不会将数据库复制到东京。"
+  },
+  {
+   "lang": "zh",
+   "label": "negated",
+   "text": "备份永远不会被复制到雅加达或其他地方。"
+  },
+  {
+   "lang": "zh",
+   "label": "negated",
+   "text": "我们不向法兰克福同步，而是将所有内容保留在本地。"
+  },
+  {
+   "lang": "zh",
+   "label": "negated",
+   "text": "缓存不会将任何数据迁移到首尔。"
+  },
+  {
+   "lang": "zh",
+   "label": "negated",
+   "text": "我们避免在吉隆坡存储对象存储的副本。"
+  },
+  {
+   "lang": "zh",
+   "label": "negated",
+   "text": "在任何情况下都不会将数据备份到香港。"
+  },
+  {
+   "lang": "zh",
+   "label": "negated",
+   "text": "故障转移到曼谷不会将客户数据移动到那里。"
+  },
+  {
+   "lang": "zh",
+   "label": "negated",
+   "text": "我们绝不会在日本保留备用副本。"
+  },
+  {
+   "lang": "zh",
+   "label": "mention",
+   "text": "负载均衡器将马来西亚访问者路由到我们的边缘节点。"
+  },
+  {
+   "lang": "zh",
+   "label": "mention",
+   "text": "东京用户通过CDN体验低延迟。"
+  },
+  {
+   "lang": "zh",
+   "label": "mention",
+   "text": "我们在雅加达的旧办公室去年关闭了。"
+  },
+  {
+   "lang": "zh",
+   "label": "mention",
+   "text": "CDN在法兰克福用户附近缓存静态资源。"
+  },
+  {
+   "lang": "zh",
+   "label": "mention",
+   "text": "来自首尔的访问者通过最近的负载均衡器连接。"
+  },
+  {
+   "lang": "zh",
+   "label": "mention",
+   "text": "我们在吉隆坡有许多活跃客户。"
+  },
+  {
+   "lang": "zh",
+   "label": "mention",
+   "text": "来自香港的流量由全球CDN处理。"
+  },
+  {
+   "lang": "zh",
+   "label": "mention",
+   "text": "该架构无缝服务于日本各地的移动用户。"
+  }
+ ]
+}

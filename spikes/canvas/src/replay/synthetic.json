@@ -1,0 +1,117 @@
+{
+ "streams": [
+  {
+   "label": "E0_base_no_waf",
+   "description": "Remove WAF and reconnect Anti-DDoS directly to ESA and CDN.",
+   "base": "F",
+   "lineTimes": [
+    [
+     1500,
+     "{\"t\":\"remove\",\"id\":\"waf\"}"
+    ],
+    [
+     2100,
+     "{\"t\":\"edge\",\"id\":\"e-ddos-esa\",\"from\":\"anti-ddos\",\"to\":\"esa\",\"label\":\"dynamic\",\"kind\":\"data\"}"
+    ],
+    [
+     2700,
+     "{\"t\":\"edge\",\"id\":\"e-ddos-cdn\",\"from\":\"anti-ddos\",\"to\":\"cdn\",\"label\":\"images\",\"kind\":\"data\"}"
+    ],
+    [
+     3300,
+     "{\"t\":\"done\",\"summary\":\"Removed WAF node and its edges; added direct paths from Anti-DDoS to ESA and CDN.\"}"
+    ]
+   ]
+  },
+  {
+   "label": "E1_waf_badge",
+   "description": "Add WAF as a cloud-native badge on the ALB.",
+   "base": "E0",
+   "lineTimes": [
+    [
+     1600,
+     "{\"t\":\"say\",\"text\":\"In cloud-native mode WAF attaches directly to the ALB with no DNS change, so I will place it as a badge on that host.\"}"
+    ],
+    [
+     2400,
+     "{\"t\":\"node\",\"id\":\"waf\",\"product\":\"waf\",\"label\":\"WAF\",\"group\":\"edge\",\"attachTo\":\"alb\",\"why\":\"Cloud-native mode attaches WAF to the ALB without changing DNS routing.\"}"
+    ],
+    [
+     3100,
+     "{\"t\":\"done\",\"summary\":\"Added WAF as a badge on the ALB in cloud-native mode.\"}"
+    ]
+   ]
+  },
+  {
+   "label": "E2_waf_inline",
+   "description": "Insert WAF inline between ESA and ALB using CNAME mode.",
+   "base": "E0",
+   "lineTimes": [
+    [
+     1700,
+     "{\"t\":\"say\",\"text\":\"In CNAME mode traffic is re-pointed through WAF by DNS, so I will insert it inline between ESA and the ALB.\"}"
+    ],
+    [
+     2500,
+     "{\"t\":\"insert\",\"id\":\"waf\",\"product\":\"waf\",\"label\":\"WAF (CNAME)\",\"why\":\"Traffic is routed through WAF by DNS in CNAME mode, placing it inline.\",\"on\":\"e-esa-alb\"}"
+    ],
+    [
+     3200,
+     "{\"t\":\"done\",\"summary\":\"Inserted WAF inline on the ESA-to-ALB edge for CNAME mode routing.\"}"
+    ]
+   ]
+  },
+  {
+   "label": "F1_team_agent",
+   "description": "Build an AI agent diagram for engineering and company-wide use.",
+   "base": "empty",
+   "lineTimes": [
+    [
+     1800,
+     "{\"t\":\"say\",\"text\":\"I will set up two user groups: one for the engineering team and one for the whole company, then connect them to the right agents.\"}"
+    ],
+    [
+     2600,
+     "{\"t\":\"node\",\"id\":\"team-dev\",\"product\":\"users\",\"label\":\"Engineering team\",\"group\":null,\"why\":\"Developers who need coding assistance and custom agent tooling.\"}"
+    ],
+    [
+     3400,
+     "{\"t\":\"node\",\"id\":\"team-all\",\"product\":\"users\",\"label\":\"Whole company\",\"group\":null,\"why\":\"All staff members who may use workplace productivity agents.\"}"
+    ],
+    [
+     4100,
+     "{\"t\":\"rec\",\"product\":\"qoder\",\"fit\":\"primary\",\"why\":\"Agentic coding platform with IDE plugins and CLI for the engineering team.\"}"
+    ],
+    [
+     4800,
+     "{\"t\":\"rec\",\"product\":\"qwenwork\",\"fit\":\"complement\",\"why\":\"Workplace agent producing docs, slides and sheets for non-developer staff.\"}"
+    ],
+    [
+     5500,
+     "{\"t\":\"rec\",\"product\":\"model-studio\",\"fit\":\"complement\",\"why\":\"Managed model APIs for building custom agents beyond the built-in tools.\"}"
+    ],
+    [
+     6200,
+     "{\"t\":\"edge\",\"id\":\"e-dev-qoder\",\"from\":\"team-dev\",\"to\":\"qoder\",\"label\":\"coding agent\"}"
+    ],
+    [
+     6900,
+     "{\"t\":\"edge\",\"id\":\"e-all-qwenwork\",\"from\":\"team-all\",\"to\":\"qwenwork\",\"label\":\"workplace agent\"}"
+    ],
+    [
+     7600,
+     "{\"t\":\"edge\",\"id\":\"e-dev-ms\",\"from\":\"team-dev\",\"to\":\"model-studio\",\"label\":\"custom agents\"}"
+    ],
+    [
+     8400,
+     "{\"t\":\"say\",\"text\":\"Do non-developers on your team also need access to custom agents built on Model Studio, or just the workplace tools?\"}"
+    ],
+    [
+     9100,
+     "{\"t\":\"done\",\"summary\":\"Created user nodes for engineering and company, recommended Qoder, QwenWork and Model Studio, and linked them.\"}"
+    ]
+   ]
+  }
+ ],
+ "note": "Synthetic streams drafted by Qwen (qwen3.8-max) from a written spec, validated against grammar v2 and the catalog by Claude; edge kinds in F1 corrected."
+}

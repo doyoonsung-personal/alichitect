@@ -1,0 +1,61 @@
+== A_max_default  model=qwen3.8-max  params=[model]  HTTP 200  ERROR AbortError: This operation was aborted
+   first byte 2.0s | first reasoning 2.0s | first content - | first tool - | total 300.0s | finish=null
+   tokens: prompt - (cached -) | completion - (reasoning -) | reasoning chars 40394
+   ops 0 {} | bad json 0 | problems 0
+== F_max_nothink  model=qwen3.8-max  params=[model,enable_thinking]  HTTP 200
+   first byte 1.5s | first reasoning - | first content 1.5s | first tool - | total 35.7s | finish=stop
+   tokens: prompt 1232 (cached 0) | completion 1824 (reasoning -) | reasoning chars 0
+   visible-output rate ~53 tok/s after first visible token
+   ops 57 {"say":6,"group":9,"node":21,"edge":20,"done":1} | bad json 0 | problems 0
+   op arrival: first 2.1s, 25% 10.1s, 50% 18.2s, 75% 27.6s, last 35.7s
+== E_flash_default  model=qwen3.8-flash  params=[model]  HTTP 200
+   first byte 1.0s | first reasoning 1.0s | first content 142.7s | first tool - | total 166.3s | finish=stop
+   tokens: prompt 1268 (cached 0) | completion 9046 (reasoning 7134) | reasoning chars 26130
+   visible-output rate ~81 tok/s after first visible token
+   ops 58 {"say":4,"group":6,"node":23,"edge":24,"done":1} | bad json 0 | problems 0
+   op arrival: first 142.9s, 25% 149.1s, 50% 155.3s, 75% 160.2s, last 166.3s
+== C_max_tools  model=qwen3.8-max  params=[model,parallel_tool_calls]  HTTP 200
+   first byte 2.1s | first reasoning 2.1s | first content 224.5s | first tool 225.7s | total 231.1s | finish=tool_calls
+   tokens: prompt 1661 (cached 0) | completion 7956 (reasoning 7705) | reasoning chars 24559
+   visible-output rate ~38 tok/s after first visible token
+   tool calls 3 {"say":1,"add_node":2} | bad args 0 | avg chunks/call 16.3 | first call 225.7s, median 227.3s, last 229.2s
+   tool ids present: 3/3
+== D1_raw_team_agent  model=qwen3.8-max  params=[model]  HTTP 200
+   first byte 1.4s | first reasoning 1.4s | first content 57.9s | first tool - | total 60.0s | finish=stop
+   tokens: prompt 137 (cached 0) | completion 2282 (reasoning 2158) | reasoning chars 8839
+   visible-output rate ~58 tok/s after first visible token
+== D2_raw_names  model=qwen3.8-max  params=[model]  HTTP 200  ERROR AbortError: This operation was aborted
+   first byte 1.3s | first reasoning 1.3s | first content - | first tool - | total 300.0s | finish=null
+   tokens: prompt - (cached -) | completion - (reasoning -) | reasoning chars 44878
+== B_followup_waf_default  model=qwen3.8-max  params=[model]  HTTP 200
+   first byte 2.0s | first reasoning 2.0s | first content 5.3s | first tool - | total 6.4s | finish=stop
+   tokens: prompt 2367 (cached 1024) | completion 157 (reasoning 112) | reasoning chars 460
+   visible-output rate ~41 tok/s after first visible token
+   ops 2 {"say":1,"done":1} | bad json 0 | problems 0
+   op arrival: first 6.0s, 25% 6.0s, 50% 6.0s, 75% 6.0s, last 6.4s
+== B2_followup_waf_nothink  model=qwen3.8-max  params=[model,enable_thinking]  HTTP 200
+   first byte 2.0s | first reasoning - | first content 2.0s | first tool - | total 3.5s | finish=stop
+   tokens: prompt 2331 (cached 1024) | completion 66 (reasoning -) | reasoning chars 0
+   visible-output rate ~47 tok/s after first visible token
+   ops 2 {"say":1,"done":1} | bad json 0 | problems 0
+   op arrival: first 2.9s, 25% 2.9s, 50% 2.9s, 75% 2.9s, last 3.5s
+
+== B base diagram from F_max_nothink: 9 groups, 21 nodes, 20 edges
+-- B_followup_waf_default ops:
+   6.0s  {"t":"say","text":"WAF is already in the edge security path in front of the application."}
+   6.4s  {"t":"done","summary":"No changes needed because WAF is already included."}
+-- B2_followup_waf_nothink ops:
+   2.9s  {"t":"say","text":"WAF is already in the diagram from our initial design, sitting right after Anti-DDoS to protect against OWASP threats and bots."}
+   3.5s  {"t":"done","summary":"WAF was already present in the architecture between Anti-DDoS and ESA/CDN for L7 protection."}
+-- D1_raw_team_agent output:
+   {"product":"Alibaba Cloud Model Studio","owner":"Alibaba Cloud","why":"Build, deploy, and manage AI agents for team workflows.","url":"https://www.alibabacloud.com/product/model-studio"}
+   {"product":"Qwen","owner":"Alibaba Cloud","why":"Use Qwen models as the reasoning engine behind team-facing assistants.","url":"https://qwen.ai"}
+   {"product":"DingTalk","owner":"Alibaba Group","why":"Collaborate in DingTalk and use built-in AI assistants for team tasks.","url":"https://www.dingtalk.com/en"}
+-- D2_raw_names output:
+-- C tool-call sample (first 6):
+   #0 say @225.7s chunks=9 {"text": "Starting with the shoppers across Southeast Asia and the external payment/logistics partners."}
+   #1 add_node @227.3s chunks=22 {"id": "users", "product": "users", "label": "SEA shoppers (web + mobile app)", "group": "", "why": "~50k DAU across multiple countries, 10x
+   #2 add_node @229.2s chunks=18 {"id": "payments", "product": "third_party", "label": "Payment gateways & logistics APIs", "group": "", "why": "Cross-border payments, e-wal
+-- A first 12 ops:
+
+wall clock 306.5s

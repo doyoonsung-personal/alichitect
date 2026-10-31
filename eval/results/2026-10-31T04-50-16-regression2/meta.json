@@ -1,0 +1,23 @@
+{
+  "startedAt": "2026-10-31T04:50:16.070Z",
+  "args": {
+    "cases": "mt-02-serverless-first,pat-04-rag",
+    "runs": "4",
+    "concurrency": "4",
+    "label": "regression2",
+    "no-judge": true
+  },
+  "model": "qwen3.8-max",
+  "fallbackModel": "qwen3.7-max",
+  "runsPerCase": 4,
+  "concurrency": 4,
+  "cases": 2,
+  "units": 8,
+  "catalogVersion": "2026-10-31",
+  "catalogEntries": 223,
+  "systemPromptChars": 47416,
+  "systemPromptSha256": "ba0463a6d5d79afa8ae77a047078cd4bc582298246ccc9f5a27d496f4dade9d0",
+  "node": "v24.21.0",
+  "finishedAt": "2026-10-31T04:50:57.416Z",
+  "spentUsd": 0.105414
+}

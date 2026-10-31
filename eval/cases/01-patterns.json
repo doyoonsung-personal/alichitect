@@ -1,0 +1,181 @@
+[
+  {
+    "id": "pat-01-web-ha",
+    "category": "pattern",
+    "title": "P1 highly available web store",
+    "reference": "Singapore region; DNS resolving to ESA or CDN; ALB across two zones; ECS with Auto Scaling (or ACK or SAE) across zones; Tair for sessions and cache; PolarDB or RDS high availability across zones; OSS for images served through the edge; WAF as a badge on the ALB or ESA is a plus; SLS and CloudMonitor outside the VPC.",
+    "turns": [
+      {
+        "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
+        "expect": {
+          "include": [["alb", "nlb"], ["ecs", "ack", "acs", "sae"], ["rds", "polardb"], ["esa", "cdn"]],
+          "zones": [["ecs", "ack", "acs", "sae"], ["rds", "polardb"]],
+          "regions": { "min": 1 },
+          "minNodes": 6,
+          "maxNodes": 30
+        }
+      }
+    ]
+  },
+  {
+    "id": "pat-02-k8s",
+    "category": "pattern",
+    "title": "P2 microservices on Kubernetes",
+    "reference": "ACK (or ACS) across zones; MSE (Nacos) for service discovery and configuration; cloud-native API Gateway or ALB as the entry point; RocketMQ or Kafka between services; Tair; PolarDB or RDS; ACR for images; ARMS or Prometheus and SLS for observability.",
+    "turns": [
+      {
+        "ask": "We're moving 20 Java microservices to Kubernetes. We need service discovery and configuration, one API entry point, async messaging between services, a cache and a relational database.",
+        "expect": {
+          "include": [["ack", "acs"], ["mse"], ["rocketmq", "kafka", "rabbitmq"], ["alb", "cloud-native-api-gateway"], ["tair"], ["polardb", "rds"]],
+          "maxNodes": 30
+        }
+      }
+    ]
+  },
+  {
+    "id": "pat-03-serverless-api",
+    "category": "pattern",
+    "title": "P3 serverless REST API",
+    "reference": "Cloud-native API Gateway in front of Function Compute; Tablestore or a serverless RDS or PolarDB; OSS for files; EventBridge or SMQ for asynchronous work; SLS for logs; no servers to manage.",
+    "turns": [
+      {
+        "ask": "Build a serverless REST API for a mobile app with very spiky traffic. We want to pay only for what we use.",
+        "expect": {
+          "include": [["fc"], ["cloud-native-api-gateway"], ["tablestore", "rds", "polardb", "mongodb", "lindorm"]],
+          "exclude": ["ecs", "ack", "ebm"]
+        }
+      }
+    ]
+  },
+  {
+    "id": "pat-04-rag",
+    "category": "pattern",
+    "title": "P4 RAG assistant on internal documents",
+    "reference": "An app on Function Compute, SAE or ACK calling Model Studio (Qwen), optionally through AI Gateway; embeddings and vector search in Milvus or OpenSearch; documents in OSS; optional AI Guardrails; never the Model Studio knowledge base, which is closed to new international accounts.",
+    "turns": [
+      {
+        "ask": "We want an internal assistant that answers employees' questions from our policy documents and wiki, using Qwen models.",
+        "expect": {
+          "include": [["model-studio"], ["milvus", "opensearch", "elasticsearch", "analyticdb", "dashvector", "lindorm", "polardb"], ["oss"], ["fc", "sae", "ack", "acs", "ecs", "agentcore", "agentrun"]],
+          "exclude": ["model-studio-apps"]
+        }
+      }
+    ]
+  },
+  {
+    "id": "pat-05-data-platform",
+    "category": "pattern",
+    "title": "P5 data platform with CDC, batch and BI",
+    "reference": "DTS (or Flink CDC) from the MySQL database; Hologres for real-time and MaxCompute for batch analytics; DataWorks for orchestration and governance; Quick BI dashboards; an OSS and DLF lakehouse is optional.",
+    "turns": [
+      {
+        "ask": "Build a data platform: replicate our MySQL order database in real time, run nightly batch analytics, and give business users dashboards.",
+        "expect": {
+          "include": [["dts", "flink"], ["maxcompute", "hologres", "analyticdb", "emr", "selectdb"], ["quick-bi", "datav", "quick-bi-aipro"], ["dataworks"]]
+        }
+      }
+    ]
+  },
+  {
+    "id": "pat-06-iot-streaming",
+    "category": "pattern",
+    "title": "P6 IoT telemetry streaming",
+    "reference": "IoT Platform or MQTT for ingest; Kafka or DataHub as the buffer; Flink for real-time anomaly detection; Lindorm, Hologres or Tablestore for time series; DataV or Grafana for live dashboards; alerts through SLS, CloudMonitor or SMS.",
+    "turns": [
+      {
+        "ask": "We collect telemetry from 100,000 IoT devices every few seconds and need real-time anomaly alerts and a live dashboard.",
+        "expect": {
+          "include": [["iot-platform", "mqtt"], ["kafka", "datahub", "rocketmq"], ["flink"], ["lindorm", "hologres", "elasticsearch", "tablestore", "clickhouse"], ["datav", "quick-bi", "grafana"]]
+        }
+      }
+    ]
+  },
+  {
+    "id": "pat-07-hybrid",
+    "category": "pattern",
+    "title": "P7 hybrid connectivity and migration",
+    "reference": "The on-premises data center linked by Express Connect (VPN Gateway as a backup) to a VPC, optionally through CEN or Transit Router; SMC for VM migration; PrivateZone for hybrid DNS; Cloud Backup; ECS targets in the VPC.",
+    "turns": [
+      {
+        "ask": "Connect our on-premises data center in Singapore to Alibaba Cloud over a private link, and migrate our VMs to the cloud step by step.",
+        "expect": {
+          "include": [["onprem-dc"], ["express-connect", "vpn-gateway"], ["smc"]]
+        }
+      }
+    ]
+  },
+  {
+    "id": "pat-08-global",
+    "category": "pattern",
+    "title": "P8 global multi-region SaaS",
+    "reference": "Two or three regional stacks (for example Singapore, Frankfurt and Virginia) with ALB and compute; GTM, Global Accelerator or ESA for global routing and failover; PolarDB global database or DTS for data sync; CEN between regions; OSS cross-region replication.",
+    "turns": [
+      {
+        "ask": "Our SaaS serves users in Asia, Europe and the US. We need low latency everywhere and automatic failover between regions.",
+        "expect": {
+          "regions": { "min": 2 },
+          "include": [["gtm", "ga", "esa"], ["cen", "transit-router", "dts", "polardb"]]
+        }
+      }
+    ]
+  },
+  {
+    "id": "pat-09-media",
+    "category": "pattern",
+    "title": "P9 live streaming and VOD",
+    "reference": "ApsaraVideo Live for ingest and transcoding, VOD for recordings, MPS for processing, OSS for storage and CDN or ESA for delivery; RTS for low latency; an app backend on ECS or ACK.",
+    "turns": [
+      {
+        "ask": "We're launching a live-streaming and video-on-demand platform for e-sports fans.",
+        "expect": {
+          "include": [["live"], ["vod"], ["cdn", "esa"], ["oss"]]
+        }
+      }
+    ]
+  },
+  {
+    "id": "pat-10-security-baseline",
+    "category": "pattern",
+    "title": "P10 landing zone and security baseline",
+    "reference": "Resource Management (Resource Directory) with Governance Center for the landing zone; CloudSSO and RAM; ActionTrail and Cloud Config feeding SLS; Security Center; Cloud Firewall; KMS; Bastionhost; WAF and Anti-DDoS for internet-facing apps.",
+    "turns": [
+      {
+        "ask": "Set up a secure multi-account landing zone with a security baseline: central identity, audit logging, threat detection and network firewalls.",
+        "expect": {
+          "include": [["resource-management", "acgc"], ["cloudsso", "ram"], ["actiontrail"], ["security-center"], ["cloud-firewall"]]
+        }
+      }
+    ]
+  },
+  {
+    "id": "pat-11-team-coding",
+    "category": "pattern",
+    "title": "P11 team AI coding (product need)",
+    "reference": "Qoder Teams (or Qoder Enterprise for governance and audit logs) as the primary answer; optional Model Studio or Token Plan for model access; QwenWork for non-developers; never Lingma or Qoder CN for international users.",
+    "turns": [
+      {
+        "ask": "Our 25 developers want an agentic AI coding assistant with SSO and admin controls.",
+        "expect": {
+          "primaryRec": ["qoder-teams", "qoder-enterprise"],
+          "exclude": ["qoder-cn", "lingma"],
+          "noNodes": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "pat-12-ecommerce-security",
+    "category": "pattern",
+    "title": "P12 e-commerce security",
+    "reference": "ESA or Anti-DDoS Proxy at the edge for DDoS; WAF 3.0 as a badge on the ALB or ESA with bot management; Captcha and Fraud Detection at sign-up and login; Security Center; SLS for security logs.",
+    "turns": [
+      {
+        "ask": "Our e-commerce site suffers from bot sign-ups, credential stuffing and occasional DDoS attacks. Protect it.",
+        "expect": {
+          "include": [["waf"], ["captcha"], ["fraud-detection"], ["anti-ddos-proxy", "anti-ddos-native", "esa"]],
+          "attach": [{ "product": "waf", "hosts": ["alb", "nlb", "clb", "cloud-native-api-gateway", "esa", "fc"] }]
+        }
+      }
+    ]
+  }
+]

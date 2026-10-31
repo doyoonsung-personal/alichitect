@@ -1,0 +1,378 @@
+[
+  {
+    "id": "ho-residency-korea",
+    "category": "multiturn",
+    "title": "Korean healthcare data residency",
+    "reference": "Everything stays in the Seoul region; disaster recovery uses zones and backups inside Seoul, not another country.",
+    "turns": [
+      {
+        "ask": "We are building a patient appointment booking web app for a clinic in South Korea. By law all health records must never leave Korea. Please design the architecture with a database.",
+        "expect": {
+          "req": [
+            [
+              "korea",
+              "seoul",
+              "ap-northeast-2"
+            ]
+          ],
+          "regions": {
+            "only": [
+              "seoul",
+              "ap-northeast-2"
+            ],
+            "min": 1
+          }
+        }
+      },
+      {
+        "ask": "We also need disaster recovery so the system stays up if something fails.",
+        "expect": {},
+        "retain": {
+          "regions": {
+            "only": [
+              "seoul",
+              "ap-northeast-2"
+            ]
+          },
+          "req": [
+            [
+              "korea",
+              "seoul",
+              "ap-northeast-2"
+            ]
+          ]
+        }
+      },
+      {
+        "ask": "Doctors will upload MRI and CT scans. Add object storage for those files.",
+        "expect": {
+          "include": [
+            [
+              "oss"
+            ]
+          ]
+        },
+        "retain": {
+          "regions": {
+            "only": [
+              "seoul",
+              "ap-northeast-2"
+            ]
+          },
+          "req": [
+            [
+              "korea",
+              "seoul",
+              "ap-northeast-2"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-scale-sae",
+    "category": "multiturn",
+    "title": "Serverless ticketing API scaling",
+    "reference": "SAE autoscaling is expressed in the existing SAE node (no Auto Scaling node), perhaps read replicas or a bigger cache.",
+    "turns": [
+      {
+        "ask": "I need a concert ticketing API built on SAE because we have zero ops engineers. Include a relational database and a cache layer.",
+        "expect": {
+          "include": [
+            [
+              "sae"
+            ]
+          ],
+          "exclude": [
+            "ack",
+            "acs"
+          ]
+        }
+      },
+      {
+        "ask": "Ticket sales open tomorrow and we expect 20x our normal traffic. Make sure everything scales automatically to handle the spike.",
+        "expect": {
+          "exclude": [
+            "ess"
+          ]
+        },
+        "retain": {
+          "include": [
+            [
+              "sae"
+            ]
+          ],
+          "exclude": [
+            "ack",
+            "acs"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-scale-ecs-ok",
+    "category": "multiturn",
+    "title": "Auto Scaling for ECS website",
+    "reference": "Auto Scaling attached to the ECS servers (this is the correct use of Auto Scaling).",
+    "turns": [
+      {
+        "ask": "Set up a small company website using two ECS instances and an RDS database in Singapore.",
+        "expect": {
+          "include": [
+            [
+              "ecs"
+            ],
+            [
+              "rds"
+            ]
+          ]
+        }
+      },
+      {
+        "ask": "Our visitor count doubles every weekend. I want the servers to scale out and back in automatically based on load.",
+        "expect": {
+          "include": [
+            [
+              "ess"
+            ]
+          ],
+          "attach": [
+            {
+              "product": "ess",
+              "hosts": [
+                "ecs"
+              ]
+            }
+          ]
+        },
+        "retain": {
+          "include": [
+            [
+              "ecs"
+            ],
+            [
+              "rds"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-budget-ha",
+    "category": "multiturn",
+    "title": "Budget blog with high availability",
+    "reference": "Two zones for the app and database where affordable, a clear note about the cost effect, no heavy services.",
+    "turns": [
+      {
+        "ask": "I run a local newspaper blog. Our monthly cloud budget is $150 max. Design something that fits.",
+        "expect": {
+          "req": [
+            [
+              "150",
+              "budget"
+            ]
+          ],
+          "maxNodes": 12
+        }
+      },
+      {
+        "ask": "Readers want to leave comments. Add a comment system backed by a database.",
+        "expect": {
+          "maxNodes": 14
+        },
+        "retain": {
+          "req": [
+            [
+              "150",
+              "budget"
+            ]
+          ]
+        }
+      },
+      {
+        "ask": "We had an outage last week that took us offline for hours. Please make it more resilient without blowing up our costs.",
+        "expect": {
+          "mention": [
+            [
+              "cost",
+              "budget",
+              "$150",
+              "150",
+              "cheap",
+              "price",
+              "expens",
+              "afford"
+            ]
+          ]
+        },
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "anti-ddos-proxy",
+            "hologres",
+            "maxcompute"
+          ],
+          "req": [
+            [
+              "150",
+              "budget"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-team-agent-b",
+    "category": "need",
+    "title": "AI agent for office team",
+    "reference": "A ready-made assistant (QwenWork for office staff, Qoder Teams for developers) and one short question about who the team is.",
+    "turns": [
+      {
+        "ask": "I want to roll out an AI coding agent to everyone at my office. We work together daily but I'm not sure which plan fits best.",
+        "expect": {
+          "primaryRec": [
+            "qwenwork",
+            "qoder-teams",
+            "qoder-enterprise",
+            "qoder"
+          ],
+          "question": true,
+          "noNodes": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-ko-short-followup",
+    "category": "i18n",
+    "lang": "ko",
+    "base": "shop-sg",
+    "title": "Swap OpenSearch for Elasticsearch (Korean)",
+    "reference": "Swaps the product on the existing search node, nothing else changes; say and why text in Korean.",
+    "turns": [
+      {
+        "ask": "상품 검색을 OpenSearch 대신 Elasticsearch로 바꿔주세요.",
+        "expect": {
+          "include": [
+            [
+              "elasticsearch"
+            ]
+          ],
+          "exclude": [
+            "opensearch"
+          ],
+          "edit": {
+            "maxNodeAdds": 0,
+            "maxNodeRemoves": 0,
+            "maxEdgeRemoves": 0
+          },
+          "maxOps": 5
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-zh-short-followup",
+    "category": "i18n",
+    "lang": "zh",
+    "base": "shop-sg",
+    "title": "Swap RocketMQ for Kafka (Chinese)",
+    "reference": "Swaps the product on the existing queue node; say and why text in Chinese.",
+    "turns": [
+      {
+        "ask": "请把订单消息队列从RocketMQ换成Kafka。",
+        "expect": {
+          "include": [
+            [
+              "kafka"
+            ]
+          ],
+          "exclude": [
+            "rocketmq"
+          ],
+          "edit": {
+            "maxNodeAdds": 0,
+            "maxNodeRemoves": 0,
+            "maxEdgeRemoves": 0
+          },
+          "maxOps": 5
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-closed-region-game",
+    "category": "trap",
+    "title": "Closed Mumbai region for mobile game",
+    "reference": "Says Mumbai is closed, draws the stack in Singapore with edge acceleration (ESA, CDN or Global Accelerator).",
+    "turns": [
+      {
+        "ask": "We're launching a multiplayer mobile game for Indian players. Put the game servers in Mumbai so latency is as low as possible.",
+        "expect": {
+          "regions": {
+            "not": [
+              "mumbai",
+              "ap-south-1"
+            ],
+            "min": 1
+          },
+          "minNodes": 4
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-tools-cline",
+    "category": "need",
+    "title": "Qwen models for Cline users",
+    "reference": "Token Plan with per-member keys (the team plan for tools they already use), not Qoder and not Coding Plan.",
+    "turns": [
+      {
+        "ask": "My 12 developers all code in VS Code using the Cline extension. We want to plug Qwen models into it with a predictable fixed cost per developer each month.",
+        "expect": {
+          "primaryRec": [
+            "token-plan"
+          ],
+          "exclude": [
+            "coding-plan",
+            "qoder-cn",
+            "lingma"
+          ],
+          "noNodes": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "ho-ddos-game-login",
+    "category": "pattern",
+    "title": "DDoS protection for game login API",
+    "reference": "An edge layer with DDoS protection in front of the load balancer or gateway, then the login service across two zones with a cache and database.",
+    "turns": [
+      {
+        "ask": "Our online game's login API keeps getting hammered by massive DDoS attacks. Design the full protection layer and the backend service behind it.",
+        "expect": {
+          "include": [
+            [
+              "anti-ddos-proxy",
+              "anti-ddos-native",
+              "esa"
+            ],
+            [
+              "alb",
+              "nlb",
+              "cloud-native-api-gateway"
+            ]
+          ],
+          "minNodes": 5,
+          "maxNodes": 20
+        }
+      }
+    ]
+  }
+]

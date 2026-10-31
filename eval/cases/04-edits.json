@@ -1,0 +1,119 @@
+[
+  {
+    "id": "edit-01-insert-waf",
+    "category": "edit",
+    "title": "Add WAF to a diagram without WAF",
+    "base": "shop-sg",
+    "reference": "Adds WAF 3.0 as a badge on the ALB (or ESA) in cloud-native mode, with no new hop in the path and nothing else changed.",
+    "turns": [
+      {
+        "ask": "Add a WAF.",
+        "expect": {
+          "include": [["waf"]],
+          "attach": [{ "product": "waf", "hosts": ["alb", "esa", "cloud-native-api-gateway"] }],
+          "edit": { "maxNodeAdds": 1, "maxNodeRemoves": 0, "maxEdgeRemoves": 1 },
+          "noWarn": ["attach-inline"],
+          "maxOps": 6
+        }
+      }
+    ]
+  },
+  {
+    "id": "edit-02-waf-present",
+    "category": "edit",
+    "title": "WAF requested when it is already there",
+    "base": "shop-ai",
+    "reference": "Says WAF already protects the ALB and changes nothing.",
+    "turns": [
+      {
+        "ask": "oh I also want WAF",
+        "expect": { "edit": { "maxChanged": 0, "maxEdgeRemoves": 0 }, "maxOps": 4 }
+      }
+    ]
+  },
+  {
+    "id": "edit-03-swap-k8s",
+    "category": "edit",
+    "title": "Swap the app tier to Kubernetes",
+    "base": "shop-sg",
+    "reference": "Swaps the ECS app tier and its Auto Scaling for an ACK cluster across both zones while keeping the existing connections (ALB ingress, Tair, PolarDB, OpenSearch, OSS, RocketMQ, NAT, SLS); ACR is a plus.",
+    "turns": [
+      {
+        "ask": "Run the app tier on Kubernetes instead of ECS.",
+        "expect": { "include": [["ack", "acs"]], "exclude": ["ecs", "ess"], "edit": { "maxNodeRemoves": 2, "maxNodeAdds": 2 } }
+      }
+    ]
+  },
+  {
+    "id": "edit-04-add-warehouse",
+    "category": "edit",
+    "title": "Add a data warehouse",
+    "base": "shop-sg",
+    "reference": "Adds DTS or DataWorks sync from PolarDB into MaxCompute, Hologres or AnalyticDB, plus Quick BI dashboards, without touching the existing store.",
+    "turns": [
+      {
+        "ask": "Add a data warehouse so the business team gets BI dashboards on orders.",
+        "expect": {
+          "include": [["maxcompute", "hologres", "analyticdb", "selectdb", "clickhouse"], ["quick-bi", "datav", "quick-bi-aipro"]],
+          "edit": { "maxNodeRemoves": 0 }
+        }
+      }
+    ]
+  },
+  {
+    "id": "edit-05-remove-component",
+    "category": "edit",
+    "title": "Remove the AI assistant",
+    "base": "shop-ai",
+    "reference": "Removes the shopping assistant (Model Studio) and its vector store with their edges, and nothing else.",
+    "turns": [
+      {
+        "ask": "Drop the AI shopping assistant, we don't need it anymore.",
+        "expect": { "exclude": ["model-studio"], "edit": { "maxNodeAdds": 0, "maxNodeRemoves": 2 } }
+      }
+    ]
+  },
+  {
+    "id": "edit-06-restore",
+    "category": "edit",
+    "title": "Remove, then restore a component",
+    "base": "shop-ai",
+    "reference": "Turn 1 removes the assistant; turn 2 restores the assistant node and its edges with the same ids (and the vector store if it was removed).",
+    "turns": [
+      {
+        "ask": "Remove the AI shopping assistant for now.",
+        "expect": { "exclude": ["model-studio"], "edit": { "maxNodeAdds": 0, "maxNodeRemoves": 2 } }
+      },
+      {
+        "ask": "Actually, bring the assistant back exactly as it was.",
+        "expect": { "include": [["model-studio"]], "restored": ["assistant", "e-app-assistant"], "edit": { "maxNodeRemoves": 0 } }
+      }
+    ]
+  },
+  {
+    "id": "edit-07-multi-region-dr",
+    "category": "edit",
+    "title": "Make it multi-region for disaster recovery",
+    "base": "shop-sg",
+    "reference": "Adds a Jakarta region with a standby stack (ALB, compute and a database replica through PolarDB global database or DTS), OSS cross-region replication and GTM or ESA failover; keeps the Singapore stack.",
+    "turns": [
+      {
+        "ask": "Make it multi-region for disaster recovery: Singapore stays primary and Jakarta is the standby.",
+        "expect": { "regions": { "min": 2 }, "include": [["polardb", "dts", "rds"], ["gtm", "dns", "esa", "ga"]], "edit": { "maxNodeRemoves": 0 } }
+      }
+    ]
+  },
+  {
+    "id": "edit-08-cheaper",
+    "category": "edit",
+    "title": "Make it cheaper",
+    "base": "shop-premium",
+    "reference": "Removes redundant or premium parts (Anti-DDoS Proxy behind ESA, which already mitigates DDoS), right-sizes (for example RDS instead of PolarDB, or SAE), keeps search, images, cache and the assistant, and explains the trade-offs without inventing prices.",
+    "turns": [
+      {
+        "ask": "This is too expensive for us. Make it cheaper without losing the core features.",
+        "expect": { "exclude": ["anti-ddos-proxy"], "edit": { "noGrowth": true, "minChanged": 1, "maxNodeAdds": 1 } }
+      }
+    ]
+  }
+]

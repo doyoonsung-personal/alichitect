@@ -1,0 +1,57 @@
+# NDJSON op grammar v2 for streaming diagram edits
+# Research output, checked 2026-10-31. Facts paraphrased; verify before relying on prices or regions.
+
+## OP GRAMMAR v2 (NDJSON: one compact JSON object per line, plain-text response, no response_format, no tools)
+{"t":"say","text":"<=25 words, user's language"}
+{"t":"plan","products":["esa","waf","alb","ecs","polardb"],"note":"<=12 words"}   (optional FIRST line; client shows ghost nodes + fills product panel; unmeasured)
+{"t":"group","id":"vpc-main","kind":"external|edge|region|vpc|zone|subnet|onprem","label":"...","parent":"<group id>|null"}   (network/location containers only)
+{"t":"node","id":"app","product":"<catalog id>","label":"...","group":"<group id>|null","zones":["a","b"],"why":"<=20 words"}   (UPSERT by id; zones = one logical node spanning AZs)
+{"t":"edge","id":"e-app-db","from":"app","to":"db","label":"<=3 words","kind":"data|async|control|resolve"}
+{"t":"insert","id":"waf","product":"waf","label":"WAF","why":"...","on":"e-esa-alb"}   (client splits edge on: esa->waf->alb, keeps old label on first segment)
+{"t":"move","id":"<node|group id>","to":"<group id>|null"}
+{"t":"remove","id":"<node|edge|group id>"}   (node removal cascades its edges; unknown id = no-op)
+{"t":"rec","product":"qoder","fit":"primary|complement","why":"<=20 words"}   (product-need answers; edges between recs allowed)
+{"t":"gap","need":"...","note":"why no catalog product fits"}
+{"t":"done","summary":"one sentence"}
+## SYSTEM PROMPT RULES (extend probe.mjs RULES)
+R1 Output ONLY NDJSON, one compact object per line; no markdown, fences or prose.
+R2 Order: [plan] then per section: say, group, nodes, edges; outside-in users->edge->region->VPC->compute->data->async->managed/ops/security; declare before use.
+R3 product = CATALOG id only; otherwise emit gap.
+R4 Never put placement=region|global|edge|saas services in vpc/zone groups (client draws them in the region lane).
+R5 DNS is never in the data path: users->dns kind "resolve"; traffic goes users->first edge service.
+R6 North-south order follows catalog rank: ESA/CDN(1) -> Anti-DDoS(2) -> WAF(3) -> ALB/NLB/API GW(4) -> compute(5) -> data(6).
+R7 Multi-AZ: one node with zones:[...], never one node per zone.
+R8 Follow-ups: CURRENT DIAGRAM is authoritative; emit minimal ops only; reuse ids; to put a component into an existing path use insert; removing a node removes its edges (do not list them); never re-emit unchanged elements; if the request is already satisfied, say so + done.
+R9 Product-need questions -> rec ops (+edges between recs), no groups.
+R10 say/why/label in the user's language; product names come from the catalog.
+## CATALOG ROW (prompt) and METADATA (server)
+prompt row: id | official name | category | placement | rank | purpose<=12 words | pairs-with ids   (~40-60 tok; 300 rows ~12-18k tok)
+server JSON: {id,name,aliases[],category,placement:external|global|edge|region|vpc|saas,allowedIn:[group kinds],pathRank?:1-6,icon,docsUrl,blurb}
+## REQUESTS
+draw/edit: POST https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions {"model":"qwen3.8-max","stream":true,"stream_options":{"include_usage":true},"enable_thinking":false,"max_completion_tokens":4096,"messages":[{"role":"system","content":[{"type":"text","text":"<RULES+CATALOG>","cache_control":{"type":"ephemeral"}}]}, ...compactHistory, {"role":"user","content":"CURRENT DIAGRAM:\n<compact graph JSON, no why>\n\n<ask>"}]}
+repair (max 1, thinking off): same + user content "VALIDATOR FINDINGS:\n- <code> <ids> <msg>\nFix only these with minimal ops."
+review (opt-in): "enable_thinking":true,"thinking_budget":1536 (1024 measured: 243 reasoning tok, first op 7.5 s); stream reasoning_content to a collapsed console block.
+AI SDK: providerOptions.alibaba.enableThinking=false is mandatory (provider omits the flag; server default ON).
+fallback model: qwen3.7-max (SG 600 RPM / 1M TPM, $2.5/$7.5 per M).
+keep-warm: same cached system prefix + ask 'Reply {"t":"done","summary":"ok"}' every <=4.5 min (explicit cache TTL 5 min, resets on hit).
+## SERVER -> BROWSER SSE (POST + fetch ReadableStream, not EventSource)
+event: meta {turnId,model} | event: say {sayId,delta,final} (stream chars by partially parsing the current say line) | event: op {seq,op} | event: repair {seq,op,rule} | event: warn {code,ids,msg} | event: thinking {delta} (review only) | event: usage {prompt_tokens,cached_tokens,completion_tokens} | event: done {summary,stats} | event: error {code,retryable} | ': ping' comment after 15 s of silence
+headers: Content-Type: text/event-stream; Cache-Control: no-cache, no-transform; X-Accel-Buffering: no; FC detects streaming via Transfer-Encoding: chunked
+## VALIDATOR (per op, then at done)
+L1 syntax: per-line JSON.parse; skip ``` and blank lines; regex-extract {...}; jsonrepair for near-misses; else drop + warn
+L2 schema: zod discriminatedUnion('t'); id /^[a-z0-9][a-z0-9-]{0,40}$/; label<=40 chars; why<=160 chars; cap 300 nodes per graph
+L3 refs: unknown product -> alias map -> else gap node; edge before node -> pending buffer (flush when node arrives); unresolved at done -> drop + warn; missing parent -> root; duplicate node id -> upsert
+L4 semantic: W-containment -> auto-move to region lane / re-parent group (replay: F 7, G 10, H 2, E 2 -> 0 left); W-dns-in-data-path -> kind:resolve; W-replica-asymmetry -> zones attr or mirror edges; W-path-order -> repair turn
+L5 one repair turn (thinking off) for unresolved E/W; accept otherwise
+## WATCHDOGS / LIMITS
+first byte 12 s (warm 1.0-2.8 s; cold 24k 13.9 s) -> abort, retry once -> fallback model | idle 20 s | turn cap 120 s (diagram 35-41 s) | host max duration >=300 s | heartbeat 15 s (Cloudflare proxy read timeout 125 s) | abort upstream when the user sends a new message
+## COST (qwen3.8-max SG: in $2/M, out $6/M, implicit hit $0.25/M, explicit create $2.5/M, explicit read $0.17/M)
+15k catalog cached read $0.0026/req (uncached $0.03); cache create $0.0375 per idle window; keep-warm ~$0.8/day; new 21-node diagram ~1.8k out tok = $0.011 -> ~$0.015-0.02 total; edit $0.006-0.01
+## MEASURED BASELINES (main-session probe 2026-10-30, use as regression targets)
+max no-think: TTFB 1.5 s, first op 2.1 s, 57 ops / 35.7 s, 1,824 out tok, ~53 tok/s | max budget1024: first op 7.5 s, 54 ops / 40.5 s | flash no-think: first op 1.2 s, 36 ops / 20.3 s, ~74 tok/s | max default thinking: >300 s, no content | flash default: first content 142.7 s | tools (default thinking): first tool 225.7 s, 3 calls | edits: k8s 30 ops / 12.2 s, warehouse 8 / 7.5 s, drop AI 5 / 3.1 s, WAF-present 2 / 3.5 s | Qoder rec 2.5 s | follow-up cache 2,176/2,339 | 24k prompt: cold 13.9 s, warm 1.0-2.8 s, one stall 125.6 s | NDJSON malformed 0/269
+## LIBS (npm 2026-10-31)
+hono 4.13.14, @hono/node-server 2.1.5, eventsource-parser 4.1.3, zod 4.6.7, jsonrepair 3.15.0, openai 7.45.1 (or fetch), ai 7.0.159 + @ai-sdk/alibaba 2.0.80 (optional), @streamparser/json 0.0.26 (only for a json_object variant)
+## FILES
+C:/Users/mendo/AppData/Local/Temp/claude/C--Users-mendo-ali-catalog/35292bdb-ca0c-4df0-80b4-dd0f93723039/scratchpad/proto_eval/eval_protocol.mjs (offline NDJSON parser + reducer + validator + auto-repair + size comparisons; node eval_protocol.mjs ../probe/results.json ../probe/results2.json)
+C:/Users/mendo/AppData/Local/Temp/claude/C--Users-mendo-ali-catalog/35292bdb-ca0c-4df0-80b4-dd0f93723039/scratchpad/proto_eval/fault_injection.mjs (NDJSON vs single-document blast radius)
+C:/Users/mendo/AppData/Local/Temp/claude/C--Users-mendo-ali-catalog/35292bdb-ca0c-4df0-80b4-dd0f93723039/scratchpad/probe/probe.mjs (measured SYSTEM_NDJSON prompt + 43-product mini catalog)

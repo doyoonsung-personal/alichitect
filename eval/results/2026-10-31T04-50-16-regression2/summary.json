@@ -1,0 +1,414 @@
+{
+  "meta": {
+    "startedAt": "2026-10-31T04:50:16.070Z",
+    "args": {
+      "cases": "mt-02-serverless-first,pat-04-rag",
+      "runs": "4",
+      "concurrency": "4",
+      "label": "regression2",
+      "no-judge": true
+    },
+    "model": "qwen3.8-max",
+    "fallbackModel": "qwen3.7-max",
+    "runsPerCase": 4,
+    "concurrency": 4,
+    "cases": 2,
+    "units": 8,
+    "catalogVersion": "2026-10-31",
+    "catalogEntries": 223,
+    "systemPromptChars": 47416,
+    "systemPromptSha256": "ba0463a6d5d79afa8ae77a047078cd4bc582298246ccc9f5a27d496f4dade9d0",
+    "node": "v24.21.0",
+    "finishedAt": "2026-10-31T04:50:57.416Z",
+    "spentUsd": 0.105414
+  },
+  "totals": {
+    "cases": 2,
+    "conversations": 8,
+    "turns": 16,
+    "casePassRate": 0.5,
+    "passAtN": 0.5,
+    "majority": 0.5,
+    "allRuns": 0.5,
+    "runPassRate": 0.5,
+    "turnPassRate": 0.75,
+    "assertionPassRate": 0.976,
+    "assertions": 164,
+    "apiFailures": 0,
+    "costUsd": 0.105
+  },
+  "byCategory": {
+    "pattern": {
+      "cases": 1,
+      "runs": 4,
+      "runPassRate": 0,
+      "passAtN": 0,
+      "majority": 0,
+      "allRuns": 0
+    },
+    "multiturn": {
+      "cases": 1,
+      "runs": 4,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    }
+  },
+  "byLang": {
+    "en": {
+      "cases": 2,
+      "runs": 8,
+      "runPassRate": 0.5,
+      "passAtN": 0.5,
+      "majority": 0.5,
+      "allRuns": 0.5
+    }
+  },
+  "byAssertionType": {
+    "attachValid": {
+      "checks": 16,
+      "passed": 13,
+      "rate": 0.813,
+      "failingCases": [
+        "pat-04-rag"
+      ]
+    },
+    "include": {
+      "checks": 28,
+      "passed": 27,
+      "rate": 0.964,
+      "failingCases": [
+        "pat-04-rag"
+      ]
+    },
+    "exclude": {
+      "checks": 8,
+      "passed": 8,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noErrors": {
+      "checks": 16,
+      "passed": 16,
+      "rate": 1,
+      "failingCases": []
+    },
+    "pathOrder": {
+      "checks": 16,
+      "passed": 16,
+      "rate": 1,
+      "failingCases": []
+    },
+    "format": {
+      "checks": 16,
+      "passed": 16,
+      "rate": 1,
+      "failingCases": []
+    },
+    "escapes": {
+      "checks": 16,
+      "passed": 16,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noPrices": {
+      "checks": 16,
+      "passed": 16,
+      "rate": 1,
+      "failingCases": []
+    },
+    "sayLang": {
+      "checks": 16,
+      "passed": 16,
+      "rate": 1,
+      "failingCases": []
+    },
+    "req": {
+      "checks": 4,
+      "passed": 4,
+      "rate": 1,
+      "failingCases": []
+    },
+    "retention": {
+      "checks": 12,
+      "passed": 12,
+      "rate": 1,
+      "failingCases": []
+    }
+  },
+  "cases": [
+    {
+      "id": "pat-04-rag",
+      "category": "pattern",
+      "lang": "en",
+      "title": "P4 RAG assistant on internal documents",
+      "runs": 4,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "every attachment names a valid host": 3,
+        "include fc|sae|ack|acs|ecs|agentcore|agentrun": 1
+      },
+      "failedTypes": [
+        "attachValid",
+        "include"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 14856,
+      "runPass": [
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "mt-02-serverless-first",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Serverless-first over three turns",
+      "runs": 4,
+      "passes": 4,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.018,
+      "meanMs": 21055,
+      "runPass": [
+        true,
+        true,
+        true,
+        true
+      ]
+    }
+  ],
+  "warnings": {
+    "preRepairByCode": {
+      "attach-host-missing": {
+        "total": 3,
+        "perTurn": 0.188,
+        "turns": 3
+      },
+      "containment": {
+        "total": 1,
+        "perTurn": 0.063,
+        "turns": 1
+      }
+    },
+    "postRepairByCode": {
+      "orphan-node": {
+        "total": 3,
+        "perTurn": 0.188,
+        "turns": 3
+      }
+    },
+    "preRepairBySeverity": {
+      "warn": 3,
+      "error": 1
+    },
+    "postRepairBySeverity": {
+      "warn": 3
+    },
+    "fixesByCode": {
+      "attach-host-missing": 3,
+      "containment": 1
+    },
+    "unknownProducts": {
+      "count": 0,
+      "top": []
+    },
+    "nonIdProducts": {
+      "count": 0,
+      "top": []
+    }
+  },
+  "latency": {
+    "firstSayMs": {
+      "n": 16,
+      "p50": 1641,
+      "p95": 1885,
+      "mean": 1616,
+      "max": 1909
+    },
+    "firstOpMs": {
+      "n": 16,
+      "p50": 1992,
+      "p95": 2357,
+      "mean": 2021,
+      "max": 2407
+    },
+    "firstNodeMs": {
+      "n": 16,
+      "p50": 3263,
+      "p95": 3793,
+      "mean": 3206,
+      "max": 3959
+    },
+    "streamMs": {
+      "n": 16,
+      "p50": 7952,
+      "p95": 15049,
+      "mean": 8975,
+      "max": 18308
+    },
+    "turnMs": {
+      "n": 16,
+      "p50": 7953,
+      "p95": 15051,
+      "mean": 8977,
+      "max": 18311
+    },
+    "diagramStreamMs": {
+      "n": 16,
+      "p50": 7952,
+      "p95": 15049,
+      "mean": 8975,
+      "max": 18308
+    },
+    "productStreamMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "editStreamMs": {
+      "n": 8,
+      "p50": 4567,
+      "p95": 5417,
+      "mean": 4530,
+      "max": 5475
+    }
+  },
+  "tokens": {
+    "prompt": 199956,
+    "cached": 192000,
+    "cacheHit": 0.96,
+    "completion": 6917,
+    "completionPerTurn": {
+      "n": 16,
+      "p50": 421,
+      "p95": 791,
+      "mean": 432,
+      "max": 879
+    },
+    "costPerTurn": {
+      "n": 16,
+      "p50": 0.00639,
+      "p95": 0.00833,
+      "mean": 0.00659,
+      "max": 0.008854
+    },
+    "costPerConversation": {
+      "n": 8,
+      "p50": 0.0134,
+      "p95": 0.01843,
+      "mean": 0.01318,
+      "max": 0.018522
+    },
+    "costUsd": 0.105
+  },
+  "reliability": {
+    "turns": 16,
+    "truncatedMain": 0,
+    "continued": 0,
+    "repairTurns": 0,
+    "hedged": 0,
+    "hedgeWon": 0,
+    "fallbackUsed": 0,
+    "retriedAttempts": 0,
+    "apiFailures": 0,
+    "badLines": 0,
+    "escapes": 0
+  },
+  "i18n": {
+    "en": {
+      "turns": 16,
+      "completionPerTurn": 432,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 12497,
+      "sayLangPass": 16,
+      "sayLangChecks": 16,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    }
+  },
+  "multiturn": [
+    {
+      "case": "mt-02-serverless-first",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 4,
+          "passed": 4
+        },
+        {
+          "turn": 2,
+          "checks": 4,
+          "passed": 4
+        },
+        {
+          "turn": 3,
+          "checks": 8,
+          "passed": 8
+        }
+      ],
+      "finalPassRate": 1
+    }
+  ],
+  "judge": {
+    "model": null,
+    "judged": 0,
+    "errors": 0,
+    "means": null,
+    "signoffRate": null,
+    "byCategory": {},
+    "agreement": null,
+    "costUsd": 0
+  },
+  "failures": [
+    {
+      "case": "pat-04-rag",
+      "category": "pattern",
+      "run": 2,
+      "turn": 1,
+      "type": "attachValid",
+      "name": "every attachment names a valid host",
+      "detail": "'dify' attaches to 'ack': dify-on-ack is not drawn as an attachment"
+    },
+    {
+      "case": "pat-04-rag",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "attachValid",
+      "name": "every attachment names a valid host",
+      "detail": "'dify' attaches to 'ack': dify-on-ack is not drawn as an attachment"
+    },
+    {
+      "case": "pat-04-rag",
+      "category": "pattern",
+      "run": 3,
+      "turn": 1,
+      "type": "attachValid",
+      "name": "every attachment names a valid host",
+      "detail": "'dify' attaches to 'ack': dify-on-ack is not drawn as an attachment"
+    },
+    {
+      "case": "pat-04-rag",
+      "category": "pattern",
+      "run": 4,
+      "turn": 1,
+      "type": "include",
+      "name": "include fc|sae|ack|acs|ecs|agentcore|agentrun",
+      "detail": "none of fc, sae, ack, acs, ecs, agentcore, agentrun"
+    }
+  ]
+}

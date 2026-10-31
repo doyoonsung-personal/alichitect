@@ -1,0 +1,23 @@
+{
+  "startedAt": "2026-10-31T04:46:41.539Z",
+  "args": {
+    "cases-dir": "eval/cases-heldout",
+    "runs": "3",
+    "concurrency": "3",
+    "label": "heldout-baseline",
+    "no-judge": true
+  },
+  "model": "qwen3.8-max",
+  "fallbackModel": "qwen3.7-max",
+  "runsPerCase": 3,
+  "concurrency": 3,
+  "cases": 10,
+  "units": 30,
+  "catalogVersion": "2026-10-31",
+  "catalogEntries": 223,
+  "systemPromptChars": 42079,
+  "systemPromptSha256": "a19383a1a4c6cdaae80d896521585e5e0199925dfd1277cc0f19638f26630749",
+  "node": "v24.21.0",
+  "finishedAt": "2026-10-31T04:49:02.038Z",
+  "spentUsd": 0.28770999999999997
+}

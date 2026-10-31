@@ -1,0 +1,367 @@
+/* ── Toolbar ─────────────────────────────────────────────── */
+
+.tb {
+  overflow: hidden;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.tb-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 6px;
+}
+
+.tb-title {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.tb-tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 7px;
+  line-height: 18px;
+}
+
+.tb-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  margin-right: 6px;
+}
+
+.tb-select {
+  height: 30px;
+  padding: 0 28px 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background-color: var(--surface);
+  appearance: none;
+  color: var(--ink);
+  cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink-3) 50%),
+    linear-gradient(-45deg, transparent 50%, var(--ink-3) 50%);
+  background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.tb-select:hover {
+  border-color: var(--ink-3);
+}
+
+.tb-sub {
+  font-size: 12px;
+  color: var(--ink-3);
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tb-seg {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+}
+
+.tb-seg-btn {
+  height: 24px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+
+.tb-seg-btn:hover {
+  color: var(--ink);
+}
+
+.tb-seg-btn[aria-checked="true"] {
+  background: var(--surface-raised);
+  color: var(--ink);
+  box-shadow: var(--shadow-card);
+}
+
+.tb-icon-btn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.tb-icon-btn:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.tb-primary {
+  height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tb-primary:hover {
+  filter: brightness(1.08);
+}
+
+.tb-primary:active {
+  transform: translateY(0.5px);
+}
+
+.tb-status {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  
+  color: var(--ink-2);
+  font-size: 12px;
+  flex: 1 1 0;
+}
+
+.tb-say {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tb-count {
+  color: var(--ink-3);
+  flex: none;
+}
+
+.tb-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  flex: none;
+  background: var(--ink-3);
+}
+
+.tb-dot[data-state="streaming"] {
+  background: var(--accent);
+  animation: tb-pulse 1.2s var(--ease-in-out) infinite;
+}
+
+.tb-dot[data-state="done"] {
+  background: var(--hue-data-fg);
+}
+
+@keyframes tb-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tb-dot[data-state="streaming"] {
+    animation: none;
+  }
+}
+
+/* ── Metrics Overlay ─────────────────────────────────────── */
+
+.mx {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 5;
+  width: 236px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-hover);
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.mx-head {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 12px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.mx-fps {
+  color: var(--ink-2);
+  font-weight: 500;
+}
+
+.mx-grid {
+  margin: 0;
+  padding: 0 12px 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.mx-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mx-row dt {
+  color: var(--ink-3);
+}
+
+.mx-row dd {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 550;
+}
+
+/* ── Popover ─────────────────────────────────────────────── */
+
+.pop {
+  position: fixed;
+  z-index: 50;
+  width: 300px;
+  padding: 12px 14px 13px;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-pop);
+  color: var(--ink);
+  pointer-events: none;
+  animation: pop-in 140ms var(--ease-out) both;
+}
+
+.pop[data-side="top"] {
+  animation-name: pop-in-top;
+}
+
+.pop[data-measuring="true"] {
+  visibility: hidden;
+  animation: none;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@keyframes pop-in-top {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes pop-in-top {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+.pop-title {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+}
+
+.pop-label {
+  font-size: 12px;
+  color: var(--ink-2);
+  margin-top: 1px;
+}
+
+.pop-k {
+  font-size: 10.5px;
+  font-weight: 600;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  margin-top: 10px;
+}
+
+.pop-why,
+.pop-purpose {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.pop-note {
+  font-size: 12px;
+  color: var(--ink-2);
+  margin: 8px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.pop-meta {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.pop-meta li {
+  font-size: 11px;
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 8px;
+}

@@ -1,0 +1,5 @@
+PASS stall -> fallback model: qwen3.8-max:first-byte-timeout -> qwen3.7-max:ok; 20 ops, done true, 0 escapes, $0.0353, 14838 ms
+PASS warm stall -> hedge wins: qwen3.8-max+hedge:ok; hedged true, won true, 20 ops, done true, $0.0325 (estimated true), 13501 ms
+PASS cut-off stream -> continuation: main 7 ops then idle-timeout; continuation 13 ops (continue), final 7 nodes, 6 edges, done true, $0.0490, 16468 ms
+PASS continuation does not repeat drawn nodes: 7 node ops, 7 distinct ids
+exit 0

@@ -1,0 +1,94 @@
+2026-10-31T05-13-08-heldout-final: 10 cases, 30 of 30 conversations to run (concurrency 3, model qwen3.8-max, fallback qwen3.7-max)
+[1/30] ho-scale-ecs-ok#1 PASS 2/2 turns 16s $0.014
+[2/30] ho-scale-sae#1 PASS 2/2 turns 20s $0.015
+[3/30] ho-team-agent-b#1 PASS 1/1 turns 4s $0.005
+[4/30] ho-residency-korea#1 PASS 3/3 turns 26s $0.022
+[5/30] ho-ko-short-followup#1 PASS 1/1 turns 3s $0.005
+[6/30] ho-zh-short-followup#1 PASS 1/1 turns 3s $0.004
+[7/30] ho-tools-cline#1 PASS 1/1 turns 3s $0.004
+[8/30] ho-budget-ha#1 PASS 3/3 turns 21s $0.020
+[9/30] ho-closed-region-game#1 PASS 1/1 turns 14s $0.009
+[10/30] ho-ddos-game-login#1 PASS 1/1 turns 17s $0.010
+[11/30] ho-scale-sae#2 PASS 2/2 turns 21s $0.015
+[12/30] ho-residency-korea#2 PASS 3/3 turns 27s $0.022
+[13/30] ho-scale-ecs-ok#2 PASS 2/2 turns 16s $0.013
+[14/30] ho-team-agent-b#2 PASS 1/1 turns 4s $0.005
+[15/30] ho-ko-short-followup#2 PASS 1/1 turns 3s $0.004
+[16/30] ho-zh-short-followup#2 PASS 1/1 turns 3s $0.004
+[17/30] ho-tools-cline#2 PASS 1/1 turns 4s $0.005
+[18/30] ho-closed-region-game#2 PASS 1/1 turns 13s $0.008
+[19/30] ho-budget-ha#2 PASS 3/3 turns 25s $0.020
+[20/30] ho-ddos-game-login#2 PASS 1/1 turns 18s $0.010
+[21/30] ho-scale-sae#3 PASS 2/2 turns 18s $0.014
+[22/30] ho-residency-korea#3 PASS 3/3 turns 28s $0.022
+[23/30] ho-scale-ecs-ok#3 PASS 2/2 turns 17s $0.013
+[24/30] ho-ko-short-followup#3 PASS 1/1 turns 3s $0.004
+[25/30] ho-team-agent-b#3 PASS 1/1 turns 5s $0.004
+[26/30] ho-zh-short-followup#3 PASS 1/1 turns 3s $0.004
+[27/30] ho-tools-cline#3 PASS 1/1 turns 4s $0.005
+[28/30] ho-closed-region-game#3 PASS 1/1 turns 12s $0.008
+[29/30] ho-budget-ha#3 PASS 3/3 turns 24s $0.020
+[30/30] ho-ddos-game-login#3 PASS 1/1 turns 18s $0.010
+
+results: C:\Users\mendo\ali_catalog\eval\results\2026-10-31T05-13-08-heldout-final
+spent this run: USD 0.316 (ledger total USD 10.003)
+# Evaluation summary
+
+Model qwen3.8-max (fallback qwen3.7-max), catalog 2026-10-31 (223 entries), system prompt 47678 chars (sha256 ee81494bff2d), 3 runs per case, started 2026-10-31T05:13:08.955Z.
+
+## Overall
+
+| measure | value |
+| --- | ---: |
+| cases / conversations / turns | 10 / 30 / 48 |
+| pass@1 (mean case pass rate) | 100% |
+| pass@3 (some run passes) | 100% |
+| majority (over half the runs pass) | 100% |
+| all runs pass | 100% |
+| conversations passing every assertion | 100% |
+| turns passing every assertion | 100% |
+| assertions passing (477 checks) | 100% |
+| conversations that hit an API failure | 0 |
+| list-price cost of the model runs | $0.32 |
+
+## By category
+
+| category | cases | runs | run pass | pass@3 | majority | all runs |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| multiturn | 4 | 12 | 100% | 100% | 100% | 100% |
+| need | 2 | 6 | 100% | 100% | 100% | 100% |
+| i18n | 2 | 6 | 100% | 100% | 100% | 100% |
+| trap | 1 | 3 | 100% | 100% | 100% | 100% |
+| pattern | 1 | 3 | 100% | 100% | 100% | 100% |
+
+## By language
+
+| language | cases | runs | run pass | pass@3 | majority | all runs |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| en | 8 | 24 | 100% | 100% | 100% | 100% |
+| ko | 1 | 3 | 100% | 100% | 100% | 100% |
+| zh | 1 | 3 | 100% | 100% | 100% | 100% |
+
+## By assertion type (worst first)
+
+| type | checks | passed | rate | cases that failed it |
+| --- | ---: | ---: | ---: | ---: |
+| include | 27 | 27 | 100% | 0 |
+| noErrors | 48 | 48 | 100% | 0 |
+| pathOrder | 42 | 42 | 100% | 0 |
+| attachValid | 48 | 48 | 100% | 0 |
+| format | 48 | 48 | 100% | 0 |
+| escapes | 48 | 48 | 100% | 0 |
+| noPrices | 48 | 48 | 100% | 0 |
+| sayLang | 48 | 48 | 100% | 0 |
+| attach | 3 | 3 | 100% | 0 |
+| retention | 33 | 33 | 100% | 0 |
+| exclude | 15 | 15 | 100% | 0 |
+| primaryRec | 6 | 6 | 100% | 0 |
+| size | 27 | 27 | 100% | 0 |
+| question | 3 | 3 | 100% | 0 |
+| req | 6 | 6 | 100% | 0 |
+| region | 12 | 12 | 100% | 0 |
+| editMinimal | 6 | 6 | 100% | 0 |
+| whyLang | 6 | 6 | 100% | 0 |
+| mention | 3 | 3 | 100% | 0 |

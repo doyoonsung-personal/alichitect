@@ -1,0 +1,806 @@
+{
+ "version": "2026-10-30-probe",
+ "note": "The 43-product mini catalog of research/probes/probe.mjs in the CatalogEntry schema of src/types.ts. Ids are the probe's own (underscored) so the recorded streams in research/probes/streams.json resolve exactly; scope, lane and pathRank follow research/seed-catalog.txt sections A and E. Test fixture only, not product data. probe-id-map.json maps each id to the expected real catalog id.",
+ "entries": [
+  {
+   "id": "users",
+   "name": "End users",
+   "short": "Users",
+   "aliases": [
+    "Internet users",
+    "End users / Internet",
+    "Customers"
+   ],
+   "kind": "construct",
+   "category": "Constructs",
+   "icon": "users",
+   "scope": "external",
+   "lane": "clients",
+   "pathRank": 0,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "People and client apps reaching the system over the internet",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "third_party",
+   "name": "Third-party service",
+   "short": "Third party",
+   "aliases": [
+    "Third-party API",
+    "External service"
+   ],
+   "kind": "construct",
+   "category": "Constructs",
+   "icon": "internet",
+   "scope": "external",
+   "lane": "thirdparty",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Outside service such as a payment gateway or a SaaS API",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "dns",
+   "name": "Alibaba Cloud DNS",
+   "short": "DNS",
+   "aliases": [
+    "Cloud DNS",
+    "DNS"
+   ],
+   "kind": "service",
+   "category": "Domain Names and Websites",
+   "icon": "dns",
+   "scope": "global",
+   "lane": "dns",
+   "pathRank": 5,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Authoritative DNS that resolves the site's names; not a hop in the data path",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "esa",
+   "name": "Edge Security Acceleration (ESA)",
+   "short": "ESA",
+   "aliases": [
+    "ESA",
+    "DCDN",
+    "Dynamic Route for CDN"
+   ],
+   "kind": "service",
+   "category": "Networking & CDN",
+   "icon": "cdn",
+   "scope": "edge",
+   "lane": "edge",
+   "pathRank": 10,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Global edge platform: caching, dynamic acceleration and built-in edge security",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "cdn",
+   "name": "CDN",
+   "short": "CDN",
+   "aliases": [
+    "Alibaba Cloud CDN"
+   ],
+   "kind": "service",
+   "category": "Networking & CDN",
+   "icon": "cdn",
+   "scope": "edge",
+   "lane": "edge",
+   "pathRank": 10,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Caches static content such as images on global edge nodes",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "waf",
+   "name": "Web Application Firewall (WAF)",
+   "short": "WAF",
+   "aliases": [
+    "WAF",
+    "WAF 3.0"
+   ],
+   "kind": "service",
+   "category": "Security",
+   "icon": "shield",
+   "scope": "edge",
+   "lane": "edge",
+   "pathRank": 20,
+   "attach": {
+    "as": "badge",
+    "hosts": [
+     "alb",
+     "esa",
+     "api_gateway",
+     "fc"
+    ]
+   },
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Layer-7 protection against web exploits and bots, usually attached to ALB or ESA",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "anti_ddos",
+   "name": "Anti-DDoS Pro/Premium",
+   "short": "Anti-DDoS",
+   "aliases": [
+    "Anti-DDoS Proxy",
+    "Anti-DDoS Pro",
+    "Anti-DDoS Premium"
+   ],
+   "kind": "service",
+   "category": "Security",
+   "icon": "shield",
+   "scope": "edge",
+   "lane": "edge",
+   "pathRank": 15,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Proxy scrubbing that absorbs volumetric and application-layer DDoS attacks",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "alb",
+   "name": "Application Load Balancer (ALB)",
+   "short": "ALB",
+   "aliases": [
+    "ALB"
+   ],
+   "kind": "service",
+   "category": "Networking & CDN",
+   "icon": "loadbalancer",
+   "scope": "vpc",
+   "lane": "ingress",
+   "pathRank": 30,
+   "multiAz": true,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Layer-7 load balancer with content-based routing across zones",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "nlb",
+   "name": "Network Load Balancer (NLB)",
+   "short": "NLB",
+   "aliases": [
+    "NLB"
+   ],
+   "kind": "service",
+   "category": "Networking & CDN",
+   "icon": "loadbalancer",
+   "scope": "vpc",
+   "lane": "ingress",
+   "pathRank": 30,
+   "multiAz": true,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Layer-4 load balancer for very high connection counts",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "api_gateway",
+   "name": "Cloud-native API Gateway",
+   "short": "API Gateway",
+   "aliases": [
+    "API Gateway"
+   ],
+   "kind": "service",
+   "category": "Middleware",
+   "icon": "gateway",
+   "scope": "vpc",
+   "lane": "ingress",
+   "pathRank": 30,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Managed API gateway: routing, authentication and throttling",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "ecs",
+   "name": "Elastic Compute Service (ECS)",
+   "short": "ECS",
+   "aliases": [
+    "ECS",
+    "Elastic Compute Service"
+   ],
+   "kind": "service",
+   "category": "Computing",
+   "icon": "compute",
+   "scope": "vpc",
+   "lane": "compute",
+   "pathRank": 40,
+   "multiAz": true,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Virtual machines for application servers",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "auto_scaling",
+   "name": "Auto Scaling",
+   "short": "Auto Scaling",
+   "aliases": [
+    "ESS"
+   ],
+   "kind": "service",
+   "category": "Computing",
+   "icon": "compute",
+   "scope": "vpc",
+   "lane": "compute",
+   "attach": {
+    "as": "attachment",
+    "hosts": [
+     "ecs"
+    ]
+   },
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Adds and removes ECS instances on a schedule or with load",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "ack",
+   "name": "Container Service for Kubernetes (ACK)",
+   "short": "ACK",
+   "aliases": [
+    "ACK",
+    "Kubernetes"
+   ],
+   "kind": "service",
+   "category": "Container",
+   "icon": "container",
+   "scope": "vpc",
+   "lane": "compute",
+   "pathRank": 40,
+   "multiAz": true,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Managed Kubernetes clusters with node pools across zones",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "sae",
+   "name": "Serverless App Engine (SAE)",
+   "short": "SAE",
+   "aliases": [
+    "SAE"
+   ],
+   "kind": "service",
+   "category": "Computing",
+   "icon": "serverless",
+   "scope": "vpc",
+   "lane": "compute",
+   "pathRank": 40,
+   "multiAz": true,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Runs containerized apps without managing servers or Kubernetes",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "fc",
+   "name": "Function Compute",
+   "short": "Function Compute",
+   "aliases": [
+    "FC"
+   ],
+   "kind": "service",
+   "category": "Computing",
+   "icon": "serverless",
+   "scope": "region",
+   "lane": "compute",
+   "pathRank": 40,
+   "vpcAttachable": true,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Event-driven serverless functions that can also attach to a VPC",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "polardb",
+   "name": "PolarDB",
+   "short": "PolarDB",
+   "aliases": [
+    "PolarDB for MySQL",
+    "PolarDB MySQL"
+   ],
+   "kind": "service",
+   "category": "Database",
+   "icon": "database",
+   "scope": "vpc",
+   "lane": "database",
+   "pathRank": 60,
+   "multiAz": true,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Cloud-native relational database with separate compute and storage",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "rds",
+   "name": "ApsaraDB RDS",
+   "short": "RDS",
+   "aliases": [
+    "RDS"
+   ],
+   "kind": "service",
+   "category": "Database",
+   "icon": "database",
+   "scope": "vpc",
+   "lane": "database",
+   "pathRank": 60,
+   "multiAz": true,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Managed MySQL, PostgreSQL and SQL Server with high availability",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "tair",
+   "name": "Tair (Redis OSS-Compatible)",
+   "short": "Tair",
+   "aliases": [
+    "Redis",
+    "ApsaraDB for Redis"
+   ],
+   "kind": "service",
+   "category": "Database",
+   "icon": "cache",
+   "scope": "vpc",
+   "lane": "cache",
+   "pathRank": 50,
+   "multiAz": true,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "In-memory Redis-compatible cache and key-value store",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "oss",
+   "name": "Object Storage Service (OSS)",
+   "short": "OSS",
+   "aliases": [
+    "OSS"
+   ],
+   "kind": "service",
+   "category": "Storage",
+   "icon": "storage",
+   "scope": "region",
+   "lane": "storage",
+   "pathRank": 70,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Durable object storage for images, files and backups",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "opensearch",
+   "name": "OpenSearch",
+   "short": "OpenSearch",
+   "aliases": [],
+   "kind": "service",
+   "category": "AI & Machine Learning",
+   "icon": "search",
+   "scope": "region",
+   "lane": "search",
+   "pathRank": 60,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Managed search with vector and LLM conversational editions",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "elasticsearch",
+   "name": "Elasticsearch",
+   "short": "Elasticsearch",
+   "aliases": [
+    "Alibaba Cloud Elasticsearch"
+   ],
+   "kind": "service",
+   "category": "Analytics Computing",
+   "icon": "search",
+   "scope": "vpc",
+   "lane": "search",
+   "pathRank": 60,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Managed Elasticsearch, including vector search",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "analyticdb_pg",
+   "name": "AnalyticDB",
+   "short": "AnalyticDB",
+   "aliases": [
+    "AnalyticDB for PostgreSQL",
+    "AnalyticDB for MySQL"
+   ],
+   "kind": "service",
+   "category": "Database",
+   "icon": "analytics",
+   "scope": "vpc",
+   "lane": "database",
+   "pathRank": 60,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Real-time data warehouse; its PostgreSQL engine also does vector search",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "rocketmq",
+   "name": "ApsaraMQ for RocketMQ",
+   "short": "RocketMQ",
+   "aliases": [
+    "RocketMQ"
+   ],
+   "kind": "service",
+   "category": "Middleware",
+   "icon": "queue",
+   "scope": "vpc",
+   "lane": "middleware",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Managed messaging with transactional and scheduled messages",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "kafka",
+   "name": "ApsaraMQ for Kafka",
+   "short": "Kafka",
+   "aliases": [
+    "Kafka"
+   ],
+   "kind": "service",
+   "category": "Middleware",
+   "icon": "stream",
+   "scope": "vpc",
+   "lane": "middleware",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Managed Kafka for event streaming pipelines",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "eventbridge",
+   "name": "EventBridge",
+   "short": "EventBridge",
+   "aliases": [],
+   "kind": "service",
+   "category": "Middleware",
+   "icon": "queue",
+   "scope": "region",
+   "lane": "integration",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Serverless event bus that routes events to targets",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "model_studio",
+   "name": "Alibaba Cloud Model Studio",
+   "short": "Model Studio",
+   "aliases": [
+    "Bailian",
+    "DashScope"
+   ],
+   "kind": "service",
+   "category": "AI & Machine Learning",
+   "icon": "ai",
+   "scope": "region",
+   "lane": "ai",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Managed API for Qwen and other large language models",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "pai_eas",
+   "name": "Platform for AI (PAI)",
+   "short": "PAI",
+   "aliases": [
+    "PAI",
+    "PAI-EAS"
+   ],
+   "kind": "service",
+   "category": "AI & Machine Learning",
+   "icon": "ai",
+   "scope": "region",
+   "lane": "ai",
+   "vpcAttachable": true,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Machine learning platform; EAS serves self-hosted models",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "maxcompute",
+   "name": "MaxCompute",
+   "short": "MaxCompute",
+   "aliases": [
+    "ODPS"
+   ],
+   "kind": "service",
+   "category": "Analytics Computing",
+   "icon": "analytics",
+   "scope": "region",
+   "lane": "analytics",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Serverless data warehouse for large batch SQL and Spark jobs",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "dataworks",
+   "name": "DataWorks",
+   "short": "DataWorks",
+   "aliases": [],
+   "kind": "service",
+   "category": "Analytics Computing",
+   "icon": "analytics",
+   "scope": "region",
+   "lane": "analytics",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Data integration, ETL scheduling and governance",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "flink",
+   "name": "Realtime Compute for Apache Flink",
+   "short": "Flink",
+   "aliases": [
+    "Flink"
+   ],
+   "kind": "service",
+   "category": "Analytics Computing",
+   "icon": "stream",
+   "scope": "vpc",
+   "lane": "middleware",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Managed Flink for stream processing and change data capture",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "quick_bi",
+   "name": "Quick BI",
+   "short": "Quick BI",
+   "aliases": [],
+   "kind": "service",
+   "category": "Analytics Computing",
+   "icon": "bi",
+   "scope": "region",
+   "lane": "analytics",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "BI dashboards and reports with natural-language questions",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "sls",
+   "name": "Simple Log Service (SLS)",
+   "short": "SLS",
+   "aliases": [
+    "SLS",
+    "Log Service"
+   ],
+   "kind": "service",
+   "category": "Storage",
+   "icon": "logs",
+   "scope": "region",
+   "lane": "ops",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Collects, searches and alerts on logs",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "cloudmonitor",
+   "name": "CloudMonitor",
+   "short": "CloudMonitor",
+   "aliases": [
+    "Cloud Monitor",
+    "CMS"
+   ],
+   "kind": "service",
+   "category": "Migration & O&M Management",
+   "icon": "monitor",
+   "scope": "region",
+   "lane": "ops",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Metrics, alarms and site monitoring for cloud resources",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "arms",
+   "name": "Application Real-Time Monitoring Service (ARMS)",
+   "short": "ARMS",
+   "aliases": [
+    "ARMS"
+   ],
+   "kind": "service",
+   "category": "Middleware",
+   "icon": "monitor",
+   "scope": "region",
+   "lane": "ops",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Application performance monitoring and tracing",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "security_center",
+   "name": "Security Center",
+   "short": "Security Center",
+   "aliases": [],
+   "kind": "service",
+   "category": "Security",
+   "icon": "shield",
+   "scope": "account",
+   "lane": "governance",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Host and container threat detection and security posture",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "cloud_firewall",
+   "name": "Cloud Firewall",
+   "short": "Cloud Firewall",
+   "aliases": [],
+   "kind": "service",
+   "category": "Security",
+   "icon": "firewall",
+   "scope": "vpc-edge",
+   "lane": "boundary",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Firewalls at the internet, VPC and NAT borders",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "kms",
+   "name": "Key Management Service (KMS)",
+   "short": "KMS",
+   "aliases": [
+    "KMS"
+   ],
+   "kind": "service",
+   "category": "Security",
+   "icon": "key",
+   "scope": "region",
+   "lane": "security",
+   "vpcAttachable": true,
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Managed encryption keys and secrets",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "ram",
+   "name": "Resource Access Management (RAM)",
+   "short": "RAM",
+   "aliases": [
+    "RAM"
+   ],
+   "kind": "service",
+   "category": "Security",
+   "icon": "identity",
+   "scope": "account",
+   "lane": "governance",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Users, roles and policies for access to cloud resources",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "vpc",
+   "name": "Virtual Private Cloud (VPC)",
+   "short": "VPC",
+   "aliases": [
+    "VPC"
+   ],
+   "kind": "construct",
+   "category": "Networking & CDN",
+   "icon": "network",
+   "scope": "region",
+   "lane": "network",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Isolated private network; drawn as a container, not a node",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "nat",
+   "name": "NAT Gateway",
+   "short": "NAT Gateway",
+   "aliases": [
+    "NAT"
+   ],
+   "kind": "service",
+   "category": "Networking & CDN",
+   "icon": "gateway",
+   "scope": "vpc-edge",
+   "lane": "boundary",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Outbound internet access for private VPC resources",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "eip",
+   "name": "Elastic IP Address (EIP)",
+   "short": "EIP",
+   "aliases": [
+    "EIP",
+    "Elastic IP"
+   ],
+   "kind": "service",
+   "category": "Networking & CDN",
+   "icon": "internet",
+   "scope": "vpc-edge",
+   "lane": "boundary",
+   "attach": {
+    "as": "badge",
+    "hosts": [
+     "nat",
+     "alb",
+     "nlb",
+     "ecs"
+    ]
+   },
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Public IP address bound to a NAT gateway, load balancer or ECS",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "cen",
+   "name": "Cloud Enterprise Network (CEN)",
+   "short": "CEN",
+   "aliases": [
+    "CEN"
+   ],
+   "kind": "service",
+   "category": "Networking & CDN",
+   "icon": "network",
+   "scope": "global",
+   "lane": "network",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Private network linking VPCs across regions and accounts",
+   "verified": "2026-10-30"
+  },
+  {
+   "id": "qoder",
+   "name": "Qoder",
+   "short": "Qoder",
+   "aliases": [
+    "Lingma",
+    "Tongyi Lingma"
+   ],
+   "kind": "offering",
+   "category": "AI & Machine Learning",
+   "icon": "devtools",
+   "scope": "saas",
+   "lane": "saas",
+   "status": "ga",
+   "availability": "intl",
+   "purpose": "Agentic coding platform: IDE, JetBrains plugin and CLI for development teams",
+   "audience": "Development teams",
+   "purchase": "saas-seat",
+   "intents": [
+    "AI coding agent for my team",
+    "AI agent my team can use"
+   ],
+   "verified": "2026-10-30"
+  }
+ ]
+}

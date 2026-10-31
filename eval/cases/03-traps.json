@@ -1,0 +1,278 @@
+[
+  {
+    "id": "trap-01-lingma",
+    "category": "trap",
+    "title": "Tongyi Lingma for an international team",
+    "reference": "Explains that Lingma is now Qoder for international users (Qoder CN is China-only) and recommends Qoder Teams.",
+    "turns": [
+      {
+        "ask": "Set up Tongyi Lingma for our 10 developers in Singapore.",
+        "expect": {
+          "primaryRec": [
+            "qoder-teams",
+            "qoder",
+            "qoder-enterprise"
+          ],
+          "exclude": [
+            "lingma",
+            "qoder-cn"
+          ],
+          "excludeRaw": [
+            "lingma",
+            "tongyi-lingma",
+            "qoder-cn"
+          ],
+          "noWarn": [
+            "retired-product",
+            "china-only"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "trap-02-dcdn",
+    "category": "trap",
+    "title": "DCDN (now ESA)",
+    "reference": "Uses ESA (the successor of DCDN) in front of the origin (ALB or OSS), with DNS resolving to ESA.",
+    "turns": [
+      {
+        "ask": "Put DCDN in front of our website to speed up dynamic pages.",
+        "expect": {
+          "include": [
+            [
+              "esa"
+            ]
+          ],
+          "excludeRaw": [
+            "dcdn"
+          ],
+          "noWarn": [
+            "alias-resolved",
+            "retired-product"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "trap-03-log-service",
+    "category": "trap",
+    "title": "Log Service (now SLS)",
+    "reference": "SLS (formerly Log Service) collecting ECS logs with alerts; drawn outside the VPC.",
+    "turns": [
+      {
+        "ask": "Ship the application logs from our ECS servers to Log Service and alert us on errors.",
+        "expect": {
+          "include": [
+            [
+              "sls"
+            ],
+            [
+              "ecs"
+            ]
+          ],
+          "excludeRaw": [
+            "log-service",
+            "logservice"
+          ],
+          "noWarn": [
+            "alias-resolved"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "trap-04-apsaradb-redis",
+    "category": "trap",
+    "title": "ApsaraDB for Redis (now Tair)",
+    "reference": "Tair (Redis OSS-compatible) in the VPC across zones, next to the app servers.",
+    "turns": [
+      {
+        "ask": "We need ApsaraDB for Redis as a cache for our web app.",
+        "expect": {
+          "include": [
+            [
+              "tair"
+            ]
+          ],
+          "excludeRaw": [
+            "apsaradb-for-redis",
+            "redis",
+            "kvstore",
+            "apsaradb-redis"
+          ],
+          "noWarn": [
+            "alias-resolved"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "trap-05-api-gateway-classic",
+    "category": "trap",
+    "title": "API Gateway (Classic)",
+    "reference": "Cloud-native API Gateway, because API Gateway (Classic) stopped new sales on 2026-08-23 and shuts down on 2027-09-21.",
+    "turns": [
+      {
+        "ask": "Expose our microservices through API Gateway (Classic).",
+        "expect": {
+          "include": [
+            [
+              "cloud-native-api-gateway"
+            ]
+          ],
+          "exclude": [
+            "api-gateway"
+          ],
+          "excludeRaw": [
+            "api-gateway",
+            "api-gateway-classic"
+          ],
+          "noWarn": [
+            "retired-product"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "trap-06-model-studio-apps",
+    "category": "trap",
+    "title": "Model Studio knowledge base for a new international account",
+    "reference": "Explains that the Model Studio knowledge base and agent apps are closed to new international accounts, and builds RAG from Model Studio APIs, Milvus or OpenSearch, OSS and Function Compute or SAE (or AgentCore).",
+    "turns": [
+      {
+        "ask": "We just opened an Alibaba Cloud international account. Build us a support bot with Model Studio's knowledge base and agent application builder.",
+        "expect": {
+          "exclude": [
+            "model-studio-apps"
+          ],
+          "include": [
+            [
+              "model-studio"
+            ],
+            [
+              "milvus",
+              "opensearch",
+              "elasticsearch",
+              "analyticdb",
+              "dashvector",
+              "lindorm",
+              "polardb"
+            ]
+          ],
+          "noWarn": [
+            "restricted"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "trap-07-icp",
+    "category": "trap",
+    "title": "Public site in mainland China",
+    "reference": "Warns that a public website in mainland China needs ICP filing and a China-site account; suggests Hong Kong or Singapore with ESA or CDN otherwise.",
+    "turns": [
+      {
+        "ask": "Host our public marketing website in the Shanghai region for customers in mainland China.",
+        "expect": {
+          "mention": [
+            [
+              "ICP"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "trap-08-sydney",
+    "category": "trap",
+    "title": "Closed Sydney region",
+    "reference": "Says the Sydney region is closed and uses Singapore (the nearest open region) with ESA or CDN for Australian users.",
+    "turns": [
+      {
+        "ask": "Deploy our web app in the Sydney region for our Australian customers.",
+        "expect": {
+          "regions": {
+            "not": [
+              "sydney",
+              "ap-southeast-2",
+              "悉尼",
+              "시드니"
+            ]
+          },
+          "minNodes": 4
+        }
+      }
+    ]
+  },
+  {
+    "id": "trap-09-mumbai",
+    "category": "trap",
+    "title": "Closed Mumbai region",
+    "reference": "Says the Mumbai region is closed and offers Singapore (or Dubai) with edge acceleration.",
+    "turns": [
+      {
+        "ask": "We need our servers in Mumbai for low latency to users in India.",
+        "expect": {
+          "regions": {
+            "not": [
+              "mumbai",
+              "ap-south-1"
+            ]
+          },
+          "minNodes": 4
+        }
+      }
+    ]
+  },
+  {
+    "id": "trap-10-slb",
+    "category": "trap",
+    "title": "SLB (legacy CLB)",
+    "reference": "Uses ALB (or NLB) because SLB, now CLB, is legacy; ECS behind it across zones.",
+    "turns": [
+      {
+        "ask": "Use SLB to balance traffic across our ECS servers.",
+        "expect": {
+          "include": [
+            [
+              "alb",
+              "nlb"
+            ]
+          ],
+          "exclude": [
+            "clb"
+          ],
+          "noWarn": [
+            "retired-product"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "trap-11-contact-center",
+    "category": "trap",
+    "title": "Cloud Contact Center outside China",
+    "reference": "Cloud Contact Center is sold only on the China site; for Malaysia it suggests Conversational AI Service, IMS Real-time Conversational AI or Chat App Message and Voice Service, or names a gap.",
+    "turns": [
+      {
+        "ask": "We need Alibaba Cloud's Cloud Contact Center for our customer support team in Malaysia.",
+        "expect": {
+          "exclude": [
+            "cloud-contact-center"
+          ],
+          "noWarn": [
+            "china-only"
+          ]
+        }
+      }
+    ]
+  }
+]

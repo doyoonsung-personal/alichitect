@@ -1,0 +1,309 @@
+# Seed catalog of current Alibaba Cloud International products, aliases/renames, placement rules, schema and patterns
+# Research output, checked 2026-10-31. Facts paraphrased; verify before relying on prices or regions.
+
+## A. SEED CATALOG (176 lines, current international site, checked 2026-10-31)
+Format: category | canonical name | slug | one-line purpose | notes
+Notes start with '<tier>/<place>'.
+- tier: compute, container, storage, data, analytics, ai, ai-data, ai-security, integration, ingress, edge, network, hybrid, security, identity, governance, ops, media, comms, euc, saas, tool.
+- place:
+  - global, edge: outside any region.
+  - region: regional managed service; draw OUTSIDE the VPC.
+  - vpc: inside a VPC/vSwitch.
+  - vpc-edge: on the VPC boundary.
+  - attached: a badge on another node, not a node.
+  - account: governance band.
+  - onprem, client.
+  - tool: not a runtime node.
+Computing | Elastic Compute Service (ECS) | ecs | Virtual machines (x86/Arm/GPU families) with cloud disks, security groups, snapshots | compute/vpc (in vSwitch, zonal); pair EBS + security group, EIP or NAT for internet; API code Ecs
+Computing | Elastic GPU Service (EGS) | egs | GPU-accelerated ECS instance families for training, inference, rendering | compute/vpc; really ECS GPU families (gn*/ebmgn*): draw as ECS with GPU badge
+Computing | ECS Bare Metal Instance | ebm | Bare-metal servers with ECS elasticity (X-Dragon) | compute/vpc; nav code xdragon
+Computing | Simple Application Server (SAS) | swas | All-in-one lightweight server (compute+disk+bandwidth) from app images, monthly plans | compute/standalone (own managed network, not in user VPC); 'SAS' collides with Security Center API code sas: always use slug swas
+Computing | Dedicated Host (DDH) | ddh | Single-tenant physical host for placing ECS (BYOL, compliance) | compute/vpc(zonal)
+Computing | Auto Scaling (ESS) | ess | Scales ECS/ECI fleets by rules, schedules or metrics; registers to ALB/NLB/CLB | control-plane: draw as scaling-group container around ECS inside VPC; free
+Computing | Elastic High Performance Computing (E-HPC) | ehpc | Managed HPC clusters (Slurm/PBS/LSF) on ECS/GPU/SCC | compute/vpc; lines: E-HPC Cluster (formerly E-HPC NEXT), E-HPC Instant, E-HPC 1.0
+Computing | Function Compute (FC) | fc | Event-driven serverless functions (HTTP/OSS/Kafka triggers), model serving, agent sandboxes | compute/region (optional VPC access); FC 3.0 current (API FC 2023-03-30), FC 2.0 legacy
+Computing | Serverless App Engine (SAE) | sae | Serverless PaaS for containerized and Java apps, no servers or K8s to manage | compute/vpc (apps bound to VPC/vSwitch)
+Computing | Compute Nest | computenest | ISV platform to publish, deploy and operate software in customer accounts | tool/account; not a runtime node
+Computing | CloudBox | cloudbox | Alibaba Cloud ECS/OSS/CLB hardware installed in your data center | hybrid/onprem
+Computing | Edge Node Service (ENS) | ens | Distributed edge instances close to end users (incl. edge AI inference) | compute/edge
+Computing | Alibaba Cloud Linux | alinux | ECS-optimized Linux OS (Alinux 3/4) | attribute of ECS, not a node; Alinux 2 EOL; ANOLISA renamed Agentic OS (2026-09-10)
+Container | Container Service for Kubernetes (ACK) | ack | Managed Kubernetes (ACK Pro) with node pools, CSI storage, Ingress, cloud-native AI suite | container/vpc (cluster group in VPC, managed control plane); ASK renamed ACK Serverless (2023-07-31) and its cluster creation deprecated 2025-02-17 -> ACS; no new ACK Edge clusters from 2026-09-03
+Container | Container Compute Service (ACS) | acs | Serverless Kubernetes: pay-per-pod CPU/GPU compute, Agent Sandbox, Knative | container/vpc; recommended successor of ACK Serverless; API code acc
+Container | Elastic Container Instance (ECI) | eci | Serverless container instances without nodes; burst capacity for ACK | container/vpc
+Container | Container Registry (ACR) | acr | Private image/Helm/OCI registry with scanning, signing, cross-region sync | container/region (Enterprise edition reachable via VPC endpoint)
+Container | Alibaba Cloud Service Mesh (ASM) | asm | Managed Istio control plane (sidecar/ambient), mTLS and traffic management across clusters | control-plane/region; data plane runs in ACK/ACS
+Container | Distributed Cloud Container Platform for Kubernetes (ACK One) | ack-one | Multi-cluster and hybrid Kubernetes fleet management, GitOps (Argo CD) | control-plane/region; API code adcp
+Storage | Elastic Block Storage (EBS) | ebs | Cloud disks (ESSD, ESSD AutoPL) and snapshots for ECS | attached to ECS (zonal): usually not a separate node
+Storage | Object Storage Service (OSS) | oss | Durable object storage for files, media, backups and data lakes; static site hosting | storage/region (OUTSIDE VPC, internal endpoint); S3-compatible API; front with CDN/ESA
+Storage | File Storage NAS | nas | Managed NFS/SMB shared file system for ECS/ACK/FC | storage/vpc (mount target in vSwitch)
+Storage | Cloud Parallel File Storage (CPFS) | cpfs | High-throughput parallel file system for HPC and AI training | storage/vpc; CPFS for Lingjun variant for GPU clusters
+Storage | Tablestore | tablestore | Serverless NoSQL (wide column, time series, agent memory) for massive structured data | data/region (VPC endpoint); nav code ots
+Storage | Simple Log Service (SLS) | sls | Collect, search, SQL-analyze and alert on logs, metrics and traces | ops/region (OUTSIDE VPC); formerly Log Service (Terraform still says 'Log Service (SLS)')
+Storage | Cloud Backup | cloud-backup | Backup and DR for ECS, databases, NAS, OSS, VMware; cross-region ECS DR | ops/region; formerly Hybrid Backup Recovery (HBR), code hbr
+Storage | Intelligent Media Management (IMM) | imm | Document conversion/preview and image/video AI analysis on OSS data | ai/region
+Storage | Data Online Migration | data-online-migration | Online migration from S3, NAS, HDFS or other clouds into OSS | migration tool
+Storage | Data Transport | data-transport | Offline appliance (Lightning Cube) to ship TB-PB of data into OSS | migration/onprem
+Storage | Cloud Storage Gateway (CSG) | csg | NFS/SMB/iSCSI gateway caching on-prem data to OSS | hybrid (onprem or in VPC)
+Networking & CDN | Virtual Private Cloud (VPC) | vpc | Isolated private network with per-zone vSwitches, route tables, security groups | CONTAINER: region > VPC > vSwitch(zone) > resources
+Networking & CDN | Application Load Balancer (ALB) | alb | Layer-7 HTTP/HTTPS/QUIC/gRPC load balancer with content routing and Ingress | ingress/vpc (multi-zone); SLB family; pair WAF 3.0 + Certificate Management Service
+Networking & CDN | Network Load Balancer (NLB) | nlb | Layer-4 TCP/UDP/TCPSSL load balancer for very high connection counts | ingress/vpc; SLB family
+Networking & CDN | Gateway Load Balancer (GWLB) | gwlb | Transparently chains traffic through third-party virtual appliances | network/vpc; SLB family
+Networking & CDN | Classic Load Balancer (CLB) | clb | Legacy layer-4/7 load balancer (the original 'SLB') | ingress/vpc; LEGACY: prefer ALB/NLB; 'SLB' now names the whole family (ALB+NLB+GWLB+CLB); pay-by-spec CLB end-of-sale 2026-01-01
+Networking & CDN | Elastic IP Address (EIP) | eip | Standalone public IP bound to ECS, NAT, load balancers or ENIs | attached (badge on LB/NAT/ECS), not a standalone node
+Networking & CDN | Anycast Elastic IP Address | anycast-eip | One global anycast IP that ingests traffic at the nearest PoP and forwards to backends | edge/global; inbound-only; backends in HK/SG/Tokyo/Frankfurt/US; no Chinese mainland access points
+Networking & CDN | NAT Gateway | nat | SNAT egress and DNAT ingress for private VPC resources | network/vpc-edge (inside VPC on the boundary)
+Networking & CDN | IPv6 Gateway | ipv6-gateway | IPv6 internet access control for a VPC (incl. egress-only rules) | network/vpc-edge
+Networking & CDN | PrivateLink | privatelink | Private endpoints to Alibaba Cloud or partner services without public exposure | network/vpc (endpoint ENI in consumer VPC)
+Networking & CDN | Alibaba Cloud DNS PrivateZone | privatezone | Private DNS zones inside VPCs, hybrid DNS forwarding | attached to VPC (not a node)
+Networking & CDN | Cloud Enterprise Network (CEN) | cen | Global private network linking VPCs/VBRs across regions and accounts | network/global (between VPCs); uses Transit Routers; API code Cbn
+Networking & CDN | Transit Router (TR) | transit-router | Regional hub router inside CEN for VPC, VBR and VPN attachments | network/region (part of CEN)
+Networking & CDN | Global Accelerator (GA) | ga | Anycast acceleration over the Alibaba backbone to regional endpoints | edge/global (in front of ALB/NLB/ECS)
+Networking & CDN | Express Connect | express-connect | Dedicated physical lines from your data center into VPCs (VBR, Express Connect Router) | hybrid: onprem <-> VBR/ECR <-> VPC/TR
+Networking & CDN | VPN Gateway | vpn-gateway | IPsec site-to-site and SSL client VPN into a VPC | hybrid/vpc-edge
+Networking & CDN | Smart Access Gateway (SAG) | sag | SD-WAN appliances and client app linking branches to VPC/CEN | hybrid/onprem; older product, prefer VPN Gateway/Express Connect for new designs (no end-of-sale notice found)
+Networking & CDN | Edge Network Acceleration (ENA) | ena | Managed layer-2 links replacing leased lines between branches, DCs and Alibaba Cloud | hybrid
+Networking & CDN | Network Intelligence Service (NIS) | nis | Network topology, flow analysis and connectivity diagnostics | ops tool (not a runtime node)
+Networking & CDN | CDN | cdn | Caches static content on global edge nodes | edge/global; for combined acceleration+security prefer ESA
+Networking & CDN | Edge Security Acceleration (ESA) | esa | Global edge platform: CDN and dynamic acceleration, WAF, DDoS, bot management, DNS, edge functions/KV | edge/global; formerly DCDN ('Original DCDN'); FIRST hop after DNS, before WAF/ALB; old console = DCDN Classic
+Security | Anti-DDoS Native | anti-ddos-native | In-region DDoS scrubbing for EIPs and load balancers without changing IPs | security/attached; older name Anti-DDoS Origin; Native 2.0 pay-as-you-go stopped new purchases 2026-06-20; API ddosbgp
+Security | Anti-DDoS Pro/Premium (Anti-DDoS Proxy) | anti-ddos-proxy | Proxy (CNAME/IP) scrubbing for L3-L7 attacks: Pro for Chinese-mainland origins, Premium outside | security/ingress (after DNS/ESA, before WAF); API ddoscoo
+Security | Web Application Firewall (WAF) | waf | WAF 3.0: OWASP, CC and bot defense, API security; CNAME or cloud-native (ALB/MSE/FC) access | security/ingress: AFTER ESA/CDN, BEFORE ALB; skip if ESA's built-in WAF suffices
+Security | Cloud Firewall | cloud-firewall | Internet, VPC and NAT border firewalls with IPS and ACLs (+ Agentic NDR) | security/vpc-edge
+Security | Security Center | security-center | CWPP/CNAPP: vulnerability and baseline management, threat detection, Agentic SOC (SIEM/SOAR) | security/account (agents on hosts); NOT inside VPC; CTDR renamed Agentic SOC 2026-01-15; API code sas
+Security | Bastionhost | bastionhost | Privileged access gateway with MFA and session audit for ECS/RDS O&M | security/vpc
+Security | Key Management Service (KMS) | kms | Managed encryption keys (BYOK, rotation) and Secrets Manager | security/region (outside VPC)
+Security | Cloud Hardware Security Module (HSM) | cloud-hsm | FIPS 140-3 hardware security modules for key custody | security/vpc
+Security | Certificate Management Service | certificate-management | Buy, issue and deploy SSL/TLS certificates; Private CA | attached (to ALB/CDN/ESA/WAF); formerly SSL Certificates Service ('Original SSL Certificate'); API code cas
+Security | Data Security Center (DSC) | dsc | Sensitive-data discovery, classification and audit across RDS/OSS/MaxCompute | security/account; formerly SDDP
+Security | Secure Access Service Edge (SASE) | sase | Zero-trust office access (ZTNA, SWG, CASB, DLP) | security/client-side; API code csas
+Security | Identity as a Service (IDaaS) | idaas | Workforce (EIAM) and customer (CIAM) identity, SSO and MFA | identity/saas
+Security | Resource Access Management (RAM) | ram | Users, roles, policies and STS tokens for Alibaba Cloud access | identity/account (draw in governance band, never inside VPC)
+Security | ID Verification | id-verification | eKYC: document OCR, liveness and face comparison for onboarding | saas API; 'ID Verification Global' was delisted (offline 2026-04-30), this one remains
+Security | Captcha | captcha | Bot challenge (CAPTCHA 2.0) for login, registration and SMS flows | client widget + API
+Security | AI Guardrails | ai-guardrails | Detects prompt injection, jailbreaks, PII leaks and harmful content for LLM apps | ai-security API between app and model; integrates with Model Studio, AI Gateway, WAF; Content Moderation is its moderation layer
+Security | Content Moderation | content-moderation | Text, image, audio and video moderation for user-generated content | API; now documented under AI Guardrails (help path content-moderation)
+Security | Fraud Detection | fraud-detection | Risk scoring against fake registration, account takeover and promotion abuse | API (code saf)
+Security | Managed Security Service (MSS) | mss | Expert-run managed detection and response for Alibaba Cloud workloads | service, not a diagram node
+Security | Agent Security Center (ASC) | agent-security-center | Lifecycle security for AI agents: guardrails, runtime protection, identity, red teaming | ai-security/account; public preview 2026
+Security | Agent Identity | agent-identity | Workload identities and token vault for AI agents (OIDC, on-behalf-of access) | identity/account; new 2026
+Middleware | Microservices Engine (MSE) | mse | Managed Nacos/ZooKeeper registry and config, microservice governance, scheduling | integration/vpc
+Middleware | Cloud-native API Gateway | cloud-native-api-gateway | Managed Envoy/Higress gateway: REST/HTTP/WebSocket APIs, Ingress, auth, throttling | ingress/vpc; successor of API Gateway (Classic; all services shut down 2027-09-21) and MSE cloud-native gateway; API code APIG
+Middleware | AI Gateway | ai-gateway | LLM and MCP proxy: multi-model routing, token rate limits, semantic cache, guardrails | ai-ingress between apps and Model Studio/LLMs; sub-product of the API Gateway family
+Middleware | ApsaraMQ for RocketMQ | rocketmq | Managed RocketMQ 5.x: transactional and scheduled messages, event streaming | integration/vpc; formerly Message Queue for Apache RocketMQ (ONS)
+Middleware | ApsaraMQ for Kafka | kafka | Managed Kafka (Standard/Professional/Serverless) for streaming pipelines | integration/vpc; formerly Message Queue for Apache Kafka
+Middleware | ApsaraMQ for RabbitMQ | rabbitmq | Managed AMQP 0-9-1 message broker | integration/vpc
+Middleware | ApsaraMQ for MQTT | mqtt | MQTT 3.1.1/WebSocket broker for IoT and mobile clients | integration/region (public endpoint for devices)
+Middleware | ApsaraMQ for Confluent | confluent | Fully managed Confluent Platform (Kafka + connectors, schema registry) | integration/vpc
+Middleware | Simple Message Queue (SMQ) | smq | Serverless queues and pub/sub topics for decoupling | integration/region; formerly Message Service (MNS)
+Middleware | EventBridge | eventbridge | Serverless CloudEvents bus with rules and event streams to targets | integration/region
+Middleware | CloudFlow | cloudflow | Serverless state-machine workflow orchestration | integration/region; formerly Serverless Workflow (FnF)
+Middleware | SchedulerX | schedulerx | Distributed cron/DAG job scheduling, incl. managed XXL-JOB | integration/region
+Middleware | Enterprise Distributed Application Service (EDAS) | edas | PaaS for Java microservices (Spring Cloud/Dubbo/HSF) on ECS or ACK | app platform; for new builds SAE + MSE is the lighter path
+Middleware | Application Real-Time Monitoring Service (ARMS) | arms | APM, browser/RUM and synthetic monitoring, alerting | ops/region (OUTSIDE VPC); Basic Edition fully discontinued 2026-10-15
+Middleware | Managed Service for Prometheus | prometheus | Managed Prometheus metrics for ACK, ECS and apps | ops/region
+Middleware | Managed Service for Grafana | grafana | Managed Grafana dashboards over Prometheus, SLS, CloudMonitor, ARMS | ops/region
+Middleware | Managed Service for OpenTelemetry | opentelemetry | Managed distributed tracing (OpenTelemetry/Jaeger) | ops/region; formerly Tracing Analysis (code xtrace)
+Middleware | Performance Testing Service (PTS) | pts | Cloud load testing, JMeter-compatible | dev/test tool
+Database | PolarDB | polardb | Cloud-native relational DB (MySQL, PostgreSQL, Oracle-compatible) with compute-storage separation; PolarDB-X distributed edition | data/vpc; PolarDB-X is the brand-upgraded DRDS
+Database | ApsaraDB RDS | rds | Managed MySQL, PostgreSQL, SQL Server and MariaDB with HA, read replicas, backups | data/vpc (multi-zone)
+Database | Tair (Redis OSS-Compatible) | tair | Managed Redis-compatible in-memory database/cache (Redis Open-Source Edition + Tair Enterprise) | data/vpc; formerly ApsaraDB for Redis (merged into Tair brand 2024-09-27); API R-kvstore
+Database | ApsaraDB for MongoDB | mongodb | Managed MongoDB replica sets and sharded clusters | data/vpc
+Database | Lindorm | lindorm | Multi-model DB: HBase-compatible wide column, time series, search, vector | data/vpc; preferred for new HBase/Cassandra/TSDB-style workloads
+Database | ApsaraDB for HBase | hbase | Managed Apache HBase | data/vpc; legacy: prefer Lindorm for new designs
+Database | AnalyticDB | analyticdb | Real-time data warehouse with MySQL (lakehouse) and PostgreSQL (incl. vector/RAG) engines | analytics/vpc; covers AnalyticDB for MySQL and AnalyticDB for PostgreSQL
+Database | ApsaraDB for ClickHouse | clickhouse | Managed ClickHouse for real-time OLAP | analytics/vpc
+Database | ApsaraDB for SelectDB | selectdb | Managed Apache Doris real-time warehouse | analytics/vpc
+Database | Data Transmission Service (DTS) | dts | Database migration, real-time sync and CDC/subscription | data/region (pipe between sources and targets)
+Database | Data Management (DMS) | dms | Database DevOps: SQL review, change workflows, data agents/ChatBI, DBS backup | ops tool/region
+Database | Database Autonomy Service (DAS) | das | Autonomous diagnosis and optimization for Alibaba Cloud databases | ops/region
+Analytics Computing | MaxCompute | maxcompute | Serverless EB-scale data warehouse for batch SQL/Spark | analytics/region (OUTSIDE VPC); code odps
+Analytics Computing | Hologres | hologres | Real-time PostgreSQL-compatible warehouse for OLAP and online serving | analytics/region (VPC endpoint)
+Analytics Computing | Realtime Compute for Apache Flink | flink | Managed Flink (SQL, CDC) stream processing | analytics/vpc
+Analytics Computing | E-MapReduce (EMR) | emr | Managed Hadoop/Spark/StarRocks on ECS, ACK or serverless | analytics/vpc; includes EMR Serverless Spark and EMR Serverless StarRocks
+Analytics Computing | Data Lake Formation (DLF) | dlf | Paimon-based lakehouse catalog and permissions over OSS | analytics/region
+Analytics Computing | DataWorks | dataworks | Data integration, development, scheduling and governance (Data Agent) | analytics/region (resource groups attach to VPC)
+Analytics Computing | DataHub | datahub | Real-time data streaming and distribution (pub/sub) | analytics/region
+Analytics Computing | Elasticsearch | elasticsearch | Managed Elasticsearch incl. vector/AI search and serverless | analytics/vpc
+Analytics Computing | Vector Retrieval Service for Milvus | milvus | Managed Milvus-compatible vector database for RAG and multimodal search | ai-data/vpc; docs also call it ApsaraDB for Milvus
+Analytics Computing | DataV | datav | Low-code dashboards and large-screen visualization | saas/region (OUTSIDE VPC)
+Analytics Computing | Quick BI | quick-bi | BI dashboards and reports with natural-language query (Smart Q) | saas/region (OUTSIDE VPC; connects to data sources)
+AI & Machine Learning | Alibaba Cloud Model Studio | model-studio | Managed LLM API platform: Qwen (e.g. qwen3.8-max) and third-party models, OpenAI-compatible | ai/region (OUTSIDE VPC); intl base URL dashscope-intl (Singapore); keys and model lists are per region; Application Development (agent/workflow apps, knowledge base APIs) only for SG users who created apps before 2025-04-21; aka Bailian/DashScope; Coding Plan and Token Plan subscriptions
+AI & Machine Learning | Qwen Cloud | qwen-cloud | Developer portal and API for Qwen and third-party models with Token Plan subscriptions | ai/saas; qwencloud.com, launched 2026-05-26 in Singapore; endpoints *.maas.qwencloudapi.com; relation to Model Studio not officially documented
+AI & Machine Learning | Platform for AI (PAI) | pai | End-to-end ML: DSW notebooks, DLC training, EAS online inference, Model Gallery, LangStudio | ai/region (EAS/DSW can attach to VPC); formerly Machine Learning Platform for AI
+AI & Machine Learning | Intelligent Computing LINGJUN (PAI-Lingjun) | lingjun | Bare-metal GPU clusters with RDMA for large-model training and inference | ai-compute/region; ACK Lingjun cluster creation ends Dec 2026 (use ACK Pro Lingjun)
+AI & Machine Learning | AgentRun | agentrun | Agent runtime: sandboxed execution, model routing, tools/skills, memory, observability | ai/region; international region: Singapore only (docs Aug 2026)
+AI & Machine Learning | AgentBay | agentbay | Cloud sandboxes for agents: browser, computer, code and mobile use (SDK/MCP) | ai/region; Singapore
+AI & Machine Learning | Agent Sandbox | agent-sandbox | Isolated E2B-compatible sandboxes for agent-generated code, browser and desktop tasks | ai/region; capability of Function Compute and ACS
+AI & Machine Learning | AgentCore | agentcore | Enterprise platform to build, run and govern AI agents (skills, MCP tools, IM channels) | ai/region; formerly Multi-agent Governance and Collaboration Platform (renamed 2026-08-28)
+AI & Machine Learning | AgentLoop | agentloop | Agent observability and evaluation: traces, LLM judges, datasets, audits | ops-ai/region
+AI & Machine Learning | STAROps | starops | AI SRE agents for alert, log and metric root-cause analysis and remediation | ops-ai/region
+AI & Machine Learning | DashVector | dashvector | Serverless vector search API | ai-data/region
+AI & Machine Learning | OpenSearch | opensearch | Managed search incl. LLM conversational search (RAG) and vector editions | ai-data/region (VPC endpoint)
+AI & Machine Learning | Intelligent Speech Interaction | speech | Speech recognition and synthesis (CosyVoice) APIs | ai API
+AI & Machine Learning | Machine Translation | machine-translation | Neural machine translation for text and documents | ai API
+AI & Machine Learning | Image Search | image-search | Visual similarity search over large image galleries | ai API
+AI & Machine Learning | QwenWork | qwenwork | AI workplace assistant (web/desktop) for employees with enterprise admin and SSO | saas/client; international edition launched 2026
+AI & Machine Learning | Qoder | qoder | Agentic coding platform: IDE, JetBrains plugin, CLI, Cloud Agents, QoderWork | saas/client; global (qoder.com); Teams/Enterprise sold via qoder.com or Alibaba Cloud Marketplace; intl product page /product/lingma; answer for 'AI coding agent for my team'
+AI & Machine Learning | Qoder CN | qoder-cn | China-hosted coding agent suite (Qoder CN IDE/JetBrains, CLI, QoderWork CN) | CHINA MARKET ONLY: do not recommend to international users; formerly TONGYI Lingma / AI Coding Assistant Lingma (renamed 2026-05-20)
+AI & Machine Learning | Cloud Agent Catalog | cloud-agent-catalog | Registry of agent skills for operating Alibaba Cloud from coding agents | dev tool; formerly Cloud Skills Portal (renamed 2026-08-26); skills.alibabacloud.com
+Media Services | ApsaraVideo VOD | vod | Video upload, transcoding, encryption and playback, delivered via CDN | media/region
+Media Services | ApsaraVideo Live | live | Live stream ingest, transcoding, recording and playback | media/region; pair CDN/ESA
+Media Services | Real-Time Streaming (RTS) | rts | Ultra-low-latency live streaming | media/edge
+Media Services | ApsaraVideo Real-time Communication (ARTC) | artc | Interactive audio/video (RTC) SDK and service | media/global
+Media Services | ApsaraVideo Media Processing (MPS) | mps | Transcoding, DRM, snapshots and media AI | media/region
+Media Services | Intelligent Media Services (IMS) | ims | Media asset management, cloud editing, AI production, real-time conversational AI | media/region
+Enterprise Services & Cloud Communication | Short Message Service (SMS) | sms | Domestic and international SMS for OTP, notifications and marketing | comms API
+Enterprise Services & Cloud Communication | Direct Mail | direct-mail | Transactional and marketing email via API/SMTP | comms API
+Enterprise Services & Cloud Communication | Chat App Message Service | chatapp | WhatsApp, Messenger, LINE and other chat-app messaging via one API | comms API
+Enterprise Services & Cloud Communication | Voice Service | voice-service | Voice notifications, voice OTP and IVR | comms API
+Enterprise Services & Cloud Communication | Phone Number Verification Service | pnvs | SMS OTP and one-click phone-number verification | comms API
+Enterprise Services & Cloud Communication | Alibaba Mail | alibaba-mail | Enterprise email | saas
+Enterprise Services & Cloud Communication | ZOLOZ Real ID | zoloz-real-id | eKYC (document + face) for fintech onboarding | saas API (Financial Intelligence Engine)
+Enterprise Services & Cloud Communication | Alibaba Cloud Marketplace | marketplace | Third-party software, SaaS and images (BYOL, PAYG, private offers) | procurement, not a diagram node
+Internet of Things | IoT Platform | iot-platform | Device connectivity (MQTT/CoAP/HTTPS), device management, OTA, rules engine | iot/region (devices drawn outside cloud)
+Domain Names and Websites | Domain Names | domains | Domain registration and transfer | global
+Domain Names and Websites | Alibaba Cloud DNS | dns | Authoritative public DNS, GTM, HTTPDNS, recursive resolution | edge/global (first box in request path)
+Domain Names and Websites | Global Traffic Manager (GTM) | gtm | DNS-based global traffic steering with health checks and failover across regions | edge/global; use GTM 3.0: legacy GTM end-of-sale 2026-06-30, end-of-service 2026-12-31
+Domain Names and Websites | ICP Filing | icp-filing | Mandatory filing for websites served from Chinese-mainland regions | compliance: requires a China-site (aliyun.com) account; international accounts cannot file
+Domain Names and Websites | GoChina ICP Filing Assistant | gochina-icp | Paid assistance for non-mainland companies to obtain ICP filing | service
+Developer Tools | HTTPDNS | httpdns | DNS over HTTP(S) SDK for apps (anti-hijacking, precise scheduling) | client/global
+End User Computing | Elastic Desktop Service (EDS) | eds | Cloud desktops (VDI) for employees, part of Wuying Workspace | euc; office network separate from VPC (connect via CEN)
+End User Computing | App Streaming | app-streaming | Streams desktop applications to browsers and clients | euc
+End User Computing | Cloud Phone | cloud-phone | Virtual Android instances streamed to clients | euc
+End User Computing | Agentic Computer | agentic-computer | Dedicated cloud computers for running AI agents | euc/ai; formerly JVS Agent Suite (renamed 2026-09-07)
+Developer Tools | OpenAPI Portal | openapi-portal | API reference, debugging, SDKs, CLI and MCP server for all Alibaba Cloud APIs | dev tool; a.k.a. OpenAPI Explorer (api.alibabacloud.com)
+Developer Tools | Alibaba Cloud CLI | cli | aliyun command-line tool | dev tool
+Developer Tools | Cloud Shell | cloud-shell | Browser shell with CLI, Terraform and kubectl preinstalled | dev tool
+Developer Tools | Resource Orchestration Service (ROS) | ros | Infrastructure-as-code templates and stacks (also hosted Terraform) | dev/ops tool
+Developer Tools | Terraform (alicloud provider) | terraform | HashiCorp Terraform provider for Alibaba Cloud | dev tool; provider v2.1.0 (2026-10-22)
+Developer Tools | Alibaba Cloud DevOps | devops | Git repos (Codeup), CI/CD (Flow), packages, project management | dev tool; a.k.a. Yunxiao/Apsara DevOps; OpenAPI endpoint only cn-hangzhou: verify for intl users
+Migration & O&M Management | CloudMonitor | cloudmonitor | Metrics, alarms, site monitoring; CMS 2.0 adds Prometheus, APM, RUM and AI observability | ops/region (OUTSIDE VPC); code cms
+Migration & O&M Management | CloudOps Orchestration Service (OOS) | oos | Automated O&M runbooks, patching and scheduled operations | ops/region; formerly Operation Orchestration Service
+Migration & O&M Management | ActionTrail | actiontrail | Audit trail of console/API operations delivered to SLS/OSS | governance/account
+Migration & O&M Management | Cloud Config | cloud-config | Resource configuration history and compliance rules | governance/account
+Migration & O&M Management | Resource Management | resource-management | Resource Directory (multi-account), resource groups, tags, resource sharing | governance/account
+Migration & O&M Management | CloudSSO | cloudsso | SAML SSO and SCIM provisioning across Resource Directory accounts | identity/account
+Migration & O&M Management | Agentic Cloud Governance Center (ACGC) | acgc | Landing-zone setup and governance for multi-account cloud and AI workloads | governance/account; formerly Cloud Governance Center (renamed 2026-06-24)
+Migration & O&M Management | Intelligent Advisor | advisor | Well-Architected risk inspections (security, cost, stability, quotas) | governance tool
+Migration & O&M Management | Cloud Architect Design Tools (CADT) | cadt | Visual architecture design and deployment, with AI assistant | tool; Alibaba's own diagram-to-deploy product (prior art)
+Migration & O&M Management | Server Migration Center (SMC) | smc | Migrates physical, VM and other-cloud servers to ECS | migration tool
+Migration & O&M Management | Cloud Migration Hub (CMH) | cmh | Migration discovery, planning and lakehouse migration | migration tool
+Migration & O&M Management | Service Catalog | service-catalog | Governed self-service provisioning of approved IaC products | governance tool
+Apsara Stack | Apsara Stack | apsara-stack | Alibaba Cloud services deployed in your own data center (hybrid/private cloud) | onprem
+
+## B. ALIAS / RENAME MAP (old or alternate name -> current slug | date | evidence)
+SLB (original product), Server Load Balancer classic -> clb; 'SLB' = family alb+nlb+gwlb+clb | page updated 2024-10-08 | help/en/slb/product-overview/announcement-name-change-in-slb
+ApsaraDB for Redis, Redis, KVStore -> tair | 2024-09-27 (China-site notice) | intl nav + OpenAPI name 'Tair (Redis OSS-Compatible)'
+DCDN, Dynamic Route for CDN, Dynamic Content Delivery Network -> esa ('Original DCDN'; DCDN Classic console remains) | /product/esa
+Bailian, 百炼, DashScope -> model-studio (Qwen Cloud = separate intl portal, launched 2026-05-26)
+Tongyi Lingma, TONGYI Lingma, Lingma, AI Coding Assistant Lingma, 通义灵码 -> qoder (international) / qoder-cn (China) | Qoder CN rename 2026-05-20 23:00 CST
+Tongyi Qianwen, 通义千问 -> Qwen models (via model-studio / qwen-cloud)
+Log Service -> sls | nav, llms.txt
+Message Service, MNS -> smq ('Simple Message Queue (formerly MNS)')
+Serverless Workflow, FnF -> cloudflow
+Hybrid Backup Recovery, HBR -> cloud-backup
+Tracing Analysis, xtrace -> opentelemetry
+Machine Learning Platform for AI, PAI Studio -> pai
+Operation Orchestration Service -> oos (CloudOps Orchestration Service)
+SSL Certificates Service -> certificate-management ('Original SSL Certificate')
+Sensitive Data Discovery and Protection, SDDP -> dsc
+Serverless Kubernetes, ASK -> ACK Serverless (2023-07-31) -> new clusters on acs (ACK Serverless creation deprecated 2025-02-17)
+DRDS, Distributed Relational Database Service -> polardb (PolarDB-X; DRDS = PolarDB-X 1.0) [medium]
+Message Queue for Apache RocketMQ, ONS -> rocketmq; Message Queue for Apache Kafka -> kafka; Message Queue for RabbitMQ -> rabbitmq; Light Message Queue MQTT -> mqtt [medium]
+Anti-DDoS Origin -> anti-ddos-native [medium]; Anti-DDoS Pro, Anti-DDoS Premium, Anti-DDoS Proxy -> anti-ddos-proxy
+Cloud Governance Center -> acgc | 2026-06-24
+Multi-agent Governance and Collaboration Platform -> agentcore | 2026-08-28
+ANOLISA -> Agentic OS (feature of alinux) | 2026-09-10
+JVS Agent Suite, Wuying Agent -> agentic-computer | 2026-09-07
+Cloud Skills Portal, Agent Skills Portal -> cloud-agent-catalog | 2026-08-26
+AI DeepSign -> DeepSynID (not in seed) | 2026-10-10
+Threat Analysis and Response, CTDR, Cloud SIEM -> Agentic SOC inside security-center | 2026-01-15
+Content Moderation -> moderation layer of ai-guardrails
+API Gateway (Classic/traditional), MSE cloud-native gateway -> cloud-native-api-gateway | Classic shut down 2027-09-21
+GTM (legacy) -> gtm (GTM 3.0) | EoSale 2026-06-30, EoService 2026-12-31
+Apsara DevOps, Yunxiao, 云效 -> devops
+OpenAPI Explorer -> openapi-portal
+E-HPC NEXT -> ehpc (E-HPC Cluster)
+Alibaba Cloud Workspace, Wuying Workspace, Cloud Desktop -> eds
+ApsaraDB for Milvus -> milvus
+AnalyticDB for MySQL, AnalyticDB for PostgreSQL -> analyticdb
+Cloud Monitor, CMS -> cloudmonitor
+SAS (ambiguous) -> swas (Simple Application Server) vs security-center (API code sas)
+
+## C. RETIRED / DO-NOT-RECOMMEND (map to successor)
+AIRec (EoM 2026-01-03, EoS 2027-01-03) -> opensearch (OpenSearch AIRec)
+GraphCompute (EoS 2027-01-03) -> none (self-managed)
+ID Verification Global (offline 2026-04-30) -> id-verification
+Mobile Testing (intl off 2026-04-01) -> none
+ApsaraDB for Cassandra (discontinuation notice 2023-10-17) -> lindorm
+Time Series Database / TSDB for InfluxDB (EOL, no new purchases) -> lindorm or prometheus
+ApsaraDB for OceanBase (Deprecated on intl; Marketplace channel) -> polardb or OceanBase via marketplace
+Database Gateway (Deprecated) -> dts/dms over vpn-gateway or express-connect
+Hybrid Cloud Storage (sales end 2026-02-01, EoS 2028-02-01) -> csg + oss
+Batch Compute (gone from catalog) -> ehpc or ack/acs jobs
+ACK dedicated clusters (EoS 2024-08-21) -> ack (Pro); ACK Edge (no new clusters 2026-09-03) -> ack Pro edge node pools; ACK Serverless (creation deprecated 2025-02-17) -> acs
+ARMS Basic Edition (discontinued 2026-10-15) -> arms Pro
+Pay-by-spec CLB (EoS 2026-01-01) -> alb or nlb; Anti-DDoS Native 2.0 PAYG (no new purchases 2026-06-20) -> anti-ddos-native subscription
+API Gateway (Classic) (shut down 2027-09-21) -> cloud-native-api-gateway; legacy GTM (EoL 2026-12-31) -> gtm 3.0
+
+## D. INTERNATIONAL REGIONS (default ap-southeast-1)
+ap-southeast-1 Singapore; ap-southeast-3 Kuala Lumpur; ap-southeast-8 Johor; ap-southeast-5 Jakarta; ap-southeast-6 Manila; ap-southeast-7 Bangkok; ap-northeast-1 Tokyo; ap-northeast-2 Seoul; cn-hongkong Hong Kong; us-east-1 Virginia; us-west-1 Silicon Valley; na-south-1 Mexico (Querétaro); sa-east-1 São Paulo; eu-central-1 Frankfurt; eu-west-1 London; eu-west-2 Paris; eu-west-3 Amsterdam (opened 2026-10-29, ID unconfirmed); me-east-1 Dubai; me-central-1 Riyadh (partner region).
+CLOSED: ap-southeast-2 Sydney, ap-south-1 Mumbai. CLOSING: cn-nanjing, cn-fuzhou.
+UNCONFIRMED: us-southeast-1 Atlanta (OpenAPI only).
+Model Studio intl regions: ap-southeast-1 (dashscope-intl), cn-hongkong, ap-northeast-1, eu-central-1, us-east-1. Keys are per region.
+
+## E. PLACEMENT / ORDER RULES (validate and auto-fix server-side)
+R1 Request path rank, left to right: users(0) > dns/gtm(5) > esa|cdn|ga|anycast-eip(10) > anti-ddos-proxy(15) > waf(20) > alb|nlb|clb|cloud-native-api-gateway|ai-gateway(30) > compute ecs|ack|acs|sae|fc|eci(40) > tair(50) > rds|polardb|mongodb|lindorm|analyticdb(60). WAF must never precede ESA/CDN.
+R2 OUTSIDE the VPC (regional managed; connect with dashed endpoint/PrivateLink edges): oss, sls, cloudmonitor, arms, prometheus, grafana, opentelemetry, security-center, kms, acr, maxcompute, hologres, dataworks, datahub, dlf, quick-bi, datav, model-studio, pai, dashvector, opensearch, eventbridge, smq, cloudflow, schedulerx, fc (unless VPC access), tablestore, dts, dms, das, agentrun, agentbay, agentcore, agentloop, starops, imm, mqtt, iot-platform.
+R3 INSIDE the VPC (in vSwitches):
+- compute: ecs, egs, ebm, ddh, eci, ack (node pools), acs, sae, ehpc
+- load balancing and network: alb, nlb, gwlb, clb, privatelink endpoints
+- security: bastionhost, cloud-hsm
+- storage: nas, cpfs
+- databases: rds, polardb, tair, mongodb, lindorm, hbase, analyticdb, clickhouse, selectdb, elasticsearch, milvus
+- analytics: flink, emr
+- middleware: mse, rocketmq, kafka, rabbitmq, confluent, cloud-native-api-gateway
+- On the VPC boundary: nat, vpn-gateway, ipv6-gateway, cloud-firewall.
+R4 Attach, don't draw as nodes:
+- ebs on ecs
+- eip on nat, lb or ecs
+- certificate-management on alb, esa, cdn or waf
+- anti-ddos-native on eip or lb
+- privatezone on vpc
+- alinux on ecs
+- ess as a group around ecs
+R5 Governance band (account level): ram, cloudsso, resource-management, acgc, actiontrail, cloud-config, advisor, security-center, agent-identity, agent-security-center, dsc.
+R6 Outside the cloud: users, browsers, mobile, iot devices, on-prem DC, branches, and SaaS clients (qoder, qwenwork, eds clients, sase clients).
+R7 Multi-AZ: show 2 or more vSwitches in different zones for alb/nlb, ecs/ack pools and rds/polardb/tair HA.
+R8 International users: never pick cn-* mainland regions for public web without an ICP warning and confirmation of a China-site account. Never use Sydney or Mumbai. Never use qoder-cn. Never use Model Studio knowledge base or agent apps for new international accounts.
+
+## F. SCHEMA (compact)
+product:
+- id, name, short, aliases[], kind (service|offering|feature|tool|billing|construct)
+- status (ga|preview|legacy|eos|retired), lifecycle {eos, eol, successor, notice_url}
+- category {l1, l2} (official nav taxonomy), site (intl|cn|both)
+- regions {intl[], source, checked}
+- diagram {icon, fallback_glyph, tier, place, container {is, contains[], must_be_in}, rank, multi_az}
+- ground {purpose (own words, 20 words or fewer), use_when[], avoid_when[], facts[{text, source}], intents[]}
+- hover {default_why, role_whys {role: template with {slots}}}
+- rel {pairs_with[{id, rel: fronts|protects|routes_to|caches|reads_writes|streams_to|triggers|monitors|authenticates|deploys}], alternatives[{id, choose_when}], requires[]}
+- refs {product_url, docs_llms_url, pricing_url, api_code, tf_prefix, nav_code}
+- verified {date, by, sources[]}
+offering: id, name, intents[], products[], audience, buy_via, not_for[]
+pattern: id, name, intents[], nodes[{role, product, in, count}], edges[{from, to, rel, label}], rules[], variants[]
+rule: id, check (e.g. rank(waf)>rank(esa); place(sls)!=vpc), autofix
+construct: users, internet, region, zone, vpc, vswitch, security-group, onprem-dc, branch, device
+
+## G. SEED PATTERNS
+P1 web-ha: dns > esa > (waf) > alb > ecs x2 zones via ess, or ack, or sae > tair > polardb or rds. Also: oss for static content via esa; nat for egress; bastionhost; sls, cloudmonitor and arms outside the VPC; security-center and actiontrail in the governance band.
+P2 microservices-k8s: alb or cloud-native-api-gateway > ack (or acs) + mse (Nacos) + rocketmq or kafka + tair + polardb. Also acr, prometheus+grafana, arms and sls.
+P3 serverless-api: cloud-native-api-gateway > fc > tablestore or rds. eventbridge or smq for async; oss triggers; sls.
+P4 rag-llm-intl: users > alb or cloud-native-api-gateway > app on fc, sae or ack > ai-gateway > model-studio (qwen3.8-max). Vectors in milvus, analyticdb (PG), opensearch, elasticsearch or dashvector; documents in oss. Add ai-guardrails; agentrun or agentbay for agent tools; agentloop for traces. Never the Model Studio knowledge base for new international accounts.
+P5 data-platform: dts or flink (CDC) > hologres (real-time) + maxcompute (batch). dlf+oss lakehouse; dataworks orchestration; quick-bi or datav.
+P6 streaming: apps or iot-platform > kafka or datahub > flink > hologres, elasticsearch or lindorm > datav.
+P7 hybrid: onprem > express-connect or vpn-gateway > transit-router/cen > vpcs. privatezone for hybrid DNS; cloud-backup; smc for migration.
+P8 global-multi-region: gtm, ga or esa > regional alb stacks. cen between regions; dts sync; oss cross-region replication.
+P9 media-live-vod: live and vod + mps + oss + cdn or esa (+ rts or artc for low latency).
+P10 security-baseline: resource-management + cloudsso + acgc (landing zone); ram; actiontrail + cloud-config > sls; security-center; cloud-firewall; waf; anti-ddos; kms; bastionhost.
+P11 team-ai-coding (product need): qoder Teams/Enterprise (qoder.com or Alibaba Cloud Marketplace). Optional model-studio Coding/Token Plan or qwen-cloud Token Plan for model access. qwenwork for non-developers; agentbay or agent-sandbox for agent execution. Never qoder-cn for international users.
+P12 ecommerce-security: dns > esa > waf > alb > app. captcha + fraud-detection at signup/login; id-verification for KYC; anti-ddos-proxy if needed.

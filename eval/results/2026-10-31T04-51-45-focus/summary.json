@@ -1,0 +1,470 @@
+{
+  "meta": {
+    "startedAt": "2026-10-31T04:51:45.493Z",
+    "args": {
+      "cases": "pat-04-rag,ko-pat-04-rag,zh-pat-04-rag,need-06-cs-chatbot,need-02-whole-company",
+      "runs": "3",
+      "concurrency": "4",
+      "label": "focus",
+      "no-judge": true
+    },
+    "model": "qwen3.8-max",
+    "fallbackModel": "qwen3.7-max",
+    "runsPerCase": 3,
+    "concurrency": 4,
+    "cases": 5,
+    "units": 15,
+    "catalogVersion": "2026-10-31",
+    "catalogEntries": 223,
+    "systemPromptChars": 47678,
+    "systemPromptSha256": "ee81494bff2d9bc5a79f988d2a7678a8efd1cd39c718e4ab936b53fe7a345960",
+    "node": "v24.21.0",
+    "finishedAt": "2026-10-31T04:52:34.779Z",
+    "spentUsd": 0.11143600000000002
+  },
+  "totals": {
+    "cases": 5,
+    "conversations": 15,
+    "turns": 15,
+    "casePassRate": 0.933,
+    "passAtN": 1,
+    "majority": 1,
+    "allRuns": 0.8,
+    "runPassRate": 0.933,
+    "turnPassRate": 0.933,
+    "assertionPassRate": 0.994,
+    "assertions": 174,
+    "apiFailures": 0,
+    "costUsd": 0.111
+  },
+  "byCategory": {
+    "pattern": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "need": {
+      "cases": 2,
+      "runs": 6,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "i18n": {
+      "cases": 2,
+      "runs": 6,
+      "runPassRate": 0.833,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 0.5
+    }
+  },
+  "byLang": {
+    "en": {
+      "cases": 3,
+      "runs": 9,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "ko": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 0.667,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 0
+    },
+    "zh": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    }
+  },
+  "byAssertionType": {
+    "attachValid": {
+      "checks": 15,
+      "passed": 14,
+      "rate": 0.933,
+      "failingCases": [
+        "ko-pat-04-rag"
+      ]
+    },
+    "primaryRec": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "size": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noErrors": {
+      "checks": 15,
+      "passed": 15,
+      "rate": 1,
+      "failingCases": []
+    },
+    "format": {
+      "checks": 15,
+      "passed": 15,
+      "rate": 1,
+      "failingCases": []
+    },
+    "escapes": {
+      "checks": 15,
+      "passed": 15,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noPrices": {
+      "checks": 15,
+      "passed": 15,
+      "rate": 1,
+      "failingCases": []
+    },
+    "sayLang": {
+      "checks": 15,
+      "passed": 15,
+      "rate": 1,
+      "failingCases": []
+    },
+    "include": {
+      "checks": 45,
+      "passed": 45,
+      "rate": 1,
+      "failingCases": []
+    },
+    "exclude": {
+      "checks": 12,
+      "passed": 12,
+      "rate": 1,
+      "failingCases": []
+    },
+    "pathOrder": {
+      "checks": 12,
+      "passed": 12,
+      "rate": 1,
+      "failingCases": []
+    },
+    "whyLang": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    }
+  },
+  "cases": [
+    {
+      "id": "pat-04-rag",
+      "category": "pattern",
+      "lang": "en",
+      "title": "P4 RAG assistant on internal documents",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.007,
+      "meanMs": 10447,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "need-02-whole-company",
+      "category": "need",
+      "lang": "en",
+      "title": "AI assistant for the whole company",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.005,
+      "meanMs": 4095,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "need-06-cs-chatbot",
+      "category": "need",
+      "lang": "en",
+      "title": "Customer-service chatbot on our docs (build it)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.009,
+      "meanMs": 14759,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ko-pat-04-rag",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "P4 RAG assistant (Korean)",
+      "runs": 3,
+      "passes": 2,
+      "passRate": 0.667,
+      "passAtN": true,
+      "majority": true,
+      "failed": {
+        "every attachment names a valid host": 1
+      },
+      "failedTypes": [
+        "attachValid"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 15160,
+      "runPass": [
+        true,
+        false,
+        true
+      ]
+    },
+    {
+      "id": "zh-pat-04-rag",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "P4 RAG assistant (Chinese)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.008,
+      "meanMs": 14614,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    }
+  ],
+  "warnings": {
+    "preRepairByCode": {
+      "containment": {
+        "total": 1,
+        "perTurn": 0.067,
+        "turns": 1
+      },
+      "attach-host-missing": {
+        "total": 1,
+        "perTurn": 0.067,
+        "turns": 1
+      }
+    },
+    "postRepairByCode": {
+      "orphan-node": {
+        "total": 1,
+        "perTurn": 0.067,
+        "turns": 1
+      }
+    },
+    "preRepairBySeverity": {
+      "error": 1,
+      "warn": 1
+    },
+    "postRepairBySeverity": {
+      "warn": 1
+    },
+    "fixesByCode": {
+      "containment": 1,
+      "attach-host-missing": 1
+    },
+    "unknownProducts": {
+      "count": 0,
+      "top": []
+    },
+    "nonIdProducts": {
+      "count": 0,
+      "top": []
+    }
+  },
+  "latency": {
+    "firstSayMs": {
+      "n": 15,
+      "p50": 1593,
+      "p95": 2079,
+      "mean": 1624,
+      "max": 2089
+    },
+    "firstOpMs": {
+      "n": 15,
+      "p50": 2181,
+      "p95": 2797,
+      "mean": 2179,
+      "max": 2867
+    },
+    "firstNodeMs": {
+      "n": 12,
+      "p50": 3690,
+      "p95": 4880,
+      "mean": 3841,
+      "max": 5147
+    },
+    "streamMs": {
+      "n": 15,
+      "p50": 13619,
+      "p95": 17325,
+      "mean": 11812,
+      "max": 19221
+    },
+    "turnMs": {
+      "n": 15,
+      "p50": 13621,
+      "p95": 17327,
+      "mean": 11814,
+      "max": 19225
+    },
+    "diagramStreamMs": {
+      "n": 12,
+      "p50": 13818,
+      "p95": 17731,
+      "mean": 13743,
+      "max": 19221
+    },
+    "productStreamMs": {
+      "n": 3,
+      "p50": 3978,
+      "p95": 4758,
+      "mean": 4091,
+      "max": 4845
+    },
+    "editStreamMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    }
+  },
+  "tokens": {
+    "prompt": 184068,
+    "cached": 177920,
+    "cacheHit": 0.967,
+    "completion": 9110,
+    "completionPerTurn": {
+      "n": 15,
+      "p50": 739,
+      "p95": 907,
+      "mean": 607,
+      "max": 952
+    },
+    "costPerTurn": {
+      "n": 15,
+      "p50": 0.00815,
+      "p95": 0.00915,
+      "mean": 0.00743,
+      "max": 0.009438
+    },
+    "costPerConversation": {
+      "n": 15,
+      "p50": 0.00815,
+      "p95": 0.00915,
+      "mean": 0.00743,
+      "max": 0.009438
+    },
+    "costUsd": 0.111
+  },
+  "reliability": {
+    "turns": 15,
+    "truncatedMain": 0,
+    "continued": 0,
+    "repairTurns": 0,
+    "hedged": 0,
+    "hedgeWon": 0,
+    "fallbackUsed": 0,
+    "retriedAttempts": 0,
+    "apiFailures": 0,
+    "badLines": 0,
+    "escapes": 0
+  },
+  "i18n": {
+    "en": {
+      "turns": 9,
+      "completionPerTurn": 489,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 12267,
+      "sayLangPass": 9,
+      "sayLangChecks": 9,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    },
+    "ko": {
+      "turns": 3,
+      "completionPerTurn": 792,
+      "ratioVsEnglish": 1.551,
+      "promptPerTurn": 12279,
+      "sayLangPass": 3,
+      "sayLangChecks": 3,
+      "whyLangPass": 3,
+      "whyLangChecks": 3,
+      "escapes": 0
+    },
+    "zh": {
+      "turns": 3,
+      "completionPerTurn": 779,
+      "ratioVsEnglish": 1.526,
+      "promptPerTurn": 12276,
+      "sayLangPass": 3,
+      "sayLangChecks": 3,
+      "whyLangPass": 3,
+      "whyLangChecks": 3,
+      "escapes": 0
+    }
+  },
+  "multiturn": [],
+  "judge": {
+    "model": null,
+    "judged": 0,
+    "errors": 0,
+    "means": null,
+    "signoffRate": null,
+    "byCategory": {},
+    "agreement": null,
+    "costUsd": 0
+  },
+  "failures": [
+    {
+      "case": "ko-pat-04-rag",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "attachValid",
+      "name": "every attachment names a valid host",
+      "detail": "'dify' attaches to 'ack': dify-on-ack is not drawn as an attachment"
+    }
+  ]
+}

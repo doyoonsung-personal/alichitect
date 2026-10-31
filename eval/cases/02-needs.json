@@ -1,0 +1,258 @@
+[
+  {
+    "id": "need-01-dev-team",
+    "category": "need",
+    "title": "AI agent for a team of developers",
+    "reference": "Qoder Teams as the primary answer; Qoder Enterprise if the team needs governance; optionally Token Plan or Model Studio for model access; no Lingma, Qoder CN or Coding Plan for the team.",
+    "turns": [
+      {
+        "ask": "I need an AI agent my team of 15 software developers can use for coding.",
+        "expect": {
+          "primaryRec": [
+            "qoder-teams",
+            "qoder-enterprise"
+          ],
+          "exclude": [
+            "qoder-cn",
+            "lingma",
+            "coding-plan"
+          ],
+          "noNodes": true,
+          "notMention": [
+            "Lingma"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "need-02-whole-company",
+    "category": "need",
+    "title": "AI assistant for the whole company",
+    "reference": "QwenWork (Enterprise Standard) as the primary answer; DingTalk optional; Qoder only for developers.",
+    "turns": [
+      {
+        "ask": "We want an AI assistant that everyone in our company can use (sales, HR, finance) for documents, slides and research.",
+        "expect": {
+          "primaryRec": [
+            "qwenwork"
+          ],
+          "noNodes": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "need-03-ambiguous-team",
+    "category": "need",
+    "title": "AI agent for an unspecified team",
+    "reference": "Recommends Qoder Teams for developers or QwenWork for the whole company and asks which audience it is for; no infrastructure diagram.",
+    "turns": [
+      {
+        "ask": "I need some AI agent that I can use with my team.",
+        "expect": {
+          "primaryRec": [
+            "qoder-teams",
+            "qwenwork",
+            "qoder",
+            "qoder-enterprise"
+          ],
+          "question": true,
+          "noNodes": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "need-04-claude-code",
+    "category": "need",
+    "title": "Qwen in Claude Code and Cursor for a team",
+    "reference": "Token Plan with team seats and per-member keys as the primary answer; Coding Plan only for an individual developer; neither plan is for app backends.",
+    "turns": [
+      {
+        "ask": "Our 20 engineers use Claude Code and Cursor. We want to use Qwen models in those tools at a predictable monthly cost per seat.",
+        "expect": {
+          "primaryRec": [
+            "token-plan"
+          ],
+          "noNodes": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "need-05-plan-in-backend",
+    "category": "need",
+    "title": "Coding Plan key in an app backend",
+    "reference": "No: Coding Plan and Token Plan keys are for interactive coding tools only. The backend should call Model Studio APIs with pay-per-token pricing, optionally behind AI Gateway.",
+    "turns": [
+      {
+        "ask": "Can we use the Coding Plan key in our SaaS backend to call Qwen for our customers' requests?",
+        "expect": {
+          "include": [
+            [
+              "model-studio"
+            ]
+          ],
+          "primaryRec": [
+            "model-studio"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "need-06-cs-chatbot",
+    "category": "need",
+    "title": "Customer-service chatbot on our docs (build it)",
+    "reference": "A build-it architecture: the web widget calls an API (API Gateway or ALB) on Function Compute or SAE (or AgentCore); Model Studio Qwen with RAG over Milvus or OpenSearch; docs in OSS; AI Guardrails; SLS. Not the Model Studio app builder, which is restricted. Conversational AI Service is an optional managed alternative.",
+    "turns": [
+      {
+        "ask": "We want a customer-service chatbot on our website that answers from our product docs and help-center articles.",
+        "expect": {
+          "include": [
+            [
+              "model-studio"
+            ],
+            [
+              "milvus",
+              "opensearch",
+              "elasticsearch",
+              "analyticdb",
+              "dashvector",
+              "lindorm",
+              "polardb"
+            ],
+            [
+              "fc",
+              "sae",
+              "ack",
+              "acs",
+              "ecs",
+              "agentcore",
+              "agentrun"
+            ]
+          ],
+          "exclude": [
+            "model-studio-apps"
+          ],
+          "minNodes": 4
+        }
+      }
+    ]
+  },
+  {
+    "id": "need-07-analysts",
+    "category": "need",
+    "title": "AI for data analysts",
+    "reference": "Quick BI AIPro with Smart Q as the primary answer; DMS Data Agent for ad-hoc questions over databases; data in AnalyticDB, MaxCompute or Hologres.",
+    "turns": [
+      {
+        "ask": "Our business analysts want to ask questions about sales data in plain English and get charts and reports.",
+        "expect": {
+          "primaryRec": [
+            "quick-bi-aipro",
+            "smart-q",
+            "dms-data-agent"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "need-08-contractor-desktops",
+    "category": "need",
+    "title": "Cloud desktops for contractors",
+    "reference": "Elastic Desktop Service (EDS) Enterprise with SSO, policies, a fixed egress IP and audit; optionally CEN, NAS and IDaaS.",
+    "turns": [
+      {
+        "ask": "We need secure cloud desktops for 50 contractors so company data never leaves our cloud.",
+        "expect": {
+          "primaryRec": [
+            "eds"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "need-09-always-on-agents",
+    "category": "need",
+    "title": "Always-on agents per employee",
+    "reference": "Agentic Computer (always-on hosted cloud computers per seat that run OpenClaw, Claude Code or Qoder CLI) as the primary answer; Model Studio for models; QoderWake as an alternative for chat-based digital employees.",
+    "turns": [
+      {
+        "ask": "We want always-on AI agents, one per employee, that keep running tasks 24/7 with tools like Claude Code or OpenClaw.",
+        "expect": {
+          "primaryRec": [
+            "agentic-computer"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "need-10-build-agents",
+    "category": "need",
+    "title": "Build and govern our own agents",
+    "reference": "AgentCore as the build and governance platform; Model Studio models; AgentRun runtime and AgentBay sandboxes; AI Gateway for MCP and LLM traffic; Agent Security Center and AI Guardrails; AgentLoop for observability.",
+    "turns": [
+      {
+        "ask": "We want to build and govern our own enterprise AI agents, with tools, MCP servers and human approval steps.",
+        "expect": {
+          "include": [
+            [
+              "agentcore"
+            ],
+            [
+              "model-studio"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "need-11-voice-bot",
+    "category": "need",
+    "title": "Real-time voice bot",
+    "reference": "IMS Real-time Conversational AI (speech recognition, LLM and speech synthesis over ARTC) with Model Studio Qwen; knowledge through RAG on Milvus or OpenSearch; a backend on Function Compute or SAE.",
+    "turns": [
+      {
+        "ask": "We want a voice bot that talks with customers in real time on our app and website.",
+        "expect": {
+          "include": [
+            [
+              "ims-conversational-ai"
+            ],
+            [
+              "model-studio"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "need-12-qwen-api",
+    "category": "need",
+    "title": "Call Qwen from an app backend",
+    "reference": "Model Studio API (pay per token, OpenAI-compatible) as the answer, optionally behind AI Gateway, with the key kept on the server (KMS); no Coding Plan or Token Plan.",
+    "turns": [
+      {
+        "ask": "We just want to call Qwen models from our app's backend. What do we need?",
+        "expect": {
+          "include": [
+            [
+              "model-studio"
+            ]
+          ],
+          "exclude": [
+            "coding-plan",
+            "token-plan"
+          ]
+        }
+      }
+    ]
+  }
+]

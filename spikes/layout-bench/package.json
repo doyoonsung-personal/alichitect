@@ -1,0 +1,13 @@
+{
+  "name": "@ali/layout-bench",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Phase 1 layout replay bench: replays stored model output and judges a layout on stability, legibility, text, frames and routes",
+  "scripts": {
+    "bench": "node bench.ts",
+    "test": "node --test",
+    "typecheck": "../canvas/node_modules/.bin/tsc -p tsconfig.json",
+    "widths": "node scripts/inter-widths.ts"
+  }
+}

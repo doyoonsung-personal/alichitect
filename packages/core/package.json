@@ -1,0 +1,10 @@
+{
+  "name": "@ali/core",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Shared catalog, diagram graph, op grammar, validator and layout for the live architecture builder",
+  "scripts": {
+    "test": "node --test"
+  }
+}

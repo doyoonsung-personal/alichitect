@@ -1,0 +1,938 @@
+{
+  "meta": {
+    "startedAt": "2026-10-31T04:46:41.539Z",
+    "args": {
+      "cases-dir": "eval/cases-heldout",
+      "runs": "3",
+      "concurrency": "3",
+      "label": "heldout-baseline",
+      "no-judge": true
+    },
+    "model": "qwen3.8-max",
+    "fallbackModel": "qwen3.7-max",
+    "runsPerCase": 3,
+    "concurrency": 3,
+    "cases": 10,
+    "units": 30,
+    "catalogVersion": "2026-10-31",
+    "catalogEntries": 223,
+    "systemPromptChars": 42079,
+    "systemPromptSha256": "a19383a1a4c6cdaae80d896521585e5e0199925dfd1277cc0f19638f26630749",
+    "node": "v24.21.0",
+    "finishedAt": "2026-10-31T04:49:02.038Z",
+    "spentUsd": 0.28770999999999997
+  },
+  "totals": {
+    "cases": 10,
+    "conversations": 30,
+    "turns": 48,
+    "casePassRate": 0.633,
+    "passAtN": 0.8,
+    "majority": 0.7,
+    "allRuns": 0.4,
+    "runPassRate": 0.633,
+    "turnPassRate": 0.75,
+    "assertionPassRate": 0.96,
+    "assertions": 477,
+    "apiFailures": 0,
+    "costUsd": 0.288
+  },
+  "byCategory": {
+    "multiturn": {
+      "cases": 4,
+      "runs": 12,
+      "runPassRate": 0.667,
+      "passAtN": 0.75,
+      "majority": 0.75,
+      "allRuns": 0.5
+    },
+    "need": {
+      "cases": 2,
+      "runs": 6,
+      "runPassRate": 0.167,
+      "passAtN": 0.5,
+      "majority": 0,
+      "allRuns": 0
+    },
+    "i18n": {
+      "cases": 2,
+      "runs": 6,
+      "runPassRate": 0.833,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 0.5
+    },
+    "trap": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "pattern": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 0.667,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 0
+    }
+  },
+  "byLang": {
+    "en": {
+      "cases": 8,
+      "runs": 24,
+      "runPassRate": 0.583,
+      "passAtN": 0.75,
+      "majority": 0.625,
+      "allRuns": 0.375
+    },
+    "ko": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "zh": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 0.667,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 0
+    }
+  },
+  "byAssertionType": {
+    "question": {
+      "checks": 3,
+      "passed": 1,
+      "rate": 0.333,
+      "failingCases": [
+        "ho-team-agent-b"
+      ]
+    },
+    "primaryRec": {
+      "checks": 6,
+      "passed": 3,
+      "rate": 0.5,
+      "failingCases": [
+        "ho-tools-cline"
+      ]
+    },
+    "exclude": {
+      "checks": 15,
+      "passed": 9,
+      "rate": 0.6,
+      "failingCases": [
+        "ho-scale-sae",
+        "ho-tools-cline"
+      ]
+    },
+    "whyLang": {
+      "checks": 6,
+      "passed": 5,
+      "rate": 0.833,
+      "failingCases": [
+        "ho-zh-short-followup"
+      ]
+    },
+    "attachValid": {
+      "checks": 48,
+      "passed": 45,
+      "rate": 0.938,
+      "failingCases": [
+        "ho-scale-sae"
+      ]
+    },
+    "retention": {
+      "checks": 33,
+      "passed": 31,
+      "rate": 0.939,
+      "failingCases": [
+        "ho-residency-korea"
+      ]
+    },
+    "pathOrder": {
+      "checks": 42,
+      "passed": 41,
+      "rate": 0.976,
+      "failingCases": [
+        "ho-ddos-game-login"
+      ]
+    },
+    "format": {
+      "checks": 48,
+      "passed": 47,
+      "rate": 0.979,
+      "failingCases": [
+        "ho-tools-cline"
+      ]
+    },
+    "include": {
+      "checks": 27,
+      "passed": 27,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noErrors": {
+      "checks": 48,
+      "passed": 48,
+      "rate": 1,
+      "failingCases": []
+    },
+    "escapes": {
+      "checks": 48,
+      "passed": 48,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noPrices": {
+      "checks": 48,
+      "passed": 48,
+      "rate": 1,
+      "failingCases": []
+    },
+    "sayLang": {
+      "checks": 48,
+      "passed": 48,
+      "rate": 1,
+      "failingCases": []
+    },
+    "attach": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "size": {
+      "checks": 27,
+      "passed": 27,
+      "rate": 1,
+      "failingCases": []
+    },
+    "req": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "region": {
+      "checks": 12,
+      "passed": 12,
+      "rate": 1,
+      "failingCases": []
+    },
+    "editMinimal": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "mention": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    }
+  },
+  "cases": [
+    {
+      "id": "ho-residency-korea",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Korean healthcare data residency",
+      "runs": 3,
+      "passes": 2,
+      "passRate": 0.667,
+      "passAtN": true,
+      "majority": true,
+      "failed": {
+        "regions only seoul|ap-northeast-2": 1
+      },
+      "failedTypes": [
+        "retention"
+      ],
+      "meanCostUsd": 0.021,
+      "meanMs": 27215,
+      "runPass": [
+        true,
+        false,
+        true
+      ]
+    },
+    {
+      "id": "ho-scale-sae",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Serverless ticketing API scaling",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "exclude ess": 3,
+        "every attachment names a valid host": 3
+      },
+      "failedTypes": [
+        "exclude",
+        "attachValid"
+      ],
+      "meanCostUsd": 0.013,
+      "meanMs": 18936,
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "ho-scale-ecs-ok",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Auto Scaling for ECS website",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.011,
+      "meanMs": 15514,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-budget-ha",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Budget blog with high availability",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.016,
+      "meanMs": 20434,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-team-agent-b",
+      "category": "need",
+      "lang": "en",
+      "title": "AI agent for office team",
+      "runs": 3,
+      "passes": 1,
+      "passRate": 0.333,
+      "passAtN": true,
+      "majority": false,
+      "failed": {
+        "asks a question": 2
+      },
+      "failedTypes": [
+        "question"
+      ],
+      "meanCostUsd": 0.004,
+      "meanMs": 4657,
+      "runPass": [
+        false,
+        false,
+        true
+      ]
+    },
+    {
+      "id": "ho-ko-short-followup",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "Swap OpenSearch for Elasticsearch (Korean)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.004,
+      "meanMs": 3118,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-zh-short-followup",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "Swap RocketMQ for Kafka (Chinese)",
+      "runs": 3,
+      "passes": 2,
+      "passRate": 0.667,
+      "passAtN": true,
+      "majority": true,
+      "failed": {
+        "why text in zh": 1
+      },
+      "failedTypes": [
+        "whyLang"
+      ],
+      "meanCostUsd": 0.004,
+      "meanMs": 2558,
+      "runPass": [
+        true,
+        true,
+        false
+      ]
+    },
+    {
+      "id": "ho-closed-region-game",
+      "category": "trap",
+      "lang": "en",
+      "title": "Closed Mumbai region for mobile game",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.008,
+      "meanMs": 16115,
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ho-tools-cline",
+      "category": "need",
+      "lang": "en",
+      "title": "Qwen models for Cline users",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "exclude coding-plan|qoder-cn|lingma": 3,
+        "primary rec token-plan": 3,
+        "NDJSON only, ends with done": 1
+      },
+      "failedTypes": [
+        "exclude",
+        "primaryRec",
+        "format"
+      ],
+      "meanCostUsd": 0.005,
+      "meanMs": 4383,
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "ho-ddos-game-login",
+      "category": "pattern",
+      "lang": "en",
+      "title": "DDoS protection for game login API",
+      "runs": 3,
+      "passes": 2,
+      "passRate": 0.667,
+      "passAtN": true,
+      "majority": true,
+      "failed": {
+        "clean path order after repair": 1
+      },
+      "failedTypes": [
+        "pathOrder"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 18967,
+      "runPass": [
+        false,
+        true,
+        true
+      ]
+    }
+  ],
+  "warnings": {
+    "preRepairByCode": {
+      "orphan-node": {
+        "total": 7,
+        "perTurn": 0.146,
+        "turns": 7
+      },
+      "attach-host-missing": {
+        "total": 3,
+        "perTurn": 0.063,
+        "turns": 3
+      },
+      "containment": {
+        "total": 2,
+        "perTurn": 0.042,
+        "turns": 1
+      },
+      "path-order": {
+        "total": 1,
+        "perTurn": 0.021,
+        "turns": 1
+      },
+      "attach-inline": {
+        "total": 1,
+        "perTurn": 0.021,
+        "turns": 1
+      },
+      "unknown-id": {
+        "total": 1,
+        "perTurn": 0.021,
+        "turns": 1
+      }
+    },
+    "postRepairByCode": {
+      "orphan-node": {
+        "total": 10,
+        "perTurn": 0.208,
+        "turns": 10
+      },
+      "path-order": {
+        "total": 1,
+        "perTurn": 0.021,
+        "turns": 1
+      }
+    },
+    "preRepairBySeverity": {
+      "info": 8,
+      "warn": 5,
+      "error": 2
+    },
+    "postRepairBySeverity": {
+      "info": 6,
+      "warn": 5
+    },
+    "fixesByCode": {
+      "attach-host-missing": 3,
+      "containment": 2,
+      "attach-inline": 1
+    },
+    "unknownProducts": {
+      "count": 0,
+      "top": []
+    },
+    "nonIdProducts": {
+      "count": 0,
+      "top": []
+    }
+  },
+  "latency": {
+    "firstSayMs": {
+      "n": 48,
+      "p50": 1402,
+      "p95": 2021,
+      "mean": 1462,
+      "max": 2228
+    },
+    "firstOpMs": {
+      "n": 48,
+      "p50": 1790,
+      "p95": 2481,
+      "mean": 1831,
+      "max": 2632
+    },
+    "firstNodeMs": {
+      "n": 42,
+      "p50": 3191,
+      "p95": 4504,
+      "mean": 3206,
+      "max": 5207
+    },
+    "streamMs": {
+      "n": 48,
+      "p50": 5418,
+      "p95": 18218,
+      "mean": 8209,
+      "max": 19967
+    },
+    "turnMs": {
+      "n": 48,
+      "p50": 5420,
+      "p95": 18219,
+      "mean": 8243,
+      "max": 19969
+    },
+    "diagramStreamMs": {
+      "n": 42,
+      "p50": 6611,
+      "p95": 18304,
+      "mean": 8773,
+      "max": 19967
+    },
+    "productStreamMs": {
+      "n": 6,
+      "p50": 4412,
+      "p95": 4850,
+      "mean": 4261,
+      "max": 4895
+    },
+    "editStreamMs": {
+      "n": 24,
+      "p50": 4030,
+      "p95": 7322,
+      "mean": 4484,
+      "max": 8341
+    }
+  },
+  "tokens": {
+    "prompt": 552090,
+    "cached": 531584,
+    "cacheHit": 0.963,
+    "completion": 18967,
+    "completionPerTurn": {
+      "n": 48,
+      "p50": 228,
+      "p95": 920,
+      "mean": 395,
+      "max": 1131
+    },
+    "costPerTurn": {
+      "n": 48,
+      "p50": 0.0057,
+      "p95": 0.00876,
+      "mean": 0.00599,
+      "max": 0.009606
+    },
+    "costPerConversation": {
+      "n": 30,
+      "p50": 0.00828,
+      "p95": 0.02005,
+      "mean": 0.00959,
+      "max": 0.021693999999999998
+    },
+    "costUsd": 0.288
+  },
+  "reliability": {
+    "turns": 48,
+    "truncatedMain": 1,
+    "continued": 1,
+    "repairTurns": 0,
+    "hedged": 0,
+    "hedgeWon": 0,
+    "fallbackUsed": 0,
+    "retriedAttempts": 0,
+    "apiFailures": 0,
+    "badLines": 0,
+    "escapes": 0
+  },
+  "i18n": {
+    "en": {
+      "turns": 42,
+      "completionPerTurn": 440,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 11463,
+      "sayLangPass": 42,
+      "sayLangChecks": 42,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    },
+    "ko": {
+      "turns": 3,
+      "completionPerTurn": 80,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 11773,
+      "sayLangPass": 3,
+      "sayLangChecks": 3,
+      "whyLangPass": 3,
+      "whyLangChecks": 3,
+      "escapes": 0
+    },
+    "zh": {
+      "turns": 3,
+      "completionPerTurn": 87,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 11773,
+      "sayLangPass": 3,
+      "sayLangChecks": 3,
+      "whyLangPass": 2,
+      "whyLangChecks": 3,
+      "escapes": 0
+    }
+  },
+  "multiturn": [
+    {
+      "case": "ho-residency-korea",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 2,
+          "checks": 6,
+          "passed": 5
+        },
+        {
+          "turn": 3,
+          "checks": 6,
+          "passed": 5
+        }
+      ],
+      "finalPassRate": 0.667
+    },
+    {
+      "case": "ho-scale-sae",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 0,
+          "passed": 0
+        },
+        {
+          "turn": 2,
+          "checks": 6,
+          "passed": 6
+        }
+      ],
+      "finalPassRate": 0
+    },
+    {
+      "case": "ho-scale-ecs-ok",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 0,
+          "passed": 0
+        },
+        {
+          "turn": 2,
+          "checks": 6,
+          "passed": 6
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "ho-budget-ha",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 2,
+          "checks": 3,
+          "passed": 3
+        },
+        {
+          "turn": 3,
+          "checks": 6,
+          "passed": 6
+        }
+      ],
+      "finalPassRate": 1
+    }
+  ],
+  "judge": {
+    "model": null,
+    "judged": 0,
+    "errors": 0,
+    "means": null,
+    "signoffRate": null,
+    "byCategory": {},
+    "agreement": null,
+    "costUsd": 0
+  },
+  "failures": [
+    {
+      "case": "ho-scale-sae",
+      "category": "multiturn",
+      "run": 1,
+      "turn": 2,
+      "type": "exclude",
+      "name": "exclude ess",
+      "detail": "present: ess"
+    },
+    {
+      "case": "ho-scale-sae",
+      "category": "multiturn",
+      "run": 1,
+      "turn": 2,
+      "type": "attachValid",
+      "name": "every attachment names a valid host",
+      "detail": "'scaling' attaches to 'api': 'api' (sae) is not an attach host for ess"
+    },
+    {
+      "case": "ho-team-agent-b",
+      "category": "need",
+      "run": 1,
+      "turn": 1,
+      "type": "question",
+      "name": "asks a question",
+      "detail": ""
+    },
+    {
+      "case": "ho-tools-cline",
+      "category": "need",
+      "run": 1,
+      "turn": 1,
+      "type": "exclude",
+      "name": "exclude coding-plan|qoder-cn|lingma",
+      "detail": "present: coding-plan"
+    },
+    {
+      "case": "ho-tools-cline",
+      "category": "need",
+      "run": 1,
+      "turn": 1,
+      "type": "primaryRec",
+      "name": "primary rec token-plan",
+      "detail": "primary: qoder-teams; recs: qoder-teams, coding-plan"
+    },
+    {
+      "case": "ho-tools-cline",
+      "category": "need",
+      "run": 1,
+      "turn": 1,
+      "type": "format",
+      "name": "NDJSON only, ends with done",
+      "detail": "bad 0, done false, finish stop, rescued by the continuation turn"
+    },
+    {
+      "case": "ho-ddos-game-login",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "pathOrder",
+      "name": "clean path order after repair",
+      "detail": "edge 'e-antiddos-esa' runs against the request path: antiddos (anti-ddos-proxy, rank 15) -> esa (esa, rank 10)"
+    },
+    {
+      "case": "ho-residency-korea",
+      "category": "multiturn",
+      "run": 2,
+      "turn": 2,
+      "type": "retention",
+      "name": "regions only seoul|ap-northeast-2",
+      "detail": "outside: tokyo (ap-northeast-1) dr"
+    },
+    {
+      "case": "ho-residency-korea",
+      "category": "multiturn",
+      "run": 2,
+      "turn": 3,
+      "type": "retention",
+      "name": "regions only seoul|ap-northeast-2",
+      "detail": "outside: tokyo (ap-northeast-1) dr"
+    },
+    {
+      "case": "ho-scale-sae",
+      "category": "multiturn",
+      "run": 2,
+      "turn": 2,
+      "type": "exclude",
+      "name": "exclude ess",
+      "detail": "present: ess"
+    },
+    {
+      "case": "ho-scale-sae",
+      "category": "multiturn",
+      "run": 2,
+      "turn": 2,
+      "type": "attachValid",
+      "name": "every attachment names a valid host",
+      "detail": "'scaling' attaches to 'api': 'api' (sae) is not an attach host for ess"
+    },
+    {
+      "case": "ho-team-agent-b",
+      "category": "need",
+      "run": 2,
+      "turn": 1,
+      "type": "question",
+      "name": "asks a question",
+      "detail": ""
+    },
+    {
+      "case": "ho-tools-cline",
+      "category": "need",
+      "run": 2,
+      "turn": 1,
+      "type": "exclude",
+      "name": "exclude coding-plan|qoder-cn|lingma",
+      "detail": "present: coding-plan"
+    },
+    {
+      "case": "ho-tools-cline",
+      "category": "need",
+      "run": 2,
+      "turn": 1,
+      "type": "primaryRec",
+      "name": "primary rec token-plan",
+      "detail": "primary: qoder-teams; recs: qoder-teams, coding-plan, token-plan"
+    },
+    {
+      "case": "ho-scale-sae",
+      "category": "multiturn",
+      "run": 3,
+      "turn": 2,
+      "type": "exclude",
+      "name": "exclude ess",
+      "detail": "present: ess"
+    },
+    {
+      "case": "ho-scale-sae",
+      "category": "multiturn",
+      "run": 3,
+      "turn": 2,
+      "type": "attachValid",
+      "name": "every attachment names a valid host",
+      "detail": "'scaling' attaches to 'api': 'api' (sae) is not an attach host for ess"
+    },
+    {
+      "case": "ho-zh-short-followup",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "whyLang",
+      "name": "why text in zh",
+      "detail": "share 0.00 of 28 letters"
+    },
+    {
+      "case": "ho-tools-cline",
+      "category": "need",
+      "run": 3,
+      "turn": 1,
+      "type": "exclude",
+      "name": "exclude coding-plan|qoder-cn|lingma",
+      "detail": "present: coding-plan"
+    },
+    {
+      "case": "ho-tools-cline",
+      "category": "need",
+      "run": 3,
+      "turn": 1,
+      "type": "primaryRec",
+      "name": "primary rec token-plan",
+      "detail": "primary: qoder-teams; recs: qoder-teams, coding-plan, qoder"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+[
+  {
+    "id": "mt-01-avoid-k8s",
+    "category": "multiturn",
+    "title": "Avoid Kubernetes over four turns",
+    "reference": "SAE (or Function Compute) for the microservices behind an API gateway, RocketMQ or Kafka for order events, RDS or PolarDB, Tair for menus, scaling through SAE autoscaling, Model Studio for the assistant; Kubernetes avoided on every turn.",
+    "turns": [
+      {
+        "ask": "We're building the backend for a food-delivery app: about 12 microservices, REST APIs for the mobile app, and order events. Our team has no Kubernetes experience, so please avoid Kubernetes.",
+        "expect": { "req": [["kubernetes", "k8s"]], "exclude": ["ack", "acs", "ack-one", "asm"], "include": [["sae", "fc", "ecs", "edas"]] }
+      },
+      {
+        "ask": "Add a cache for restaurant menus.",
+        "expect": { "include": [["tair"]] },
+        "retain": { "exclude": ["ack", "acs", "ack-one", "asm"] }
+      },
+      {
+        "ask": "We expect 5x more traffic next year. Make it scale.",
+        "retain": { "exclude": ["ack", "acs", "ack-one", "asm"], "req": [["kubernetes", "k8s"]] }
+      },
+      {
+        "ask": "Add an AI assistant that helps customers find dishes.",
+        "expect": { "include": [["model-studio"]] },
+        "retain": { "exclude": ["ack", "acs", "ack-one", "asm"], "req": [["kubernetes", "k8s"]] }
+      }
+    ]
+  },
+  {
+    "id": "mt-02-serverless-first",
+    "category": "multiturn",
+    "title": "Serverless-first over three turns",
+    "reference": "API Gateway and Function Compute with OSS triggers for resizing, Tablestore or serverless PolarDB or RDS for metadata, and a scheduled Function Compute trigger (or SchedulerX or CloudFlow) for nightly reports; no ECS or ACK anywhere.",
+    "turns": [
+      {
+        "ask": "We want a serverless-first design for an image-processing API: users upload photos, we resize them and store the results. No servers to manage.",
+        "expect": { "req": [["serverless"]], "include": [["fc"], ["oss"]], "exclude": ["ecs", "ack", "ebm"] }
+      },
+      {
+        "ask": "Add a database to store image metadata and user accounts.",
+        "expect": { "include": [["tablestore", "rds", "polardb", "mongodb", "lindorm"]] },
+        "retain": { "exclude": ["ecs", "ack", "ebm"] }
+      },
+      {
+        "ask": "Add a nightly job that builds usage reports.",
+        "retain": { "exclude": ["ecs", "ack", "ebm", "emr"], "req": [["serverless"]] }
+      }
+    ]
+  },
+  {
+    "id": "mt-03-data-in-singapore",
+    "category": "multiturn",
+    "title": "Data must stay in Singapore over four turns",
+    "reference": "Everything in Singapore (ap-southeast-1): disaster recovery across zones plus backups rather than a region in another country; Model Studio in Singapore; for European latency, ESA, CDN or Global Accelerator at the edge without moving data out of Singapore.",
+    "turns": [
+      {
+        "ask": "We're a Singapore fintech and customer data must stay in Singapore. Design a web app with a database for our customer portal.",
+        "expect": { "req": [["singapore", "ap-southeast-1"]], "regions": { "only": ["singapore", "ap-southeast-1"] } }
+      },
+      {
+        "ask": "Add disaster recovery.",
+        "retain": { "regions": { "only": ["singapore", "ap-southeast-1"] }, "req": [["singapore", "ap-southeast-1"]] }
+      },
+      {
+        "ask": "Add an AI chatbot that answers customer questions.",
+        "expect": { "include": [["model-studio"]] },
+        "retain": { "regions": { "only": ["singapore", "ap-southeast-1"] } }
+      },
+      {
+        "ask": "Our users in Europe say the portal is slow. What can we do?",
+        "expect": { "include": [["esa", "cdn", "ga"]] },
+        "retain": { "regions": { "only": ["singapore", "ap-southeast-1"] } }
+      }
+    ]
+  },
+  {
+    "id": "mt-04-budget",
+    "category": "multiturn",
+    "title": "Startup budget over three turns",
+    "reference": "A minimal design such as SWAS or one or two small ECS instances (or SAE) with RDS, OSS and inexpensive search; for high availability, two zones for the app and database with a note on the cost impact; no Kubernetes, PolarDB clusters, Anti-DDoS Proxy or data warehouses.",
+    "turns": [
+      {
+        "ask": "Early-stage startup MVP: a web app with user accounts and a database. Our budget is under $200 a month.",
+        "expect": {
+          "req": [["200", "budget", "cost", "cheap", "low"]],
+          "exclude": ["ack", "acs", "polardb", "anti-ddos-proxy", "hologres", "maxcompute", "emr", "egs", "ebm", "lingjun", "ack-one"],
+          "maxNodes": 12
+        }
+      },
+      {
+        "ask": "Add full-text search for our listings.",
+        "expect": { "maxNodes": 14 },
+        "retain": { "exclude": ["ack", "acs", "polardb", "anti-ddos-proxy", "hologres", "maxcompute", "emr", "egs", "ebm", "lingjun", "ack-one"], "req": [["200", "budget", "cost", "cheap", "low"]] }
+      },
+      {
+        "ask": "Make it highly available.",
+        "expect": { "mention": [["cost", "budget", "$200", "price"]] },
+        "retain": { "exclude": ["ack", "acs", "polardb", "anti-ddos-proxy", "hologres", "maxcompute", "emr", "egs", "ebm", "lingjun", "ack-one"] }
+      }
+    ]
+  }
+]

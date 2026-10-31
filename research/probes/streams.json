@@ -1,0 +1,1532 @@
+{
+ "note": "Recorded live qwen3.8-max/flash NDJSON streams from 2026-10-30. lineTimes = [ms since request start, raw line]. Follow-ups (B*) were sent with baseState as CURRENT DIAGRAM. Product ids use the probe mini catalog (underscored ids such as anti_ddos, model_studio), not catalog v0 ids.",
+ "ask": "We are launching a cross-border e-commerce site for Southeast Asia: about 50k daily active users, 10x traffic spikes during flash sales, product search, lots of product images, and we want an AI shopping-assistant chatbot. It must be highly available.",
+ "baseState": {
+  "groups": [
+   {
+    "id": "ext",
+    "kind": "external",
+    "label": "External",
+    "parent": null
+   },
+   {
+    "id": "edge",
+    "kind": "edge",
+    "label": "Edge & Security",
+    "parent": null
+   },
+   {
+    "id": "region",
+    "kind": "region",
+    "label": "ap-southeast-1 (Singapore)",
+    "parent": null
+   },
+   {
+    "id": "vpc",
+    "kind": "vpc",
+    "label": "E-Commerce VPC",
+    "parent": "region"
+   },
+   {
+    "id": "zone-a",
+    "kind": "zone",
+    "label": "Zone A",
+    "parent": "vpc"
+   },
+   {
+    "id": "zone-b",
+    "kind": "zone",
+    "label": "Zone B",
+    "parent": "vpc"
+   },
+   {
+    "id": "data-grp",
+    "kind": "managed",
+    "label": "Data Layer",
+    "parent": "vpc"
+   },
+   {
+    "id": "ai-grp",
+    "kind": "managed",
+    "label": "AI & Integration",
+    "parent": "vpc"
+   },
+   {
+    "id": "ops-grp",
+    "kind": "managed",
+    "label": "Ops & Security",
+    "parent": "vpc"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "users",
+    "product": "users",
+    "label": "SEA Shoppers (50k DAU)",
+    "group": "ext"
+   },
+   {
+    "id": "dns",
+    "product": "dns",
+    "label": "Alibaba Cloud DNS",
+    "group": "edge"
+   },
+   {
+    "id": "anti-ddos",
+    "product": "anti_ddos",
+    "label": "Anti-DDoS Premium",
+    "group": "edge"
+   },
+   {
+    "id": "waf",
+    "product": "waf",
+    "label": "WAF",
+    "group": "edge"
+   },
+   {
+    "id": "esa",
+    "product": "esa",
+    "label": "ESA",
+    "group": "edge"
+   },
+   {
+    "id": "cdn",
+    "product": "cdn",
+    "label": "CDN",
+    "group": "edge"
+   },
+   {
+    "id": "alb",
+    "product": "alb",
+    "label": "ALB",
+    "group": "vpc"
+   },
+   {
+    "id": "ecs-a",
+    "product": "ecs",
+    "label": "App Servers (AZ-A)",
+    "group": "zone-a"
+   },
+   {
+    "id": "ecs-b",
+    "product": "ecs",
+    "label": "App Servers (AZ-B)",
+    "group": "zone-b"
+   },
+   {
+    "id": "asg",
+    "product": "auto_scaling",
+    "label": "Auto Scaling",
+    "group": "vpc"
+   },
+   {
+    "id": "polardb",
+    "product": "polardb",
+    "label": "PolarDB MySQL",
+    "group": "data-grp"
+   },
+   {
+    "id": "tair",
+    "product": "tair",
+    "label": "Tair (Redis)",
+    "group": "data-grp"
+   },
+   {
+    "id": "oss",
+    "product": "oss",
+    "label": "OSS",
+    "group": "data-grp"
+   },
+   {
+    "id": "opensearch",
+    "product": "opensearch",
+    "label": "OpenSearch",
+    "group": "data-grp"
+   },
+   {
+    "id": "model-studio",
+    "product": "model_studio",
+    "label": "Model Studio (Qwen)",
+    "group": "ai-grp"
+   },
+   {
+    "id": "rocketmq",
+    "product": "rocketmq",
+    "label": "RocketMQ",
+    "group": "ai-grp"
+   },
+   {
+    "id": "sls",
+    "product": "sls",
+    "label": "SLS",
+    "group": "ops-grp"
+   },
+   {
+    "id": "arms",
+    "product": "arms",
+    "label": "ARMS",
+    "group": "ops-grp"
+   },
+   {
+    "id": "cloudmonitor",
+    "product": "cloudmonitor",
+    "label": "CloudMonitor",
+    "group": "ops-grp"
+   },
+   {
+    "id": "security-center",
+    "product": "security_center",
+    "label": "Security Center",
+    "group": "ops-grp"
+   },
+   {
+    "id": "nat",
+    "product": "nat",
+    "label": "NAT Gateway",
+    "group": "vpc"
+   }
+  ],
+  "edges": [
+   {
+    "id": "e-users-dns",
+    "from": "users",
+    "to": "dns",
+    "label": "DNS resolve"
+   },
+   {
+    "id": "e-dns-ddos",
+    "from": "dns",
+    "to": "anti-ddos",
+    "label": ""
+   },
+   {
+    "id": "e-ddos-waf",
+    "from": "anti-ddos",
+    "to": "waf",
+    "label": ""
+   },
+   {
+    "id": "e-waf-esa",
+    "from": "waf",
+    "to": "esa",
+    "label": "dynamic"
+   },
+   {
+    "id": "e-waf-cdn",
+    "from": "waf",
+    "to": "cdn",
+    "label": "images"
+   },
+   {
+    "id": "e-esa-alb",
+    "from": "esa",
+    "to": "alb",
+    "label": "HTTPS"
+   },
+   {
+    "id": "e-alb-ecs-a",
+    "from": "alb",
+    "to": "ecs-a",
+    "label": ""
+   },
+   {
+    "id": "e-alb-ecs-b",
+    "from": "alb",
+    "to": "ecs-b",
+    "label": ""
+   },
+   {
+    "id": "e-asg-ecs",
+    "from": "asg",
+    "to": "ecs-a",
+    "label": "scales"
+   },
+   {
+    "id": "e-ecs-polardb",
+    "from": "ecs-a",
+    "to": "polardb",
+    "label": "SQL"
+   },
+   {
+    "id": "e-ecs-tair",
+    "from": "ecs-a",
+    "to": "tair",
+    "label": "cache"
+   },
+   {
+    "id": "e-ecs-oss",
+    "from": "ecs-a",
+    "to": "oss",
+    "label": "upload"
+   },
+   {
+    "id": "e-cdn-oss",
+    "from": "cdn",
+    "to": "oss",
+    "label": "pull"
+   },
+   {
+    "id": "e-ecs-search",
+    "from": "ecs-a",
+    "to": "opensearch",
+    "label": "query"
+   },
+   {
+    "id": "e-ecs-ai",
+    "from": "ecs-a",
+    "to": "model-studio",
+    "label": "chat API"
+   },
+   {
+    "id": "e-ai-search",
+    "from": "model-studio",
+    "to": "opensearch",
+    "label": "RAG"
+   },
+   {
+    "id": "e-ecs-mq",
+    "from": "ecs-a",
+    "to": "rocketmq",
+    "label": "orders"
+   },
+   {
+    "id": "e-ecs-sls",
+    "from": "ecs-a",
+    "to": "sls",
+    "label": "logs"
+   },
+   {
+    "id": "e-ecs-arms",
+    "from": "ecs-a",
+    "to": "arms",
+    "label": "traces"
+   },
+   {
+    "id": "e-ecs-nat",
+    "from": "ecs-a",
+    "to": "nat",
+    "label": "outbound"
+   }
+  ]
+ },
+ "streams": [
+  {
+   "label": "F_max_nothink",
+   "description": "Initial e-commerce diagram (qwen3.8-max, thinking off)",
+   "model": "qwen3.8-max",
+   "params": [
+    "model",
+    "enable_thinking"
+   ],
+   "firstOpMs": 2147,
+   "totalMs": 35746,
+   "usage": {
+    "completion_tokens": 1824,
+    "prompt_tokens": 1232,
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "text_tokens": 1232
+    },
+    "total_tokens": 3056
+   },
+   "lineTimes": [
+    [
+     2147,
+     "{\"t\":\"say\",\"text\":\"Let's architect your cross-border e-commerce platform for Southeast Asia, building from users inward.\"}"
+    ],
+    [
+     2505,
+     "{\"t\":\"group\",\"id\":\"ext\",\"kind\":\"external\",\"label\":\"External\",\"parent\":null}"
+    ],
+    [
+     3277,
+     "{\"t\":\"node\",\"id\":\"users\",\"product\":\"users\",\"label\":\"SEA Shoppers (50k DAU)\",\"group\":\"ext\",\"why\":\"End users browsing and buying across Southeast Asia\"}"
+    ],
+    [
+     3850,
+     "{\"t\":\"say\",\"text\":\"First, the edge layer to handle global acceleration, DDoS protection, and caching product images close to users.\"}"
+    ],
+    [
+     4286,
+     "{\"t\":\"group\",\"id\":\"edge\",\"kind\":\"edge\",\"label\":\"Edge & Security\",\"parent\":null}"
+    ],
+    [
+     5068,
+     "{\"t\":\"node\",\"id\":\"dns\",\"product\":\"dns\",\"label\":\"Alibaba Cloud DNS\",\"group\":\"edge\",\"why\":\"Low-latency authoritative DNS routing for SEA shoppers\"}"
+    ],
+    [
+     5738,
+     "{\"t\":\"node\",\"id\":\"anti-ddos\",\"product\":\"anti_ddos\",\"label\":\"Anti-DDoS Premium\",\"group\":\"edge\",\"why\":\"Volumetric attack mitigation for flash sale traffic spikes\"}"
+    ],
+    [
+     6417,
+     "{\"t\":\"node\",\"id\":\"waf\",\"product\":\"waf\",\"label\":\"WAF\",\"group\":\"edge\",\"why\":\"L7 protection against bots and OWASP attacks\"}"
+    ],
+    [
+     7088,
+     "{\"t\":\"node\",\"id\":\"esa\",\"product\":\"esa\",\"label\":\"ESA\",\"group\":\"edge\",\"why\":\"Dynamic acceleration and edge security for cross-border latency\"}"
+    ],
+    [
+     7809,
+     "{\"t\":\"node\",\"id\":\"cdn\",\"product\":\"cdn\",\"label\":\"CDN\",\"group\":\"edge\",\"why\":\"Cache heavy product images at SEA edge nodes\"}"
+    ],
+    [
+     8317,
+     "{\"t\":\"edge\",\"id\":\"e-users-dns\",\"from\":\"users\",\"to\":\"dns\",\"label\":\"DNS resolve\"}"
+    ],
+    [
+     8730,
+     "{\"t\":\"edge\",\"id\":\"e-dns-ddos\",\"from\":\"dns\",\"to\":\"anti-ddos\",\"label\":\"\"}"
+    ],
+    [
+     9219,
+     "{\"t\":\"edge\",\"id\":\"e-ddos-waf\",\"from\":\"anti-ddos\",\"to\":\"waf\",\"label\":\"\"}"
+    ],
+    [
+     9538,
+     "{\"t\":\"edge\",\"id\":\"e-waf-esa\",\"from\":\"waf\",\"to\":\"esa\",\"label\":\"dynamic\"}"
+    ],
+    [
+     10065,
+     "{\"t\":\"edge\",\"id\":\"e-waf-cdn\",\"from\":\"waf\",\"to\":\"cdn\",\"label\":\"images\"}"
+    ],
+    [
+     10847,
+     "{\"t\":\"say\",\"text\":\"Now the core region with a VPC, highly available load balancers, and auto-scaling compute for 10x flash sales.\"}"
+    ],
+    [
+     11260,
+     "{\"t\":\"group\",\"id\":\"region\",\"kind\":\"region\",\"label\":\"ap-southeast-1 (Singapore)\",\"parent\":null}"
+    ],
+    [
+     11805,
+     "{\"t\":\"group\",\"id\":\"vpc\",\"kind\":\"vpc\",\"label\":\"E-Commerce VPC\",\"parent\":\"region\"}"
+    ],
+    [
+     12161,
+     "{\"t\":\"group\",\"id\":\"zone-a\",\"kind\":\"zone\",\"label\":\"Zone A\",\"parent\":\"vpc\"}"
+    ],
+    [
+     12695,
+     "{\"t\":\"group\",\"id\":\"zone-b\",\"kind\":\"zone\",\"label\":\"Zone B\",\"parent\":\"vpc\"}"
+    ],
+    [
+     13359,
+     "{\"t\":\"node\",\"id\":\"alb\",\"product\":\"alb\",\"label\":\"ALB\",\"group\":\"vpc\",\"why\":\"L7 load balancing across multi-zone ECS fleet\"}"
+    ],
+    [
+     14204,
+     "{\"t\":\"node\",\"id\":\"ecs-a\",\"product\":\"ecs\",\"label\":\"App Servers (AZ-A)\",\"group\":\"zone-a\",\"why\":\"Stateless web/app tier handling business logic\"}"
+    ],
+    [
+     14939,
+     "{\"t\":\"node\",\"id\":\"ecs-b\",\"product\":\"ecs\",\"label\":\"App Servers (AZ-B)\",\"group\":\"zone-b\",\"why\":\"Stateless web/app tier for high availability\"}"
+    ],
+    [
+     15697,
+     "{\"t\":\"node\",\"id\":\"asg\",\"product\":\"auto_scaling\",\"label\":\"Auto Scaling\",\"group\":\"vpc\",\"why\":\"Scale ECS fleet 10x during flash sales automatically\"}"
+    ],
+    [
+     16100,
+     "{\"t\":\"edge\",\"id\":\"e-esa-alb\",\"from\":\"esa\",\"to\":\"alb\",\"label\":\"HTTPS\"}"
+    ],
+    [
+     16476,
+     "{\"t\":\"edge\",\"id\":\"e-alb-ecs-a\",\"from\":\"alb\",\"to\":\"ecs-a\",\"label\":\"\"}"
+    ],
+    [
+     16962,
+     "{\"t\":\"edge\",\"id\":\"e-alb-ecs-b\",\"from\":\"alb\",\"to\":\"ecs-b\",\"label\":\"\"}"
+    ],
+    [
+     17446,
+     "{\"t\":\"edge\",\"id\":\"e-asg-ecs\",\"from\":\"asg\",\"to\":\"ecs-a\",\"label\":\"scales\"}"
+    ],
+    [
+     18234,
+     "{\"t\":\"say\",\"text\":\"For data, we need cloud-native relational DB, Redis cache for flash sales, object storage for images, and search.\"}"
+    ],
+    [
+     18658,
+     "{\"t\":\"group\",\"id\":\"data-grp\",\"kind\":\"managed\",\"label\":\"Data Layer\",\"parent\":\"vpc\"}"
+    ],
+    [
+     19524,
+     "{\"t\":\"node\",\"id\":\"polardb\",\"product\":\"polardb\",\"label\":\"PolarDB MySQL\",\"group\":\"data-grp\",\"why\":\"Cloud-native HA database for orders and inventory\"}"
+    ],
+    [
+     20266,
+     "{\"t\":\"node\",\"id\":\"tair\",\"product\":\"tair\",\"label\":\"Tair (Redis)\",\"group\":\"data-grp\",\"why\":\"In-memory cache for cart, sessions, flash sale stock\"}"
+    ],
+    [
+     20852,
+     "{\"t\":\"node\",\"id\":\"oss\",\"product\":\"oss\",\"label\":\"OSS\",\"group\":\"data-grp\",\"why\":\"Store product images served via CDN\"}"
+    ],
+    [
+     21518,
+     "{\"t\":\"node\",\"id\":\"opensearch\",\"product\":\"opensearch\",\"label\":\"OpenSearch\",\"group\":\"data-grp\",\"why\":\"Fast product search with LLM conversational capabilities\"}"
+    ],
+    [
+     22051,
+     "{\"t\":\"edge\",\"id\":\"e-ecs-polardb\",\"from\":\"ecs-a\",\"to\":\"polardb\",\"label\":\"SQL\"}"
+    ],
+    [
+     23422,
+     "{\"t\":\"edge\",\"id\":\"e-ecs-tair\",\"from\":\"ecs-a\",\"to\":\"tair\",\"label\":\"cache\"}"
+    ],
+    [
+     23993,
+     "{\"t\":\"edge\",\"id\":\"e-ecs-oss\",\"from\":\"ecs-a\",\"to\":\"oss\",\"label\":\"upload\"}"
+    ],
+    [
+     24415,
+     "{\"t\":\"edge\",\"id\":\"e-cdn-oss\",\"from\":\"cdn\",\"to\":\"oss\",\"label\":\"pull\"}"
+    ],
+    [
+     24929,
+     "{\"t\":\"edge\",\"id\":\"e-ecs-search\",\"from\":\"ecs-a\",\"to\":\"opensearch\",\"label\":\"query\"}"
+    ],
+    [
+     25577,
+     "{\"t\":\"say\",\"text\":\"Adding the AI shopping assistant chatbot using Model Studio for Qwen LLM and RocketMQ for async order events.\"}"
+    ],
+    [
+     25993,
+     "{\"t\":\"group\",\"id\":\"ai-grp\",\"kind\":\"managed\",\"label\":\"AI & Integration\",\"parent\":\"vpc\"}"
+    ],
+    [
+     26956,
+     "{\"t\":\"node\",\"id\":\"model-studio\",\"product\":\"model_studio\",\"label\":\"Model Studio (Qwen)\",\"group\":\"ai-grp\",\"why\":\"AI shopping assistant chatbot with RAG over products\"}"
+    ],
+    [
+     27588,
+     "{\"t\":\"node\",\"id\":\"rocketmq\",\"product\":\"rocketmq\",\"label\":\"RocketMQ\",\"group\":\"ai-grp\",\"why\":\"Decouple order processing and handle flash sale spikes\"}"
+    ],
+    [
+     28205,
+     "{\"t\":\"edge\",\"id\":\"e-ecs-ai\",\"from\":\"ecs-a\",\"to\":\"model-studio\",\"label\":\"chat API\"}"
+    ],
+    [
+     28593,
+     "{\"t\":\"edge\",\"id\":\"e-ai-search\",\"from\":\"model-studio\",\"to\":\"opensearch\",\"label\":\"RAG\"}"
+    ],
+    [
+     28905,
+     "{\"t\":\"edge\",\"id\":\"e-ecs-mq\",\"from\":\"ecs-a\",\"to\":\"rocketmq\",\"label\":\"orders\"}"
+    ],
+    [
+     29610,
+     "{\"t\":\"say\",\"text\":\"Finally, observability, security, and network egress to complete the highly available architecture.\"}"
+    ],
+    [
+     30014,
+     "{\"t\":\"group\",\"id\":\"ops-grp\",\"kind\":\"managed\",\"label\":\"Ops & Security\",\"parent\":\"vpc\"}"
+    ],
+    [
+     30749,
+     "{\"t\":\"node\",\"id\":\"sls\",\"product\":\"sls\",\"label\":\"SLS\",\"group\":\"ops-grp\",\"why\":\"Centralized log collection and alerting\"}"
+    ],
+    [
+     31487,
+     "{\"t\":\"node\",\"id\":\"arms\",\"product\":\"arms\",\"label\":\"ARMS\",\"group\":\"ops-grp\",\"why\":\"APM tracing for microservices performance monitoring\"}"
+    ],
+    [
+     32204,
+     "{\"t\":\"node\",\"id\":\"cloudmonitor\",\"product\":\"cloudmonitor\",\"label\":\"CloudMonitor\",\"group\":\"ops-grp\",\"why\":\"Infrastructure metrics and auto-scaling triggers\"}"
+    ],
+    [
+     32878,
+     "{\"t\":\"node\",\"id\":\"security-center\",\"product\":\"security_center\",\"label\":\"Security Center\",\"group\":\"ops-grp\",\"why\":\"Host threat protection and compliance posture\"}"
+    ],
+    [
+     33481,
+     "{\"t\":\"node\",\"id\":\"nat\",\"product\":\"nat\",\"label\":\"NAT Gateway\",\"group\":\"vpc\",\"why\":\"Secure outbound internet for ECS patching and APIs\"}"
+    ],
+    [
+     33897,
+     "{\"t\":\"edge\",\"id\":\"e-ecs-sls\",\"from\":\"ecs-a\",\"to\":\"sls\",\"label\":\"logs\"}"
+    ],
+    [
+     34507,
+     "{\"t\":\"edge\",\"id\":\"e-ecs-arms\",\"from\":\"ecs-a\",\"to\":\"arms\",\"label\":\"traces\"}"
+    ],
+    [
+     34832,
+     "{\"t\":\"edge\",\"id\":\"e-ecs-nat\",\"from\":\"ecs-a\",\"to\":\"nat\",\"label\":\"outbound\"}"
+    ],
+    [
+     35746,
+     "{\"t\":\"done\",\"summary\":\"Highly available cross-border e-commerce on Alibaba Cloud with ESA, multi-zone auto-scaling, PolarDB, Tair, OpenSearch, and Qwen AI chatbot.\"}"
+    ]
+   ]
+  },
+  {
+   "label": "E_flash_default",
+   "description": "Initial e-commerce diagram (qwen3.8-flash, default thinking)",
+   "model": "qwen3.8-flash",
+   "params": [
+    "model"
+   ],
+   "firstOpMs": 142919,
+   "totalMs": 166315,
+   "usage": {
+    "completion_tokens": 9046,
+    "completion_tokens_details": {
+     "reasoning_tokens": 7134,
+     "text_tokens": 9046
+    },
+    "prompt_tokens": 1268,
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "text_tokens": 1268
+    },
+    "total_tokens": 10314
+   },
+   "lineTimes": [
+    [
+     142919,
+     "{\"t\":\"say\",\"text\":\"Starting with cross-border users and global edge protection.\"}"
+    ],
+    [
+     143139,
+     "{\"t\":\"group\",\"id\":\"g-users\",\"kind\":\"external\",\"label\":\"Southeast Asia shoppers\",\"parent\":null}"
+    ],
+    [
+     143638,
+     "{\"t\":\"group\",\"id\":\"g-edge\",\"kind\":\"edge\",\"label\":\"Global edge acceleration and security\",\"parent\":null}"
+    ],
+    [
+     144095,
+     "{\"t\":\"node\",\"id\":\"end_users\",\"product\":\"users\",\"label\":\"Web / mobile app users\",\"group\":\"g-users\",\"why\":\"Shoppers accessing website and mobile app.\"}"
+    ],
+    [
+     146855,
+     "{\"t\":\"node\",\"id\":\"dns\",\"product\":\"dns\",\"label\":\"Alibaba Cloud DNS\",\"group\":\"g-edge\",\"why\":\"Routes users to optimal edge POPs and origin.\"}"
+    ],
+    [
+     146856,
+     "{\"t\":\"node\",\"id\":\"anti_ddos\",\"product\":\"anti_ddos\",\"label\":\"Anti-DDoS Premium\",\"group\":\"g-edge\",\"why\":\"Absorbs volumetric attacks before origin load.\"}"
+    ],
+    [
+     146856,
+     "{\"t\":\"node\",\"id\":\"waf\",\"product\":\"waf\",\"label\":\"WAF\",\"group\":\"g-edge\",\"why\":\"Blocks OWASP attacks, bots, and API abuse.\"}"
+    ],
+    [
+     146856,
+     "{\"t\":\"node\",\"id\":\"esa\",\"product\":\"esa\",\"label\":\"ESA\",\"group\":\"g-edge\",\"why\":\"Accelerates pages, images, and dynamic traffic globally.\"}"
+    ],
+    [
+     146856,
+     "{\"t\":\"node\",\"id\":\"api_gw\",\"product\":\"api_gateway\",\"label\":\"API Gateway\",\"group\":\"g-edge\",\"why\":\"Unifies web/mobile APIs with auth, throttling, and routing.\"}"
+    ],
+    [
+     147047,
+     "{\"t\":\"edge\",\"id\":\"e-users-dns\",\"from\":\"end_users\",\"to\":\"dns\",\"label\":\"resolve\"}"
+    ],
+    [
+     147469,
+     "{\"t\":\"edge\",\"id\":\"e-dns-esa\",\"from\":\"dns\",\"to\":\"esa\",\"label\":\"accelerate\"}"
+    ],
+    [
+     147894,
+     "{\"t\":\"edge\",\"id\":\"e-dns-ddos\",\"from\":\"dns\",\"to\":\"anti_ddos\",\"label\":\"scrub\"}"
+    ],
+    [
+     148405,
+     "{\"t\":\"edge\",\"id\":\"e-ddos-waf\",\"from\":\"anti_ddos\",\"to\":\"waf\",\"label\":\"clean\"}"
+    ],
+    [
+     148635,
+     "{\"t\":\"edge\",\"id\":\"e-waf-apigw\",\"from\":\"waf\",\"to\":\"api_gw\",\"label\":\"filter\"}"
+    ],
+    [
+     149072,
+     "{\"t\":\"say\",\"text\":\"Adding a multi-AZ Southeast Asia origin VPC for compute and application services.\"}"
+    ],
+    [
+     149451,
+     "{\"t\":\"group\",\"id\":\"g-region\",\"kind\":\"region\",\"label\":\"Primary Southeast Asia region\",\"parent\":null}"
+    ],
+    [
+     149849,
+     "{\"t\":\"group\",\"id\":\"g-vpc\",\"kind\":\"vpc\",\"label\":\"Production VPC multi-AZ\",\"parent\":\"g-region\"}"
+    ],
+    [
+     150343,
+     "{\"t\":\"node\",\"id\":\"alb\",\"product\":\"alb\",\"label\":\"ALB multi-AZ\",\"group\":\"g-vpc\",\"why\":\"L7 load balancing across multi-AZ application tiers.\"}"
+    ],
+    [
+     150795,
+     "{\"t\":\"node\",\"id\":\"ack\",\"product\":\"ack\",\"label\":\"ACK cluster\",\"group\":\"g-vpc\",\"why\":\"Hosts e-commerce services with multi-AZ resilience.\"}"
+    ],
+    [
+     151302,
+     "{\"t\":\"node\",\"id\":\"asg\",\"product\":\"auto_scaling\",\"label\":\"ACK node auto scaling\",\"group\":\"g-vpc\",\"why\":\"Scales compute nodes during flash-sale spikes.\"}"
+    ],
+    [
+     151945,
+     "{\"t\":\"node\",\"id\":\"fc\",\"product\":\"fc\",\"label\":\"AI assistant backend FC\",\"group\":\"g-vpc\",\"why\":\"Lightweight AI chatbot orchestration with serverless scaling.\"}"
+    ],
+    [
+     152341,
+     "{\"t\":\"edge\",\"id\":\"e-apigw-alb\",\"from\":\"api_gw\",\"to\":\"alb\",\"label\":\"web\"}"
+    ],
+    [
+     152748,
+     "{\"t\":\"edge\",\"id\":\"e-apigw-fc\",\"from\":\"api_gw\",\"to\":\"fc\",\"label\":\"assistant\"}"
+    ],
+    [
+     153203,
+     "{\"t\":\"edge\",\"id\":\"e-alb-ack\",\"from\":\"alb\",\"to\":\"ack\",\"label\":\"http\"}"
+    ],
+    [
+     153518,
+     "{\"t\":\"edge\",\"id\":\"e-asg-ack\",\"from\":\"asg\",\"to\":\"ack\",\"label\":\"scale\"}"
+    ],
+    [
+     153826,
+     "{\"t\":\"say\",\"text\":\"Adding managed data, search, object storage, and AI services for HA workloads.\"}"
+    ],
+    [
+     154290,
+     "{\"t\":\"group\",\"id\":\"g-managed\",\"kind\":\"managed\",\"label\":\"Managed data, search, AI\",\"parent\":\"g-region\"}"
+    ],
+    [
+     154973,
+     "{\"t\":\"node\",\"id\":\"polardb\",\"product\":\"polardb\",\"label\":\"PolarDB for MySQL cluster\",\"group\":\"g-managed\",\"why\":\"High-availability catalog, cart, and order transactions.\"}"
+    ],
+    [
+     155299,
+     "{\"t\":\"node\",\"id\":\"tair\",\"product\":\"tair\",\"label\":\"Tair Redis\",\"group\":\"g-managed\",\"why\":\"Hot inventory, sessions, and rate limits.\"}"
+    ],
+    [
+     155678,
+     "{\"t\":\"node\",\"id\":\"rocketmq\",\"product\":\"rocketmq\",\"label\":\"RocketMQ\",\"group\":\"g-managed\",\"why\":\"Decouples order, payment, and fulfillment events.\"}"
+    ],
+    [
+     156161,
+     "{\"t\":\"node\",\"id\":\"oss\",\"product\":\"oss\",\"label\":\"OSS product images\",\"group\":\"g-managed\",\"why\":\"Stores product images and static assets.\"}"
+    ],
+    [
+     156896,
+     "{\"t\":\"node\",\"id\":\"opensearch\",\"product\":\"opensearch\",\"label\":\"OpenSearch\",\"group\":\"g-managed\",\"why\":\"Search product catalog with semantic and LLM retrieval.\"}"
+    ],
+    [
+     157019,
+     "{\"t\":\"node\",\"id\":\"model_studio\",\"product\":\"model_studio\",\"label\":\"Model Studio\",\"group\":\"g-managed\",\"why\":\"Provides Qwen chatbot and AI shopping assistance APIs.\"}"
+    ],
+    [
+     157378,
+     "{\"t\":\"edge\",\"id\":\"e-ack-polardb\",\"from\":\"ack\",\"to\":\"polardb\",\"label\":\"data\"}"
+    ],
+    [
+     157726,
+     "{\"t\":\"edge\",\"id\":\"e-ack-tair\",\"from\":\"ack\",\"to\":\"tair\",\"label\":\"cache\"}"
+    ],
+    [
+     158027,
+     "{\"t\":\"edge\",\"id\":\"e-ack-rocketmq\",\"from\":\"ack\",\"to\":\"rocketmq\",\"label\":\"orders\"}"
+    ],
+    [
+     158326,
+     "{\"t\":\"edge\",\"id\":\"e-ack-opensearch\",\"from\":\"ack\",\"to\":\"opensearch\",\"label\":\"search\"}"
+    ],
+    [
+     158585,
+     "{\"t\":\"edge\",\"id\":\"e-ack-oss\",\"from\":\"ack\",\"to\":\"oss\",\"label\":\"media\"}"
+    ],
+    [
+     158850,
+     "{\"t\":\"edge\",\"id\":\"e-fc-modelstudio\",\"from\":\"fc\",\"to\":\"model_studio\",\"label\":\"LLM\"}"
+    ],
+    [
+     159331,
+     "{\"t\":\"edge\",\"id\":\"e-fc-opensearch\",\"from\":\"fc\",\"to\":\"opensearch\",\"label\":\"RAG\"}"
+    ],
+    [
+     159553,
+     "{\"t\":\"edge\",\"id\":\"e-esa-oss\",\"from\":\"esa\",\"to\":\"oss\",\"label\":\"cache\"}"
+    ],
+    [
+     159998,
+     "{\"t\":\"say\",\"text\":\"Adding observability, identity, key protection, and security posture around the stack.\"}"
+    ],
+    [
+     160221,
+     "{\"t\":\"group\",\"id\":\"g-ops\",\"kind\":\"managed\",\"label\":\"Observability and security\",\"parent\":\"g-region\"}"
+    ],
+    [
+     160641,
+     "{\"t\":\"node\",\"id\":\"ram\",\"product\":\"ram\",\"label\":\"RAM\",\"group\":\"g-ops\",\"why\":\"Least-privilege identity for operators and services.\"}"
+    ],
+    [
+     161050,
+     "{\"t\":\"node\",\"id\":\"kms\",\"product\":\"kms\",\"label\":\"KMS\",\"group\":\"g-ops\",\"why\":\"Encrypts database secrets, keys, and API credentials.\"}"
+    ],
+    [
+     161391,
+     "{\"t\":\"node\",\"id\":\"cloud_firewall\",\"product\":\"cloud_firewall\",\"label\":\"Cloud Firewall\",\"group\":\"g-ops\",\"why\":\"Inspects east-west and internet-bound VPC traffic.\"}"
+    ],
+    [
+     161805,
+     "{\"t\":\"node\",\"id\":\"sls\",\"product\":\"sls\",\"label\":\"SLS logs\",\"group\":\"g-ops\",\"why\":\"Central logs, audit, and operational alerting.\"}"
+    ],
+    [
+     162147,
+     "{\"t\":\"node\",\"id\":\"arms\",\"product\":\"arms\",\"label\":\"ARMS APM\",\"group\":\"g-ops\",\"why\":\"Application tracing and APM for services.\"}"
+    ],
+    [
+     162614,
+     "{\"t\":\"node\",\"id\":\"cloudmonitor\",\"product\":\"cloudmonitor\",\"label\":\"CloudMonitor\",\"group\":\"g-ops\",\"why\":\"Monitors edge, compute, database, and cache health.\"}"
+    ],
+    [
+     163172,
+     "{\"t\":\"node\",\"id\":\"security_center\",\"product\":\"security_center\",\"label\":\"Security Center\",\"group\":\"g-ops\",\"why\":\"Host/container threat detection and compliance checks.\"}"
+    ],
+    [
+     163782,
+     "{\"t\":\"edge\",\"id\":\"e-ack-arms\",\"from\":\"ack\",\"to\":\"arms\",\"label\":\"trace\"}"
+    ],
+    [
+     163913,
+     "{\"t\":\"edge\",\"id\":\"e-ack-sls\",\"from\":\"ack\",\"to\":\"sls\",\"label\":\"logs\"}"
+    ],
+    [
+     164313,
+     "{\"t\":\"edge\",\"id\":\"e-ack-security\",\"from\":\"ack\",\"to\":\"security_center\",\"label\":\"agents\"}"
+    ],
+    [
+     164674,
+     "{\"t\":\"edge\",\"id\":\"e-kms-ack\",\"from\":\"kms\",\"to\":\"ack\",\"label\":\"secrets\"}"
+    ],
+    [
+     165079,
+     "{\"t\":\"edge\",\"id\":\"e-alb-cloudmonitor\",\"from\":\"alb\",\"to\":\"cloudmonitor\",\"label\":\"metrics\"}"
+    ],
+    [
+     165382,
+     "{\"t\":\"edge\",\"id\":\"e-polardb-cloudmonitor\",\"from\":\"polardb\",\"to\":\"cloudmonitor\",\"label\":\"metrics\"}"
+    ],
+    [
+     165855,
+     "{\"t\":\"edge\",\"id\":\"e-waf-cloudfirewall\",\"from\":\"waf\",\"to\":\"cloud_firewall\",\"label\":\"inspect\"}"
+    ],
+    [
+     166315,
+     "{\"t\":\"done\",\"summary\":\"High-availability multi-AZ edge, ACK, OSS/ESA images, PolarDB/Tair for flash sales, OpenSearch and Model Studio for search and chatbot.\"}"
+    ]
+   ]
+  },
+  {
+   "label": "B2_followup_waf_nothink",
+   "description": "Follow-up \"oh i also want waf\" on F (WAF already present)",
+   "model": "qwen3.8-max",
+   "params": [
+    "model",
+    "enable_thinking"
+   ],
+   "firstOpMs": 2878,
+   "totalMs": 3455,
+   "usage": {
+    "completion_tokens": 66,
+    "prompt_tokens": 2331,
+    "prompt_tokens_details": {
+     "cached_tokens": 1024,
+     "text_tokens": 2331
+    },
+    "total_tokens": 2397
+   },
+   "lineTimes": [
+    [
+     2878,
+     "{\"t\":\"say\",\"text\":\"WAF is already in the diagram from our initial design, sitting right after Anti-DDoS to protect against OWASP threats and bots.\"}"
+    ],
+    [
+     3455,
+     "{\"t\":\"done\",\"summary\":\"WAF was already present in the architecture between Anti-DDoS and ESA/CDN for L7 protection.\"}"
+    ]
+   ]
+  },
+  {
+   "label": "G_max_budget1k",
+   "description": "Initial e-commerce diagram (thinking budget 1024)",
+   "model": "qwen3.8-max",
+   "params": [
+    "model",
+    "enable_thinking",
+    "thinking_budget"
+   ],
+   "firstOpMs": 7514,
+   "totalMs": 40505,
+   "usage": {
+    "completion_tokens": 1963,
+    "completion_tokens_details": {
+     "reasoning_tokens": 243,
+     "text_tokens": 1963
+    },
+    "prompt_tokens": 1256,
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "text_tokens": 1256
+    },
+    "total_tokens": 3219
+   },
+   "lineTimes": [
+    [
+     7514,
+     "{\"t\":\"say\",\"text\":\"Let me design a highly available cross-border e-commerce platform for Southeast Asia with flash-sale resilience and an AI assistant.\"}"
+    ],
+    [
+     7851,
+     "{\"t\":\"group\",\"id\":\"ext\",\"kind\":\"external\",\"label\":\"External\",\"parent\":null}"
+    ],
+    [
+     8593,
+     "{\"t\":\"node\",\"id\":\"users\",\"product\":\"users\",\"label\":\"SEA Users (50k DAU)\",\"group\":\"ext\",\"why\":\"Primary customer base across Southeast Asia\"}"
+    ],
+    [
+     9143,
+     "{\"t\":\"say\",\"text\":\"Starting with the edge layer: DNS, global acceleration, and security.\"}"
+    ],
+    [
+     9559,
+     "{\"t\":\"group\",\"id\":\"edge\",\"kind\":\"edge\",\"label\":\"Edge & Security\",\"parent\":null}"
+    ],
+    [
+     10286,
+     "{\"t\":\"node\",\"id\":\"dns\",\"product\":\"dns\",\"label\":\"Cloud DNS\",\"group\":\"edge\",\"why\":\"Global traffic steering to nearest PoP for SEA users\"}"
+    ],
+    [
+     11025,
+     "{\"t\":\"node\",\"id\":\"esa\",\"product\":\"esa\",\"label\":\"ESA\",\"group\":\"edge\",\"why\":\"CDN + dynamic acceleration for images and pages across SEA\"}"
+    ],
+    [
+     11826,
+     "{\"t\":\"node\",\"id\":\"waf\",\"product\":\"waf\",\"label\":\"WAF\",\"group\":\"edge\",\"why\":\"Protect product pages and APIs from OWASP attacks\"}"
+    ],
+    [
+     12570,
+     "{\"t\":\"node\",\"id\":\"antiddos\",\"product\":\"anti_ddos\",\"label\":\"Anti-DDoS Pro\",\"group\":\"edge\",\"why\":\"Absorb volumetric attacks during high-traffic flash sales\"}"
+    ],
+    [
+     13037,
+     "{\"t\":\"edge\",\"id\":\"e1\",\"from\":\"users\",\"to\":\"dns\",\"label\":\"resolve\"}"
+    ],
+    [
+     13437,
+     "{\"t\":\"edge\",\"id\":\"e2\",\"from\":\"dns\",\"to\":\"esa\",\"label\":\"route\"}"
+    ],
+    [
+     13905,
+     "{\"t\":\"edge\",\"id\":\"e3\",\"from\":\"esa\",\"to\":\"antiddos\",\"label\":\"scrub\"}"
+    ],
+    [
+     14396,
+     "{\"t\":\"edge\",\"id\":\"e4\",\"from\":\"antiddos\",\"to\":\"waf\",\"label\":\"filter\"}"
+    ],
+    [
+     15073,
+     "{\"t\":\"say\",\"text\":\"Now the region: a VPC in Singapore with load balancing, Kubernetes microservices, and auto-scaling.\"}"
+    ],
+    [
+     15690,
+     "{\"t\":\"group\",\"id\":\"region-sg\",\"kind\":\"region\",\"label\":\"ap-southeast-1 (Singapore)\",\"parent\":null}"
+    ],
+    [
+     16222,
+     "{\"t\":\"group\",\"id\":\"vpc-main\",\"kind\":\"vpc\",\"label\":\"E-Commerce VPC\",\"parent\":\"region-sg\"}"
+    ],
+    [
+     17122,
+     "{\"t\":\"node\",\"id\":\"alb\",\"product\":\"alb\",\"label\":\"ALB\",\"group\":\"vpc-main\",\"why\":\"L7 routing for web, API, and chatbot traffic\"}"
+    ],
+    [
+     17584,
+     "{\"t\":\"group\",\"id\":\"zone-a\",\"kind\":\"zone\",\"label\":\"Zone A\",\"parent\":\"vpc-main\"}"
+    ],
+    [
+     17919,
+     "{\"t\":\"group\",\"id\":\"zone-b\",\"kind\":\"zone\",\"label\":\"Zone B\",\"parent\":\"vpc-main\"}"
+    ],
+    [
+     18795,
+     "{\"t\":\"node\",\"id\":\"ack\",\"product\":\"ack\",\"label\":\"ACK Cluster\",\"group\":\"zone-a\",\"why\":\"Microservices: catalog, cart, order, payment, chatbot\"}"
+    ],
+    [
+     19681,
+     "{\"t\":\"node\",\"id\":\"ack-b\",\"product\":\"ack\",\"label\":\"ACK Node Pool B\",\"group\":\"zone-b\",\"why\":\"Multi-AZ for HA during flash-sale spikes\"}"
+    ],
+    [
+     20420,
+     "{\"t\":\"node\",\"id\":\"autoscale\",\"product\":\"auto_scaling\",\"label\":\"Auto Scaling\",\"group\":\"vpc-main\",\"why\":\"Scale node pools 10x during flash sales automatically\"}"
+    ],
+    [
+     20865,
+     "{\"t\":\"edge\",\"id\":\"e5\",\"from\":\"waf\",\"to\":\"alb\",\"label\":\"HTTPS\"}"
+    ],
+    [
+     21333,
+     "{\"t\":\"edge\",\"id\":\"e6\",\"from\":\"alb\",\"to\":\"ack\",\"label\":\"route\"}"
+    ],
+    [
+     21730,
+     "{\"t\":\"edge\",\"id\":\"e7\",\"from\":\"alb\",\"to\":\"ack-b\",\"label\":\"route\"}"
+    ],
+    [
+     22067,
+     "{\"t\":\"edge\",\"id\":\"e8\",\"from\":\"autoscale\",\"to\":\"ack\",\"label\":\"scale\"}"
+    ],
+    [
+     22536,
+     "{\"t\":\"edge\",\"id\":\"e9\",\"from\":\"autoscale\",\"to\":\"ack-b\",\"label\":\"scale\"}"
+    ],
+    [
+     22868,
+     "{\"t\":\"say\",\"text\":\"Adding the data layer: relational DB, cache, object storage, and search.\"}"
+    ],
+    [
+     23809,
+     "{\"t\":\"node\",\"id\":\"polardb\",\"product\":\"polardb\",\"label\":\"PolarDB MySQL\",\"group\":\"vpc-main\",\"why\":\"Orders, products, users; cloud-native with read replicas for HA\"}"
+    ],
+    [
+     24678,
+     "{\"t\":\"node\",\"id\":\"tair\",\"product\":\"tair\",\"label\":\"Tair (Redis)\",\"group\":\"vpc-main\",\"why\":\"Hot product cache, sessions, flash-sale inventory lock\"}"
+    ],
+    [
+     25351,
+     "{\"t\":\"node\",\"id\":\"oss\",\"product\":\"oss\",\"label\":\"OSS\",\"group\":\"vpc-main\",\"why\":\"Store millions of product images; served via ESA CDN\"}"
+    ],
+    [
+     26078,
+     "{\"t\":\"node\",\"id\":\"opensearch\",\"product\":\"opensearch\",\"label\":\"OpenSearch\",\"group\":\"vpc-main\",\"why\":\"Full-text product search with multilingual SEA support\"}"
+    ],
+    [
+     26545,
+     "{\"t\":\"edge\",\"id\":\"e10\",\"from\":\"ack\",\"to\":\"polardb\",\"label\":\"SQL\"}"
+    ],
+    [
+     26951,
+     "{\"t\":\"edge\",\"id\":\"e11\",\"from\":\"ack\",\"to\":\"tair\",\"label\":\"cache\"}"
+    ],
+    [
+     27291,
+     "{\"t\":\"edge\",\"id\":\"e12\",\"from\":\"ack\",\"to\":\"oss\",\"label\":\"images\"}"
+    ],
+    [
+     27760,
+     "{\"t\":\"edge\",\"id\":\"e13\",\"from\":\"ack\",\"to\":\"opensearch\",\"label\":\"search\"}"
+    ],
+    [
+     28157,
+     "{\"t\":\"edge\",\"id\":\"e14\",\"from\":\"esa\",\"to\":\"oss\",\"label\":\"origin\"}"
+    ],
+    [
+     28634,
+     "{\"t\":\"say\",\"text\":\"Now the AI shopping assistant and async messaging for order processing.\"}"
+    ],
+    [
+     29428,
+     "{\"t\":\"node\",\"id\":\"modelstudio\",\"product\":\"model_studio\",\"label\":\"Model Studio (Qwen)\",\"group\":\"vpc-main\",\"why\":\"AI chatbot with RAG over product catalog for recommendations\"}"
+    ],
+    [
+     30251,
+     "{\"t\":\"node\",\"id\":\"rocketmq\",\"product\":\"rocketmq\",\"label\":\"RocketMQ\",\"group\":\"vpc-main\",\"why\":\"Transactional order messages; decouple payment and fulfillment\"}"
+    ],
+    [
+     30654,
+     "{\"t\":\"edge\",\"id\":\"e15\",\"from\":\"ack\",\"to\":\"modelstudio\",\"label\":\"chat\"}"
+    ],
+    [
+     31052,
+     "{\"t\":\"edge\",\"id\":\"e16\",\"from\":\"ack\",\"to\":\"rocketmq\",\"label\":\"orders\"}"
+    ],
+    [
+     31519,
+     "{\"t\":\"edge\",\"id\":\"e17\",\"from\":\"modelstudio\",\"to\":\"opensearch\",\"label\":\"RAG\"}"
+    ],
+    [
+     31870,
+     "{\"t\":\"say\",\"text\":\"Adding observability and security controls.\"}"
+    ],
+    [
+     32751,
+     "{\"t\":\"node\",\"id\":\"sls\",\"product\":\"sls\",\"label\":\"SLS\",\"group\":\"vpc-main\",\"why\":\"Centralized logs for troubleshooting flash-sale issues\"}"
+    ],
+    [
+     33350,
+     "{\"t\":\"node\",\"id\":\"arms\",\"product\":\"arms\",\"label\":\"ARMS\",\"group\":\"vpc-main\",\"why\":\"APM tracing across microservices during peak load\"}"
+    ],
+    [
+     34014,
+     "{\"t\":\"node\",\"id\":\"cloudmonitor\",\"product\":\"cloudmonitor\",\"label\":\"CloudMonitor\",\"group\":\"vpc-main\",\"why\":\"Infrastructure alerts and auto-scaling triggers\"}"
+    ],
+    [
+     34614,
+     "{\"t\":\"node\",\"id\":\"sec-center\",\"product\":\"security_center\",\"label\":\"Security Center\",\"group\":\"vpc-main\",\"why\":\"Threat detection on containers and hosts\"}"
+    ],
+    [
+     35492,
+     "{\"t\":\"node\",\"id\":\"cfw\",\"product\":\"cloud_firewall\",\"label\":\"Cloud Firewall\",\"group\":\"vpc-main\",\"why\":\"East-west and internet-border network policies\"}"
+    ],
+    [
+     36158,
+     "{\"t\":\"node\",\"id\":\"kms\",\"product\":\"kms\",\"label\":\"KMS\",\"group\":\"vpc-main\",\"why\":\"Encrypt payment data and manage secrets\"}"
+    ],
+    [
+     36758,
+     "{\"t\":\"node\",\"id\":\"ram\",\"product\":\"ram\",\"label\":\"RAM\",\"group\":\"vpc-main\",\"why\":\"Least-privilege access for services and team\"}"
+    ],
+    [
+     37157,
+     "{\"t\":\"edge\",\"id\":\"e18\",\"from\":\"ack\",\"to\":\"sls\",\"label\":\"logs\"}"
+    ],
+    [
+     37629,
+     "{\"t\":\"edge\",\"id\":\"e19\",\"from\":\"ack\",\"to\":\"arms\",\"label\":\"traces\"}"
+    ],
+    [
+     40505,
+     "{\"t\":\"done\",\"summary\":\"HA cross-border e-commerce on Alibaba Cloud Singapore: ESA+WAF edge, multi-AZ ACK with 10x auto-scaling for flash sales, PolarDB+Tair+OSS+OpenSearch data layer, Qwen-powered AI shopping assistant via Model Studio with RAG, RocketMQ for async orders, and full observability/security stack.\"}"
+    ]
+   ]
+  },
+  {
+   "label": "H_flash_nothink",
+   "description": "Initial e-commerce diagram (qwen3.8-flash, thinking off)",
+   "model": "qwen3.8-flash",
+   "params": [
+    "model",
+    "enable_thinking"
+   ],
+   "firstOpMs": 1237,
+   "totalMs": 20253,
+   "usage": {
+    "completion_tokens": 1444,
+    "prompt_tokens": 1232,
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "text_tokens": 1232
+    },
+    "total_tokens": 2676
+   },
+   "lineTimes": [
+    [
+     1237,
+     "{\"t\": \"say\", \"text\": \"Starting with the global entry point for users and edge security.\"}"
+    ],
+    [
+     1700,
+     "{\"t\": \"group\", \"id\": \"g-users\", \"kind\": \"external\", \"label\": \"Users & Internet\", \"parent\": null}"
+    ],
+    [
+     2385,
+     "{\"t\": \"node\", \"id\": \"n-users\", \"product\": \"users\", \"label\": \"SEA Shoppers\", \"group\": \"g-users\", \"why\": \"50k DAU accessing cross-border site\"}"
+    ],
+    [
+     2723,
+     "{\"t\": \"group\", \"id\": \"g-edge\", \"kind\": \"edge\", \"label\": \"Global Edge\", \"parent\": null}"
+    ],
+    [
+     3431,
+     "{\"t\": \"node\", \"id\": \"n-dns\", \"product\": \"dns\", \"label\": \"Alibaba Cloud DNS\", \"group\": \"g-edge\", \"why\": \"Global traffic management and routing\"}"
+    ],
+    [
+     4294,
+     "{\"t\": \"node\", \"id\": \"n-esa\", \"product\": \"esa\", \"label\": \"ESA (Edge Security Acceleration)\", \"group\": \"g-edge\", \"why\": \"CDN, DDoS protection, and WAF in one\"}"
+    ],
+    [
+     4831,
+     "{\"t\": \"edge\", \"id\": \"e-user-dns\", \"from\": \"n-users\", \"to\": \"n-dns\", \"label\": \"Resolve\"}"
+    ],
+    [
+     5227,
+     "{\"t\": \"edge\", \"id\": \"e-dns-esa\", \"from\": \"n-dns\", \"to\": \"n-esa\", \"label\": \"Route\"}"
+    ],
+    [
+     5605,
+     "{\"t\": \"say\", \"text\": \"Now defining the core cloud region and VPC network boundary.\"}"
+    ],
+    [
+     5984,
+     "{\"t\": \"group\", \"id\": \"g-region\", \"kind\": \"region\", \"label\": \"Singapore Region\", \"parent\": null}"
+    ],
+    [
+     6585,
+     "{\"t\": \"group\", \"id\": \"g-vpc\", \"kind\": \"vpc\", \"label\": \"Production VPC\", \"parent\": \"g-region\"}"
+    ],
+    [
+     7011,
+     "{\"t\": \"edge\", \"id\": \"e-esa-alb\", \"from\": \"n-esa\", \"to\": \"n-alb\", \"label\": \"HTTPS\"}"
+    ],
+    [
+     7403,
+     "{\"t\": \"say\", \"text\": \"Adding load balancing and serverless compute to handle flash sale spikes.\"}"
+    ],
+    [
+     8159,
+     "{\"t\": \"node\", \"id\": \"n-alb\", \"product\": \"alb\", \"label\": \"Application Load Balancer\", \"group\": \"g-vpc\", \"why\": \"L7 LB for web/API traffic distribution\"}"
+    ],
+    [
+     8841,
+     "{\"t\": \"node\", \"id\": \"n-sae\", \"product\": \"sae\", \"label\": \"Serverless App Engine\", \"group\": \"g-vpc\", \"why\": \"Auto-scale microservices for 10x spikes\"}"
+    ],
+    [
+     9217,
+     "{\"t\": \"edge\", \"id\": \"e-alb-sae\", \"from\": \"n-alb\", \"to\": \"n-sae\", \"label\": \"Forward\"}"
+    ],
+    [
+     9598,
+     "{\"t\": \"say\", \"text\": \"Configuring data layer: database, cache, and object storage for images.\"}"
+    ],
+    [
+     10359,
+     "{\"t\": \"node\", \"id\": \"n-polardb\", \"product\": \"polardb\", \"label\": \"PolarDB MySQL\", \"group\": \"g-vpc\", \"why\": \"High availability relational DB for orders\"}"
+    ],
+    [
+     11101,
+     "{\"t\": \"node\", \"id\": \"n-tair\", \"product\": \"tair\", \"label\": \"Tair (Redis)\", \"group\": \"g-vpc\", \"why\": \"Session/cache for high read throughput\"}"
+    ],
+    [
+     11572,
+     "{\"t\": \"node\", \"id\": \"n-oss\", \"product\": \"oss\", \"label\": \"Object Storage Service\", \"group\": \"g-vpc\", \"why\": \"Store millions of product images\"}"
+    ],
+    [
+     12011,
+     "{\"t\": \"edge\", \"id\": \"e-sae-polardb\", \"from\": \"n-sae\", \"to\": \"n-polardb\", \"label\": \"SQL\"}"
+    ],
+    [
+     12584,
+     "{\"t\": \"edge\", \"id\": \"e-sae-tair\", \"from\": \"n-sae\", \"to\": \"n-tair\", \"label\": \"Cache\"}"
+    ],
+    [
+     13140,
+     "{\"t\": \"edge\", \"id\": \"e-sae-oss\", \"from\": \"n-sae\", \"to\": \"n-oss\", \"label\": \"Image Upload\"}"
+    ],
+    [
+     13435,
+     "{\"t\": \"say\", \"text\": \"Implementing search and AI chatbot capabilities using specialized services.\"}"
+    ],
+    [
+     14084,
+     "{\"t\": \"node\", \"id\": \"n-opensearch\", \"product\": \"opensearch\", \"label\": \"OpenSearch\", \"group\": \"g-vpc\", \"why\": \"Product search with LLM conversational features\"}"
+    ],
+    [
+     14738,
+     "{\"t\": \"node\", \"id\": \"n-model-studio\", \"product\": \"model_studio\", \"label\": \"Model Studio (Qwen)\", \"group\": \"g-vpc\", \"why\": \"AI shopping assistant backend logic\"}"
+    ],
+    [
+     15317,
+     "{\"t\": \"edge\", \"id\": \"e-sae-search\", \"from\": \"n-sae\", \"to\": \"n-opensearch\", \"label\": \"Query\"}"
+    ],
+    [
+     15851,
+     "{\"t\": \"edge\", \"id\": \"e-sae-ai\", \"from\": \"n-sae\", \"to\": \"n-model-studio\", \"label\": \"Chat API\"}"
+    ],
+    [
+     16112,
+     "{\"t\": \"say\", \"text\": \"Adding messaging for async tasks and monitoring/security layers.\"}"
+    ],
+    [
+     16837,
+     "{\"t\": \"node\", \"id\": \"n-rocketmq\", \"product\": \"rocketmq\", \"label\": \"RocketMQ\", \"group\": \"g-vpc\", \"why\": \"Decouple order processing from web tier\"}"
+    ],
+    [
+     17313,
+     "{\"t\": \"edge\", \"id\": \"e-sae-mq\", \"from\": \"n-sae\", \"to\": \"n-rocketmq\", \"label\": \"Publish\"}"
+    ],
+    [
+     17778,
+     "{\"t\": \"group\", \"id\": \"g-ops\", \"kind\": \"managed\", \"label\": \"Observability & Security\", \"parent\": \"g-region\"}"
+    ],
+    [
+     18370,
+     "{\"t\": \"node\", \"id\": \"n-arms\", \"product\": \"arms\", \"label\": \"ARMS\", \"group\": \"g-ops\", \"why\": \"APM tracing for microservices\"}"
+    ],
+    [
+     18996,
+     "{\"t\": \"node\", \"id\": \"n-sls\", \"product\": \"sls\", \"label\": \"Simple Log Service\", \"group\": \"g-ops\", \"why\": \"Centralized logging and alerting\"}"
+    ],
+    [
+     19818,
+     "{\"t\": \"node\", \"id\": \"n-security-center\", \"product\": \"security_center\", \"label\": \"Security Center\", \"group\": \"g-ops\", \"why\": \"Host/container threat detection\"}"
+    ],
+    [
+     20253,
+     "{\"t\": \"done\", \"summary\": \"Cross-border e-commerce architecture with serverless scaling, AI search/chat, and full observability.\"}"
+    ]
+   ]
+  },
+  {
+   "label": "B3_k8s",
+   "description": "Follow-up on F: run the app tier on Kubernetes",
+   "model": "qwen3.8-max",
+   "params": [
+    "model",
+    "enable_thinking"
+   ],
+   "firstOpMs": 1960,
+   "totalMs": 12246,
+   "usage": {
+    "completion_tokens": 661,
+    "prompt_tokens": 2339,
+    "prompt_tokens_details": {
+     "cached_tokens": 2176,
+     "text_tokens": 2339
+    },
+    "total_tokens": 3000
+   },
+   "lineTimes": [
+    [
+     1960,
+     "{\"t\":\"say\",\"text\":\"Swapping the ECS instances and Auto Scaling for a managed ACK Kubernetes cluster across both zones.\"}"
+    ],
+    [
+     2077,
+     "{\"t\":\"remove\",\"id\":\"ecs-a\"}"
+    ],
+    [
+     2234,
+     "{\"t\":\"remove\",\"id\":\"ecs-b\"}"
+    ],
+    [
+     2464,
+     "{\"t\":\"remove\",\"id\":\"asg\"}"
+    ],
+    [
+     2656,
+     "{\"t\":\"remove\",\"id\":\"e-alb-ecs-a\"}"
+    ],
+    [
+     2777,
+     "{\"t\":\"remove\",\"id\":\"e-alb-ecs-b\"}"
+    ],
+    [
+     3060,
+     "{\"t\":\"remove\",\"id\":\"e-asg-ecs\"}"
+    ],
+    [
+     3307,
+     "{\"t\":\"remove\",\"id\":\"e-ecs-polardb\"}"
+    ],
+    [
+     3393,
+     "{\"t\":\"remove\",\"id\":\"e-ecs-tair\"}"
+    ],
+    [
+     3553,
+     "{\"t\":\"remove\",\"id\":\"e-ecs-oss\"}"
+    ],
+    [
+     3789,
+     "{\"t\":\"remove\",\"id\":\"e-ecs-search\"}"
+    ],
+    [
+     3914,
+     "{\"t\":\"remove\",\"id\":\"e-ecs-ai\"}"
+    ],
+    [
+     4183,
+     "{\"t\":\"remove\",\"id\":\"e-ecs-mq\"}"
+    ],
+    [
+     4377,
+     "{\"t\":\"remove\",\"id\":\"e-ecs-sls\"}"
+    ],
+    [
+     4653,
+     "{\"t\":\"remove\",\"id\":\"e-ecs-arms\"}"
+    ],
+    [
+     4893,
+     "{\"t\":\"remove\",\"id\":\"e-ecs-nat\"}"
+    ],
+    [
+     5693,
+     "{\"t\":\"node\",\"id\":\"ack\",\"product\":\"ack\",\"label\":\"ACK Cluster\",\"group\":\"vpc\",\"why\":\"Managed Kubernetes replaces VMs for container orchestration and auto-scaling during flash sales.\"}"
+    ],
+    [
+     6476,
+     "{\"t\":\"node\",\"id\":\"ack-a\",\"product\":\"ack\",\"label\":\"Worker Nodes (AZ-A)\",\"group\":\"zone-a\",\"why\":\"Multi-AZ worker nodes ensure high availability for pods.\"}"
+    ],
+    [
+     7133,
+     "{\"t\":\"node\",\"id\":\"ack-b\",\"product\":\"ack\",\"label\":\"Worker Nodes (AZ-B)\",\"group\":\"zone-b\",\"why\":\"Multi-AZ worker nodes ensure high availability for pods.\"}"
+    ],
+    [
+     7537,
+     "{\"t\":\"edge\",\"id\":\"e-alb-ack\",\"from\":\"alb\",\"to\":\"ack\",\"label\":\"Ingress\"}"
+    ],
+    [
+     8061,
+     "{\"t\":\"edge\",\"id\":\"e-ack-polar\",\"from\":\"ack\",\"to\":\"polardb\",\"label\":\"SQL\"}"
+    ],
+    [
+     8599,
+     "{\"t\":\"edge\",\"id\":\"e-ack-tair\",\"from\":\"ack\",\"to\":\"tair\",\"label\":\"cache\"}"
+    ],
+    [
+     9032,
+     "{\"t\":\"edge\",\"id\":\"e-ack-oss\",\"from\":\"ack\",\"to\":\"oss\",\"label\":\"upload\"}"
+    ],
+    [
+     9478,
+     "{\"t\":\"edge\",\"id\":\"e-ack-search\",\"from\":\"ack\",\"to\":\"opensearch\",\"label\":\"query\"}"
+    ],
+    [
+     9884,
+     "{\"t\":\"edge\",\"id\":\"e-ack-ai\",\"from\":\"ack\",\"to\":\"model-studio\",\"label\":\"chat API\"}"
+    ],
+    [
+     10339,
+     "{\"t\":\"edge\",\"id\":\"e-ack-mq\",\"from\":\"ack\",\"to\":\"rocketmq\",\"label\":\"orders\"}"
+    ],
+    [
+     10817,
+     "{\"t\":\"edge\",\"id\":\"e-ack-sls\",\"from\":\"ack\",\"to\":\"sls\",\"label\":\"logs\"}"
+    ],
+    [
+     11146,
+     "{\"t\":\"edge\",\"id\":\"e-ack-arms\",\"from\":\"ack\",\"to\":\"arms\",\"label\":\"traces\"}"
+    ],
+    [
+     11541,
+     "{\"t\":\"edge\",\"id\":\"e-ack-nat\",\"from\":\"ack\",\"to\":\"nat\",\"label\":\"outbound\"}"
+    ],
+    [
+     12246,
+     "{\"t\":\"done\",\"summary\":\"App tier migrated from ECS to ACK Kubernetes with multi-AZ worker nodes, rewiring all data and ops edges.\"}"
+    ]
+   ]
+  },
+  {
+   "label": "B4_dw",
+   "description": "Follow-up on F: add a data warehouse for BI",
+   "model": "qwen3.8-max",
+   "params": [
+    "model",
+    "enable_thinking"
+   ],
+   "firstOpMs": 2007,
+   "totalMs": 7531,
+   "usage": {
+    "completion_tokens": 261,
+    "prompt_tokens": 2340,
+    "prompt_tokens_details": {
+     "cached_tokens": 2176,
+     "text_tokens": 2340
+    },
+    "total_tokens": 2601
+   },
+   "lineTimes": [
+    [
+     2007,
+     "{\"t\":\"say\",\"text\":\"Let's add a data warehouse and BI layer so your analysts can build dashboards on order data.\"}"
+    ],
+    [
+     2694,
+     "{\"t\":\"node\",\"id\":\"maxcompute\",\"product\":\"maxcompute\",\"label\":\"MaxCompute\",\"group\":\"data-grp\",\"why\":\"Serverless data warehouse for historical order analytics\"}"
+    ],
+    [
+     3504,
+     "{\"t\":\"node\",\"id\":\"dataworks\",\"product\":\"dataworks\",\"label\":\"DataWorks\",\"group\":\"data-grp\",\"why\":\"Orchestrates ETL from PolarDB to MaxCompute\"}"
+    ],
+    [
+     5330,
+     "{\"t\":\"node\",\"id\":\"quick-bi\",\"product\":\"quick_bi\",\"label\":\"Quick BI\",\"group\":\"ops-grp\",\"why\":\"BI dashboards for business analysts\"}"
+    ],
+    [
+     5910,
+     "{\"t\":\"edge\",\"id\":\"e-polardb-dw\",\"from\":\"polardb\",\"to\":\"dataworks\",\"label\":\"extract\"}"
+    ],
+    [
+     6347,
+     "{\"t\":\"edge\",\"id\":\"e-dw-mc\",\"from\":\"dataworks\",\"to\":\"maxcompute\",\"label\":\"load\"}"
+    ],
+    [
+     6944,
+     "{\"t\":\"edge\",\"id\":\"e-mc-bi\",\"from\":\"maxcompute\",\"to\":\"quick-bi\",\"label\":\"query\"}"
+    ],
+    [
+     7531,
+     "{\"t\":\"done\",\"summary\":\"Added MaxCompute, DataWorks, and Quick BI to enable order-data analytics and BI dashboards.\"}"
+    ]
+   ]
+  },
+  {
+   "label": "B5_drop_ai",
+   "description": "Follow-up on F: drop the AI chatbot",
+   "model": "qwen3.8-max",
+   "params": [
+    "model",
+    "enable_thinking"
+   ],
+   "firstOpMs": 1969,
+   "totalMs": 3126,
+   "usage": {
+    "completion_tokens": 93,
+    "prompt_tokens": 2332,
+    "prompt_tokens_details": {
+     "cached_tokens": 2176,
+     "text_tokens": 2332
+    },
+    "total_tokens": 2425
+   },
+   "lineTimes": [
+    [
+     1969,
+     "{\"t\":\"say\",\"text\":\"Removing the AI chatbot components: Model Studio node and its related edges.\"}"
+    ],
+    [
+     2099,
+     "{\"t\":\"remove\",\"id\":\"e-ecs-ai\"}"
+    ],
+    [
+     2374,
+     "{\"t\":\"remove\",\"id\":\"e-ai-search\"}"
+    ],
+    [
+     2588,
+     "{\"t\":\"remove\",\"id\":\"model-studio\"}"
+    ],
+    [
+     3126,
+     "{\"t\":\"done\",\"summary\":\"AI chatbot (Model Studio) and its edges removed; architecture now focuses on core e-commerce workloads.\"}"
+    ]
+   ]
+  },
+  {
+   "label": "P1_team_grounded",
+   "description": "Product need: AI agent for my team (catalog with qoder)",
+   "model": "qwen3.8-max",
+   "params": [
+    "model",
+    "enable_thinking"
+   ],
+   "firstOpMs": 1517,
+   "totalMs": 2544,
+   "usage": {
+    "completion_tokens": 79,
+    "prompt_tokens": 1251,
+    "prompt_tokens_details": {
+     "cached_tokens": 1024,
+     "text_tokens": 1251
+    },
+    "total_tokens": 1330
+   },
+   "lineTimes": [
+    [
+     1517,
+     "{\"t\":\"say\",\"text\":\"For an AI agent your development team can use together, I recommend Qoder.\"}"
+    ],
+    [
+     2162,
+     "{\"t\":\"rec\",\"product\":\"qoder\",\"fit\":\"primary\",\"why\":\"Agentic coding platform with IDE and CLI for collaborative development teams.\"}"
+    ],
+    [
+     2544,
+     "{\"t\":\"done\",\"summary\":\"Qoder is the recommended AI agent platform for your team's development workflow.\"}"
+    ]
+   ]
+  }
+ ]
+}

@@ -1,0 +1,29 @@
+== K4_big_warm  model=qwen3.8-max  params=[model,enable_thinking,max_tokens]  HTTP 200
+   first byte 2.8s | first reasoning - | first content 2.8s | first tool - | total 3.0s | finish=stop
+   tokens: prompt 24125 (cached 23936) | completion 11 (reasoning -) | reasoning chars 0
+   visible-output rate ~64 tok/s after first visible token
+== K5_big_warm  model=qwen3.8-max  params=[model,enable_thinking,max_tokens]  HTTP 200
+   first byte 1.4s | first reasoning - | first content 1.4s | first tool - | total 1.7s | finish=stop
+   tokens: prompt 24125 (cached 23936) | completion 11 (reasoning -) | reasoning chars 0
+   visible-output rate ~49 tok/s after first visible token
+== K6_big_warm  model=qwen3.8-max  params=[model,enable_thinking,max_tokens]  HTTP 200
+   first byte 1.0s | first reasoning - | first content 1.0s | first tool - | total 1.2s | finish=stop
+   tokens: prompt 24125 (cached 23936) | completion 11 (reasoning -) | reasoning chars 0
+   visible-output rate ~52 tok/s after first visible token
+== K7_big_warm  model=qwen3.8-max  params=[model,enable_thinking,max_tokens]  HTTP 200
+   first byte 1.4s | first reasoning - | first content 1.4s | first tool - | total 1.6s | finish=stop
+   tokens: prompt 24125 (cached 23936) | completion 11 (reasoning -) | reasoning chars 0
+   visible-output rate ~55 tok/s after first visible token
+== K8_big_warm  model=qwen3.8-max  params=[model,enable_thinking,max_tokens]  HTTP 200
+   first byte 1.1s | first reasoning - | first content 1.1s | first tool - | total 1.4s | finish=stop
+   tokens: prompt 24125 (cached 23936) | completion 11 (reasoning -) | reasoning chars 0
+   visible-output rate ~49 tok/s after first visible token
+== D6_team_forced_search  model=qwen3.8-max  params=[model,enable_thinking,enable_search,search_options]  HTTP 200
+   first byte 3.3s | first reasoning - | first content 3.3s | first tool - | total 7.0s | finish=stop
+   tokens: prompt 256 (cached 0) | completion 183 (reasoning -) | reasoning chars 0
+   visible-output rate ~51 tok/s after first visible token
+-- D6 output:
+   {"product":"Alibaba Cloud Model Studio","owner":"Alibaba Cloud","why":"Build, deploy, and manage scalable AI agents for team workflows using large language models.","url":"https://www.alibabacloud.com/en/product/model-st
+   {"product":"Tongyi Lingma","owner":"Alibaba Cloud","why":"AI coding assistant to boost developer team productivity with code generation and completion.","url":"https://tongyi.aliyun.com/lingma"}
+   {"product":"DingTalk","owner":"Alibaba Group","why":"Team collaboration platform with built-in AI agent capabilities for enterprise communication and management.","url":"https://www.dingtalk.com/"}
+   {"product":"Elasticsearch","owner":"Alibaba Cloud","why":"Power retrieval-augmented generation pipelines to ground your team's AI agents in private data.","url":"https://www.alibabacloud.com/en/product/elasticsearch"}

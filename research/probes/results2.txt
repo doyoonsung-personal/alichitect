@@ -1,0 +1,126 @@
+== G_max_budget1k  model=qwen3.8-max  params=[model,enable_thinking,thinking_budget]  HTTP 200
+   first byte 1.4s | first reasoning 1.4s | first content 6.6s | first tool - | total 40.5s | finish=stop
+   tokens: prompt 1256 (cached 0) | completion 1963 (reasoning 243) | reasoning chars 915
+   visible-output rate ~51 tok/s after first visible token
+   ops 54 {"say":6,"group":6,"node":22,"edge":19,"done":1} | bad json 0 | problems 0
+   op arrival: first 7.5s, 25% 15.1s, 50% 22.5s, 75% 30.3s, last 40.5s
+== H_flash_nothink  model=qwen3.8-flash  params=[model,enable_thinking]  HTTP 200
+   first byte 0.7s | first reasoning - | first content 0.7s | first tool - | total 20.3s | finish=stop
+   tokens: prompt 1232 (cached 0) | completion 1444 (reasoning -) | reasoning chars 0
+   visible-output rate ~74 tok/s after first visible token
+   ops 36 {"say":6,"group":5,"node":14,"edge":10,"done":1} | bad json 0 | problems 1
+   op arrival: first 1.2s, 25% 5.6s, 50% 10.4s, 75% 15.3s, last 20.3s
+   ! dangling edge: n-esa -> n-alb
+== B3_k8s  model=qwen3.8-max  params=[model,enable_thinking]  HTTP 200
+   first byte 1.4s | first reasoning - | first content 1.4s | first tool - | total 12.2s | finish=stop
+   tokens: prompt 2339 (cached 2176) | completion 661 (reasoning -) | reasoning chars 0
+   visible-output rate ~61 tok/s after first visible token
+   ops 30 {"say":1,"remove":15,"node":3,"edge":10,"done":1} | bad json 0 | problems 0
+   op arrival: first 2.0s, 25% 3.3s, 50% 4.7s, 75% 8.6s, last 12.2s
+== B4_dw  model=qwen3.8-max  params=[model,enable_thinking]  HTTP 200
+   first byte 1.4s | first reasoning - | first content 1.4s | first tool - | total 7.5s | finish=stop
+   tokens: prompt 2340 (cached 2176) | completion 261 (reasoning -) | reasoning chars 0
+   visible-output rate ~42 tok/s after first visible token
+   ops 8 {"say":1,"node":3,"edge":3,"done":1} | bad json 0 | problems 0
+   op arrival: first 2.0s, 25% 2.7s, 50% 5.3s, 75% 6.3s, last 7.5s
+== B5_drop_ai  model=qwen3.8-max  params=[model,enable_thinking]  HTTP 200
+   first byte 1.4s | first reasoning - | first content 1.4s | first tool - | total 3.1s | finish=stop
+   tokens: prompt 2332 (cached 2176) | completion 93 (reasoning -) | reasoning chars 0
+   visible-output rate ~52 tok/s after first visible token
+   ops 5 {"say":1,"remove":3,"done":1} | bad json 0 | problems 0
+   op arrival: first 2.0s, 25% 2.1s, 50% 2.4s, 75% 2.6s, last 3.1s
+== P1_team_grounded  model=qwen3.8-max  params=[model,enable_thinking]  HTTP 200
+   first byte 1.0s | first reasoning - | first content 1.0s | first tool - | total 2.5s | finish=stop
+   tokens: prompt 1251 (cached 1024) | completion 79 (reasoning -) | reasoning chars 0
+   visible-output rate ~51 tok/s after first visible token
+   ops 3 {"say":1,"rec":1,"done":1} | bad json 0 | problems 0
+   op arrival: first 1.5s, 25% 1.5s, 50% 2.2s, 75% 2.2s, last 2.5s
+== D3_team_raw_nothink  model=qwen3.8-max  params=[model,enable_thinking]  HTTP 200
+   first byte 1.2s | first reasoning - | first content 1.2s | first tool - | total 4.9s | finish=stop
+   tokens: prompt 101 (cached 0) | completion 192 (reasoning -) | reasoning chars 0
+   visible-output rate ~51 tok/s after first visible token
+== D5_team_raw_search  model=qwen3.8-max  params=[model,enable_thinking,enable_search]  HTTP 200
+   first byte 1.5s | first reasoning - | first content 1.5s | first tool - | total 5.3s | finish=stop
+   tokens: prompt 101 (cached 0) | completion 196 (reasoning -) | reasoning chars 0
+   visible-output rate ~52 tok/s after first visible token
+== K1_big_cold  model=qwen3.8-max  params=[model,enable_thinking,max_tokens]  HTTP 200
+   first byte 13.9s | first reasoning - | first content 13.9s | first tool - | total 14.0s | finish=stop
+   tokens: prompt 24123 (cached 1024) | completion 9 (reasoning -) | reasoning chars 0
+   visible-output rate ~54 tok/s after first visible token
+== K2_big_warm_same  model=qwen3.8-max  params=[model,enable_thinking,max_tokens]  HTTP 200
+   first byte 125.6s | first reasoning - | first content 125.6s | first tool - | total 125.7s | finish=stop
+   tokens: prompt 24123 (cached 23936) | completion 9 (reasoning -) | reasoning chars 0
+   visible-output rate ~49 tok/s after first visible token
+== K3_big_warm_newask  model=qwen3.8-max  params=[model,enable_thinking,max_tokens]  HTTP 200
+   first byte 1.7s | first reasoning - | first content 1.7s | first tool - | total 1.9s | finish=stop
+   tokens: prompt 24123 (cached 23936) | completion 9 (reasoning -) | reasoning chars 0
+   visible-output rate ~40 tok/s after first visible token
+-- B3_k8s output:
+   2.0s  {"t":"say","text":"Swapping the ECS instances and Auto Scaling for a managed ACK Kubernetes cluster across both zones."}
+   2.1s  {"t":"remove","id":"ecs-a"}
+   2.2s  {"t":"remove","id":"ecs-b"}
+   2.5s  {"t":"remove","id":"asg"}
+   2.7s  {"t":"remove","id":"e-alb-ecs-a"}
+   2.8s  {"t":"remove","id":"e-alb-ecs-b"}
+   3.1s  {"t":"remove","id":"e-asg-ecs"}
+   3.3s  {"t":"remove","id":"e-ecs-polardb"}
+   3.4s  {"t":"remove","id":"e-ecs-tair"}
+   3.6s  {"t":"remove","id":"e-ecs-oss"}
+   3.8s  {"t":"remove","id":"e-ecs-search"}
+   3.9s  {"t":"remove","id":"e-ecs-ai"}
+   4.2s  {"t":"remove","id":"e-ecs-mq"}
+   4.4s  {"t":"remove","id":"e-ecs-sls"}
+   4.7s  {"t":"remove","id":"e-ecs-arms"}
+   4.9s  {"t":"remove","id":"e-ecs-nat"}
+   5.7s  {"t":"node","id":"ack","product":"ack","label":"ACK Cluster","group":"vpc","why":"Managed Kubernetes replaces VMs for container orchestration and auto-scaling during flash sales."}
+   6.5s  {"t":"node","id":"ack-a","product":"ack","label":"Worker Nodes (AZ-A)","group":"zone-a","why":"Multi-AZ worker nodes ensure high availability for pods."}
+   7.1s  {"t":"node","id":"ack-b","product":"ack","label":"Worker Nodes (AZ-B)","group":"zone-b","why":"Multi-AZ worker nodes ensure high availability for pods."}
+   7.5s  {"t":"edge","id":"e-alb-ack","from":"alb","to":"ack","label":"Ingress"}
+   8.1s  {"t":"edge","id":"e-ack-polar","from":"ack","to":"polardb","label":"SQL"}
+   8.6s  {"t":"edge","id":"e-ack-tair","from":"ack","to":"tair","label":"cache"}
+   9.0s  {"t":"edge","id":"e-ack-oss","from":"ack","to":"oss","label":"upload"}
+   9.5s  {"t":"edge","id":"e-ack-search","from":"ack","to":"opensearch","label":"query"}
+   9.9s  {"t":"edge","id":"e-ack-ai","from":"ack","to":"model-studio","label":"chat API"}
+   10.3s  {"t":"edge","id":"e-ack-mq","from":"ack","to":"rocketmq","label":"orders"}
+   10.8s  {"t":"edge","id":"e-ack-sls","from":"ack","to":"sls","label":"logs"}
+   11.1s  {"t":"edge","id":"e-ack-arms","from":"ack","to":"arms","label":"traces"}
+   11.5s  {"t":"edge","id":"e-ack-nat","from":"ack","to":"nat","label":"outbound"}
+   12.2s  {"t":"done","summary":"App tier migrated from ECS to ACK Kubernetes with multi-AZ worker nodes, rewiring all data and ops edges."}
+-- B4_dw output:
+   2.0s  {"t":"say","text":"Let's add a data warehouse and BI layer so your analysts can build dashboards on order data."}
+   2.7s  {"t":"node","id":"maxcompute","product":"maxcompute","label":"MaxCompute","group":"data-grp","why":"Serverless data warehouse for historical order analytics"}
+   3.5s  {"t":"node","id":"dataworks","product":"dataworks","label":"DataWorks","group":"data-grp","why":"Orchestrates ETL from PolarDB to MaxCompute"}
+   5.3s  {"t":"node","id":"quick-bi","product":"quick_bi","label":"Quick BI","group":"ops-grp","why":"BI dashboards for business analysts"}
+   5.9s  {"t":"edge","id":"e-polardb-dw","from":"polardb","to":"dataworks","label":"extract"}
+   6.3s  {"t":"edge","id":"e-dw-mc","from":"dataworks","to":"maxcompute","label":"load"}
+   6.9s  {"t":"edge","id":"e-mc-bi","from":"maxcompute","to":"quick-bi","label":"query"}
+   7.5s  {"t":"done","summary":"Added MaxCompute, DataWorks, and Quick BI to enable order-data analytics and BI dashboards."}
+-- B5_drop_ai output:
+   2.0s  {"t":"say","text":"Removing the AI chatbot components: Model Studio node and its related edges."}
+   2.1s  {"t":"remove","id":"e-ecs-ai"}
+   2.4s  {"t":"remove","id":"e-ai-search"}
+   2.6s  {"t":"remove","id":"model-studio"}
+   3.1s  {"t":"done","summary":"AI chatbot (Model Studio) and its edges removed; architecture now focuses on core e-commerce workloads."}
+-- P1_team_grounded output:
+   1.5s  {"t":"say","text":"For an AI agent your development team can use together, I recommend Qoder."}
+   2.2s  {"t":"rec","product":"qoder","fit":"primary","why":"Agentic coding platform with IDE and CLI for collaborative development teams."}
+   2.5s  {"t":"done","summary":"Qoder is the recommended AI agent platform for your team's development workflow."}
+-- D3_team_raw_nothink output:
+   2.1s  {"product":"Tongyi Lingma","owner":"Alibaba Group","why":"AI coding assistant for development teams, boosting productivity with intelligent code generation and collaboration.","url":"https://lingma.aliyun.com/"}
+   3.0s  {"product":"Model Studio","owner":"Alibaba Cloud","why":"Platform to build, customize, and deploy custom AI agents using Qwen models for team workflows.","url":"https://www.alibabacloud.com/en/product/modelstudio"}
+   4.2s  {"product":"DingTalk","owner":"Alibaba Group","why":"Enterprise collaboration platform featuring built-in AI assistants to streamline team communication and task management.","url":"https://page.dingtalk.com/wow/z/dingta
+   4.9s  {"product":"Alibaba Cloud Chatbot","owner":"Alibaba Cloud","why":"Intelligent conversational agent service to automate customer support and internal team inquiries efficiently.","url":"https://www.alibabacloud.com/en/pro
+-- D5_team_raw_search output:
+   2.3s  {"product":"Tongyi Lingma","owner":"Alibaba Group","why":"AI coding assistant for development teams to boost productivity with intelligent code generation and completion.","url":"https://lingma.aliyun.com/"}
+   3.1s  {"product":"Model Studio","owner":"Alibaba Cloud","why":"Platform to build, customize, and deploy custom AI agents using Qwen models for team workflows.","url":"https://www.alibabacloud.com/en/product/model-studio"}
+   4.3s  {"product":"DingTalk","owner":"Alibaba Group","why":"Team collaboration platform featuring built-in AI assistants to automate tasks and enhance team communication.","url":"https://page.dingtalk.com/wow/z/dingtalk/simple/
+   5.3s  {"product":"Intelligent Service Robot","owner":"Alibaba Cloud","why":"AI-powered chatbot service enabling teams to build conversational agents for customer or internal support.","url":"https://www.alibabacloud.com/en/pro
+-- G first 6 ops:
+   7.5s  {"t":"say","text":"Let me design a highly available cross-border e-commerce platform for Southeast Asia with flash-sale resilience and an AI assistant."}
+   7.9s  {"t":"group","id":"ext","kind":"external","label":"External","parent":null}
+   8.6s  {"t":"node","id":"users","product":"users","label":"SEA Users (50k DAU)","group":"ext","why":"Primary customer base across Southeast Asia"}
+   9.1s  {"t":"say","text":"Starting with the edge layer: DNS, global acceleration, and security."}
+   9.6s  {"t":"group","id":"edge","kind":"edge","label":"Edge & Security","parent":null}
+   10.3s  {"t":"node","id":"dns","product":"dns","label":"Cloud DNS","group":"edge","why":"Global traffic steering to nearest PoP for SEA users"}
+
+wall clock 182.2s

@@ -1,0 +1,22 @@
+{
+  "startedAt": "2026-10-31T04:04:43.006Z",
+  "args": {
+    "runs": "3",
+    "concurrency": "3",
+    "label": "baseline"
+  },
+  "model": "qwen3.8-max",
+  "fallbackModel": "qwen3.7-max",
+  "judgeModel": "kimi-k3",
+  "runsPerCase": 3,
+  "concurrency": 3,
+  "cases": 80,
+  "units": 240,
+  "catalogVersion": "2026-10-31",
+  "catalogEntries": 223,
+  "systemPromptChars": 42079,
+  "systemPromptSha256": "a19383a1a4c6cdaae80d896521585e5e0199925dfd1277cc0f19638f26630749",
+  "node": "v24.21.0",
+  "finishedAt": "2026-10-31T04:25:19.309Z",
+  "spentUsd": 2.871646651052632
+}

@@ -1,0 +1,265 @@
+{
+ "description": "The Singapore store with WAF as a badge on the ALB and an AI shopping assistant: Model Studio (Qwen) with product vectors in Milvus.",
+ "history": [
+  {
+   "role": "user",
+   "text": "We run an online store for Southeast Asia from Singapore: about 30k daily users, product search, lots of product images and an AI shopping assistant. Make it highly available and secure."
+  },
+  {
+   "role": "assistant",
+   "text": "Here is a two-zone store behind ESA and an ALB with WAF, with ECS, Tair and PolarDB.\nThe shopping assistant calls Qwen on Model Studio and retrieves products from Milvus.",
+   "changes": "+internet[external] +edge[edge] +sg[region] +vpc[vpc] +users(users) +dns(dns) +esa(esa) +alb(alb, zones a,b) +app(ecs, zones a,b) +scaling(ess, badge on app) +cache(tair, zones a,b) +db(polardb, zones a,b) +search(opensearch) +media(oss) +queue(rocketmq) +nat(nat) +logs(sls) +monitor(cloudmonitor) +e-users-dns +e-users-esa +e-esa-alb +e-esa-media +e-alb-app +e-app-cache +e-app-db +e-app-search +e-app-media +e-app-queue +e-app-nat +e-app-logs +waf(waf, badge on alb) +assistant(model-studio) +vectors(milvus) +e-app-assistant +e-app-vectors"
+  }
+ ],
+ "graph": {
+  "groups": [
+   {
+    "id": "internet",
+    "kind": "external",
+    "label": "Internet",
+    "parent": null
+   },
+   {
+    "id": "edge",
+    "kind": "edge",
+    "label": "Edge",
+    "parent": null
+   },
+   {
+    "id": "sg",
+    "kind": "region",
+    "label": "Singapore (ap-southeast-1)",
+    "parent": null
+   },
+   {
+    "id": "vpc",
+    "kind": "vpc",
+    "label": "Store VPC",
+    "parent": "sg"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "users",
+    "product": "users",
+    "label": "Shoppers",
+    "group": "internet",
+    "why": "Customers across Southeast Asia."
+   },
+   {
+    "id": "dns",
+    "product": "dns",
+    "label": "Cloud DNS",
+    "group": null,
+    "why": "Resolves the store domain to ESA."
+   },
+   {
+    "id": "esa",
+    "product": "esa",
+    "label": "ESA",
+    "group": "edge",
+    "why": "Caches pages and images near shoppers."
+   },
+   {
+    "id": "alb",
+    "product": "alb",
+    "label": "ALB",
+    "group": "vpc",
+    "zones": [
+     "a",
+     "b"
+    ],
+    "why": "Spreads traffic over both zones."
+   },
+   {
+    "id": "waf",
+    "product": "waf",
+    "label": "WAF",
+    "group": "vpc",
+    "attachTo": "alb",
+    "why": "Blocks injection attacks and bots."
+   },
+   {
+    "id": "app",
+    "product": "ecs",
+    "label": "App servers",
+    "group": "vpc",
+    "zones": [
+     "a",
+     "b"
+    ],
+    "why": "Runs the store in two zones."
+   },
+   {
+    "id": "scaling",
+    "product": "ess",
+    "label": "Auto Scaling",
+    "group": "vpc",
+    "attachTo": "app",
+    "why": "Adds servers during sales."
+   },
+   {
+    "id": "cache",
+    "product": "tair",
+    "label": "Session cache",
+    "group": "vpc",
+    "zones": [
+     "a",
+     "b"
+    ],
+    "why": "Keeps carts and sessions fast."
+   },
+   {
+    "id": "db",
+    "product": "polardb",
+    "label": "Orders DB",
+    "group": "vpc",
+    "zones": [
+     "a",
+     "b"
+    ],
+    "why": "Orders and catalog with a zone standby."
+   },
+   {
+    "id": "search",
+    "product": "opensearch",
+    "label": "Product search",
+    "group": "sg",
+    "why": "Full-text product search."
+   },
+   {
+    "id": "media",
+    "product": "oss",
+    "label": "Product images",
+    "group": "sg",
+    "why": "Image storage served through ESA."
+   },
+   {
+    "id": "queue",
+    "product": "rocketmq",
+    "label": "Order events",
+    "group": "vpc",
+    "why": "Decouples order processing."
+   },
+   {
+    "id": "nat",
+    "product": "nat",
+    "label": "NAT Gateway",
+    "group": "vpc",
+    "why": "Outbound calls to payment providers."
+   },
+   {
+    "id": "logs",
+    "product": "sls",
+    "label": "Logs",
+    "group": "sg",
+    "why": "Central logs and alerts."
+   },
+   {
+    "id": "monitor",
+    "product": "cloudmonitor",
+    "label": "Monitoring",
+    "group": "sg",
+    "why": "Metrics and alarms."
+   },
+   {
+    "id": "assistant",
+    "product": "model-studio",
+    "label": "Shopping assistant (Qwen)",
+    "group": "sg",
+    "why": "Answers shopper questions with Qwen."
+   },
+   {
+    "id": "vectors",
+    "product": "milvus",
+    "label": "Product vectors",
+    "group": "vpc",
+    "why": "Finds relevant products for the assistant (RAG)."
+   }
+  ],
+  "edges": [
+   {
+    "id": "e-users-dns",
+    "from": "users",
+    "to": "dns",
+    "kind": "resolve"
+   },
+   {
+    "id": "e-users-esa",
+    "from": "users",
+    "to": "esa",
+    "label": "HTTPS"
+   },
+   {
+    "id": "e-esa-alb",
+    "from": "esa",
+    "to": "alb",
+    "label": "origin"
+   },
+   {
+    "id": "e-esa-media",
+    "from": "esa",
+    "to": "media",
+    "label": "images"
+   },
+   {
+    "id": "e-alb-app",
+    "from": "alb",
+    "to": "app"
+   },
+   {
+    "id": "e-app-cache",
+    "from": "app",
+    "to": "cache"
+   },
+   {
+    "id": "e-app-db",
+    "from": "app",
+    "to": "db",
+    "label": "SQL"
+   },
+   {
+    "id": "e-app-search",
+    "from": "app",
+    "to": "search",
+    "label": "query"
+   },
+   {
+    "id": "e-app-media",
+    "from": "app",
+    "to": "media",
+    "label": "uploads"
+   },
+   {
+    "id": "e-app-queue",
+    "from": "app",
+    "to": "queue",
+    "kind": "async"
+   },
+   {
+    "id": "e-app-nat",
+    "from": "app",
+    "to": "nat",
+    "label": "outbound"
+   },
+   {
+    "id": "e-app-logs",
+    "from": "app",
+    "to": "logs",
+    "kind": "control"
+   },
+   {
+    "id": "e-app-assistant",
+    "from": "app",
+    "to": "assistant",
+    "label": "chat API"
+   },
+   {
+    "id": "e-app-vectors",
+    "from": "app",
+    "to": "vectors",
+    "label": "retrieve"
+   }
+  ]
+ }
+}

@@ -1,0 +1,23 @@
+{
+  "startedAt": "2026-10-31T04:28:25.664Z",
+  "args": {
+    "failing-from": "eval/results/2026-10-31T04-04-43-baseline",
+    "runs": "3",
+    "concurrency": "3",
+    "label": "postfix"
+  },
+  "model": "qwen3.8-max",
+  "fallbackModel": "qwen3.7-max",
+  "judgeModel": "kimi-k3",
+  "runsPerCase": 3,
+  "concurrency": 3,
+  "cases": 18,
+  "units": 54,
+  "catalogVersion": "2026-10-31",
+  "catalogEntries": 223,
+  "systemPromptChars": 47232,
+  "systemPromptSha256": "728642954632af355a0c51d425c513c6ad6ac8b4a9c630a8194bfcfbdaf57588",
+  "node": "v24.21.0",
+  "finishedAt": "2026-10-31T04:35:23.879Z",
+  "spentUsd": 0.9291814399999999
+}

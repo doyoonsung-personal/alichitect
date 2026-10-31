@@ -1,0 +1,12 @@
+{
+  "name": "@ali/server",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Local turn server: POST /api/turn streams one Qwen turn as NDJSON (node:http, 127.0.0.1:8787)",
+  "scripts": {
+    "start": "node src/main.ts",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "smoke": "node scripts/smoke.ts"
+  }
+}

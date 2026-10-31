@@ -1,0 +1,199 @@
+:root {
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --bg: #f3f5f8;
+  --bg-dot: rgba(24, 34, 52, 0.07);
+  --surface: #ffffff;
+  --surface-2: #f8f9fb;
+  --surface-raised: #ffffff;
+  --ink: #14181f;
+  --ink-2: #485160;
+  --ink-3: #667080;
+  --line: rgba(22, 30, 44, 0.11);
+  --line-strong: rgba(22, 30, 44, 0.2);
+  --accent: #3550cc;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(53, 80, 204, 0.12);
+  --focus: #3550cc;
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 1px rgba(16, 24, 40, 0.03);
+  --shadow-hover: 0 4px 12px -2px rgba(16, 24, 40, 0.10), 0 2px 4px -2px rgba(16, 24, 40, 0.06);
+  --shadow-pop: 0 12px 32px -8px rgba(16, 24, 40, 0.18), 0 4px 8px -4px rgba(16, 24, 40, 0.08);
+  --edge: rgba(64, 74, 90, 0.5);
+  --edge-muted: rgba(64, 74, 90, 0.32);
+  --edge-path: #3550cc;
+  --frame-label: #5a6371;
+  --frame-region-bg: rgba(84, 98, 122, 0.04);
+  --frame-region-line: rgba(84, 98, 122, 0.2);
+  --frame-vpc-bg: rgba(34, 108, 160, 0.055);
+  --frame-vpc-line: rgba(34, 108, 160, 0.28);
+  --frame-zone-bg: rgba(255, 255, 255, 0.45);
+  --frame-zone-line: rgba(34, 108, 160, 0.32);
+  --frame-edge-bg: rgba(104, 86, 170, 0.045);
+  --frame-edge-line: rgba(104, 86, 170, 0.22);
+  --frame-ext-bg: rgba(84, 98, 122, 0.03);
+  --frame-ext-line: rgba(84, 98, 122, 0.16);
+  --frame-side-bg: rgba(140, 112, 72, 0.045);
+  --frame-side-line: rgba(140, 112, 72, 0.2);
+  --hue-external-fg: #4a5262;
+  --hue-external-bg: #eef0f3;
+  --hue-edge-fg: #5546b8;
+  --hue-edge-bg: #eeebfb;
+  --hue-ingress-fg: #2b62c9;
+  --hue-ingress-bg: #e7effc;
+  --hue-compute-fg: #0b7f86;
+  --hue-compute-bg: #e0f3f3;
+  --hue-data-fg: #3b7a2c;
+  --hue-data-bg: #e8f3e3;
+  --hue-integration-fg: #8547ad;
+  --hue-integration-bg: #f3eafa;
+  --hue-ai-fg: #7a3fc8;
+  --hue-ai-bg: #f1eafd;
+  --hue-analytics-fg: #8f6400;
+  --hue-analytics-bg: #f8f0db;
+  --hue-ops-fg: #4f6075;
+  --hue-ops-bg: #edf0f4;
+  --hue-security-fg: #b03a5b;
+  --hue-security-bg: #fbe9ee;
+  --hue-saas-fg: #39687f;
+  --hue-saas-bg: #e6f0f4;
+  --radius-card: 10px;
+  --radius-frame: 14px;
+  --radius-control: 8px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-move: 300ms;
+  --dur-enter: 240ms;
+  --dur-exit: 160ms;
+  --dur-edge: 180ms;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1015;
+    --bg-dot: rgba(255, 255, 255, 0.05);
+    --surface: #161a21;
+    --surface-2: #1a1f27;
+    --surface-raised: #1d232c;
+    --ink: #e9ecf1;
+    --ink-2: #aeb6c2;
+    --ink-3: #8a93a1;
+    --line: rgba(255, 255, 255, 0.085);
+    --line-strong: rgba(255, 255, 255, 0.16);
+    --accent: #8299ff;
+    --accent-ink: #0d1015;
+    --accent-soft: rgba(130, 153, 255, 0.16);
+    --focus: #8299ff;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-hover: 0 6px 16px -4px rgba(0, 0, 0, 0.55);
+    --shadow-pop: 0 16px 40px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    --edge: rgba(200, 208, 222, 0.38);
+    --edge-muted: rgba(200, 208, 222, 0.24);
+    --edge-path: #8299ff;
+    --frame-label: #8f98a6;
+    --frame-region-bg: rgba(150, 165, 190, 0.04);
+    --frame-region-line: rgba(150, 165, 190, 0.16);
+    --frame-vpc-bg: rgba(80, 160, 220, 0.06);
+    --frame-vpc-line: rgba(80, 160, 220, 0.26);
+    --frame-zone-bg: rgba(255, 255, 255, 0.015);
+    --frame-zone-line: rgba(80, 160, 220, 0.28);
+    --frame-edge-bg: rgba(160, 140, 230, 0.05);
+    --frame-edge-line: rgba(160, 140, 230, 0.2);
+    --frame-ext-bg: rgba(150, 165, 190, 0.03);
+    --frame-ext-line: rgba(150, 165, 190, 0.14);
+    --frame-side-bg: rgba(210, 180, 130, 0.045);
+    --frame-side-line: rgba(210, 180, 130, 0.16);
+    --hue-external-fg: #b4bcc8;
+    --hue-external-bg: rgba(180, 188, 200, 0.12);
+    --hue-edge-fg: #b0a6ff;
+    --hue-edge-bg: rgba(150, 135, 255, 0.15);
+    --hue-ingress-fg: #8db4ff;
+    --hue-ingress-bg: rgba(110, 160, 255, 0.15);
+    --hue-compute-fg: #6fd6dc;
+    --hue-compute-bg: rgba(80, 200, 210, 0.13);
+    --hue-data-fg: #9bd58a;
+    --hue-data-bg: rgba(130, 200, 110, 0.13);
+    --hue-integration-fg: #d3a6f0;
+    --hue-integration-bg: rgba(200, 150, 240, 0.14);
+    --hue-ai-fg: #c4a2ff;
+    --hue-ai-bg: rgba(170, 130, 255, 0.15);
+    --hue-analytics-fg: #e3c26f;
+    --hue-analytics-bg: rgba(230, 190, 90, 0.13);
+    --hue-ops-fg: #a9b8cc;
+    --hue-ops-bg: rgba(170, 185, 205, 0.12);
+    --hue-security-fg: #f39ab4;
+    --hue-security-bg: rgba(240, 130, 160, 0.13);
+    --hue-saas-fg: #8fc3da;
+    --hue-saas-bg: rgba(120, 180, 210, 0.13);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0d1015;
+  --bg-dot: rgba(255, 255, 255, 0.05);
+  --surface: #161a21;
+  --surface-2: #1a1f27;
+  --surface-raised: #1d232c;
+  --ink: #e9ecf1;
+  --ink-2: #aeb6c2;
+  --ink-3: #8a93a1;
+  --line: rgba(255, 255, 255, 0.085);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --accent: #8299ff;
+  --accent-ink: #0d1015;
+  --accent-soft: rgba(130, 153, 255, 0.16);
+  --focus: #8299ff;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 6px 16px -4px rgba(0, 0, 0, 0.55);
+  --shadow-pop: 0 16px 40px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --edge: rgba(200, 208, 222, 0.38);
+  --edge-muted: rgba(200, 208, 222, 0.24);
+  --edge-path: #8299ff;
+  --frame-label: #8f98a6;
+  --frame-region-bg: rgba(150, 165, 190, 0.04);
+  --frame-region-line: rgba(150, 165, 190, 0.16);
+  --frame-vpc-bg: rgba(80, 160, 220, 0.06);
+  --frame-vpc-line: rgba(80, 160, 220, 0.26);
+  --frame-zone-bg: rgba(255, 255, 255, 0.015);
+  --frame-zone-line: rgba(80, 160, 220, 0.28);
+  --frame-edge-bg: rgba(160, 140, 230, 0.05);
+  --frame-edge-line: rgba(160, 140, 230, 0.2);
+  --frame-ext-bg: rgba(150, 165, 190, 0.03);
+  --frame-ext-line: rgba(150, 165, 190, 0.14);
+  --frame-side-bg: rgba(210, 180, 130, 0.045);
+  --frame-side-line: rgba(210, 180, 130, 0.16);
+  --hue-external-fg: #b4bcc8;
+  --hue-external-bg: rgba(180, 188, 200, 0.12);
+  --hue-edge-fg: #b0a6ff;
+  --hue-edge-bg: rgba(150, 135, 255, 0.15);
+  --hue-ingress-fg: #8db4ff;
+  --hue-ingress-bg: rgba(110, 160, 255, 0.15);
+  --hue-compute-fg: #6fd6dc;
+  --hue-compute-bg: rgba(80, 200, 210, 0.13);
+  --hue-data-fg: #9bd58a;
+  --hue-data-bg: rgba(130, 200, 110, 0.13);
+  --hue-integration-fg: #d3a6f0;
+  --hue-integration-bg: rgba(200, 150, 240, 0.14);
+  --hue-ai-fg: #c4a2ff;
+  --hue-ai-bg: rgba(170, 130, 255, 0.15);
+  --hue-analytics-fg: #e3c26f;
+  --hue-analytics-bg: rgba(230, 190, 90, 0.13);
+  --hue-ops-fg: #a9b8cc;
+  --hue-ops-bg: rgba(170, 185, 205, 0.12);
+  --hue-security-fg: #f39ab4;
+  --hue-security-bg: rgba(240, 130, 160, 0.13);
+  --hue-saas-fg: #8fc3da;
+  --hue-saas-bg: rgba(120, 180, 210, 0.13);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); font-size: 13px; line-height: 1.45; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-feature-settings: "cv11", "ss01"; }
+::selection { background: var(--accent-soft); color: var(--ink); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+:focus:not(:focus-visible) { outline: none; }
+* { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+button, select, input { font: inherit; color: inherit; }
+.tnum { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { :root { --dur-move: 0ms; --dur-enter: 120ms; --dur-exit: 100ms; } }

@@ -1,0 +1,405 @@
+{
+  "generatedAt": "2026-10-31T04:16:11.797Z",
+  "node": "v24.21.0",
+  "scenarios": {
+    "a": {
+      "title": "a. Initial diagram",
+      "batches": 47,
+      "cards": 18,
+      "plannedRoutes": 17,
+      "graphEdges": 17,
+      "aggregated": [],
+      "final": {
+        "libavoid": {
+          "edges": 17,
+          "edgeNodeIntersections": 0,
+          "edgesThroughNodes": 0,
+          "labelHits": 0,
+          "crossings": 3,
+          "overlapPx": 0,
+          "bends": 35,
+          "lengthPx": 6361,
+          "nonOrthogonal": 0,
+          "failed": 0
+        },
+        "channel": {
+          "edges": 17,
+          "edgeNodeIntersections": 0,
+          "edgesThroughNodes": 0,
+          "labelHits": 0,
+          "crossings": 0,
+          "overlapPx": 324,
+          "bends": 41,
+          "lengthPx": 5827,
+          "nonOrthogonal": 0,
+          "failed": 0
+        }
+      },
+      "timing": {
+        "libavoidIncremental": {
+          "mean": 3.1,
+          "p95": 11.15,
+          "max": 15.41
+        },
+        "libavoidSolve": {
+          "mean": 2.79,
+          "p95": 10.59,
+          "max": 15.25
+        },
+        "libavoidColdFinal": 15.16,
+        "channel": {
+          "mean": 0.76,
+          "p95": 1.75,
+          "max": 2.23
+        }
+      }
+    },
+    "b": {
+      "title": "b. Add a warehouse",
+      "batches": 6,
+      "cards": 21,
+      "plannedRoutes": 20,
+      "graphEdges": 20,
+      "aggregated": [],
+      "final": {
+        "libavoid": {
+          "edges": 20,
+          "edgeNodeIntersections": 0,
+          "edgesThroughNodes": 0,
+          "labelHits": 0,
+          "crossings": 4,
+          "overlapPx": 0,
+          "bends": 40,
+          "lengthPx": 6772,
+          "nonOrthogonal": 0,
+          "failed": 0
+        },
+        "channel": {
+          "edges": 20,
+          "edgeNodeIntersections": 0,
+          "edgesThroughNodes": 0,
+          "labelHits": 0,
+          "crossings": 3,
+          "overlapPx": 317,
+          "bends": 45,
+          "lengthPx": 6351,
+          "nonOrthogonal": 0,
+          "failed": 0
+        }
+      },
+      "timing": {
+        "libavoidIncremental": {
+          "mean": 18.21,
+          "p95": 20.71,
+          "max": 20.71
+        },
+        "libavoidSolve": {
+          "mean": 17.93,
+          "p95": 20.49,
+          "max": 20.49
+        },
+        "libavoidColdFinal": 19.67,
+        "channel": {
+          "mean": 1.4,
+          "p95": 1.79,
+          "max": 1.79
+        }
+      }
+    },
+    "c": {
+      "title": "c. Drop the AI",
+      "batches": 3,
+      "cards": 17,
+      "plannedRoutes": 15,
+      "graphEdges": 15,
+      "aggregated": [],
+      "final": {
+        "libavoid": {
+          "edges": 15,
+          "edgeNodeIntersections": 0,
+          "edgesThroughNodes": 0,
+          "labelHits": 0,
+          "crossings": 2,
+          "overlapPx": 0,
+          "bends": 29,
+          "lengthPx": 5442,
+          "nonOrthogonal": 0,
+          "failed": 0
+        },
+        "channel": {
+          "edges": 15,
+          "edgeNodeIntersections": 0,
+          "edgesThroughNodes": 0,
+          "labelHits": 0,
+          "crossings": 0,
+          "overlapPx": 284,
+          "bends": 33,
+          "lengthPx": 5256,
+          "nonOrthogonal": 0,
+          "failed": 0
+        }
+      },
+      "timing": {
+        "libavoidIncremental": {
+          "mean": 12.79,
+          "p95": 15.74,
+          "max": 15.74
+        },
+        "libavoidSolve": {
+          "mean": 12.53,
+          "p95": 15.2,
+          "max": 15.2
+        },
+        "libavoidColdFinal": 8.73,
+        "channel": {
+          "mean": 1.75,
+          "p95": 2.47,
+          "max": 2.47
+        }
+      }
+    },
+    "d": {
+      "title": "d. Kubernetes swap",
+      "batches": 16,
+      "cards": 18,
+      "plannedRoutes": 17,
+      "graphEdges": 17,
+      "aggregated": [],
+      "final": {
+        "libavoid": {
+          "edges": 17,
+          "edgeNodeIntersections": 0,
+          "edgesThroughNodes": 0,
+          "labelHits": 0,
+          "crossings": 3,
+          "overlapPx": 0,
+          "bends": 30,
+          "lengthPx": 6444,
+          "nonOrthogonal": 0,
+          "failed": 0
+        },
+        "channel": {
+          "edges": 17,
+          "edgeNodeIntersections": 0,
+          "edgesThroughNodes": 0,
+          "labelHits": 0,
+          "crossings": 1,
+          "overlapPx": 342,
+          "bends": 37,
+          "lengthPx": 5825,
+          "nonOrthogonal": 0,
+          "failed": 0
+        }
+      },
+      "timing": {
+        "libavoidIncremental": {
+          "mean": 4.78,
+          "p95": 19.54,
+          "max": 19.54
+        },
+        "libavoidSolve": {
+          "mean": 4.6,
+          "p95": 18.66,
+          "max": 18.66
+        },
+        "libavoidColdFinal": 17.17,
+        "channel": {
+          "mean": 0.89,
+          "p95": 1.47,
+          "max": 1.47
+        }
+      }
+    },
+    "e1": {
+      "title": "e. Add WAF as a badge",
+      "batches": 1,
+      "cards": 18,
+      "plannedRoutes": 17,
+      "graphEdges": 17,
+      "aggregated": [],
+      "final": {
+        "libavoid": {
+          "edges": 17,
+          "edgeNodeIntersections": 0,
+          "edgesThroughNodes": 0,
+          "labelHits": 0,
+          "crossings": 1,
+          "overlapPx": 0,
+          "bends": 37,
+          "lengthPx": 6572,
+          "nonOrthogonal": 0,
+          "failed": 0
+        },
+        "channel": {
+          "edges": 17,
+          "edgeNodeIntersections": 0,
+          "edgesThroughNodes": 0,
+          "labelHits": 0,
+          "crossings": 0,
+          "overlapPx": 324,
+          "bends": 41,
+          "lengthPx": 5827,
+          "nonOrthogonal": 0,
+          "failed": 0
+        }
+      },
+      "timing": {
+        "libavoidIncremental": {
+          "mean": 16.49,
+          "p95": 16.98,
+          "max": 16.98
+        },
+        "libavoidSolve": {
+          "mean": 16.19,
+          "p95": 16.79,
+          "max": 16.79
+        },
+        "libavoidColdFinal": 15.69,
+        "channel": {
+          "mean": 1.41,
+          "p95": 1.44,
+          "max": 1.44
+        }
+      }
+    },
+    "e2": {
+      "title": "e. Add WAF inline",
+      "batches": 1,
+      "cards": 19,
+      "plannedRoutes": 18,
+      "graphEdges": 18,
+      "aggregated": [],
+      "final": {
+        "libavoid": {
+          "edges": 18,
+          "edgeNodeIntersections": 0,
+          "edgesThroughNodes": 0,
+          "labelHits": 0,
+          "crossings": 3,
+          "overlapPx": 0,
+          "bends": 37,
+          "lengthPx": 7138,
+          "nonOrthogonal": 0,
+          "failed": 0
+        },
+        "channel": {
+          "edges": 18,
+          "edgeNodeIntersections": 0,
+          "edgesThroughNodes": 0,
+          "labelHits": 0,
+          "crossings": 3,
+          "overlapPx": 7,
+          "bends": 45,
+          "lengthPx": 6314,
+          "nonOrthogonal": 0,
+          "failed": 0
+        }
+      },
+      "timing": {
+        "libavoidIncremental": {
+          "mean": 17.29,
+          "p95": 18.72,
+          "max": 18.72
+        },
+        "libavoidSolve": {
+          "mean": 16.85,
+          "p95": 18.49,
+          "max": 18.49
+        },
+        "libavoidColdFinal": 17.99,
+        "channel": {
+          "mean": 1.27,
+          "p95": 1.52,
+          "max": 1.52
+        }
+      }
+    },
+    "f": {
+      "title": "f. Solution map",
+      "batches": 8,
+      "cards": 5,
+      "plannedRoutes": 3,
+      "graphEdges": 3,
+      "aggregated": [],
+      "final": {
+        "libavoid": {
+          "edges": 3,
+          "edgeNodeIntersections": 0,
+          "edgesThroughNodes": 0,
+          "labelHits": 0,
+          "crossings": 0,
+          "overlapPx": 0,
+          "bends": 3,
+          "lengthPx": 660,
+          "nonOrthogonal": 0,
+          "failed": 0
+        },
+        "channel": {
+          "edges": 3,
+          "edgeNodeIntersections": 0,
+          "edgesThroughNodes": 0,
+          "labelHits": 0,
+          "crossings": 0,
+          "overlapPx": 0,
+          "bends": 4,
+          "lengthPx": 600,
+          "nonOrthogonal": 0,
+          "failed": 0
+        }
+      },
+      "timing": {
+        "libavoidIncremental": {
+          "mean": 0.29,
+          "p95": 0.54,
+          "max": 0.54
+        },
+        "libavoidSolve": {
+          "mean": 0.18,
+          "p95": 0.33,
+          "max": 0.33
+        },
+        "libavoidColdFinal": 1.07,
+        "channel": {
+          "mean": 0.12,
+          "p95": 0.28,
+          "max": 0.28
+        }
+      }
+    },
+    "stress": {
+      "nodes": 48,
+      "cards": 42,
+      "edges": 67,
+      "routes": 59,
+      "size": "1938x1424",
+      "libavoid": {
+        "coldMs": 842.4,
+        "solveMs": 838.7,
+        "incrementalMs": 844,
+        "edges": 59,
+        "edgeNodeIntersections": 0,
+        "edgesThroughNodes": 0,
+        "labelHits": 0,
+        "crossings": 78,
+        "overlapPx": 968,
+        "bends": 125,
+        "lengthPx": 36238,
+        "nonOrthogonal": 0,
+        "failed": 0
+      },
+      "channel": {
+        "ms": 9.7,
+        "edges": 59,
+        "edgeNodeIntersections": 0,
+        "edgesThroughNodes": 0,
+        "labelHits": 0,
+        "crossings": 83,
+        "overlapPx": 5339,
+        "bends": 139,
+        "lengthPx": 32152,
+        "nonOrthogonal": 0,
+        "failed": 0
+      }
+    }
+  }
+}

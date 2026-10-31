@@ -1,0 +1,385 @@
+2026-10-31T04-52-42-final: 80 cases, 240 of 240 conversations to run (concurrency 3, model qwen3.8-max, fallback qwen3.7-max)
+[1/240] pat-03-serverless-api#1 PASS 1/1 turns 14s $0.008
+[2/240] pat-02-k8s#1 PASS 1/1 turns 16s $0.009
+[3/240] pat-01-web-ha#1 PASS 1/1 turns 16s $0.009
+[4/240] pat-04-rag#1 PASS 1/1 turns 10s $0.007
+[5/240] pat-06-iot-streaming#1 PASS 1/1 turns 13s $0.008
+[6/240] pat-05-data-platform#1 PASS 1/1 turns 14s $0.008
+[7/240] pat-07-hybrid#1 PASS 1/1 turns 12s $0.007
+[8/240] pat-09-media#1 PASS 1/1 turns 14s $0.008
+[9/240] pat-11-team-coding#1 PASS 1/1 turns 5s $0.004
+[10/240] pat-10-security-baseline#1 PASS 1/1 turns 17s $0.009
+[11/240] need-01-dev-team#1 PASS 1/1 turns 4s $0.005
+[12/240] pat-08-global#1 PASS 1/1 turns 30s $0.014
+[13/240] need-02-whole-company#1 PASS 1/1 turns 4s $0.005
+[14/240] pat-12-ecommerce-security#1 FAIL 1/1 turns 15s $0.008 failed: include
+[15/240] need-03-ambiguous-team#1 PASS 1/1 turns 4s $0.004
+[16/240] need-04-claude-code#1 PASS 1/1 turns 3s $0.004
+[17/240] need-05-plan-in-backend#1 PASS 1/1 turns 3s $0.004
+[18/240] need-08-contractor-desktops#1 PASS 1/1 turns 16s $0.009
+[19/240] need-06-cs-chatbot#1 FAIL 1/1 turns 20s $0.010 failed: attachValid
+[20/240] need-07-analysts#1 PASS 1/1 turns 19s $0.009
+[21/240] need-09-always-on-agents#1 PASS 1/1 turns 5s $0.005
+[22/240] need-12-qwen-api#1 PASS 1/1 turns 3s $0.004
+[23/240] trap-01-lingma#1 PASS 1/1 turns 4s $0.005
+[24/240] need-10-build-agents#1 PASS 1/1 turns 19s $0.010
+[25/240] trap-02-dcdn#1 PASS 1/1 turns 10s $0.007
+[26/240] need-11-voice-bot#1 PASS 1/1 turns 21s $0.010
+[27/240] trap-03-log-service#1 PASS 1/1 turns 6s $0.005
+[28/240] trap-04-apsaradb-redis#1 PASS 1/1 turns 11s $0.007
+[29/240] trap-05-api-gateway-classic#1 PASS 1/1 turns 13s $0.008
+[30/240] trap-06-model-studio-apps#1 PASS 1/1 turns 15s $0.008
+[31/240] trap-07-icp#1 PASS 1/1 turns 14s $0.008
+[32/240] trap-08-sydney#1 PASS 1/1 turns 15s $0.009
+[33/240] trap-09-mumbai#1 PASS 1/1 turns 13s $0.008
+[34/240] trap-10-slb#1 PASS 1/1 turns 8s $0.006
+[35/240] trap-11-contact-center#1 PASS 1/1 turns 4s $0.005
+[36/240] edit-02-waf-present#1 PASS 1/1 turns 2s $0.006
+[37/240] edit-01-insert-waf#1 PASS 1/1 turns 3s $0.006
+[38/240] edit-03-swap-k8s#1 PASS 1/1 turns 3s $0.004
+[39/240] edit-05-remove-component#1 PASS 1/1 turns 3s $0.004
+[40/240] edit-04-add-warehouse#1 PASS 1/1 turns 7s $0.005
+[41/240] edit-06-restore#1 PASS 2/2 turns 7s $0.010
+[42/240] edit-08-cheaper#1 PASS 1/1 turns 7s $0.007
+[43/240] edit-07-multi-region-dr#1 PASS 1/1 turns 19s $0.009
+[44/240] mt-02-serverless-first#1 PASS 3/3 turns 21s $0.018
+[45/240] mt-01-avoid-k8s#1 PASS 4/4 turns 37s $0.029
+[46/240] adv-01-off-topic#1 PASS 1/1 turns 3s $0.004
+[47/240] adv-02-label-injection#1 PASS 1/1 turns 4s $0.005
+[48/240] mt-04-budget#1 PASS 3/3 turns 25s $0.019
+[49/240] mt-03-data-in-singapore#1 PASS 4/4 turns 43s $0.031
+[50/240] adv-03-aws-products#1 PASS 1/1 turns 13s $0.007
+[51/240] adv-05-reveal-prompt#1 PASS 1/1 turns 3s $0.004
+[52/240] adv-04-oversized-input#1 PASS 1/1 turns 26s $0.013
+[53/240] ko-pat-01-web-ha#1 PASS 1/1 turns 19s $0.009
+[54/240] ko-pat-04-rag#1 FAIL 1/1 turns 20s $0.009 failed: attachValid
+[55/240] ko-need-01-dev-team#1 PASS 1/1 turns 5s $0.005
+[56/240] ko-edit-01-insert-waf#1 PASS 1/1 turns 3s $0.004
+[57/240] ko-need-02-whole-company#1 PASS 1/1 turns 6s $0.005
+[58/240] ko-trap-01-lingma#1 PASS 1/1 turns 4s $0.005
+[59/240] ko-trap-08-sydney#1 PASS 1/1 turns 17s $0.008
+[60/240] zh-pat-01-web-ha#1 PASS 1/1 turns 19s $0.009
+[61/240] zh-need-01-dev-team#1 PASS 1/1 turns 5s $0.005
+[62/240] zh-need-02-whole-company#1 PASS 1/1 turns 4s $0.004
+[63/240] zh-edit-01-insert-waf#1 PASS 1/1 turns 4s $0.004
+[64/240] zh-pat-04-rag#1 PASS 1/1 turns 20s $0.009
+[65/240] ko-mt-01-avoid-k8s#1 PASS 3/3 turns 38s $0.025
+[66/240] zh-trap-01-lingma#1 PASS 1/1 turns 4s $0.005
+[67/240] trap-01b-lingma-license#1 PASS 1/1 turns 4s $0.005
+[68/240] zh-trap-08-sydney#1 PASS 1/1 turns 17s $0.009
+[69/240] trap-04b-redis-leaderboard#1 PASS 1/1 turns 17s $0.008
+[70/240] zh-mt-01-avoid-k8s#1 PASS 3/3 turns 32s $0.023
+[71/240] trap-05b-apigw-partner#1 PASS 1/1 turns 16s $0.008
+[72/240] need-01b-eng-org-audit#1 PASS 1/1 turns 6s $0.005
+[73/240] edit-09-swap-queue#1 PASS 1/1 turns 3s $0.004
+[74/240] trap-06b-kb-hr#1 PASS 1/1 turns 20s $0.009
+[75/240] trap-07b-icp-beijing#1 PASS 1/1 turns 20s $0.009
+[76/240] pat-13-internal-portal#1 PASS 1/1 turns 16s $0.008
+[77/240] ko-trap-07-icp#1 PASS 1/1 turns 16s $0.008
+[78/240] mt-05-mixed-five-turns#1 PASS 5/5 turns 38s $0.032
+[79/240] zh-trap-07-icp#1 PASS 1/1 turns 15s $0.008
+[80/240] pat-01-web-ha#2 PASS 1/1 turns 21s $0.010
+[81/240] pat-02-k8s#2 PASS 1/1 turns 16s $0.009
+[82/240] pat-03-serverless-api#2 PASS 1/1 turns 13s $0.007
+[83/240] pat-04-rag#2 PASS 1/1 turns 14s $0.007
+[84/240] mt-06-summary-window#1 FAIL 5/5 turns 73s $0.047 failed: retention
+[85/240] pat-05-data-platform#2 PASS 1/1 turns 19s $0.010
+[86/240] pat-06-iot-streaming#2 PASS 1/1 turns 17s $0.009
+[87/240] pat-07-hybrid#2 PASS 1/1 turns 11s $0.007
+[88/240] pat-10-security-baseline#2 PASS 1/1 turns 15s $0.009
+[89/240] pat-09-media#2 PASS 1/1 turns 18s $0.010
+[90/240] pat-11-team-coding#2 PASS 1/1 turns 4s $0.005
+[91/240] need-01-dev-team#2 PASS 1/1 turns 4s $0.005
+[92/240] need-02-whole-company#2 PASS 1/1 turns 4s $0.005
+[93/240] need-03-ambiguous-team#2 PASS 1/1 turns 4s $0.005
+[94/240] pat-12-ecommerce-security#2 PASS 1/1 turns 15s $0.008
+[95/240] pat-08-global#2 PASS 1/1 turns 36s $0.016
+[96/240] need-05-plan-in-backend#2 PASS 1/1 turns 3s $0.004
+[97/240] need-04-claude-code#2 PASS 1/1 turns 4s $0.004
+[98/240] need-06-cs-chatbot#2 PASS 1/1 turns 16s $0.009
+[99/240] need-08-contractor-desktops#2 PASS 1/1 turns 15s $0.008
+[100/240] need-07-analysts#2 FAIL 1/1 turns 17s $0.009 failed: primaryRec,attachValid
+[101/240] need-09-always-on-agents#2 PASS 1/1 turns 6s $0.005
+[102/240] need-12-qwen-api#2 PASS 1/1 turns 3s $0.004
+[103/240] trap-01-lingma#2 PASS 1/1 turns 4s $0.005
+[104/240] need-10-build-agents#2 PASS 1/1 turns 18s $0.009
+[105/240] trap-02-dcdn#2 PASS 1/1 turns 10s $0.007
+[106/240] need-11-voice-bot#2 PASS 1/1 turns 22s $0.010
+[107/240] trap-03-log-service#2 PASS 1/1 turns 6s $0.005
+[108/240] trap-04-apsaradb-redis#2 PASS 1/1 turns 10s $0.007
+[109/240] trap-07-icp#2 FAIL 1/1 turns 2s $0.040 failed: api API: turn 1: content-filtered: <400> InternalError.Algo.DataInspectionFailed: Output data may contain inappropriate content.
+[110/240] trap-06-model-studio-apps#2 PASS 1/1 turns 15s $0.008
+[111/240] trap-05-api-gateway-classic#2 PASS 1/1 turns 18s $0.009
+[112/240] trap-08-sydney#2 PASS 1/1 turns 15s $0.009
+[113/240] trap-10-slb#2 PASS 1/1 turns 7s $0.006
+[114/240] trap-09-mumbai#2 PASS 1/1 turns 10s $0.007
+[115/240] edit-01-insert-waf#2 PASS 1/1 turns 3s $0.004
+[116/240] trap-11-contact-center#2 PASS 1/1 turns 4s $0.005
+[117/240] edit-02-waf-present#2 PASS 1/1 turns 3s $0.005
+[118/240] edit-03-swap-k8s#2 PASS 1/1 turns 3s $0.004
+[119/240] edit-05-remove-component#2 PASS 1/1 turns 3s $0.004
+[120/240] edit-04-add-warehouse#2 PASS 1/1 turns 6s $0.005
+[121/240] edit-06-restore#2 PASS 2/2 turns 7s $0.010
+[122/240] edit-08-cheaper#2 PASS 1/1 turns 7s $0.005
+[123/240] edit-07-multi-region-dr#2 PASS 1/1 turns 22s $0.011
+[124/240] mt-02-serverless-first#2 PASS 3/3 turns 22s $0.018
+[125/240] mt-01-avoid-k8s#2 PASS 4/4 turns 39s $0.032
+[126/240] adv-01-off-topic#2 PASS 1/1 turns 2s $0.004
+[127/240] adv-02-label-injection#2 PASS 1/1 turns 3s $0.004
+[128/240] mt-04-budget#2 PASS 3/3 turns 20s $0.018
+[129/240] adv-03-aws-products#2 PASS 1/1 turns 10s $0.007
+[130/240] mt-03-data-in-singapore#2 PASS 4/4 turns 39s $0.031
+[131/240] adv-05-reveal-prompt#2 PASS 1/1 turns 3s $0.004
+[132/240] adv-04-oversized-input#2 PASS 1/1 turns 22s $0.011
+[133/240] ko-pat-01-web-ha#2 PASS 1/1 turns 16s $0.009
+[134/240] ko-need-01-dev-team#2 PASS 1/1 turns 4s $0.005
+[135/240] ko-pat-04-rag#2 PASS 1/1 turns 17s $0.009
+[136/240] ko-need-02-whole-company#2 PASS 1/1 turns 4s $0.005
+[137/240] ko-edit-01-insert-waf#2 PASS 1/1 turns 3s $0.004
+[138/240] ko-trap-01-lingma#2 PASS 1/1 turns 4s $0.005
+[139/240] ko-trap-08-sydney#2 PASS 1/1 turns 15s $0.009
+[140/240] zh-pat-01-web-ha#2 PASS 1/1 turns 15s $0.009
+[141/240] zh-need-01-dev-team#2 PASS 1/1 turns 4s $0.005
+[142/240] zh-need-02-whole-company#2 PASS 1/1 turns 3s $0.004
+[143/240] zh-edit-01-insert-waf#2 PASS 1/1 turns 3s $0.004
+[144/240] zh-pat-04-rag#2 FAIL 1/1 turns 14s $0.008 failed: attachValid
+[145/240] zh-trap-01-lingma#2 PASS 1/1 turns 3s $0.004
+[146/240] ko-mt-01-avoid-k8s#2 PASS 3/3 turns 34s $0.024
+[147/240] trap-01b-lingma-license#2 PASS 1/1 turns 3s $0.004
+[148/240] zh-trap-08-sydney#2 PASS 1/1 turns 14s $0.009
+[149/240] trap-04b-redis-leaderboard#2 PASS 1/1 turns 14s $0.008
+[150/240] trap-05b-apigw-partner#2 PASS 1/1 turns 18s $0.016
+[151/240] zh-mt-01-avoid-k8s#2 PASS 3/3 turns 33s $0.025
+[152/240] trap-06b-kb-hr#2 PASS 1/1 turns 16s $0.009
+[153/240] need-01b-eng-org-audit#2 PASS 1/1 turns 4s $0.005
+[154/240] edit-09-swap-queue#2 PASS 1/1 turns 3s $0.005
+[155/240] trap-07b-icp-beijing#2 PASS 1/1 turns 17s $0.009
+[156/240] pat-13-internal-portal#2 PASS 1/1 turns 15s $0.008
+[157/240] ko-trap-07-icp#2 PASS 1/1 turns 15s $0.008
+[158/240] mt-05-mixed-five-turns#2 PASS 5/5 turns 35s $0.035
+[159/240] zh-trap-07-icp#2 PASS 1/1 turns 12s $0.008
+[160/240] pat-01-web-ha#3 PASS 1/1 turns 18s $0.009
+[161/240] pat-02-k8s#3 PASS 1/1 turns 17s $0.009
+[162/240] mt-06-summary-window#2 PASS 5/5 turns 57s $0.044
+[163/240] pat-03-serverless-api#3 PASS 1/1 turns 13s $0.008
+[164/240] pat-04-rag#3 PASS 1/1 turns 13s $0.008
+[165/240] pat-05-data-platform#3 PASS 1/1 turns 15s $0.009
+[166/240] pat-06-iot-streaming#3 PASS 1/1 turns 14s $0.009
+[167/240] pat-07-hybrid#3 PASS 1/1 turns 14s $0.008
+[168/240] pat-09-media#3 PASS 1/1 turns 18s $0.010
+[169/240] pat-10-security-baseline#3 PASS 1/1 turns 16s $0.009
+[170/240] pat-11-team-coding#3 PASS 1/1 turns 4s $0.005
+[171/240] need-01-dev-team#3 PASS 1/1 turns 4s $0.005
+[172/240] need-02-whole-company#3 PASS 1/1 turns 3s $0.004
+[173/240] pat-08-global#3 PASS 1/1 turns 33s $0.015
+[174/240] need-03-ambiguous-team#3 FAIL 1/1 turns 5s $0.005 failed: question
+[175/240] need-04-claude-code#3 PASS 1/1 turns 4s $0.005
+[176/240] pat-12-ecommerce-security#3 PASS 1/1 turns 17s $0.009
+[177/240] need-05-plan-in-backend#3 PASS 1/1 turns 2s $0.004
+[178/240] need-08-contractor-desktops#3 PASS 1/1 turns 5s $0.005
+[179/240] need-09-always-on-agents#3 PASS 1/1 turns 5s $0.005
+[180/240] need-07-analysts#3 PASS 1/1 turns 11s $0.007
+[181/240] need-06-cs-chatbot#3 PASS 1/1 turns 14s $0.008
+[182/240] need-12-qwen-api#3 PASS 1/1 turns 4s $0.004
+[183/240] trap-01-lingma#3 PASS 1/1 turns 3s $0.004
+[184/240] trap-02-dcdn#3 PASS 1/1 turns 7s $0.006
+[185/240] need-11-voice-bot#3 PASS 1/1 turns 18s $0.010
+[186/240] trap-03-log-service#3 PASS 1/1 turns 5s $0.005
+[187/240] need-10-build-agents#3 PASS 1/1 turns 24s $0.012
+[188/240] trap-04-apsaradb-redis#3 PASS 1/1 turns 10s $0.007
+[189/240] trap-07-icp#3 PASS 1/1 turns 4s $0.004
+[190/240] trap-06-model-studio-apps#3 PASS 1/1 turns 14s $0.009
+[191/240] trap-05-api-gateway-classic#3 PASS 1/1 turns 17s $0.010
+[192/240] trap-08-sydney#3 PASS 1/1 turns 15s $0.009
+[193/240] trap-10-slb#3 PASS 1/1 turns 8s $0.006
+[194/240] trap-09-mumbai#3 PASS 1/1 turns 10s $0.007
+[195/240] edit-01-insert-waf#3 PASS 1/1 turns 2s $0.004
+[196/240] edit-02-waf-present#3 PASS 1/1 turns 2s $0.005
+[197/240] trap-11-contact-center#3 PASS 1/1 turns 4s $0.005
+[198/240] edit-05-remove-component#3 PASS 1/1 turns 2s $0.004
+[199/240] edit-03-swap-k8s#3 PASS 1/1 turns 3s $0.004
+[200/240] edit-04-add-warehouse#3 PASS 1/1 turns 6s $0.005
+[201/240] edit-06-restore#3 PASS 2/2 turns 7s $0.010
+[202/240] edit-08-cheaper#3 PASS 1/1 turns 6s $0.005
+[203/240] edit-07-multi-region-dr#3 PASS 1/1 turns 18s $0.009
+[204/240] mt-02-serverless-first#3 PASS 3/3 turns 19s $0.018
+[205/240] mt-04-budget#3 PASS 3/3 turns 23s $0.020
+[206/240] adv-01-off-topic#3 PASS 1/1 turns 2s $0.004
+[207/240] mt-01-avoid-k8s#3 PASS 4/4 turns 46s $0.036
+[208/240] mt-03-data-in-singapore#3 PASS 4/4 turns 35s $0.030
+[209/240] adv-02-label-injection#3 PASS 1/1 turns 6s $0.006
+[210/240] adv-05-reveal-prompt#3 PASS 1/1 turns 3s $0.004
+[211/240] adv-03-aws-products#3 PASS 1/1 turns 11s $0.007
+[212/240] adv-04-oversized-input#3 PASS 1/1 turns 20s $0.010
+[213/240] ko-pat-01-web-ha#3 PASS 1/1 turns 16s $0.009
+[214/240] ko-pat-04-rag#3 FAIL 1/1 turns 14s $0.008 failed: attachValid
+[215/240] ko-need-01-dev-team#3 PASS 1/1 turns 5s $0.005
+[216/240] ko-edit-01-insert-waf#3 PASS 1/1 turns 3s $0.004
+[217/240] ko-need-02-whole-company#3 PASS 1/1 turns 4s $0.005
+[218/240] ko-trap-01-lingma#3 PASS 1/1 turns 4s $0.005
+[219/240] ko-trap-08-sydney#3 PASS 1/1 turns 15s $0.009
+[220/240] zh-pat-01-web-ha#3 PASS 1/1 turns 18s $0.010
+[221/240] zh-need-01-dev-team#3 PASS 1/1 turns 5s $0.005
+[222/240] zh-need-02-whole-company#3 PASS 1/1 turns 3s $0.004
+[223/240] zh-edit-01-insert-waf#3 PASS 1/1 turns 4s $0.004
+[224/240] zh-pat-04-rag#3 FAIL 1/1 turns 17s $0.009 failed: attachValid
+[225/240] ko-mt-01-avoid-k8s#3 PASS 3/3 turns 34s $0.024
+[226/240] zh-trap-01-lingma#3 PASS 1/1 turns 4s $0.005
+[227/240] trap-01b-lingma-license#3 PASS 1/1 turns 4s $0.004
+[228/240] zh-trap-08-sydney#3 PASS 1/1 turns 18s $0.009
+[229/240] trap-04b-redis-leaderboard#3 PASS 1/1 turns 14s $0.008
+[230/240] trap-06b-kb-hr#3 PASS 1/1 turns 16s $0.009
+[231/240] trap-05b-apigw-partner#3 PASS 1/1 turns 19s $0.015
+[232/240] zh-mt-01-avoid-k8s#3 FAIL 3/3 turns 34s $0.025 failed: attachValid
+[233/240] edit-09-swap-queue#3 PASS 1/1 turns 3s $0.004
+[234/240] need-01b-eng-org-audit#3 PASS 1/1 turns 4s $0.005
+[235/240] trap-07b-icp-beijing#3 PASS 1/1 turns 16s $0.009
+[236/240] pat-13-internal-portal#3 PASS 1/1 turns 13s $0.008
+[237/240] ko-trap-07-icp#3 PASS 1/1 turns 14s $0.008
+[238/240] mt-05-mixed-five-turns#3 PASS 5/5 turns 33s $0.033
+[239/240] zh-trap-07-icp#3 PASS 1/1 turns 13s $0.008
+[240/240] mt-06-summary-window#3 FAIL 5/5 turns 66s $0.046 failed: retention
+judge kimi-k3: 80 runs to score
+judge pat-01-web-ha: 5/5/5/5 signoff yes
+judge pat-02-k8s: 5/5/4/4 signoff yes
+judge pat-04-rag: 4/4/4/4 signoff yes
+judge pat-03-serverless-api: 5/4/4/5 signoff yes
+judge pat-06-iot-streaming: 5/5/4/5 signoff yes
+judge pat-05-data-platform: 5/5/4/5 signoff yes
+judge pat-08-global: 4/4/4/4 signoff yes
+judge pat-09-media: 4/4/4/4 signoff yes
+judge pat-07-hybrid: 4/4/4/4 signoff yes
+judge pat-10-security-baseline: 4/4/4/4 signoff yes
+judge pat-11-team-coding: 4/4/4/4 signoff yes
+judge need-01-dev-team: 4/5/4/4 signoff yes
+judge need-02-whole-company: 4/4/4/4 signoff yes
+judge need-04-claude-code: 5/5/5/5 signoff yes
+judge need-03-ambiguous-team: 3/3/3/4 signoff no
+judge pat-12-ecommerce-security: 4/4/4/4 signoff yes
+judge need-05-plan-in-backend: 4/5/4/5 signoff yes
+judge need-07-analysts: 4/3/3/4 signoff no
+judge need-08-contractor-desktops: 4/4/4/4 signoff yes
+judge need-06-cs-chatbot: 4/4/4/4 signoff yes
+judge need-12-qwen-api: 4/5/4/4 signoff yes
+judge need-11-voice-bot: 4/4/4/4 signoff yes
+judge need-09-always-on-agents: 4/4/4/4 signoff yes
+judge trap-01-lingma: 4/4/4/4 signoff yes
+judge trap-02-dcdn: 5/5/5/5 signoff yes
+judge need-10-build-agents: 4/3/3/4 signoff no
+judge trap-04-apsaradb-redis: 5/5/5/5 signoff yes
+judge trap-03-log-service: 4/5/4/4 signoff yes
+judge trap-06-model-studio-apps: 5/5/5/5 signoff yes
+judge trap-07-icp: 5/5/5/5 signoff yes
+judge trap-05-api-gateway-classic: 4/5/4/4 signoff yes
+judge trap-10-slb: 5/5/5/5 signoff yes
+judge trap-08-sydney: 5/5/5/5 signoff yes
+judge trap-11-contact-center: 4/4/4/4 signoff yes
+judge edit-02-waf-present: 5/5/5/5 signoff yes
+judge edit-01-insert-waf: 5/5/4/5 signoff yes
+judge edit-03-swap-k8s: 5/5/5/5 signoff yes
+judge trap-09-mumbai: 5/5/5/5 signoff yes
+judge edit-05-remove-component: 5/5/5/5 signoff yes
+judge edit-06-restore: 5/5/5/5 signoff yes
+judge edit-08-cheaper: 5/5/5/4 signoff yes
+judge mt-01-avoid-k8s: 5/4/4/5 signoff yes
+judge edit-07-multi-region-dr: 4/3/3/4 signoff no
+judge edit-04-add-warehouse: 5/5/5/5 signoff yes
+judge mt-02-serverless-first: 5/4/4/5 signoff yes
+judge adv-01-off-topic: 5/5/5/5 signoff yes
+judge mt-04-budget: 5/5/4/5 signoff yes
+judge mt-03-data-in-singapore: 5/4/4/5 signoff yes
+judge adv-05-reveal-prompt: 5/5/5/5 signoff yes
+judge adv-02-label-injection: 5/5/5/4 signoff yes
+judge adv-03-aws-products: 5/5/4/4 signoff yes
+judge adv-04-oversized-input: 5/5/4/4 signoff yes
+judge ko-pat-01-web-ha: 5/5/5/5 signoff yes
+judge ko-need-02-whole-company: 4/4/4/5 signoff yes
+judge ko-pat-04-rag: 4/4/4/4 signoff yes
+judge ko-edit-01-insert-waf: 5/5/4/5 signoff yes
+judge ko-need-01-dev-team: 4/4/4/4 signoff yes
+judge ko-trap-01-lingma: 4/4/4/4 signoff yes
+judge ko-trap-08-sydney: 5/5/5/5 signoff yes
+judge zh-pat-01-web-ha: 5/5/5/5 signoff yes
+judge ko-mt-01-avoid-k8s: 5/5/4/5 signoff yes
+judge zh-pat-04-rag: 4/4/4/4 signoff yes
+judge zh-need-02-whole-company: 4/4/4/4 signoff yes
+judge zh-edit-01-insert-waf: 5/5/4/5 signoff yes
+judge zh-need-01-dev-team: 4/3/3/4 signoff no
+judge zh-trap-08-sydney: 5/5/5/5 signoff yes
+judge zh-trap-01-lingma: 4/4/4/4 signoff yes
+judge trap-01b-lingma-license: 4/5/4/5 signoff yes
+judge zh-mt-01-avoid-k8s: 5/4/4/4 signoff yes
+judge trap-06b-kb-hr: 4/5/4/5 signoff yes
+judge trap-05b-apigw-partner: 5/4/4/4 signoff yes
+judge trap-07b-icp-beijing: 5/5/5/5 signoff yes
+judge trap-04b-redis-leaderboard: 5/5/5/5 signoff yes
+judge edit-09-swap-queue: 5/5/5/5 signoff yes
+judge pat-13-internal-portal: 5/5/5/5 signoff yes
+judge need-01b-eng-org-audit: 4/4/4/4 signoff yes
+judge mt-05-mixed-five-turns: 5/4/4/4 signoff yes
+judge ko-trap-07-icp: 5/5/5/5 signoff yes
+judge zh-trap-07-icp: 5/5/5/5 signoff yes
+judge mt-06-summary-window: 4/4/2/4 signoff no
+
+results: C:\Users\mendo\ali_catalog\eval\results\2026-10-31T04-52-42-final
+spent this run: USD 2.811 (ledger total USD 9.687)
+# Evaluation summary
+
+Model qwen3.8-max (fallback qwen3.7-max), catalog 2026-10-31 (223 entries), system prompt 47678 chars (sha256 ee81494bff2d), 3 runs per case, started 2026-10-31T04:52:42.657Z.
+
+## Overall
+
+| measure | value |
+| --- | ---: |
+| cases / conversations / turns | 80 / 240 / 309 |
+| pass@1 (mean case pass rate) | 95% |
+| pass@3 (some run passes) | 100% |
+| majority (over half the runs pass) | 96% |
+| all runs pass | 89% |
+| conversations passing every assertion | 95% |
+| turns passing every assertion | 96% |
+| assertions passing (3186 checks) | 100% |
+| conversations that hit an API failure | 1 |
+| list-price cost of the model runs | $2.22 |
+
+## By category
+
+| category | cases | runs | run pass | pass@3 | majority | all runs |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| pattern | 13 | 39 | 97% | 100% | 100% | 92% |
+| need | 13 | 39 | 92% | 100% | 100% | 77% |
+| trap | 16 | 48 | 98% | 100% | 100% | 94% |
+| edit | 9 | 27 | 100% | 100% | 100% | 100% |
+| multiturn | 6 | 18 | 89% | 100% | 83% | 83% |
+| adversarial | 5 | 15 | 100% | 100% | 100% | 100% |
+| i18n | 18 | 54 | 91% | 100% | 89% | 83% |
+
+## By language
+
+| language | cases | runs | run pass | pass@3 | majority | all runs |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| en | 62 | 186 | 96% | 100% | 98% | 90% |
+| ko | 9 | 27 | 93% | 100% | 89% | 89% |
+| zh | 9 | 27 | 89% | 100% | 89% | 78% |
+
+## By assertion type (worst first)
+
+| type | checks | passed | rate | cases that failed it |
+| --- | ---: | ---: | ---: | ---: |
+| api | 1 | 0 | 0% | 1 |
+| question | 3 | 2 | 67% | 1 |
+| attachValid | 308 | 301 | 98% | 5 |
+| primaryRec | 54 | 53 | 98% | 1 |
+| retention | 126 | 124 | 98% | 1 |
+| include | 357 | 356 | 100% | 1 |
+| exclude | 132 | 132 | 100% | 0 |
+| noErrors | 308 | 308 | 100% | 0 |
+| pathOrder | 246 | 246 | 100% | 0 |
+| format | 308 | 308 | 100% | 0 |
+| escapes | 308 | 308 | 100% | 0 |
+| noPrices | 308 | 308 | 100% | 0 |
+| sayLang | 308 | 308 | 100% | 0 |
+| size | 120 | 120 | 100% | 0 |
+| region | 42 | 42 | 100% | 0 |
+| zones | 18 | 18 | 100% | 0 |
+| notMention | 15 | 15 | 100% | 0 |

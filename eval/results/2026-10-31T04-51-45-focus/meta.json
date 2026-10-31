@@ -1,0 +1,23 @@
+{
+  "startedAt": "2026-10-31T04:51:45.493Z",
+  "args": {
+    "cases": "pat-04-rag,ko-pat-04-rag,zh-pat-04-rag,need-06-cs-chatbot,need-02-whole-company",
+    "runs": "3",
+    "concurrency": "4",
+    "label": "focus",
+    "no-judge": true
+  },
+  "model": "qwen3.8-max",
+  "fallbackModel": "qwen3.7-max",
+  "runsPerCase": 3,
+  "concurrency": 4,
+  "cases": 5,
+  "units": 15,
+  "catalogVersion": "2026-10-31",
+  "catalogEntries": 223,
+  "systemPromptChars": 47678,
+  "systemPromptSha256": "ee81494bff2d9bc5a79f988d2a7678a8efd1cd39c718e4ab936b53fe7a345960",
+  "node": "v24.21.0",
+  "finishedAt": "2026-10-31T04:52:34.779Z",
+  "spentUsd": 0.11143600000000002
+}

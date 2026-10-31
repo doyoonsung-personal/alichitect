@@ -1,0 +1,314 @@
+[
+  {
+    "id": "ko-pat-01-web-ha",
+    "category": "i18n",
+    "lang": "ko",
+    "of": "pat-01-web-ha",
+    "title": "P1 highly available web store (Korean)",
+    "reference": "Same as the English case: Singapore region, DNS to ESA or CDN, ALB and compute across two zones, Tair, PolarDB or RDS high availability, OSS. Say and why text in Korean; product names as in the catalog.",
+    "turns": [
+      {
+        "ask": "동남아시아에서 일일 사용자가 약 3만 명이고 세일 기간에 트래픽이 크게 몰리는 온라인 쇼핑몰을 운영합니다. 고가용성 웹 아키텍처를 설계해 주세요.",
+        "expect": {
+          "include": [
+            [
+              "alb",
+              "nlb"
+            ],
+            [
+              "ecs",
+              "ack",
+              "acs",
+              "sae"
+            ],
+            [
+              "rds",
+              "polardb"
+            ],
+            [
+              "esa",
+              "cdn"
+            ]
+          ],
+          "zones": [
+            [
+              "ecs",
+              "ack",
+              "acs",
+              "sae"
+            ],
+            [
+              "rds",
+              "polardb"
+            ]
+          ],
+          "regions": {
+            "min": 1
+          },
+          "minNodes": 6,
+          "maxNodes": 30
+        }
+      }
+    ]
+  },
+  {
+    "id": "ko-pat-04-rag",
+    "category": "i18n",
+    "lang": "ko",
+    "of": "pat-04-rag",
+    "title": "P4 RAG assistant (Korean)",
+    "reference": "Same as the English case: Model Studio Qwen, a vector store (Milvus or OpenSearch), documents in OSS, compute on Function Compute, SAE or ACK; never the Model Studio knowledge base. Say and why text in Korean.",
+    "turns": [
+      {
+        "ask": "직원들이 사내 정책 문서와 위키를 바탕으로 질문하면 답해 주는 사내 어시스턴트를 Qwen 모델로 만들고 싶습니다.",
+        "expect": {
+          "include": [
+            [
+              "model-studio"
+            ],
+            [
+              "milvus",
+              "opensearch",
+              "elasticsearch",
+              "analyticdb",
+              "dashvector",
+              "lindorm",
+              "polardb"
+            ],
+            [
+              "oss"
+            ],
+            [
+              "fc",
+              "sae",
+              "ack",
+              "acs",
+              "ecs",
+              "agentcore",
+              "agentrun"
+            ]
+          ],
+          "exclude": [
+            "model-studio-apps"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ko-need-01-dev-team",
+    "category": "i18n",
+    "lang": "ko",
+    "of": "need-01-dev-team",
+    "title": "AI agent for developers (Korean)",
+    "reference": "Qoder Teams as the primary answer (Qoder Enterprise if governed); no Lingma or Qoder CN. Say and why text in Korean.",
+    "turns": [
+      {
+        "ask": "개발자 15명으로 구성된 우리 팀이 코딩에 쓸 수 있는 AI 에이전트가 필요해요.",
+        "expect": {
+          "primaryRec": [
+            "qoder-teams",
+            "qoder-enterprise"
+          ],
+          "exclude": [
+            "qoder-cn",
+            "lingma",
+            "coding-plan"
+          ],
+          "noNodes": true,
+          "notMention": [
+            "Lingma",
+            "링마"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ko-need-02-whole-company",
+    "category": "i18n",
+    "lang": "ko",
+    "of": "need-02-whole-company",
+    "title": "AI assistant for the whole company (Korean)",
+    "reference": "QwenWork as the primary answer. Say and why text in Korean.",
+    "turns": [
+      {
+        "ask": "영업, 인사, 재무 등 회사 전 직원이 문서 작성, 슬라이드, 리서치에 쓸 수 있는 AI 어시스턴트가 필요합니다.",
+        "expect": {
+          "primaryRec": [
+            "qwenwork"
+          ],
+          "noNodes": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "ko-edit-01-insert-waf",
+    "category": "i18n",
+    "lang": "ko",
+    "of": "edit-01-insert-waf",
+    "title": "Add WAF (Korean)",
+    "base": "shop-sg",
+    "reference": "Adds WAF as a badge on the ALB (or ESA) and nothing else. Say and why text in Korean even though the earlier turns were in English.",
+    "turns": [
+      {
+        "ask": "WAF도 추가해 주세요.",
+        "expect": {
+          "include": [
+            [
+              "waf"
+            ]
+          ],
+          "attach": [
+            {
+              "product": "waf",
+              "hosts": [
+                "alb",
+                "esa",
+                "cloud-native-api-gateway"
+              ]
+            }
+          ],
+          "edit": {
+            "maxNodeAdds": 1,
+            "maxNodeRemoves": 0,
+            "maxEdgeRemoves": 1
+          },
+          "noWarn": [
+            "attach-inline"
+          ],
+          "maxOps": 6
+        }
+      }
+    ]
+  },
+  {
+    "id": "ko-trap-01-lingma",
+    "category": "i18n",
+    "lang": "ko",
+    "of": "trap-01-lingma",
+    "title": "Tongyi Lingma trap (Korean)",
+    "reference": "Explains that Lingma is now Qoder for international users and recommends Qoder Teams. Say and why text in Korean.",
+    "turns": [
+      {
+        "ask": "싱가포르에 있는 개발자 10명에게 Tongyi Lingma를 도입해 주세요.",
+        "expect": {
+          "primaryRec": [
+            "qoder-teams",
+            "qoder",
+            "qoder-enterprise"
+          ],
+          "exclude": [
+            "lingma",
+            "qoder-cn"
+          ],
+          "excludeRaw": [
+            "lingma",
+            "tongyi-lingma",
+            "qoder-cn"
+          ],
+          "noWarn": [
+            "retired-product",
+            "china-only"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ko-trap-08-sydney",
+    "category": "i18n",
+    "lang": "ko",
+    "of": "trap-08-sydney",
+    "title": "Closed Sydney region (Korean)",
+    "reference": "Says the Sydney region is closed and uses Singapore with edge acceleration. Say and why text in Korean.",
+    "turns": [
+      {
+        "ask": "호주 고객을 위해 웹 앱을 시드니 리전에 배포해 주세요.",
+        "expect": {
+          "regions": {
+            "not": [
+              "sydney",
+              "ap-southeast-2",
+              "시드니"
+            ]
+          },
+          "minNodes": 4
+        }
+      }
+    ]
+  },
+  {
+    "id": "ko-mt-01-avoid-k8s",
+    "category": "i18n",
+    "lang": "ko",
+    "of": "mt-01-avoid-k8s",
+    "title": "Avoid Kubernetes over three turns (Korean)",
+    "reference": "SAE or Function Compute for the microservices, a message queue for order events, a database, Tair for menus, scaling without Kubernetes on every turn. Say and why text in Korean.",
+    "turns": [
+      {
+        "ask": "음식 배달 앱의 백엔드를 만들고 있습니다. 마이크로서비스 12개 정도, 모바일 앱용 REST API, 주문 이벤트가 있어요. 팀에 쿠버네티스 경험이 없으니 쿠버네티스는 피해 주세요.",
+        "expect": {
+          "req": [
+            [
+              "kubernetes",
+              "k8s",
+              "쿠버네티스"
+            ]
+          ],
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ],
+          "include": [
+            [
+              "sae",
+              "fc",
+              "ecs",
+              "edas"
+            ]
+          ]
+        }
+      },
+      {
+        "ask": "레스토랑 메뉴용 캐시를 추가해 주세요.",
+        "expect": {
+          "include": [
+            [
+              "tair"
+            ]
+          ]
+        },
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ]
+        }
+      },
+      {
+        "ask": "내년에는 트래픽이 5배로 늘 것 같아요. 확장할 수 있게 해 주세요.",
+        "retain": {
+          "exclude": [
+            "ack",
+            "acs",
+            "ack-one",
+            "asm"
+          ],
+          "req": [
+            [
+              "kubernetes",
+              "k8s",
+              "쿠버네티스"
+            ]
+          ]
+        }
+      }
+    ]
+  }
+]

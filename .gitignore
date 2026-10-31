@@ -1,0 +1,19 @@
+# Dependencies and build output
+node_modules/
+dist/
+build/
+
+# Secrets: the Model Studio key lives only in the environment
+.env
+.env.*
+*.pem
+
+# Local logs and generated output
+apps/server/logs/
+spikes/layout-bench/out/
+tools/qwen/usage.jsonl
+eval/drafts/
+
+# OS files
+.DS_Store
+Thumbs.db
