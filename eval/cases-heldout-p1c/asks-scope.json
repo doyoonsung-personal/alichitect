@@ -1,0 +1,533 @@
+[
+  {
+    "id": "as-ho-furniture",
+    "category": "pattern",
+    "title": "Differently worded storefront request (not the worked example)",
+    "reference": "A first diagram straight away for a public storefront serving Southeast Asia (CDN or ESA, load balancer, compute, database, object storage for photos), with assumptions such as Singapore as the region and traffic level, and at most two questions with options. Does not re-ask who the customers are or that they browse and order online.",
+    "turns": [
+      {
+        "ask": "We make handmade furniture and want a website where people from all over Southeast Asia can browse and order it.",
+        "expect": {
+          "minNodes": 5,
+          "regions": {
+            "min": 1
+          },
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "assumes": {
+            "min": 1,
+            "max": 3
+          },
+          "notAsking": [
+            "dim:exposure",
+            "southeast asia"
+          ],
+          "notAssuming": [
+            "southeast asia"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "as-ho-game",
+    "category": "pattern",
+    "title": "Mobile multiplayer game backend with missing details",
+    "reference": "A first diagram straight away: mobile clients, a load balancer or gateway, game server compute, a database, a cache and monitoring in one region, with assumptions (region, concurrency) and at most two questions with options (for example real-time or turn-based).",
+    "turns": [
+      {
+        "ask": "Set up the backend for our new mobile multiplayer game.",
+        "expect": {
+          "minNodes": 4,
+          "regions": {
+            "min": 1
+          },
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "assumes": {
+            "min": 1,
+            "max": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "as-ho-hr-internal",
+    "category": "need",
+    "title": "Internal portal with exposure, scale and region already stated",
+    "reference": "An internal-only HR portal in Singapore for about 400 staff: reached over a VPN or private line from the company network, with an internal load balancer, small compute, a database and logging. No CDN, ESA or public edge. Does not ask whether it is internal or public, how many users or which region.",
+    "turns": [
+      {
+        "ask": "Our HR team needs an internal portal for leave requests. Only employees on the company network should reach it. About 400 staff, Singapore.",
+        "expect": {
+          "minNodes": 4,
+          "exclude": [
+            "cdn",
+            "esa"
+          ],
+          "regions": {
+            "min": 1
+          },
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "notAsking": [
+            "dim:exposure",
+            "dim:region",
+            "dim:scale"
+          ],
+          "notAssuming": [
+            "internal",
+            "400",
+            "singapore"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "as-ho-vague-move",
+    "category": "need",
+    "title": "Move to the cloud, no workload named: ask before drawing",
+    "reference": "Draws nothing. Asks one or two questions (what do you run today, what matters most), each with 2-4 quick-reply options.",
+    "turns": [
+      {
+        "ask": "We want to move to the cloud. Where do we start?",
+        "expect": {
+          "noNodes": true,
+          "noRecs": true,
+          "asks": {
+            "min": 1,
+            "max": 2,
+            "options": true
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "as-ho-answer-riders",
+    "category": "multiturn",
+    "title": "Free-text answer after a question-first turn",
+    "reference": "Turn 1 asks and draws nothing. Turn 2 draws a mobile app backend for delivery riders (mobile clients, gateway or load balancer, compute, database, a message queue or push) on Alibaba Cloud, without asking again what it is, who uses it or where.",
+    "turns": [
+      {
+        "ask": "Can you set us up on the cloud? We are a small logistics company.",
+        "expect": {
+          "noNodes": true,
+          "asks": {
+            "min": 1,
+            "max": 2,
+            "options": true
+          }
+        }
+      },
+      {
+        "ask": "Mostly a mobile app for our delivery riders, around 2,000 riders, all in Indonesia.",
+        "expect": {
+          "minNodes": 4,
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "notAsking": [
+            "dim:region",
+            "dim:scale",
+            "dim:workload",
+            "indonesia"
+          ],
+          "notAssuming": [
+            "indonesia",
+            "2,000",
+            "mobile"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "as-ho-flip-regions",
+    "category": "multiturn",
+    "title": "Flip the single-region assumption to two regions",
+    "reference": "Turn 1 draws a booking system for dental clinics with assumptions (single region, public-facing). Turn 2 pins the two-region requirement, adds a second region group with the data or app tier replicated, and the single-region chip is gone.",
+    "turns": [
+      {
+        "ask": "Build an online booking system for our dental clinics, about 20,000 patients.",
+        "expect": {
+          "minNodes": 5,
+          "regions": {
+            "min": 1
+          },
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "assumes": {
+            "min": 1,
+            "max": 3
+          }
+        }
+      },
+      {
+        "ask": "Change: Two regions instead of Single region",
+        "expect": {
+          "req": [
+            [
+              "two regions",
+              "multi-region",
+              "multiple regions",
+              "dual-region",
+              "second region",
+              "two-region"
+            ]
+          ],
+          "regions": {
+            "min": 2
+          },
+          "assumedGone": [
+            "single region",
+            "one region",
+            "single-region"
+          ],
+          "edit": {
+            "minChanged": 1
+          },
+          "asks": {
+            "max": 2,
+            "options": true
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sc-ho-dr-azure-sql",
+    "category": "need",
+    "title": "DR copy of an Azure SQL database",
+    "reference": "The Azure SQL database is an other-cloud node in an Azure group. On Alibaba Cloud: RDS for SQL Server (or another RDS engine that DTS supports as the target) as the DR copy, a private link (VPN Gateway or Express Connect) and DTS for ongoing replication. No application tier.",
+    "turns": [
+      {
+        "ask": "A DR copy of our Azure SQL database on Alibaba Cloud.",
+        "expect": {
+          "include": [
+            [
+              "other-cloud"
+            ],
+            [
+              "rds",
+              "polardb"
+            ],
+            [
+              "dts"
+            ]
+          ],
+          "noCompute": true,
+          "providerNames": [
+            "azure",
+            "microsoft"
+          ],
+          "maxNodes": 9,
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "notAsking": [
+            "dim:provider"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "sc-ho-onprem-db",
+    "category": "need",
+    "title": "Keep the app on-premises, move only the database",
+    "reference": "The on-premises application is one on-premises node. On Alibaba Cloud: RDS (or PolarDB) in two zones, linked through VPN Gateway or Express Connect, with DTS for the migration. No application tier on Alibaba Cloud.",
+    "turns": [
+      {
+        "ask": "Keep our app on-premises; move only the database.",
+        "expect": {
+          "include": [
+            [
+              "onprem-dc"
+            ],
+            [
+              "rds",
+              "polardb"
+            ],
+            [
+              "vpn-gateway",
+              "express-connect",
+              "cen"
+            ],
+            [
+              "dts"
+            ]
+          ],
+          "noCompute": true,
+          "maxNodes": 9,
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "notAsking": [
+            "dim:provider"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "sc-ho-oss-backup-aws",
+    "category": "need",
+    "title": "Alibaba Cloud object storage only, as a backup target for AWS",
+    "reference": "Everything stays on AWS as one other-cloud node in an AWS group. On Alibaba Cloud only OSS (with versioning or cross-region options if useful), reached through a private link or public endpoint. No compute or database on Alibaba Cloud.",
+    "turns": [
+      {
+        "ask": "We run everything on AWS. We only want Alibaba Cloud object storage as a backup target.",
+        "expect": {
+          "include": [
+            [
+              "other-cloud"
+            ],
+            [
+              "oss"
+            ]
+          ],
+          "noCompute": true,
+          "providerNames": [
+            "aws",
+            "amazon"
+          ],
+          "maxNodes": 7,
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "notAsking": [
+            "dim:provider"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "sc-ho-cdn-azure",
+    "category": "need",
+    "title": "CDN in front of a website that stays on Azure",
+    "reference": "The website is an other-cloud node in an Azure group. In front of it: Alibaba Cloud CDN and DNS. Nothing else is redesigned.",
+    "turns": [
+      {
+        "ask": "Only a CDN in front of our website, which stays on Azure.",
+        "expect": {
+          "include": [
+            [
+              "other-cloud"
+            ],
+            [
+              "cdn",
+              "esa"
+            ]
+          ],
+          "noCompute": true,
+          "providerNames": [
+            "azure",
+            "microsoft"
+          ],
+          "maxNodes": 7,
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "notAsking": [
+            "dim:provider"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "sc-ho-multicloud-link",
+    "category": "need",
+    "title": "Link AWS and Azure workloads to a new Alibaba Cloud network",
+    "reference": "Two other-cloud nodes (AWS and Azure, each in its own external group) joined to an Alibaba Cloud network through VPN Gateway, Express Connect, or CEN with Transit Router when several networks join. Only the network hub is drawn on Alibaba Cloud; no application tier.",
+    "turns": [
+      {
+        "ask": "We have workloads on both AWS and Azure and need them linked to a new Alibaba Cloud network so they can share data.",
+        "expect": {
+          "include": [
+            [
+              "other-cloud"
+            ],
+            [
+              "cen",
+              "vpn-gateway",
+              "express-connect"
+            ]
+          ],
+          "noCompute": true,
+          "providerNames": [
+            "aws",
+            "amazon",
+            "azure",
+            "microsoft"
+          ],
+          "maxNodes": 10,
+          "asks": {
+            "max": 2,
+            "options": true
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sc-ho-lambda-s3-trap",
+    "category": "trap",
+    "title": "Replace AWS Lambda and S3 with Alibaba Cloud equivalents",
+    "reference": "Build-here request: Lambda becomes Function Compute and S3 becomes OSS in an Alibaba Cloud design. No other-cloud node, no AWS-named labels.",
+    "turns": [
+      {
+        "ask": "Replace our AWS Lambda functions and S3 buckets with Alibaba Cloud equivalents for a new image-resize service.",
+        "expect": {
+          "include": [
+            [
+              "fc"
+            ],
+            [
+              "oss"
+            ]
+          ],
+          "exclude": [
+            "other-cloud"
+          ],
+          "providerNames": [
+            "aws",
+            "amazon",
+            "lambda",
+            "s3"
+          ],
+          "minNodes": 3,
+          "regions": {
+            "min": 1
+          },
+          "asks": {
+            "max": 2,
+            "options": true
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "as-ho-zh-store",
+    "category": "i18n",
+    "lang": "zh",
+    "title": "Online store with missing details (Chinese)",
+    "reference": "A first diagram straight away, up to three assumptions and at most two questions with quick-reply options. Say, why, assumption and question text in Chinese; product names as in the catalog.",
+    "turns": [
+      {
+        "ask": "帮我们的网上商店搭建一个 Web 应用。",
+        "expect": {
+          "minNodes": 5,
+          "regions": {
+            "min": 1
+          },
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "assumes": {
+            "min": 1,
+            "max": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "as-ho-zh-vague",
+    "category": "i18n",
+    "lang": "zh",
+    "title": "Too vague to draw (Chinese): ask first",
+    "reference": "Draws nothing. Asks one or two questions in Chinese with 2-4 quick-reply options.",
+    "turns": [
+      {
+        "ask": "我们公司需要云服务。",
+        "expect": {
+          "noNodes": true,
+          "noRecs": true,
+          "asks": {
+            "min": 1,
+            "max": 2,
+            "options": true
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "as-ho-ko-vague",
+    "category": "i18n",
+    "lang": "ko",
+    "title": "Too vague to draw (Korean): ask first",
+    "reference": "Draws nothing. Asks one or two questions in Korean with 2-4 quick-reply options.",
+    "turns": [
+      {
+        "ask": "저희 회사에서 클라우드가 필요합니다.",
+        "expect": {
+          "noNodes": true,
+          "noRecs": true,
+          "asks": {
+            "min": 1,
+            "max": 2,
+            "options": true
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sc-ho-zh-rds-aws",
+    "category": "i18n",
+    "lang": "zh",
+    "title": "Just RDS for an app that runs on AWS (Chinese)",
+    "reference": "RDS in two zones linked to an other-cloud node in an AWS group, no application tier. Text in Chinese.",
+    "turns": [
+      {
+        "ask": "我们跑在 AWS 上的应用只需要 RDS。",
+        "expect": {
+          "include": [
+            [
+              "other-cloud"
+            ],
+            [
+              "rds"
+            ]
+          ],
+          "zones": [
+            [
+              "rds"
+            ]
+          ],
+          "noCompute": true,
+          "providerNames": [
+            "aws",
+            "amazon"
+          ],
+          "maxNodes": 8,
+          "asks": {
+            "max": 2,
+            "options": true
+          }
+        }
+      }
+    ]
+  }
+]

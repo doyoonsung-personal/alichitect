@@ -1,0 +1,748 @@
+{
+  "meta": {
+    "startedAt": "2026-10-31T17:57:07.749Z",
+    "args": {
+      "runs": "6",
+      "concurrency": "6",
+      "budget": "250",
+      "cases-dir": "cases-heldout",
+      "cases": "ho-p1-residency-japan",
+      "no-judge": true,
+      "label": "p1b-japan-probe"
+    },
+    "model": "qwen3.8-max",
+    "fallbackModel": "qwen3.7-max",
+    "runsPerCase": 6,
+    "concurrency": 6,
+    "cases": 1,
+    "units": 6,
+    "catalogVersion": "2026-10-31",
+    "catalogEntries": 232,
+    "systemPromptChars": 59701,
+    "systemPromptSha256": "fabd6cb8f349caa5ec2e47b552375db0ec953b9142c4af3738e8455712a62c43",
+    "node": "v24.21.0",
+    "coreFiles": {
+      "asks.ts": "518a5cf61437",
+      "catalog-node.ts": "dade41cbd9ed",
+      "catalog.ts": "5bf2d46dc58f",
+      "constraints.ts": "eb0ddfc38ef9",
+      "diff.ts": "eaabf1ce1def",
+      "display.ts": "941ca6dec769",
+      "layout.ts": "5b76a21851a5",
+      "llm.ts": "a1a02c1e49ce",
+      "ndjson.ts": "3163a8232eaa",
+      "pricing.ts": "6fa3a32521c0",
+      "prompt.ts": "40d84fef4520",
+      "reducer.ts": "c2c1ecfd68b4",
+      "regions.ts": "c34c43b79d8c",
+      "types.ts": "c8fa50d4efdc",
+      "validate.ts": "459e177bbb84"
+    },
+    "judgeAllRunsOf": [],
+    "finishedAt": "2026-10-31T17:57:50.065Z",
+    "spentUsd": 0.180826
+  },
+  "totals": {
+    "cases": 1,
+    "conversations": 6,
+    "turns": 18,
+    "casePassRate": 0.167,
+    "passAtN": 1,
+    "majority": 0,
+    "allRuns": 0,
+    "runPassRate": 0.167,
+    "turnPassRate": 0.222,
+    "assertionPassRate": 0.91,
+    "assertions": 210,
+    "apiFailures": 0,
+    "costUsd": 0.181
+  },
+  "byCategory": {
+    "multiturn": {
+      "cases": 1,
+      "runs": 6,
+      "runPassRate": 0.167,
+      "passAtN": 1,
+      "majority": 0,
+      "allRuns": 0
+    }
+  },
+  "byLang": {
+    "en": {
+      "cases": 1,
+      "runs": 6,
+      "runPassRate": 0.167,
+      "passAtN": 1,
+      "majority": 0,
+      "allRuns": 0
+    }
+  },
+  "byAssertionType": {
+    "sayLang": {
+      "checks": 18,
+      "passed": 6,
+      "rate": 0.333,
+      "failingCases": [
+        "ho-p1-residency-japan"
+      ]
+    },
+    "req": {
+      "checks": 6,
+      "passed": 4,
+      "rate": 0.667,
+      "failingCases": [
+        "ho-p1-residency-japan"
+      ]
+    },
+    "residencyScan": {
+      "checks": 18,
+      "passed": 15,
+      "rate": 0.833,
+      "failingCases": [
+        "ho-p1-residency-japan"
+      ]
+    },
+    "retention": {
+      "checks": 18,
+      "passed": 16,
+      "rate": 0.889,
+      "failingCases": [
+        "ho-p1-residency-japan"
+      ]
+    },
+    "region": {
+      "checks": 12,
+      "passed": 12,
+      "rate": 1,
+      "failingCases": []
+    },
+    "residency": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "pins": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noErrors": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "pathOrder": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "attachValid": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "format": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "escapes": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noPrices": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failingCases": []
+    },
+    "include": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    }
+  },
+  "cases": [
+    {
+      "id": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Claims Portal for Japanese Insurance Company",
+      "runs": 6,
+      "passes": 1,
+      "passRate": 0.167,
+      "passAtN": true,
+      "majority": false,
+      "failed": {
+        "residency scan ap-northeast-1": 2,
+        "req japan|tokyo|ap-northeast-1": 2,
+        "say text in en": 4
+      },
+      "failedTypes": [
+        "residencyScan",
+        "req",
+        "sayLang",
+        "retention"
+      ],
+      "meanCostUsd": 0.03,
+      "meanMs": 33063,
+      "runPass": [
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ]
+    }
+  ],
+  "warnings": {
+    "preRepairByCode": {
+      "constraint-region": {
+        "total": 5,
+        "perTurn": 0.278,
+        "turns": 4
+      },
+      "containment": {
+        "total": 1,
+        "perTurn": 0.056,
+        "turns": 1
+      },
+      "orphan-node": {
+        "total": 1,
+        "perTurn": 0.056,
+        "turns": 1
+      }
+    },
+    "postRepairByCode": {
+      "constraint-region": {
+        "total": 1,
+        "perTurn": 0.056,
+        "turns": 1
+      }
+    },
+    "preRepairBySeverity": {
+      "warn": 4,
+      "error": 3
+    },
+    "postRepairBySeverity": {
+      "warn": 1
+    },
+    "fixesByCode": {
+      "containment": 1
+    },
+    "unknownProducts": {
+      "count": 0,
+      "top": []
+    },
+    "nonIdProducts": {
+      "count": 0,
+      "top": []
+    }
+  },
+  "latency": {
+    "firstByteMs": {
+      "n": 18,
+      "p50": 1361,
+      "p95": 1827,
+      "mean": 1379,
+      "max": 1847
+    },
+    "perceivedFirstByteMs": {
+      "n": 18,
+      "p50": 1361,
+      "p95": 1827,
+      "mean": 1379,
+      "max": 1847
+    },
+    "firstSayMs": {
+      "n": 18,
+      "p50": 1608,
+      "p95": 2150,
+      "mean": 1658,
+      "max": 2154
+    },
+    "firstOpMs": {
+      "n": 18,
+      "p50": 1958,
+      "p95": 2493,
+      "mean": 1981,
+      "max": 2511
+    },
+    "firstNodeMs": {
+      "n": 17,
+      "p50": 3501,
+      "p95": 5669,
+      "mean": 3916,
+      "max": 5995
+    },
+    "streamMs": {
+      "n": 18,
+      "p50": 6708,
+      "p95": 20603,
+      "mean": 10485,
+      "max": 21791
+    },
+    "turnMs": {
+      "n": 18,
+      "p50": 8220,
+      "p95": 20608,
+      "mean": 11018,
+      "max": 21796
+    },
+    "diagramStreamMs": {
+      "n": 18,
+      "p50": 6708,
+      "p95": 20603,
+      "mean": 10485,
+      "max": 21791
+    },
+    "productStreamMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "editStreamMs": {
+      "n": 12,
+      "p50": 5552,
+      "p95": 9229,
+      "mean": 5794,
+      "max": 11092
+    }
+  },
+  "tokens": {
+    "prompt": 342438,
+    "cached": 323840,
+    "cacheHit": 0.946,
+    "completion": 10445,
+    "completionPerTurn": {
+      "n": 18,
+      "p50": 398,
+      "p95": 1195,
+      "mean": 580,
+      "max": 1246
+    },
+    "costPerTurn": {
+      "n": 18,
+      "p50": 0.00937,
+      "p95": 0.01578,
+      "mean": 0.01005,
+      "max": 0.018792
+    },
+    "costPerConversation": {
+      "n": 6,
+      "p50": 0.02978,
+      "p95": 0.03702,
+      "mean": 0.03014,
+      "max": 0.038512000000000005
+    },
+    "costUsd": 0.181
+  },
+  "reliability": {
+    "turns": 18,
+    "truncatedMain": 0,
+    "continued": 0,
+    "repairTurns": 3,
+    "hedged": 0,
+    "hedgeWon": 0,
+    "fallbackUsed": 0,
+    "retriedAttempts": 0,
+    "apiFailures": 0,
+    "badLines": 0,
+    "escapes": 0
+  },
+  "failover": {
+    "turns": 0,
+    "rate": 0,
+    "byReason": {},
+    "stalledAttemptMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "fallbackFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "perceivedFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "turnMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "followUpFallbacks": 0,
+    "examples": []
+  },
+  "cutoff": {
+    "truncated": 0,
+    "byCause": {},
+    "rescued": 0,
+    "notRescued": 0,
+    "rescuedPassing": 0,
+    "turnPassRateExcludingRescued": 0.222,
+    "list": []
+  },
+  "constraints": {
+    "residency": {
+      "checks": 18,
+      "passed": 18,
+      "rate": 1,
+      "failing": [],
+      "warnMentions": 2,
+      "correctedByRepair": 3,
+      "scan": {
+        "checks": 18,
+        "passed": 15,
+        "failing": [
+          {
+            "case": "ho-p1-residency-japan",
+            "run": 1,
+            "turn": 2,
+            "detail": "say analytics: Singapore in \"Runs dashboards from Singapore over private link\""
+          },
+          {
+            "case": "ho-p1-residency-japan",
+            "run": 1,
+            "turn": 3,
+            "detail": "say analytics: Singapore in \"Runs dashboards from Singapore over private link\""
+          },
+          {
+            "case": "ho-p1-residency-japan",
+            "run": 6,
+            "turn": 2,
+            "detail": "say : cross-region in \"Pinned residency rule blocks cross-region replication\""
+          }
+        ]
+      }
+    },
+    "pins": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failing": []
+    },
+    "avoid": {
+      "checks": 0,
+      "passed": 0,
+      "rate": 0
+    },
+    "product": {
+      "turnsWithConstraints": 18,
+      "findingsBefore": {
+        "constraint-region": {
+          "total": 5,
+          "turns": 4,
+          "error": 3
+        }
+      },
+      "findingsAfter": {
+        "constraint-region": {
+          "total": 1,
+          "turns": 1,
+          "error": 0
+        }
+      }
+    }
+  },
+  "repairs": {
+    "fixesByCode": {
+      "containment": {
+        "total": 1,
+        "turns": 1
+      }
+    },
+    "followUps": {
+      "turns": 3,
+      "byKind": {
+        "repair": 3
+      },
+      "byFindingCode": {
+        "constraint-region": 3,
+        "orphan-node": 1
+      },
+      "list": [
+        {
+          "case": "ho-p1-residency-japan",
+          "run": 1,
+          "turn": 2,
+          "kind": "repair",
+          "model": "qwen3.8-max",
+          "findings": [
+            "constraint-region/warn: a say line names Singapore (ap-southeast-1): \"I cannot replicate policyholder data to Singapore\"; the pinned regions are Tokyo (ap-northeast-1) (\"All policyholder data must remain physically withi",
+            "constraint-region/error: a say line pairs Singapore (ap-southeast-1) with \"replica\": \"I'll add a read replica in Tokyo and connect the Singapore analytics team via Express Con…\"; the pinned regions are Tokyo (ap-northeas"
+          ],
+          "pass": false
+        },
+        {
+          "case": "ho-p1-residency-japan",
+          "run": 4,
+          "turn": 2,
+          "kind": "repair",
+          "model": "qwen3.8-max",
+          "findings": [
+            "orphan-node/warn: 'nat' (nat) has no connections",
+            "constraint-region/error: 'analytics' is labelled \"SG analytics team\", which places it in Singapore (ap-southeast-1); the pinned regions are Tokyo (ap-northeast-1) (\"All policyholder data must remain physically within Jap"
+          ],
+          "pass": false
+        },
+        {
+          "case": "ho-p1-residency-japan",
+          "run": 2,
+          "turn": 2,
+          "kind": "repair",
+          "model": "qwen3.8-max",
+          "findings": [
+            "constraint-region/error: region group 'singapore' (Singapore (ap-southeast-1)) is in Singapore (ap-southeast-1) and holds analytics, tr-sg; the pinned regions are Tokyo (ap-northeast-1) (\"すべての契約者データは日本国内（東京）に物理的に留まる必要がある"
+          ],
+          "pass": false
+        }
+      ]
+    }
+  },
+  "i18n": {
+    "en": {
+      "turns": 18,
+      "completionPerTurn": 580,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 19024,
+      "sayLangPass": 6,
+      "sayLangChecks": 18,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    }
+  },
+  "multiturn": [
+    {
+      "case": "ho-p1-residency-japan",
+      "turns": 3,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 12,
+          "passed": 10
+        },
+        {
+          "turn": 2,
+          "checks": 18,
+          "passed": 16
+        },
+        {
+          "turn": 3,
+          "checks": 12,
+          "passed": 12
+        }
+      ],
+      "finalPassRate": 0.167
+    }
+  ],
+  "judge": {
+    "model": null,
+    "judged": 0,
+    "runsJudged": 0,
+    "constraintRuns": null,
+    "errors": 0,
+    "means": null,
+    "signoffRate": null,
+    "byCategory": {},
+    "agreement": null,
+    "costUsd": 0
+  },
+  "failures": [
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 5,
+      "turn": 1,
+      "type": "req",
+      "name": "req japan|tokyo|ap-northeast-1",
+      "detail": "pinned: [\"全ポリシーホルダーデータは常に日本国内（東京）に物理的に保持する必要がある\"]"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 5,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in en",
+      "detail": "share 0.00 of 60 letters {\"hangul\":0,\"han\":29,\"kana\":31,\"latin\":0}"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 5,
+      "turn": 2,
+      "type": "retention",
+      "name": "req japan|tokyo|ap-northeast-1",
+      "detail": "pinned: [\"全ポリシーホルダーデータは常に日本国内（東京）に物理的に保持する必要がある\"]"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 5,
+      "turn": 2,
+      "type": "sayLang",
+      "name": "say text in en",
+      "detail": "share 0.00 of 36 letters {\"hangul\":0,\"han\":11,\"kana\":25,\"latin\":0}"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 5,
+      "turn": 3,
+      "type": "sayLang",
+      "name": "say text in en",
+      "detail": "share 0.00 of 40 letters {\"hangul\":0,\"han\":12,\"kana\":28,\"latin\":0}"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 1,
+      "turn": 2,
+      "type": "residencyScan",
+      "name": "residency scan ap-northeast-1",
+      "detail": "say analytics: Singapore in \"Runs dashboards from Singapore over private link\""
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 1,
+      "turn": 3,
+      "type": "residencyScan",
+      "name": "residency scan ap-northeast-1",
+      "detail": "say analytics: Singapore in \"Runs dashboards from Singapore over private link\""
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 6,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in en",
+      "detail": "share 0.06 of 88 letters {\"hangul\":0,\"han\":32,\"kana\":51,\"latin\":5}"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 6,
+      "turn": 2,
+      "type": "residencyScan",
+      "name": "residency scan ap-northeast-1",
+      "detail": "say : cross-region in \"Pinned residency rule blocks cross-region replication\""
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 6,
+      "turn": 2,
+      "type": "sayLang",
+      "name": "say text in en",
+      "detail": "share 0.00 of 65 letters {\"hangul\":0,\"han\":28,\"kana\":37,\"latin\":0}"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 6,
+      "turn": 3,
+      "type": "sayLang",
+      "name": "say text in en",
+      "detail": "share 0.00 of 32 letters {\"hangul\":0,\"han\":8,\"kana\":24,\"latin\":0}"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 4,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in en",
+      "detail": "share 0.00 of 60 letters {\"hangul\":0,\"han\":26,\"kana\":34,\"latin\":0}"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 4,
+      "turn": 2,
+      "type": "sayLang",
+      "name": "say text in en",
+      "detail": "share 0.06 of 109 letters {\"hangul\":0,\"han\":29,\"kana\":73,\"latin\":7}"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 4,
+      "turn": 3,
+      "type": "sayLang",
+      "name": "say text in en",
+      "detail": "share 0.00 of 56 letters {\"hangul\":0,\"han\":13,\"kana\":43,\"latin\":0}"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 2,
+      "turn": 1,
+      "type": "req",
+      "name": "req japan|tokyo|ap-northeast-1",
+      "detail": "pinned: [\"すべての契約者データは日本国内（東京）に物理的に留まる必要がある\"]"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in en",
+      "detail": "share 0.08 of 62 letters {\"hangul\":0,\"han\":23,\"kana\":34,\"latin\":5}"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 2,
+      "turn": 2,
+      "type": "retention",
+      "name": "req japan|tokyo|ap-northeast-1",
+      "detail": "pinned: [\"すべての契約者データは日本国内（東京）に物理的に留まる必要がある\"]"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 2,
+      "turn": 2,
+      "type": "sayLang",
+      "name": "say text in en",
+      "detail": "share 0.00 of 111 letters {\"hangul\":0,\"han\":38,\"kana\":73,\"latin\":0}"
+    },
+    {
+      "case": "ho-p1-residency-japan",
+      "category": "multiturn",
+      "run": 2,
+      "turn": 3,
+      "type": "sayLang",
+      "name": "say text in en",
+      "detail": "share 0.00 of 40 letters {\"hangul\":0,\"han\":12,\"kana\":28,\"latin\":0}"
+    }
+  ]
+}

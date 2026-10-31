@@ -26,6 +26,8 @@ import type { ApplyCtx } from './reducer.ts';
 import { checkGraph, constraintChecker, repairGraph, validateOp } from './validate.ts';
 import { impliedLifts, mergeConstraintsDetailed } from './constraints.ts';
 import { diffGraphs } from './diff.ts';
+import { ASK_LIMITS, latestById, mergeAssumptions } from './asks.ts';
+import type { Assumption, Question } from './asks.ts';
 import {
   CONSTRAINT_CODES,
   DEFAULT_MAX_ASK_CHARS,
@@ -261,6 +263,10 @@ export interface StreamResult {
   /** Machine-checkable form of the req ops that carried regions or avoid (as the validator sanitized them). */
   constraints: Constraint[];
   gaps: Array<{ need: string; note: string }>;
+  /** The assume ops of the stream, as validated (limits applied); the same id replaces. */
+  assumptions: Assumption[];
+  /** The ask ops of the stream, as validated (limits applied); the same id replaces. */
+  questions: Question[];
   summary: string | null;
   doneSeen: boolean;
   /** The stream ended without a done op: cut off by a watchdog or an error, or the model stopped on its own. */
@@ -563,6 +569,8 @@ export async function streamTurn(o: StreamTurnOptions): Promise<StreamResult> {
     reqs: [],
     constraints: [],
     gaps: [],
+    assumptions: [],
+    questions: [],
     summary: null,
     doneSeen: false,
     truncated: true,
@@ -623,6 +631,8 @@ export async function streamTurn(o: StreamTurnOptions): Promise<StreamResult> {
         r.constraints.push(c);
       }
     } else if (op.t === 'gap') r.gaps.push({ need: op.need, note: op.note });
+    else if (op.t === 'assume') r.assumptions = latestById([...r.assumptions, op.alt ? { id: op.id, text: op.text, alt: op.alt } : { id: op.id, text: op.text }], ASK_LIMITS.assumePerTurn);
+    else if (op.t === 'ask') r.questions = latestById([...r.questions, op.options ? { id: op.id, text: op.text, options: op.options } : { id: op.id, text: op.text }], ASK_LIMITS.askPerTurn);
     else if (op.t === 'done') {
       r.summary = op.summary;
       r.doneSeen = true;
@@ -941,6 +951,10 @@ export interface RunTurnResult {
   /** Constraints pinned this turn (req ops with regions or avoid); memory.constraints already holds them merged. */
   constraints: Constraint[];
   gaps: Array<{ need: string; note: string }>;
+  /** The assume ops of this turn (limits applied); memory.assumptions already holds them merged by id. */
+  assumptions: Assumption[];
+  /** The ask ops of this turn (limits applied); memory.questions holds exactly these, replacing the earlier ones. */
+  questions: Question[];
   rawProducts: string[];
   /** Net change of the turn (memory.graph before -> after repair). */
   diff: ApplyResult;
@@ -1194,6 +1208,8 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
       m.reqs.push(...s.reqs);
       m.constraints.push(...s.constraints);
       m.gaps.push(...s.gaps);
+      m.assumptions = latestById([...m.assumptions, ...s.assumptions], ASK_LIMITS.assumePerTurn); // the follow-up has its own reducer ctx, so the per-turn caps are applied again here
+      m.questions = latestById([...m.questions, ...s.questions], ASK_LIMITS.askPerTurn);
       m.rawProducts.push(...s.rawProducts);
       // Say lines of the main reply that broke a constraint were reported and corrected; only an uncorrected reply is checked again.
       warningsAfter = dedupe([...remaining(s.warnings, rep2.warnings, finalGraph, catalog), ...checkC(finalGraph, s.says.length ? s.says : m.says, pinned)]);
@@ -1215,6 +1231,10 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
       tombstones: [...(memory.tombstones ?? []), ...diff.tombstones].slice(-80),
     };
     if (pinned.length) next.constraints = pinned;
+    // Assumptions persist by id until a pinned requirement settles them; questions are replaced every assistant turn.
+    const assumptions = mergeAssumptions(memory.assumptions ?? [], m.assumptions, next.requirements);
+    if (assumptions.length) next.assumptions = assumptions;
+    if (m.questions.length) next.questions = m.questions;
     if (memory.summary) next.summary = memory.summary;
     if (opts.summarize && !aborted()) next = await foldSummary(next, window, { ...opts, onStatus: status }, typeof opts.summarize === 'object' ? opts.summarize.model : undefined);
   }
@@ -1262,6 +1282,8 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     reqs: m.reqs,
     constraints: m.constraints,
     gaps: m.gaps,
+    assumptions: m.assumptions,
+    questions: m.questions,
     rawProducts: m.rawProducts,
     diff,
     changes,

@@ -1,0 +1,470 @@
+[
+  {
+    "id": "as-01-vague-company",
+    "category": "need",
+    "title": "Too vague to pick any pattern: ask before drawing",
+    "reference": "Draws nothing. Asks one or two questions whose answers decide the pattern (what the company wants to run, who uses it), each with 2-4 quick-reply options such as a website, internal systems, data and analytics, an AI assistant.",
+    "turns": [
+      {
+        "ask": "We need cloud for our company.",
+        "expect": {
+          "noNodes": true,
+          "noRecs": true,
+          "asks": {
+            "min": 1,
+            "max": 2,
+            "options": true
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "as-02-store",
+    "category": "pattern",
+    "title": "Online store with missing details: draw first, assume, ask at most two",
+    "reference": "A complete first diagram straight away (users, edge protection, load balancer, compute, database, object storage, monitoring) in Singapore or another sensible default region. Up to three assumptions shown as chips (public-facing, region, scale) and at most two questions with quick-reply options, for example where the shoppers are.",
+    "turns": [
+      {
+        "ask": "Build a web app for our online store.",
+        "expect": {
+          "minNodes": 5,
+          "regions": {
+            "min": 1
+          },
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "assumes": {
+            "min": 1,
+            "max": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "as-03-fully-stated",
+    "category": "need",
+    "title": "Everything stated: no ask ops and no restated assumptions",
+    "reference": "A two-zone public online store in Singapore for about 10,000 daily users: CDN, application load balancer, ECS, a MySQL-compatible database and object storage for images. The request names exposure, region, scale, availability and every tier, so there is nothing to ask; assumptions, if any, cover only things the user did not say.",
+    "turns": [
+      {
+        "ask": "Draw a public online store for about 10,000 daily users. Put it in Singapore only, a single region with two zones. Use ECS servers behind an application load balancer, a MySQL-compatible database, object storage for the product images and a CDN. There are no other requirements.",
+        "expect": {
+          "minNodes": 5,
+          "regions": {
+            "only": [
+              "singapore",
+              "ap-southeast-1"
+            ],
+            "min": 1
+          },
+          "asks": {
+            "max": 0
+          },
+          "notAssuming": [
+            "public",
+            "singapore",
+            "10,000",
+            "10k",
+            "mysql",
+            "two zones",
+            "single region",
+            "ecs",
+            "cdn"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "as-04-answer-vague",
+    "category": "multiturn",
+    "title": "Answer to the question-first turn: the design appears and the question is not asked again",
+    "reference": "Turn 1 asks and draws nothing. Turn 2 draws a public website on Alibaba Cloud in Singapore with a database, without asking again about exposure, region or traffic that the user just stated.",
+    "turns": [
+      {
+        "ask": "Our company needs cloud infrastructure.",
+        "expect": {
+          "noNodes": true,
+          "asks": {
+            "min": 1,
+            "max": 2,
+            "options": true
+          }
+        }
+      },
+      {
+        "ask": "It is a public website for our customers, about 5,000 visitors a day, in Singapore, and it needs a database.",
+        "expect": {
+          "minNodes": 4,
+          "include": [
+            [
+              "rds",
+              "polardb",
+              "mongodb",
+              "tair"
+            ]
+          ],
+          "regions": {
+            "min": 1
+          },
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "notAsking": [
+            "dim:exposure",
+            "dim:region",
+            "dim:scale",
+            "singapore"
+          ],
+          "notAssuming": [
+            "public",
+            "singapore",
+            "5,000"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "as-05-flip-internal",
+    "category": "multiturn",
+    "title": "Flip the public-facing assumption to internal only",
+    "reference": "Turn 1 draws the store with a public front door and shows an assumption chip (public-facing, alternative internal only). Turn 2 pins \"internal only\" as a requirement, removes the public entry path (CDN, ESA, public WAF) or replaces it with private access (VPN Gateway, Express Connect or an internal load balancer), and the public-facing chip is gone.",
+    "turns": [
+      {
+        "ask": "Build a web app for our online store in Singapore for about 10,000 daily users.",
+        "expect": {
+          "minNodes": 5,
+          "regions": {
+            "min": 1
+          },
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "assumes": {
+            "max": 3
+          }
+        }
+      },
+      {
+        "ask": "Change: Internal only instead of Public-facing",
+        "expect": {
+          "req": [
+            [
+              "internal only",
+              "internal",
+              "private",
+              "not public",
+              "no public"
+            ]
+          ],
+          "exclude": [
+            "cdn",
+            "esa"
+          ],
+          "assumedGone": [
+            "public-facing",
+            "public facing",
+            "public internet",
+            "publicly"
+          ],
+          "edit": {
+            "minChanged": 1
+          },
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "notAsking": [
+            "dim:exposure"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "sc-01-rds-aws",
+    "category": "need",
+    "title": "Just RDS for an app that runs on AWS",
+    "reference": "Only the database on Alibaba Cloud: RDS in two zones in a VPC, linked to an other-cloud node labelled as the AWS app servers inside a group named AWS, through VPN Gateway (quick start) or Express Connect, optionally DTS. No application tier, load balancer or web server on Alibaba Cloud. Only the other-cloud node and its group carry the name AWS.",
+    "turns": [
+      {
+        "ask": "Just RDS for our app that runs on AWS.",
+        "expect": {
+          "include": [
+            [
+              "other-cloud"
+            ],
+            [
+              "rds"
+            ],
+            [
+              "vpn-gateway",
+              "express-connect",
+              "cen",
+              "dts"
+            ]
+          ],
+          "linked": [
+            {
+              "from": [
+                "other-cloud"
+              ],
+              "to": [
+                "rds",
+                "vpn-gateway",
+                "express-connect",
+                "cen",
+                "dts"
+              ]
+            }
+          ],
+          "zones": [
+            [
+              "rds"
+            ]
+          ],
+          "noCompute": true,
+          "providerNames": [
+            "aws",
+            "amazon"
+          ],
+          "maxNodes": 8,
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "notAsking": [
+            "dim:provider"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "sc-02-rds-aws-migrate",
+    "category": "need",
+    "title": "RDS on Alibaba Cloud with DTS migration from AWS",
+    "reference": "RDS PostgreSQL in two zones on Alibaba Cloud, an other-cloud node for the AWS database in an AWS group, a private link (VPN Gateway or Express Connect) and DTS for the migration and ongoing sync. No application tier on Alibaba Cloud.",
+    "turns": [
+      {
+        "ask": "Just RDS for our app on AWS. Migrate our existing PostgreSQL database from AWS RDS to it and keep it in sync for now.",
+        "expect": {
+          "include": [
+            [
+              "other-cloud"
+            ],
+            [
+              "rds"
+            ],
+            [
+              "dts"
+            ]
+          ],
+          "zones": [
+            [
+              "rds"
+            ]
+          ],
+          "noCompute": true,
+          "providerNames": [
+            "aws",
+            "amazon"
+          ],
+          "maxNodes": 9,
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "notAsking": [
+            "dim:provider"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "sc-03-waf-cdn-gcp",
+    "category": "need",
+    "title": "Only WAF and CDN in front of a Google Cloud site",
+    "reference": "The existing Google Cloud site is one other-cloud node inside a Google Cloud group. In front of it: Alibaba Cloud CDN and WAF (or ESA, which bundles both), with DNS for the domain. No compute, database or storage tier is redesigned. Only the other-cloud node and its group carry the name Google Cloud.",
+    "turns": [
+      {
+        "ask": "Only WAF and CDN in front of our Google Cloud site.",
+        "expect": {
+          "include": [
+            [
+              "other-cloud"
+            ],
+            [
+              "cdn",
+              "esa"
+            ],
+            [
+              "waf",
+              "esa"
+            ]
+          ],
+          "noCompute": true,
+          "providerNames": [
+            "google cloud",
+            "gcp",
+            "google"
+          ],
+          "maxNodes": 8,
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "notAsking": [
+            "dim:provider"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "sc-04-ec2-s3-trap",
+    "category": "trap",
+    "title": "EC2 and S3 to be built on Alibaba Cloud still map to ECS and OSS",
+    "reference": "Build-here request: EC2 becomes ECS and S3 becomes OSS in a normal Alibaba Cloud design. No other-cloud node, no AWS-named labels.",
+    "turns": [
+      {
+        "ask": "We want to use EC2 and S3 for our new app, built on Alibaba Cloud.",
+        "expect": {
+          "include": [
+            [
+              "ecs"
+            ],
+            [
+              "oss"
+            ]
+          ],
+          "exclude": [
+            "other-cloud"
+          ],
+          "providerNames": [
+            "aws",
+            "amazon",
+            "ec2",
+            "s3"
+          ],
+          "minNodes": 4,
+          "regions": {
+            "min": 1
+          },
+          "asks": {
+            "max": 2,
+            "options": true
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sc-05-onprem-lb-waf",
+    "category": "need",
+    "title": "Load balancer and WAF in front of on-premises servers",
+    "reference": "The on-premises servers are one on-premises node. In front of them on Alibaba Cloud: WAF with a load balancer (ALB or NLB), linked through VPN Gateway or Express Connect or a public-facing entry as the design suits, with DNS. No Alibaba Cloud compute tier.",
+    "turns": [
+      {
+        "ask": "Only a load balancer and WAF in front of our on-premises servers.",
+        "expect": {
+          "include": [
+            [
+              "onprem-dc"
+            ],
+            [
+              "alb",
+              "nlb",
+              "clb"
+            ],
+            [
+              "waf"
+            ]
+          ],
+          "noCompute": true,
+          "maxNodes": 9,
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "notAsking": [
+            "dim:provider"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "as-ko-02-store",
+    "category": "i18n",
+    "lang": "ko",
+    "of": "as-02-store",
+    "title": "Online store with missing details (Korean)",
+    "reference": "Same as the English case: a first diagram straight away, up to three assumptions and at most two questions with quick-reply options. Say, why, assumption and question text in Korean; product names as in the catalog.",
+    "turns": [
+      {
+        "ask": "온라인 스토어용 웹 앱 구축해 주세요.",
+        "expect": {
+          "minNodes": 5,
+          "regions": {
+            "min": 1
+          },
+          "asks": {
+            "max": 2,
+            "options": true
+          },
+          "assumes": {
+            "min": 1,
+            "max": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "sc-ko-01-rds-aws",
+    "category": "i18n",
+    "lang": "ko",
+    "of": "sc-01-rds-aws",
+    "title": "Just RDS for an app that runs on AWS (Korean)",
+    "reference": "Same as the English case: RDS in two zones linked to an other-cloud node in an AWS group, no application tier. Text in Korean.",
+    "turns": [
+      {
+        "ask": "저희 앱은 AWS에서 돌아가는데, RDS만 필요합니다.",
+        "expect": {
+          "include": [
+            [
+              "other-cloud"
+            ],
+            [
+              "rds"
+            ]
+          ],
+          "zones": [
+            [
+              "rds"
+            ]
+          ],
+          "noCompute": true,
+          "providerNames": [
+            "aws",
+            "amazon"
+          ],
+          "maxNodes": 8,
+          "asks": {
+            "max": 2,
+            "options": true
+          }
+        }
+      }
+    ]
+  }
+]

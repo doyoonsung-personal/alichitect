@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { loadCatalog, readCatalogFile } from '../src/catalog-node.ts';
-import { LANE_ORDER, SCOPE_ORDER, catalogKeyConflicts, createCatalog, estimateTokens, isRecommendable, normalizeKey } from '../src/catalog.ts';
+import { LANE_ORDER, SCOPE_ORDER, catalogKeyConflicts, checkLifecycle, createCatalog, estimateTokens, isRecommendable, normalizeKey, placementOf } from '../src/catalog.ts';
 import type { CatalogEntry } from '../src/types.ts';
 
 const products = readCatalogFile('products.json');
@@ -97,13 +97,18 @@ test('every entry has scope, lane, icon, a purpose of at most 16 words and a ver
 });
 
 test('constructs are present and drawn outside the cloud', () => {
-  const ids = ['users', 'mobile-app', 'iot-devices', 'onprem-dc', 'branch-office', 'third-party-api'];
+  const ids = ['users', 'mobile-app', 'iot-devices', 'onprem-dc', 'branch-office', 'third-party-api', 'other-cloud'];
   for (const id of ids) {
     const e = get(id);
     assert.equal(e.kind, 'construct', id);
     assert.equal(e.scope, 'external', id);
   }
   assert.equal(get('users').pathRank, 0);
+  // other clouds (research/phase1-asks-and-scope.md, section 2): external scope in the onprem lane, so a node sits in an external group named for the provider
+  assert.equal(get('other-cloud').lane, 'onprem');
+  assert.equal(placementOf(get('other-cloud')).container, 'onprem');
+  assert.deepEqual(placementOf(get('other-cloud')).targets, ['onprem', 'external']);
+  assert.equal(get('other-cloud').pathRank, undefined);
   assert.deepEqual(all.filter((e) => e.kind === 'construct').map((e) => e.id).sort(), [...ids].sort());
 });
 
@@ -177,7 +182,7 @@ test('placement follows seed section E with the fact-check corrections', () => {
   assert.ok(get('ess').attach!.hosts.includes('ecs'));
   // R2 regional managed services stay outside the VPC
   for (const id of ['oss', 'sls', 'cloudmonitor', 'arms', 'prometheus', 'grafana', 'opentelemetry', 'security-center', 'kms', 'acr', 'maxcompute', 'hologres', 'dataworks',
-    'datahub', 'dlf', 'quick-bi', 'datav', 'model-studio', 'pai', 'dashvector', 'opensearch', 'eventbridge', 'smq', 'cloudflow', 'schedulerx', 'fc', 'tablestore', 'dts',
+    'datahub', 'dlf', 'quick-bi', 'datav', 'model-studio', 'pai', 'pai-eas', 'pai-dlc', 'pai-dsw', 'pai-model-gallery', 'pai-instant', 'pai-token-service', 'dashvector', 'opensearch', 'eventbridge', 'smq', 'cloudflow', 'schedulerx', 'fc', 'tablestore', 'dts',
     'dms', 'das', 'agentrun', 'agentbay', 'agentcore', 'agentloop', 'starops', 'imm', 'mqtt', 'iot-platform']) {
     assert.ok(get(id).scope !== 'vpc' && get(id).scope !== 'vpc-edge', `${id} must not be VPC-scoped`);
   }
@@ -287,7 +292,7 @@ test('resolve: unknown or empty references give unknown-product', () => {
 test('resolve: ids from the recorded probe streams', () => {
   const map: Record<string, string> = {
     anti_ddos: 'anti-ddos-proxy', api_gateway: 'cloud-native-api-gateway', auto_scaling: 'ess', cloud_firewall: 'cloud-firewall', model_studio: 'model-studio',
-    quick_bi: 'quick-bi', security_center: 'security-center', third_party: 'third-party-api', analyticdb_pg: 'analyticdb', pai_eas: 'pai',
+    quick_bi: 'quick-bi', security_center: 'security-center', third_party: 'third-party-api', analyticdb_pg: 'analyticdb', pai_eas: 'pai-eas',
   };
   for (const [q, want] of Object.entries(map)) assert.equal(catalog.resolve(q).entry?.id, want, q);
 });
@@ -322,6 +327,126 @@ test('promptRows: one row per recommendable entry, ordered by scope then lane, u
   const shuffled = createCatalog({ version: products.version, entries: [...offerings.entries].reverse() }, { version: offerings.version, entries: [...products.entries].reverse() });
   assert.equal(shuffled.promptRows(), text);
   assert.equal(catalog.promptRows(), text);
+});
+
+test('AI depth: PAI stages are separate entries and the umbrella keeps no stage aliases', () => {
+  for (const id of ['pai-eas', 'pai-dlc', 'pai-dsw', 'pai-model-gallery', 'pai-token-service']) {
+    const e = get(id);
+    assert.equal(e.kind, 'service', id);
+    assert.equal(e.scope, 'region', id);
+    assert.equal(e.lane, 'ai', id);
+    assert.equal(e.status, 'ga', id);
+    assert.equal(e.pathRank, undefined, `${id} is called by apps, so it has no fixed request-path rank`);
+  }
+  for (const id of ['pai-eas', 'pai-dlc', 'pai-dsw']) assert.equal(get(id).vpcAttachable, true, id);
+  const cases: Array<[string, string]> = [['EAS', 'pai-eas'], ['PAI-EAS', 'pai-eas'], ['Elastic Algorithm Service', 'pai-eas'], ['DLC', 'pai-dlc'], ['PAI-DLC', 'pai-dlc'],
+    ['PAI-DSW', 'pai-dsw'], ['Data Science Workshop', 'pai-dsw'], ['Model Gallery', 'pai-model-gallery'], ['PAI QuickStart', 'pai-model-gallery'], ['PAI Studio', 'pai'],
+    ['Platform for AI', 'pai'], ['Token Service', 'pai-token-service']];
+  for (const [q, want] of cases) assert.equal(catalog.resolve(q).entry?.id, want, q);
+  const pai = get('pai');
+  for (const stale of ['PAI-EAS', 'EAS', 'pai_eas', 'PAI-DSW', 'PAI-DLC', 'Model Gallery']) assert.ok(!pai.aliases.includes(stale), `pai must not keep the alias ${stale}`);
+  assert.ok(['pai-dsw', 'pai-dlc', 'pai-eas'].every((id) => pai.pairsWith?.includes(id)));
+  // PAI Token Service is not Model Studio: no Singapore region is claimed (only the Beijing endpoint is confirmed), and the two point at each other
+  assert.equal(get('pai-token-service').regions, undefined);
+  assert.ok(get('model-studio').alternatives?.includes('pai-token-service') && get('model-studio').alternatives?.includes('pai-eas'));
+  assert.match(get('pai-token-service').price?.summary ?? '', /1\.2 times/);
+  assert.match(get('pai-token-service').avoidWhen ?? '', /model-studio/);
+  assert.match(get('model-studio').avoidWhen ?? '', /PAI-EAS/);
+  // nothing in the catalog still points at the umbrella where a stage is meant
+  for (const id of ['egs', 'cpfs', 'ai-gateway', 'lingjun']) assert.ok(!(get(id).pairsWith ?? []).concat(get(id).alternatives ?? []).includes('pai'), `${id} still names the umbrella`);
+});
+
+test('AI depth: PAI-Instant is a china-only guard and LangStudio redirects to PAI-EAS with its retirement date', () => {
+  const inst = get('pai-instant');
+  assert.equal(inst.availability, 'china-only');
+  assert.equal(checkLifecycle(inst, catalog.byId).availability?.code, 'china-only');
+  assert.equal(catalog.resolve('PAI Sandbox').entry?.id, 'pai-instant');
+  assert.match(catalog.promptRows().split('\n').find((r) => r.startsWith('pai-instant |')) ?? '', /\[china-only\]/);
+  const ls = catalog.resolve('LangStudio');
+  assert.equal(ls.entry?.id, 'pai-eas');
+  assert.equal(ls.via, 'successor');
+  assert.equal(ls.warning?.code, 'retired-product');
+  assert.match(ls.warning?.msg ?? '', /2027-03-09/);
+  assert.ok(!isRecommendable(get('pai-langstudio')));
+});
+
+test('AI depth: Agent Sandbox is GA in two editions that cite the standalone docs, with no GPU', () => {
+  const flash = get('agent-sandbox');
+  const box = get('acs-agent-sandbox');
+  for (const e of [flash, box]) {
+    assert.equal(e.status, 'ga', `${e.id} was commercialised on 2026-09-21`);
+    assert.equal(e.kind, 'offering', e.id);
+    assert.equal(e.availability, 'intl', e.id);
+    assert.ok(e.regions?.includes('ap-southeast-1'), `${e.id} is in Singapore`);
+    assert.match(e.docs ?? '', /^https:\/\/www\.alibabacloud\.com\/help\/en\/agent-sandbox\//, `${e.id} cites the standalone product docs, never the stale ACS user-guide page`);
+    assert.match(e.note ?? '', /no GPU/i, e.id);
+    assert.match(e.note ?? '', /2026-09-21/, e.id);
+    assert.ok(!/preview/i.test(`${e.purpose} ${e.useWhen} ${e.avoidWhen}`), `${e.id}: no preview wording in the model-facing text`);
+  }
+  assert.match(box.note ?? '', /stale public-preview banner/);
+  assert.equal(box.scope, 'vpc');
+  assert.equal(box.lane, 'compute');
+  assert.equal(box.pathRank, 40);
+  assert.equal(flash.scope, 'region');
+  assert.equal(flash.name, 'Agent Sandbox (Flash Edition)');
+  assert.ok(flash.alternatives?.includes('acs-agent-sandbox') && box.alternatives?.includes('agent-sandbox'));
+  assert.ok(get('acs').pairsWith?.includes('acs-agent-sandbox'));
+  assert.equal(catalog.resolve('ACS Agent Sandbox').entry?.id, 'acs-agent-sandbox');
+  assert.equal(catalog.resolve('SandboxSet').entry?.id, 'acs-agent-sandbox');
+  assert.equal(catalog.resolve('E2B sandbox').entry?.id, 'agent-sandbox');
+  assert.equal(catalog.resolve('Agent Sandbox').entry?.id, 'agent-sandbox');
+  assert.equal(catalog.resolve('FC Agent Sandbox').entry?.id, 'agent-sandbox');
+  assert.ok(!/ACS Agent Sandbox/i.test(flash.aliases.join('|')), 'the ACS alias belongs to the Container edition');
+  assert.match(get('agentbay').alternatives?.join(',') ?? '', /agent-sandbox/);
+});
+
+test('AI depth: GPU notes name only what Singapore sells, and Lingjun is allowlist-only', () => {
+  for (const id of ['egs', 'pai-eas']) {
+    const n = get(id).note ?? '';
+    assert.match(n, /A10, T4, V100 and P100/, id);
+    assert.match(n, /L20 and H20 (\(gn8is, gn8v\) )?are sales-negotiated/, id);
+    assert.match(n, /A100, A800, H100 and H800 are never offered internationally/, id);
+  }
+  assert.match(get('acs').note ?? '', /invitational preview/);
+  assert.match(get('acs').note ?? '', /T4 and A10 only/);
+  // the model-facing text never names a GPU model
+  for (const e of all.filter(isRecommendable)) assert.ok(!/\b(A100|A800|H100|H800|H20|L20)\b/.test(`${e.purpose} ${e.useWhen ?? ''} ${e.avoidWhen ?? ''}`), `${e.id}: GPU model in model-facing text`);
+  const l = get('lingjun');
+  assert.match(l.purpose, /Allowlist-only/);
+  assert.match(l.avoidWhen ?? '', /PoCs and demos/);
+  assert.match(l.avoidWhen ?? '', /pai-dlc/);
+  assert.match(l.note ?? '', /no pay-as-you-go/);
+  assert.match(l.note ?? '', /whole machines by the week/);
+  assert.match(get('pai-dlc').useWhen ?? '', /no allowlist/);
+});
+
+test('AI depth: other-cloud nodes are labelled per provider; EC2 and S3 still mean a build on Alibaba Cloud', () => {
+  const oc = get('other-cloud');
+  assert.equal(oc.name, 'Other cloud environment');
+  for (const q of ['AWS', 'Azure', 'Google Cloud', 'GCP', 'Other cloud', 'Multi-cloud']) assert.equal(catalog.resolve(q).entry?.id, 'other-cloud', q);
+  assert.equal(catalog.resolve('S3').entry?.id, 'oss', 'S3 stays an OSS alias, so a build on Alibaba Cloud keeps mapping to the Alibaba product');
+  for (const q of ['EC2', 'Lambda']) assert.notEqual(catalog.resolve(q).entry?.id, 'other-cloud', `${q} must not become an other-cloud node`);
+  assert.match(oc.useWhen ?? '', /keeps part of their system/);
+  for (const id of ['vpn-gateway', 'express-connect', 'cen', 'dts']) assert.ok(oc.pairsWith?.includes(id), `other-cloud pairs with ${id}`);
+  assert.match(oc.note ?? '', /provider and the role/);
+});
+
+// Docs links were confirmed 2026-11-01, one GET each on alibabacloud.com/help/en with a 200 and a matching page title. An entry stays
+// without a link rather than guess one; this list is those entries (no matching page on the international site was found).
+const NO_DOCS = ['accio-work', 'cloud-application-platform', 'cloud-contact-center', 'graphcompute', 'gtm-legacy', 'id-verification-global', 'meoo', 'mobile-testing', 'tsdb'];
+
+test('docs: every service and offering links to official docs except the nine with no confirmed page', () => {
+  const missing = all.filter((e) => e.kind !== 'construct' && !e.docs).map((e) => e.id).sort();
+  assert.deepEqual(missing, NO_DOCS);
+  for (const e of all) if (e.kind === 'construct') assert.equal(e.docs, undefined, `${e.id}: constructs have no product docs`);
+  const covered = all.filter((e) => e.kind !== 'construct' && e.docs).length / all.filter((e) => e.kind !== 'construct').length;
+  assert.ok(covered >= 0.95, `docs coverage ${(covered * 100).toFixed(1)}%`);
+  // never the China site, and the Agent Sandbox editions never the stale ACS user-guide page
+  for (const e of all) if (e.docs) assert.ok(!/aliyun\.com/.test(e.docs), `${e.id} docs point at the China site`);
+  for (const e of all) if (e.docs) assert.ok(!/\/help\/en\/cs\/user-guide\/agent-sandbox/.test(e.docs), `${e.id} cites the stale ACS agent-sandbox page`);
+  // every filled link is a canonical help URL (no redirect-only aliases such as /user-guide/overview-2)
+  assert.equal(get('pai-eas').docs, 'https://www.alibabacloud.com/help/en/pai/overview-2');
+  assert.match(get('lingma').docs ?? '', /\/help\/en\/lingma\//);
 });
 
 test('createCatalog rejects duplicate ids and stays browser-safe', () => {

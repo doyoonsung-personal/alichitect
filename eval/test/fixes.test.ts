@@ -95,7 +95,7 @@ describe('system prompt R12b (prompt.ts)', () => {
     const s = buildSystemPrompt(CAT);
     assert.ok(s.includes('is still pinned, as text alone: {"t":"req","text":"Team knows Java only"}'));
     assert.ok(s.includes('Two requirements in one message get two req ops'));
-    assert.ok(s.length / 4 < 12500, `system prompt ${s.length} chars`);
+    assert.ok(s.length / 4 < 15000, `system prompt ${s.length} chars`); // same budget as packages/core/test/prompt.test.ts
   });
 });
 

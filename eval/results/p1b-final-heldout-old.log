@@ -1,0 +1,197 @@
+2026-10-31T18-06-16-p1b-final-heldout-old: 25 cases, 75 of 75 conversations to run (concurrency 2, model qwen3.8-max, fallback qwen3.7-max)
+[1/75] ho-p1-avoid-es#1 PASS 2/2 turns 20s $0.019
+[2/75] ho-p1-residency-japan#1 PASS 3/3 turns 36s $0.027
+[3/75] ho-p1-dify-k8s#1 PASS 1/1 turns 20s $0.012
+[4/75] ho-p1-vpc-mongo#1 PASS 1/1 turns 12s $0.009
+[5/75] ho-p1-ddos-order#1 PASS 1/1 turns 20s $0.012
+[6/75] ho-p1-avoid-fc-tempt#1 PASS 2/2 turns 22s $0.019
+[7/75] ho-p1-ko-residency#1 FAIL 2/2 turns 32s $0.029 failed: residencyScan
+[8/75] ho-r-relax-tokyo#1 PASS 2/2 turns 22s $0.019
+[9/75] ho-p1-zh-residency#1 PASS 2/2 turns 46s $0.037
+[10/75] ho-r-k8s-lifted#1 PASS 2/2 turns 29s $0.022
+[11/75] ho-r-ko-dr-in-country#1 PASS 2/2 turns 25s $0.020
+[12/75] ho-r-zh-no-crossregion#1 PASS 2/2 turns 26s $0.029
+[13/75] ho-r-ko-avoid-mesh#1 PASS 2/2 turns 19s $0.019
+[14/75] ho-r-malaysia-two#1 PASS 2/2 turns 23s $0.020
+[15/75] ho-r-eu-bloc#1 FAIL 2/2 turns 30s $0.031 failed: residency,residencyScan,noErrors
+[16/75] ho-scale-sae#1 PASS 2/2 turns 22s $0.019
+[17/75] ho-residency-korea#1 PASS 3/3 turns 30s $0.028
+[18/75] ho-scale-ecs-ok#1 PASS 2/2 turns 15s $0.017
+[19/75] ho-team-agent-b#1 PASS 1/1 turns 5s $0.006
+[20/75] ho-ko-short-followup#1 PASS 1/1 turns 3s $0.006
+[21/75] ho-budget-ha#1 PASS 3/3 turns 24s $0.026
+[22/75] ho-zh-short-followup#1 PASS 1/1 turns 2s $0.006
+[23/75] ho-tools-cline#1 PASS 1/1 turns 4s $0.006
+[24/75] ho-closed-region-game#1 PASS 1/1 turns 18s $0.012
+[25/75] ho-ddos-game-login#1 PASS 1/1 turns 20s $0.012
+[26/75] ho-p1-avoid-es#2 PASS 2/2 turns 18s $0.015
+[27/75] ho-p1-residency-japan#2 FAIL 3/3 turns 39s $0.041 failed: residency,residencyScan,noErrors
+[28/75] ho-p1-dify-k8s#2 PASS 1/1 turns 20s $0.011
+[29/75] ho-p1-ddos-order#2 PASS 1/1 turns 18s $0.011
+[30/75] ho-p1-vpc-mongo#2 FAIL 1/1 turns 11s $0.008 failed: attachValid
+[31/75] ho-p1-avoid-fc-tempt#2 PASS 2/2 turns 22s $0.018
+[32/75] ho-p1-ko-residency#2 PASS 2/2 turns 28s $0.027
+[33/75] ho-r-relax-tokyo#2 PASS 2/2 turns 18s $0.017
+[34/75] ho-p1-zh-residency#2 PASS 2/2 turns 32s $0.023
+[35/75] ho-r-k8s-lifted#2 PASS 2/2 turns 24s $0.020
+[36/75] ho-r-ko-dr-in-country#2 PASS 2/2 turns 22s $0.020
+[37/75] ho-r-ko-avoid-mesh#2 PASS 2/2 turns 21s $0.016
+[38/75] ho-r-zh-no-crossregion#2 FAIL 2/2 turns 28s $0.027 failed: residency,residencyScan
+[39/75] ho-r-malaysia-two#2 PASS 2/2 turns 22s $0.018
+[40/75] ho-r-eu-bloc#2 PASS 2/2 turns 24s $0.021
+[41/75] ho-scale-sae#2 PASS 2/2 turns 21s $0.016
+[42/75] ho-residency-korea#2 PASS 3/3 turns 30s $0.025
+[43/75] ho-scale-ecs-ok#2 PASS 2/2 turns 14s $0.014
+[44/75] ho-team-agent-b#2 PASS 1/1 turns 5s $0.005
+[45/75] ho-ko-short-followup#2 PASS 1/1 turns 3s $0.006
+[46/75] ho-zh-short-followup#2 PASS 1/1 turns 3s $0.006
+[47/75] ho-budget-ha#2 PASS 3/3 turns 24s $0.022
+[48/75] ho-tools-cline#2 PASS 1/1 turns 3s $0.004
+[49/75] ho-closed-region-game#2 PASS 1/1 turns 14s $0.009
+[50/75] ho-ddos-game-login#2 PASS 1/1 turns 16s $0.010
+[51/75] ho-p1-residency-japan#3 PASS 3/3 turns 29s $0.025
+[52/75] ho-p1-avoid-es#3 PASS 2/2 turns 22s $0.017
+[53/75] ho-p1-dify-k8s#3 PASS 1/1 turns 19s $0.010
+[54/75] ho-p1-ddos-order#3 PASS 1/1 turns 17s $0.010
+[55/75] ho-p1-vpc-mongo#3 FAIL 1/1 turns 13s $0.008 failed: attachValid
+[56/75] ho-p1-avoid-fc-tempt#3 PASS 2/2 turns 19s $0.016
+[57/75] ho-p1-ko-residency#3 PASS 2/2 turns 23s $0.017
+[58/75] ho-r-relax-tokyo#3 PASS 2/2 turns 20s $0.016
+[59/75] ho-p1-zh-residency#3 PASS 2/2 turns 46s $0.027
+[60/75] ho-r-k8s-lifted#3 PASS 2/2 turns 29s $0.019
+[61/75] ho-r-ko-dr-in-country#3 PASS 2/2 turns 23s $0.017
+[62/75] ho-r-zh-no-crossregion#3 FAIL 2/2 turns 29s $0.051 failed: residency,residencyScan
+[63/75] ho-r-ko-avoid-mesh#3 PASS 2/2 turns 26s $0.050
+[64/75] ho-r-malaysia-two#3 PASS 2/2 turns 28s $0.052
+[65/75] ho-r-eu-bloc#3 PASS 2/2 turns 31s $0.060
+[66/75] ho-scale-sae#3 PASS 2/2 turns 23s $0.017
+[67/75] ho-residency-korea#3 PASS 3/3 turns 28s $0.025
+[68/75] ho-scale-ecs-ok#3 PASS 2/2 turns 15s $0.014
+[69/75] ho-team-agent-b#3 PASS 1/1 turns 4s $0.005
+[70/75] ho-ko-short-followup#3 PASS 1/1 turns 2s $0.006
+[71/75] ho-zh-short-followup#3 PASS 1/1 turns 2s $0.006
+[72/75] ho-budget-ha#3 PASS 3/3 turns 24s $0.022
+[73/75] ho-tools-cline#3 PASS 1/1 turns 3s $0.005
+[74/75] ho-closed-region-game#3 PASS 1/1 turns 17s $0.010
+[75/75] ho-ddos-game-login#3 PASS 1/1 turns 18s $0.011
+judge kimi-k3: 57 runs to score
+judge ho-p1-residency-japan#3: 5/5/5/5 signoff yes
+judge ho-p1-residency-japan#1: 5/5/5/5 signoff yes
+judge ho-p1-avoid-es#1: 5/4/4/5 signoff yes
+judge ho-p1-residency-japan#2: 5/4/5/5 signoff yes
+judge ho-p1-avoid-es#2: 5/4/4/5 signoff yes
+judge ho-p1-avoid-es#3: 5/4/4/5 signoff yes
+judge ho-p1-vpc-mongo#1: 5/5/5/5 signoff yes
+judge ho-p1-ddos-order#1: 4/4/4/4 signoff yes
+judge ho-p1-dify-k8s#1: 4/4/4/4 signoff yes
+judge ho-p1-avoid-fc-tempt#1: 4/4/4/4 signoff yes
+judge ho-p1-avoid-fc-tempt#2: 5/5/5/5 signoff yes
+judge ho-p1-avoid-fc-tempt#3: 5/4/4/4 signoff yes
+judge ho-p1-ko-residency#1: 5/5/5/5 signoff yes
+judge ho-p1-ko-residency#3: 5/5/5/5 signoff yes
+judge ho-p1-ko-residency#2: 4/4/4/4 signoff yes
+judge ho-p1-zh-residency#2: 5/4/4/5 signoff yes
+judge ho-p1-zh-residency#1: 4/3/3/4 signoff no
+judge ho-r-relax-tokyo#1: 4/3/3/4 signoff no
+judge ho-r-relax-tokyo#2: 5/5/5/5 signoff yes
+judge ho-r-relax-tokyo#3: 5/5/5/5 signoff yes
+judge ho-p1-zh-residency#3: 4/3/3/4 signoff no
+judge ho-r-k8s-lifted#2: 5/5/4/4 signoff yes
+judge ho-r-k8s-lifted#1: 4/4/3/4 signoff no
+judge ho-r-k8s-lifted#3: 4/4/3/4 signoff no
+judge ho-r-ko-dr-in-country#1: 5/4/4/5 signoff yes
+judge ho-r-zh-no-crossregion#1: 5/5/5/5 signoff yes
+judge ho-r-ko-dr-in-country#3: 5/5/4/5 signoff yes
+judge ho-r-zh-no-crossregion#2: 5/5/5/4 signoff yes
+judge ho-r-ko-dr-in-country#2: 5/4/4/4 signoff yes
+judge ho-r-zh-no-crossregion#3: 4/5/4/4 signoff yes
+judge ho-r-ko-avoid-mesh#1: 4/4/4/4 signoff yes
+judge ho-r-ko-avoid-mesh#3: 4/4/4/4 signoff yes
+judge ho-r-malaysia-two#1: 3/3/2/4 signoff no
+judge ho-r-ko-avoid-mesh#2: 4/4/4/4 signoff yes
+judge ho-r-malaysia-two#3: 3/3/2/4 signoff no
+judge ho-r-malaysia-two#2: 3/3/2/4 signoff no
+judge ho-r-eu-bloc#1: 5/4/4/5 signoff yes
+judge ho-residency-korea#1: 5/5/5/5 signoff yes
+judge ho-r-eu-bloc#2: 5/4/4/5 signoff yes
+judge ho-r-eu-bloc#3: 4/4/4/4 signoff yes
+judge ho-residency-korea#2: 5/4/4/5 signoff yes
+judge ho-residency-korea#3: 5/5/5/5 signoff yes
+judge ho-scale-sae#1: 4/4/4/4 signoff yes
+judge ho-scale-ecs-ok#1: 5/5/4/4 signoff yes
+judge ho-scale-sae#3: 4/4/4/4 signoff yes
+judge ho-scale-sae#2: 4/4/4/4 signoff yes
+judge ho-scale-ecs-ok#3: 5/5/5/5 signoff yes
+judge ho-scale-ecs-ok#2: 5/5/4/5 signoff yes
+judge ho-team-agent-b#1: 4/4/4/4 signoff yes
+judge ho-budget-ha#2: 4/3/3/4 signoff no
+judge ho-budget-ha#1: 4/4/3/4 signoff no
+judge ho-budget-ha#3: 4/4/3/4 signoff no
+judge ho-closed-region-game#1: 5/5/5/5 signoff yes
+judge ho-zh-short-followup#1: 5/5/4/4 signoff yes
+judge ho-ko-short-followup#1: 5/5/5/4 signoff yes
+judge ho-tools-cline#1: 4/5/4/4 signoff yes
+judge ho-ddos-game-login#1: 4/4/4/4 signoff yes
+
+results: C:\Users\mendo\ali_catalog\eval\results\2026-10-31T18-06-16-p1b-final-heldout-old
+spent this run: USD 1.958 (ledger total USD 64.254)
+# Evaluation summary
+
+Model qwen3.8-max (fallback qwen3.7-max), catalog 2026-10-31 (232 entries), system prompt 59711 chars (sha256 290480d0a20b), 3 runs per case, started 2026-10-31T18:06:16.344Z.
+
+## Overall
+
+**pass@1 91%, all 3 runs pass 80%** (25 cases). pass@3 is best-of-3 and is listed last.
+
+| measure | value |
+| --- | ---: |
+| cases / conversations / turns | 25 / 75 / 132 |
+| pass@1 (mean case pass rate) | 91% |
+| all runs pass | 80% |
+| majority (over half the runs pass) | 92% |
+| pass@3 (some run passes) | 100% |
+| conversations passing every assertion | 91% |
+| turns passing every assertion | 94% |
+| assertions passing (1484 checks) | 99% |
+| conversations that hit an API failure | 0 |
+| list-price cost of the model runs | $1.39 |
+
+## By category
+
+| category | cases | runs | run pass | all runs | majority | pass@3 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| multiturn | 11 | 33 | 94% | 82% | 100% | 100% |
+| pattern | 4 | 12 | 83% | 75% | 75% | 100% |
+| i18n | 7 | 21 | 86% | 71% | 86% | 100% |
+| need | 2 | 6 | 100% | 100% | 100% | 100% |
+| trap | 1 | 3 | 100% | 100% | 100% | 100% |
+
+## By language
+
+| language | cases | runs | run pass | all runs | majority | pass@3 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| en | 18 | 54 | 93% | 83% | 94% | 100% |
+| ko | 4 | 12 | 92% | 75% | 100% | 100% |
+| zh | 3 | 9 | 78% | 67% | 67% | 100% |
+
+## By assertion type (worst first)
+
+| type | checks | passed | rate | cases that failed it |
+| --- | ---: | ---: | ---: | ---: |
+| residencyScan | 60 | 54 | 90% | 4 |
+| residency | 60 | 55 | 92% | 3 |
+| noErrors | 132 | 129 | 98% | 2 |
+| attachValid | 132 | 130 | 99% | 1 |
+| exclude | 30 | 30 | 100% | 0 |
+| req | 42 | 42 | 100% | 0 |
+| pins | 45 | 45 | 100% | 0 |
+| pathOrder | 126 | 126 | 100% | 0 |
+| format | 132 | 132 | 100% | 0 |
+| escapes | 132 | 132 | 100% | 0 |
+| noPrices | 132 | 132 | 100% | 0 |
+| sayLang | 132 | 132 | 100% | 0 |
+| include | 84 | 84 | 100% | 0 |
+| retention | 66 | 66 | 100% | 0 |
+| region | 51 | 51 | 100% | 0 |
+| attach | 6 | 6 | 100% | 0 |
+| linked | 6 | 6 | 100% | 0 |

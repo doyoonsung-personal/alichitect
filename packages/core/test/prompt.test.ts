@@ -162,8 +162,11 @@ describe('system prompt', () => {
     assert.equal(buildSystemPrompt(loadCatalog()), SYSTEM);
   });
 
-  // Budget: 12.5k estimated tokens (4 chars/token). Phase 0 had 12k; Phase 1 adds the structured req teaching (~550 chars).
-  test('holds the rules, the row legend and every prompt row, within the 12.5k-token budget', (t) => {
+  // Budget: 15k estimated tokens (4 chars/token). Phase 0 had 12k; Phase 1 added the structured req teaching (~550 chars),
+  // then the catalog grew by 9 entries and 37 changes (+1.0k, mostly the avoid-when section), and the protocol track added the
+  // assume and ask ops, rules R19-R23 (AI designs, draw first then ask, partial scope) and the affiliation wording (+1.4k).
+  // Measured 2026-11-01: 59,133 chars, about 14.78k tokens (HEAD before Phase 1c: 49,687 chars, 12.42k).
+  test('holds the rules, the row legend and every prompt row, within the 15k-token budget', (t) => {
     assert.ok(SYSTEM.includes(PROMPT_ROW_FORMAT));
     assert.ok(SYSTEM.endsWith(CAT.promptRows() + '\n'));
     // The last two: held-out run 2026-10-31 (mt-02 and ho-r-k8s-lifted) showed the model skipping the req op for a preference the
@@ -174,10 +177,11 @@ describe('system prompt', () => {
     assert.ok(!/\b20\d\d-\d\d-\d\dT/.test(SYSTEM), 'no timestamps');
     const est = estimateTokens(SYSTEM);
     t.diagnostic(`system prompt: ${SYSTEM.length} chars, ~${est} tokens (4 chars/token), rules ${SYSTEM.indexOf('# CATALOG')} chars`);
-    assert.ok(est < 12500);
+    assert.ok(est < 15000, `system prompt ~${est} tokens`);
+    assert.ok(est > 14500, 'the budget is the measured size, not slack: lower it when the prompt shrinks');
   });
 
-  test('teaches structured req ops (regions, avoid) with examples whose ids are real, and never claims affiliation', () => {
+  test('teaches structured req ops (regions, avoid) with examples whose ids are real, and states the affiliation', () => {
     assert.ok(SYSTEM.includes('"regions":["<region id'));
     assert.ok(SYSTEM.includes('"avoid":["<catalog id'));
     const ex = [...SYSTEM.matchAll(/(\{"t":"req"[^}]*\})/g)].map((m) => JSON.parse(m[1])).filter((o) => o.regions || o.avoid);
@@ -186,8 +190,9 @@ describe('system prompt', () => {
     assert.deepEqual(relaxed.regions, ['ap-southeast-1', 'ap-northeast-1']);
     assert.deepEqual(residency.regions, ['ap-southeast-1']);
     for (const id of avoid.avoid) assert.ok(CAT.byId.has(id) || familyOfWord(id), id);
-    assert.ok(SYSTEM.includes('independent live diagram tool'));
-    assert.ok(SYSTEM.includes('not an official Alibaba Cloud product'));
+    assert.ok(SYSTEM.includes('the Alibaba Cloud architecture assistant, a live diagram tool'));
+    assert.ok(SYSTEM.includes('Alibaba Cloud architecture assistant, that its designs are AI-generated and should be reviewed with a solutions architect'));
+    assert.ok(!SYSTEM.includes('independent') && !SYSTEM.includes('not an official'), 'the app is affiliated with Alibaba Cloud');
   });
 
   test('the catalog avoid-when guidance is in the prompt for every entry the model may pick, and only for those', () => {
@@ -200,7 +205,7 @@ describe('system prompt', () => {
   });
 
   test('the follow-up rules carry the fixes found by the evaluation: hard constraints, Auto Scaling hosts, swaps, anti-DDoS order, reply language', () => {
-    for (const needle of ['hard constraint', 'keep the requirement', 'attaches only to an ECS node', 'remove what only the old product needed', 'behind ESA or CDN', 'REPLY LANGUAGE', 'ready-made assistant', 'end the say with one short question', 'exactly one done op', 'never add an ess node']) {
+    for (const needle of ['hard constraint', 'keep the requirement', 'attaches only to an ECS node', 'remove what only the old product needed', 'behind ESA or CDN', 'REPLY LANGUAGE', 'ready-made assistant', 'add one ask op with the options "Developers"', 'exactly one done op', 'never add an ess node']) {
       assert.ok(SYSTEM.includes(needle), needle);
     }
   });

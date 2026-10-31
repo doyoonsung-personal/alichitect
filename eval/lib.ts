@@ -57,7 +57,43 @@ export interface Expect {
   noAttach?: string[]; // every node of these products is an ordinary node (no attachTo); at least one exists
   linked?: Array<{ from: string[]; to: string[]; directed?: boolean }>; // an edge joins a node of a `from` product and one of a `to` product (from -> to when directed)
   placement?: boolean; // every vpc and vpc-edge node (not a badge) sits inside a VPC group
+  /** Phase 1 asks: the ask ops of the turn (validated, after the per-turn caps). `options` requires 2-4 quick-reply options on every ask. */
+  asks?: { min?: number; max?: number; options?: boolean };
+  /** The assume ops of the turn. */
+  assumes?: { min?: number; max?: number };
+  /** Details the user already stated: no ask (text or option) may contain any of these keywords (the model must not re-ask what it was told). */
+  notAsking?: string[];
+  /** Details the user already stated: no assume (text or alt) may repeat them. */
+  notAssuming?: string[];
+  /** After the turn memory.assumptions holds nothing that mentions these keywords (a flipped assumption's chip is gone). */
+  assumedGone?: string[];
+  /** Partial-scope asks: no compute tier (ECS, ACK, ACS, SAE, Function Compute, ECI, ...) is drawn on Alibaba Cloud. */
+  noCompute?: boolean;
+  /** Another provider's name (AWS, Azure, Google Cloud, GCP) appears only on other-cloud nodes and on external groups. Names the providers to police. */
+  providerNames?: string[];
+  /** No GPU model other than A10, T4, V100 and P100 appears in any model text (labels, why, say, ask, assume, done). */
+  gpuNames?: boolean;
 }
+
+/** The compute tier of a design: the products that run the customer's own application code or containers. */
+export const COMPUTE_TIER: readonly string[] = ['ecs', 'egs', 'ebm', 'swas', 'ddh', 'ess', 'fc', 'sae', 'ack', 'acs', 'eci', 'ack-serverless', 'ack-dedicated', 'ack-edge', 'edas', 'batch-compute', 'ehpc', 'asm'];
+
+/**
+ * Dimensions a design depends on, as phrases that re-ask them. `notAsking: ['dim:region']` fails when an ask (or an option) is
+ * about the region, so the check targets the question being asked again and not every mention of a stated entity: "How do you
+ * connect AWS to Alibaba Cloud?" does not re-ask which provider the app runs on.
+ */
+export const ASK_DIMENSIONS: Readonly<Record<string, readonly string[]>> = {
+  'dim:exposure': ['public', 'internal', 'internet-facing', 'internet facing', 'intranet', 'external users'],
+  'dim:region': ['which region', 'what region', 'where are', 'where is', 'where do you', 'where should', 'which country', 'residency', 'which geography'],
+  'dim:scale': ['how many', 'number of users', 'concurrent', 'peak traffic', 'daily users', 'visitors', 'users per', 'expected traffic', 'how large', 'how big'],
+  'dim:provider': ['which cloud', 'which provider', 'what cloud', 'which platform', 'where does your app run', 'where does the app run', 'where is the app', 'where is your app', 'where do you run'],
+  'dim:workload': ['what kind of app', 'what type of app', 'what will you run', 'what do you plan to run', 'what workload', 'what are you building', 'what is the app'],
+};
+const expandAskKeys = (keys: readonly string[]): Array<{ key: string; phrases: string[] }> => keys.map((k) => ({ key: k, phrases: k.startsWith('dim:') ? [...(ASK_DIMENSIONS[k] ?? [])] : [k] }));
+
+/** GPU model names the product may not state: only A10, T4, V100 and P100 are allowed in text (research/ai-depth/amendments.md). */
+const GPU_DENY = /\b(?:a100|a800|a30|a40|a2|h100|h800|h200|h20|b100|b200|gb200|l20|l40s?|l4|p4|p40|k80|rtx\s?\d{4}|[34]090|mi\d{3}x?)\b/i;
 
 /** Constraints from earlier turns that must still hold (reported as assertion type 'retention'). */
 export interface Retain {
@@ -174,11 +210,13 @@ export interface TurnView {
   before: Graph; // before the turn
   requirements: string[]; // pinned after the turn
   constraints?: Constraint[]; // machine-checkable constraints pinned after the turn (memory.constraints)
+  assumptions?: Array<{ id: string; text: string; alt?: string }>; // memory.assumptions after the turn (Phase 1 asks; absent in older records)
+  questions?: Array<{ id: string; text: string; options?: string[] }>; // memory.questions after the turn
   stats: StatsLike;
   userTexts: string[]; // every user message of the case so far, this one included
 }
 
-export function modelTexts(v: TurnView): string[] {
+export function modelTexts(v: TurnView, withAsks = false): string[] {
   const out: string[] = [...v.says, ...v.reqs];
   for (const op of v.ops) {
     if (op.t === 'node' || op.t === 'insert') out.push(op.label, op.why ?? '');
@@ -187,6 +225,8 @@ export function modelTexts(v: TurnView): string[] {
     else if (op.t === 'rec') out.push(op.why);
     else if (op.t === 'gap') out.push(op.need, op.note);
     else if (op.t === 'done') out.push(op.summary);
+    else if (withAsks && op.t === 'ask') out.push(op.text, ...(op.options ?? []));
+    else if (withAsks && op.t === 'assume') out.push(op.text, op.alt ?? '');
   }
   return out.filter(Boolean);
 }
@@ -439,7 +479,7 @@ export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: Reg
     }
   }
   if (e.notMention) {
-    const texts = modelTexts(v).map(norm);
+    const texts = modelTexts(v, true).map(norm);
     const bad = e.notMention.filter((k) => texts.some((t) => t.includes(norm(k))));
     out.push({ type: 'notMention', name: `never mentions ${e.notMention.join('|')}`, pass: !bad.length, detail: bad.length ? `mentions ${bad.join(', ')}` : undefined });
   }
@@ -482,7 +522,60 @@ export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: Reg
     const seen = v.stats.warningsBefore.filter((w) => e.noWarn!.includes(w.code));
     out.push({ type: 'noWarn', name: `no ${e.noWarn.join('|')} before repair`, pass: !seen.length, detail: seen.length ? seen.map((w) => w.msg).join('; ').slice(0, 200) : undefined });
   }
-  if (e.question) out.push({ type: 'question', name: 'asks a question', pass: v.says.some((s) => /[?？]/.test(s)) });
+  if (e.question) {
+    const askOps = v.ops.filter((o) => o.t === 'ask').length;
+    out.push({ type: 'question', name: 'asks a question', pass: askOps > 0 || v.says.some((s) => /[?？]/.test(s)), detail: askOps ? `${askOps} ask op(s)` : undefined });
+  }
+  const askOps = v.ops.filter((o): o is Extract<Op, { t: 'ask' }> => o.t === 'ask');
+  const assumeOps = v.ops.filter((o): o is Extract<Op, { t: 'assume' }> => o.t === 'assume');
+  const askBrief = askOps.map((a) => `"${a.text}" [${(a.options ?? []).join(' / ')}]`).join('; ').slice(0, 300);
+  if (e.asks) {
+    const a = e.asks;
+    const n = askOps.length;
+    const okN = (a.min === undefined || n >= a.min) && (a.max === undefined || n <= a.max);
+    out.push({ type: 'asks', name: `asks ${a.min ?? 0}-${a.max ?? 'any'}`, pass: okN, detail: `${n} ask op(s): ${askBrief}` });
+    if (a.options) {
+      const bad = askOps.filter((x) => !x.options || x.options.length < 2 || x.options.length > 4);
+      out.push({ type: 'askOptions', name: 'every ask has 2-4 options', pass: !bad.length && (n > 0 || !a.min), detail: n === 0 && a.min ? 'no ask op' : bad.length ? `without options: ${bad.map((x) => x.id).join(', ')}` : undefined });
+    }
+  }
+  if (e.assumes) {
+    const a = e.assumes;
+    const n = assumeOps.length;
+    const ok = (a.min === undefined || n >= a.min) && (a.max === undefined || n <= a.max);
+    out.push({ type: 'assumes', name: `assumes ${a.min ?? 0}-${a.max ?? 'any'}`, pass: ok, detail: `${n} assume op(s): ${assumeOps.map((x) => x.text).join('; ').slice(0, 240)}` });
+  }
+  if (e.notAsking) {
+    const texts = askOps.flatMap((a) => [a.text, ...(a.options ?? [])]).map(norm);
+    const bad = expandAskKeys(e.notAsking).filter((x) => x.phrases.some((p) => texts.some((t) => t.includes(norm(p))))).map((x) => x.key);
+    out.push({ type: 'reask', name: `asks never re-ask ${e.notAsking.join('|')}`, pass: !bad.length, detail: bad.length ? `asks ${bad.join(', ')}: ${askBrief}` : undefined });
+  }
+  if (e.notAssuming) {
+    const texts = assumeOps.flatMap((a) => [a.text, a.alt ?? '']).map(norm);
+    const bad = e.notAssuming.filter((k) => texts.some((t) => t.includes(norm(k))));
+    out.push({ type: 'reask', name: `assumes never repeat ${e.notAssuming.join('|')}`, pass: !bad.length, detail: bad.length ? `assumes ${bad.join(', ')}: ${assumeOps.map((x) => x.text).join('; ').slice(0, 200)}` : undefined });
+  }
+  if (e.assumedGone) {
+    const chips = (v.assumptions ?? []).flatMap((a) => [a.text, a.alt ?? '']).map(norm);
+    const bad = e.assumedGone.filter((k) => chips.some((t) => t.includes(norm(k))));
+    out.push({ type: 'chips', name: `no assumption chip mentions ${e.assumedGone.join('|')}`, pass: !bad.length, detail: bad.length ? `chips: ${(v.assumptions ?? []).map((a) => a.text).join('; ').slice(0, 200)}` : undefined });
+  }
+  if (e.noCompute) {
+    const bad = nodes.filter((n) => COMPUTE_TIER.includes(n.product));
+    out.push({ type: 'scope', name: 'no compute tier drawn', pass: !bad.length, detail: bad.length ? `compute: ${bad.map((n) => `${n.id} (${n.product})`).join(', ')}` : undefined });
+  }
+  if (e.providerNames) {
+    const names = e.providerNames.map(norm);
+    const hasName = (s: string): boolean => names.some((k) => new RegExp('(^|[^a-z0-9])' + k.replace(/\s+/g, '\\s+') + '([^a-z0-9]|$)').test(norm(s)));
+    const badNodes = nodes.filter((n) => hasName(n.label) && n.product !== 'other-cloud');
+    const badGroups = Object.values(g.groups).filter((x) => hasName(x.label) && x.kind !== 'external');
+    const bad = [...badNodes.map((n) => `node ${n.id} (${n.product}) "${n.label}"`), ...badGroups.map((x) => `group ${x.id} (${x.kind}) "${x.label}"`)];
+    out.push({ type: 'scope', name: `provider names only on other-cloud nodes and external groups`, pass: !bad.length, detail: bad.length ? bad.join('; ').slice(0, 300) : undefined });
+  }
+  if (e.gpuNames) {
+    const hits = modelTexts(v, true).filter((t) => GPU_DENY.test(t));
+    out.push({ type: 'gpu', name: 'no GPU model outside A10, T4, V100, P100', pass: !hits.length, detail: hits.length ? hits.map((t) => t.slice(0, 100)).join(' | ').slice(0, 300) : undefined });
+  }
   if (e.residency) residencyCheck(e.residency, v, catalog, out);
   if (e.pins) {
     const cs = v.constraints ?? [];
@@ -586,6 +679,10 @@ export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: Reg
   } else {
     out.push({ type: 'sayLang', name: `say text in ${lang}`, pass: false, detail: 'no say op' });
   }
+  if (lang !== 'en' && askOps.length) {
+    const s = langShare(askOps.map((a) => [a.text, ...(a.options ?? [])].join('\n')).join('\n'), lang, names);
+    out.push({ type: 'askLang', name: `ask text in ${lang}`, pass: s.share >= 0.5, detail: `share ${s.share.toFixed(2)} of ${s.letters} letters` });
+  }
   if (lang !== 'en') {
     const why = v.ops.flatMap((o) => (o.t === 'node' || o.t === 'insert' ? [o.why ?? ''] : o.t === 'rec' ? [o.why] : [])).join('\n');
     if (why.trim()) {
@@ -599,6 +696,7 @@ export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: Reg
 // ---------- case checks ----------
 
 const EXPECT_KEYS: ReadonlySet<string> = new Set([
+  'asks', 'assumes', 'notAsking', 'notAssuming', 'assumedGone', 'noCompute', 'providerNames', 'gpuNames',
   'include', 'exclude', 'excludeRaw', 'primaryRec', 'noNodes', 'noRecs', 'req', 'maxOps', 'maxNodes', 'minNodes', 'mention', 'notMention', 'notInLabels',
   'regions', 'attach', 'zones', 'edit', 'restored', 'noWarn', 'question', 'pathOrder', 'noErrors', 'noPrices', 'attachValid',
   'residency', 'pins', 'noAttach', 'linked', 'placement',
@@ -706,6 +804,17 @@ export function checkCases(cases: EvalCase[], catalog: Catalog): string[] {
             }
         }
         if (e.placement !== undefined && typeof e.placement !== 'boolean') bad(c, `${w} placement must be a boolean`);
+        for (const [k, o] of [['asks', e.asks], ['assumes', e.assumes]] as const) {
+          if (!o) continue;
+          unknownKeys(c, `${w} ${k}`, o, new Set(k === 'asks' ? ['min', 'max', 'options'] : ['min', 'max']));
+          for (const f of ['min', 'max'] as const) if (o[f] !== undefined && !(Number.isInteger(o[f]) && o[f]! >= 0)) bad(c, `${w} ${k}.${f} must be a non-negative integer`);
+        }
+        for (const [k, list] of [['notAsking', e.notAsking], ['assumedGone', e.assumedGone], ['notAssuming', e.notAssuming], ['providerNames', e.providerNames]] as const) {
+          if (list === undefined) continue;
+          if (!Array.isArray(list) || !list.length || list.some((x) => typeof x !== 'string' || !x.trim())) bad(c, `${w} ${k} must be a non-empty array of keywords`);
+          else for (const x of list) if (x.startsWith('dim:') && !ASK_DIMENSIONS[x]) bad(c, `${w} ${k}: unknown dimension '${x}'`);
+        }
+        if (e.noNodes && e.noCompute) bad(c, `${w} noNodes with noCompute is redundant`);
         if (e.noNodes && (e.minNodes || e.include?.some((g) => g.some((p) => !['users'].includes(p))))) bad(c, `${w} asks for no nodes and for nodes at once`);
         for (const k of ['maxOps', 'maxNodes', 'minNodes'] as const) if (e[k] !== undefined && !(Number.isInteger(e[k]) && e[k]! >= 0)) bad(c, `${w} ${k} must be a non-negative integer`);
       }

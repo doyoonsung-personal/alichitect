@@ -1,0 +1,1923 @@
+{
+  "meta": {
+    "startedAt": "2026-10-31T16:56:05.976Z",
+    "args": {
+      "runs": "3",
+      "concurrency": "3",
+      "budget": "120",
+      "cases-dir": "cases-heldout-p1c",
+      "label": "p1b-heldout-new"
+    },
+    "model": "qwen3.8-max",
+    "fallbackModel": "qwen3.7-max",
+    "judgeModel": "kimi-k3",
+    "runsPerCase": 3,
+    "concurrency": 3,
+    "cases": 24,
+    "units": 72,
+    "catalogVersion": "2026-10-31",
+    "catalogEntries": 232,
+    "systemPromptChars": 59133,
+    "systemPromptSha256": "be0d8972c4792a6b9edc2db0581174fc57fa640179a91d0f2acf1ecb847146b3",
+    "node": "v24.21.0",
+    "coreFiles": {
+      "asks.ts": "518a5cf61437",
+      "catalog-node.ts": "dade41cbd9ed",
+      "catalog.ts": "5bf2d46dc58f",
+      "constraints.ts": "eb0ddfc38ef9",
+      "diff.ts": "eaabf1ce1def",
+      "display.ts": "941ca6dec769",
+      "layout.ts": "5b76a21851a5",
+      "llm.ts": "a1a02c1e49ce",
+      "ndjson.ts": "3163a8232eaa",
+      "pricing.ts": "6fa3a32521c0",
+      "prompt.ts": "96f95bae38fa",
+      "reducer.ts": "c2c1ecfd68b4",
+      "regions.ts": "c34c43b79d8c",
+      "types.ts": "c8fa50d4efdc",
+      "validate.ts": "459e177bbb84"
+    },
+    "judgeAllRunsOf": [
+      "ai-ho-eu-training",
+      "ai-ho-no-k8s-sandbox",
+      "as-ho-flip-regions"
+    ],
+    "finishedAt": "2026-10-31T17:02:23.291Z",
+    "spentUsd": 0.9499259999999999
+  },
+  "totals": {
+    "cases": 24,
+    "conversations": 72,
+    "turns": 78,
+    "casePassRate": 0.819,
+    "passAtN": 0.833,
+    "majority": 0.833,
+    "allRuns": 0.792,
+    "runPassRate": 0.819,
+    "turnPassRate": 0.833,
+    "assertionPassRate": 0.987,
+    "assertions": 1032,
+    "apiFailures": 0,
+    "costUsd": 0.704
+  },
+  "byCategory": {
+    "pattern": {
+      "cases": 3,
+      "runs": 9,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "trap": {
+      "cases": 6,
+      "runs": 18,
+      "runPassRate": 0.667,
+      "passAtN": 0.667,
+      "majority": 0.667,
+      "allRuns": 0.667
+    },
+    "i18n": {
+      "cases": 5,
+      "runs": 15,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "need": {
+      "cases": 8,
+      "runs": 24,
+      "runPassRate": 0.708,
+      "passAtN": 0.75,
+      "majority": 0.75,
+      "allRuns": 0.625
+    },
+    "multiturn": {
+      "cases": 2,
+      "runs": 6,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    }
+  },
+  "byLang": {
+    "en": {
+      "cases": 19,
+      "runs": 57,
+      "runPassRate": 0.772,
+      "passAtN": 0.789,
+      "majority": 0.789,
+      "allRuns": 0.737
+    },
+    "zh": {
+      "cases": 4,
+      "runs": 12,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "ko": {
+      "cases": 1,
+      "runs": 3,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    }
+  },
+  "byAssertionType": {
+    "mention": {
+      "checks": 21,
+      "passed": 18,
+      "rate": 0.857,
+      "failingCases": [
+        "ai-ho-langstudio"
+      ]
+    },
+    "exclude": {
+      "checks": 27,
+      "passed": 24,
+      "rate": 0.889,
+      "failingCases": [
+        "ai-ho-eu-training"
+      ]
+    },
+    "scope": {
+      "checks": 36,
+      "passed": 33,
+      "rate": 0.917,
+      "failingCases": [
+        "sc-ho-multicloud-link"
+      ]
+    },
+    "reask": {
+      "checks": 30,
+      "passed": 29,
+      "rate": 0.967,
+      "failingCases": [
+        "as-ho-hr-internal"
+      ]
+    },
+    "include": {
+      "checks": 96,
+      "passed": 93,
+      "rate": 0.969,
+      "failingCases": [
+        "sc-ho-onprem-db"
+      ]
+    },
+    "req": {
+      "checks": 9,
+      "passed": 9,
+      "rate": 1,
+      "failingCases": []
+    },
+    "region": {
+      "checks": 36,
+      "passed": 36,
+      "rate": 1,
+      "failingCases": []
+    },
+    "gpu": {
+      "checks": 15,
+      "passed": 15,
+      "rate": 1,
+      "failingCases": []
+    },
+    "residency": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "residencyScan": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noErrors": {
+      "checks": 78,
+      "passed": 78,
+      "rate": 1,
+      "failingCases": []
+    },
+    "pathOrder": {
+      "checks": 63,
+      "passed": 63,
+      "rate": 1,
+      "failingCases": []
+    },
+    "attachValid": {
+      "checks": 78,
+      "passed": 78,
+      "rate": 1,
+      "failingCases": []
+    },
+    "format": {
+      "checks": 78,
+      "passed": 78,
+      "rate": 1,
+      "failingCases": []
+    },
+    "escapes": {
+      "checks": 78,
+      "passed": 78,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noPrices": {
+      "checks": 78,
+      "passed": 78,
+      "rate": 1,
+      "failingCases": []
+    },
+    "sayLang": {
+      "checks": 78,
+      "passed": 78,
+      "rate": 1,
+      "failingCases": []
+    },
+    "linked": {
+      "checks": 6,
+      "passed": 6,
+      "rate": 1,
+      "failingCases": []
+    },
+    "askLang": {
+      "checks": 15,
+      "passed": 15,
+      "rate": 1,
+      "failingCases": []
+    },
+    "whyLang": {
+      "checks": 9,
+      "passed": 9,
+      "rate": 1,
+      "failingCases": []
+    },
+    "placement": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "pins": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "size": {
+      "checks": 60,
+      "passed": 60,
+      "rate": 1,
+      "failingCases": []
+    },
+    "asks": {
+      "checks": 54,
+      "passed": 54,
+      "rate": 1,
+      "failingCases": []
+    },
+    "askOptions": {
+      "checks": 54,
+      "passed": 54,
+      "rate": 1,
+      "failingCases": []
+    },
+    "assumes": {
+      "checks": 12,
+      "passed": 12,
+      "rate": 1,
+      "failingCases": []
+    },
+    "editMinimal": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "chips": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "zones": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    }
+  },
+  "cases": [
+    {
+      "id": "ai-ho-inference-scale",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Self-hosted LLM inference at scale with per-team quotas",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.011,
+      "meanMs": 17715,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Two separate single-zone PAI-EAS nodes (llm-a zone A, llm-b zone B) instead of one multi-zone service or a note that EAS dedicated groups span zones; acceptable as explicit failover design but slightly over-specified.",
+          "NAT edge labeled for PAI-EAS to pull images/call APIs is fine, but weights-in-OSS (the usual pattern) is not mentioned in narration or diagram.",
+          "Narration does not mention autoscaling or router/prefill-decode separation in the why texts, which the guidance expects described for scale to 2,000 concurrent users."
+        ],
+        "reasons": [
+          "Covers the core ask: AI Gateway for per-team quotas and failover in front of PAI-EAS Qwen endpoints in Singapore, with observability via SLS and Prometheus.",
+          "Placement follows the rules: SLS and Prometheus drawn outside the VPC as regional services, ALB and gateway multi-zone as single nodes, no DNS hop, no prices.",
+          "Draw-first behavior is correct: assumptions shown as chips and two design-changing questions (model size, warm vs cold standby) with quick replies."
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ai-ho-eu-training",
+      "category": "trap",
+      "lang": "en",
+      "title": "EU-only training data and large distributed training (no Lingjun in Frankfurt)",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "exclude lingjun": 3
+      },
+      "failedTypes": [
+        "exclude"
+      ],
+      "meanCostUsd": 0.012,
+      "meanMs": 20912,
+      "judge": {
+        "run": 1,
+        "mean": 3,
+        "signoff": false,
+        "scores": [
+          4,
+          2,
+          2,
+          4
+        ],
+        "defects": [
+          "Lingjun node placed in Frankfurt region; catalog says Lingjun's only international region is Singapore, so this violates the EU-only constraint and is not available there",
+          "Narration never states that Lingjun is unavailable in Frankfurt nor offers the fallback (DLC on general GPU pools, GPU ECS, or ACK)",
+          "No discussion of GPU availability for 30B training in Frankfurt; A100/H100-class GPUs are not offered internationally, making the training design likely infeasible as drawn",
+          "DLC->Lingjun edge labeled 'control' while Lingjun->CPFS carries the data path; training-to-storage data flow via CPFS is not shown directly"
+        ],
+        "reasons": [
+          "Lingjun is not offered in Frankfurt (Singapore is its only international region) and the answer places it in Frankfurt without flagging this",
+          "A 30B multi-node training job needs A100/H100-class GPUs which are never offered internationally on EAS/DLC public pools; this feasibility gap is not mentioned",
+          "Otherwise complete and readable: OSS+CPFS+DLC+EAS+Gateway in Frankfurt with sensible edges and good questions"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "ai-ho-zh-rag-eas",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "Self-hosted RAG on PAI-EAS in Singapore (Chinese)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.011,
+      "meanMs": 20127,
+      "judge": {
+        "run": 1,
+        "mean": 3.75,
+        "signoff": false,
+        "scores": [
+          4,
+          4,
+          3,
+          4
+        ],
+        "defects": [
+          "Embedding 经 NAT 网关出公网调用 Model Studio，文档内容离开 VPC，与用户'向量数据留在 VPC 内网'的内网诉求冲突，应默认在 PAI-EAS 自托管 Embedding 或明确标注权衡",
+          "rag-service 与 llm 拆为两个独立 PAI-EAS 服务增加成本和运维复杂度，单服务即可承载 RAG 检索与推理",
+          "DNS 作为独立节点出现在数据路径边缘，虽标注 resolve 但可简化",
+          "未说明 PAI-EAS 使用专属资源组（dedicated group）以保证 GPU 和 VPC 直连，公网池无法满足内网要求"
+        ],
+        "reasons": [
+          "核心组件齐全：PAI-EAS 自托管 Qwen、VPC 内 Elasticsearch 向量库、OSS 文档存储、新加坡区域，符合用户约束",
+          "主要缺陷：Embedding 走 NAT 出公网调用 Model Studio，与'向量数据要留在 VPC 内网'的要求存在张力，且未说明这是假设芯片中的可选项",
+          "PAI-EAS 拆成 RAG 服务和 LLM 两个服务略显冗余，EAS RAG 模板本身可承载检索+推理"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ai-ho-rl-sandboxes",
+      "category": "trap",
+      "lang": "en",
+      "title": "Sandbox fleet for agentic RL rollouts (international, no official reference)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.009,
+      "meanMs": 12216,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "No PAI-EAS node for the final policy serving, which the guidance lists as typical",
+          "Does not mention confirming browser/desktop sandbox type availability in the Singapore console",
+          "Assumption chip mentions Lingjun as an alternative, which is fine, but no note that Singapore public GPU capacity (A10/T4/V100) should be checked first"
+        ],
+        "reasons": [
+          "Correctly draws PAI-DLC + Agent Sandbox (Flash, Singapore) + OSS, matching the strong-answer guidance",
+          "Narration plainly states no official reference exists and points to the ACK+VeRL walkthrough as nearest pattern",
+          "Draws first on stated assumptions with chips and asks at most two design-changing questions with quick replies"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ai-ho-langstudio",
+      "category": "trap",
+      "lang": "en",
+      "title": "Asked to build on PAI-LangStudio",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "mentions 2027|retir": 3
+      },
+      "failedTypes": [
+        "mention"
+      ],
+      "meanCostUsd": 0.01,
+      "meanMs": 15997,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Narration says LangStudio 'isn't in the current catalog' instead of stating it retires 2027-03-09 and that its successor (Model Studio app development) is closed to new international accounts",
+          "No ingestion path shown from OSS documents into Milvus (only rag->docs read); an embedding/ingestion step is implied but not drawn",
+          "Edge rag->nat labeled 'control' is vague; NAT is the egress path to Model Studio, so the rag->llm flow should route via NAT or the label should say egress"
+        ],
+        "reasons": [
+          "Correctly avoids LangStudio and substitutes a sound PAI-EAS RAG pattern with Milvus, OSS and Model Studio",
+          "Placement follows the rules: OSS and Model Studio outside the VPC, DNS not a data-path hop, multi-zone nodes as single nodes",
+          "Narration is honest about LangStudio's absence but misses the retirement date and the Model Studio apps restriction context"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "ai-ho-no-k8s-sandbox",
+      "category": "trap",
+      "lang": "en",
+      "title": "Agent code sandbox when Kubernetes is ruled out",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.009,
+      "meanMs": 12848,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          4
+        ],
+        "defects": [
+          "Narration does not include the one-sentence note on why the ACS (container edition) sandbox is not used",
+          "Assumption chip says 'Internal team access only' but the diagram shows users on the Internet with no private-access path"
+        ],
+        "reasons": [
+          "Correctly pins no-Kubernetes and uses AgentRun + Agent Sandbox (Flash) in Singapore, the only international AgentRun endpoint",
+          "Model Studio, Tablestore memory and SLS all match catalog guidance; placement of regional services outside VPC is respected",
+          "Narration states assumptions, asks at most two design-relevant questions with quick replies"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ai-ho-gpu-in-sandbox",
+      "category": "trap",
+      "lang": "en",
+      "title": "GPU fine-tuning inside ACS Agent Sandbox",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.009,
+      "meanMs": 11618,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Model Gallery and DSW are managed regional services but drawn inside the region without explicit placement issues; however CPFS is optional for a single-node 8B SFT and adds slight over-provisioning",
+          "Narration mentions Model Studio SFT as an assumption chip, but Model Studio is not in the catalog facts and is not drawn, creating a minor mismatch between chips and diagram",
+          "Does not explicitly note the Singapore public-GPU capacity caveat (A10/T4/V100) or that some official walkthroughs recommend China regions"
+        ],
+        "reasons": [
+          "Correctly identifies that ACS Agent Sandbox has no GPUs and moves training to PAI-DLC with OSS data, matching the strong-answer guidance",
+          "Diagram is coherent: DSW for dev, Model Gallery for no-code SFT launching DLC jobs, OSS for datasets/checkpoints, CPFS in VPC for multi-node scratch",
+          "Narration states assumptions as chips and asks at most two design-changing questions with quick replies"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "ai-ho-gpu-inference-sg",
+      "category": "need",
+      "lang": "en",
+      "title": "What GPUs can we get for inference in Singapore? (only A10, T4, V100, P100)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.006,
+      "meanMs": 3964,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          4,
+          5,
+          4,
+          5
+        ],
+        "defects": [
+          "Could have offered to draw a PAI-EAS inference service or mentioned PAI-EAS/GPU ECS as the access paths"
+        ],
+        "reasons": [
+          "Correctly names only A10, T4, V100, P100 as available in Singapore",
+          "Accurately notes newer cards need sales confirmation",
+          "No diagram drawn, but the question is a simple availability query where a diagram is optional"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "as-ho-furniture",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Differently worded storefront request (not the worked example)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.011,
+      "meanMs": 17288,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Complete storefront pattern: ESA edge, ALB, multi-zone ECS with ESS, Tair, RDS, OSS, SLS",
+          "Placement rules all honoured: DNS off data path, WAF/ESS as badges, OSS/SLS outside VPC, multi-zone as single nodes",
+          "Draws immediately with stated assumptions and two relevant questions with quick-reply options"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "as-ho-game",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Mobile multiplayer game backend with missing details",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.011,
+      "meanMs": 18310,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Drew a complete first diagram immediately on stated assumptions, per draw-first rule",
+          "All products current and correctly placed: OSS/SLS outside VPC, DNS as resolve hop, multi-zone as single nodes with zones a,b",
+          "Two design-changing questions with quick-reply options; assumptions shown as chips with alternatives"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "as-ho-hr-internal",
+      "category": "need",
+      "lang": "en",
+      "title": "Internal portal with exposure, scale and region already stated",
+      "runs": 3,
+      "passes": 2,
+      "passRate": 0.667,
+      "passAtN": true,
+      "majority": true,
+      "failed": {
+        "assumes never repeat internal|400|singapore": 1
+      },
+      "failedTypes": [
+        "reask"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 13339,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          4,
+          5
+        ],
+        "defects": [
+          "Both a users node and an onprem-dc node represent the same company network, slightly redundant",
+          "Tair session cache is a nice-to-have for 400 users but proportionate"
+        ],
+        "reasons": [
+          "Internal-only design in Singapore with VPN Gateway, internal ALB, SAE, RDS, Tair and SLS matches the stated need exactly",
+          "All products current and correctly placed: SLS outside VPC, multi-zone nodes as single nodes, no public edge",
+          "Drew first on stated assumptions and asked only two design-relevant questions with quick replies"
+        ]
+      },
+      "runPass": [
+        true,
+        false,
+        true
+      ]
+    },
+    {
+      "id": "as-ho-vague-move",
+      "category": "need",
+      "lang": "en",
+      "title": "Move to the cloud, no workload named: ask before drawing",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.006,
+      "meanMs": 3854,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Correctly asks before drawing since no workload is named",
+          "Single focused question with sensible quick-reply options",
+          "No diagram drawn, matching the guidance"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "as-ho-answer-riders",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Free-text answer after a question-first turn",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.018,
+      "meanMs": 23985,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          4,
+          5
+        ],
+        "defects": [
+          "HTTPDNS shown as an edge from riders (resolve) — DNS should not be a hop in the data path",
+          "app -> nat edge labelled (control) though NAT carries outbound data (SNAT), not control",
+          "ALB fronting Cloud-native API Gateway adds a layer; gateway alone could terminate rider HTTPS traffic"
+        ],
+        "reasons": [
+          "Turn 1 correctly asked before drawing; turn 2 drew a complete rider-app backend in Jakarta without re-asking stated facts",
+          "All products are current per catalog and used for their actual purpose; Indonesia residency honoured via ap-southeast-5",
+          "Minor issues: HTTPDNS drawn as a resolve hop in the data path and NAT edge labelled control; ALB+API Gateway layering is defensible but slightly redundant"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "as-ho-flip-regions",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Flip the single-region assumption to two regions",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.024,
+      "meanMs": 38184,
+      "judge": {
+        "run": 1,
+        "mean": 3.5,
+        "signoff": false,
+        "scores": [
+          4,
+          3,
+          3,
+          4
+        ],
+        "defects": [
+          "GTM -> dns edge is backwards/pointless: GTM itself is the DNS steering layer; keeping both Cloud DNS and GTM with users->gtm(resolve) then gtm->dns muddles the resolve path.",
+          "ESA has no origin/failover path to the Tokyo ALB, so if Singapore fails the edge layer cannot reach the DR region; GTM steering to a region ESA cannot reach is broken.",
+          "CEN and both Transit Routers are isolated nodes with only control edges to each other; they never attach to either VPC, so the private cross-region link is decorative.",
+          "DTS is placed as a node inside the Singapore region group; it should be a sync link between db and db-dr, not a regional resource.",
+          "Turn-2 narration does not mention CEN/private connectivity or how ESA fails over, and repeats the turn-1 questions that were never answered instead of asking about active-active vs active-standby or RPO/RTO."
+        ],
+        "reasons": [
+          "Two-region DR added correctly with GTM, DTS and a full standby stack, and the single-region chip is gone.",
+          "DNS/GTM wiring is confused: users resolve via GTM but GTM->dns edge and the leftover Cloud DNS node make the entry path unclear; ESA is not connected to the Tokyo origin.",
+          "CEN/TR nodes are dangling (control edges only, no VPC attachments) and DTS is drawn as a node in the Singapore region rather than a link between the databases."
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "sc-ho-dr-azure-sql",
+      "category": "need",
+      "lang": "en",
+      "title": "DR copy of an Azure SQL database",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.008,
+      "meanMs": 8211,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Connectivity between Azure and DTS/VPC is unresolved in the diagram — no VPN Gateway or Express Connect node drawn despite the guidance calling for a private link; the question is asked but a first diagram should show the assumed link",
+          "RDS engine choice (SQL Server vs another DTS-supported engine) not stated in labels or narration"
+        ],
+        "reasons": [
+          "Correctly scopes to just the DR copy: Azure SQL as other-cloud node, RDS multi-AZ replica, DTS for ongoing replication, no app tier",
+          "DTS placed at region level outside the VPC per placement rules; multi-zone RDS is one node with zones a,b",
+          "Draws first on stated assumptions and asks two design-changing questions with quick replies"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "sc-ho-onprem-db",
+      "category": "need",
+      "lang": "en",
+      "title": "Keep the app on-premises, move only the database",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "include dts": 3
+      },
+      "failedTypes": [
+        "include"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 9338,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          4,
+          5,
+          4,
+          5
+        ],
+        "defects": [
+          "DTS for the migration is not mentioned or drawn, though moving the database implies a migration path",
+          "No backup/DR mention for RDS, a minor omission"
+        ],
+        "reasons": [
+          "Correctly draws only the database on Alibaba Cloud with the on-prem app linked via VPN Gateway, matching the stated scope",
+          "RDS multi-zone as one node, VPN at VPC edge, and region grouping all follow placement rules",
+          "Assumptions shown as chips and two design-relevant questions with quick replies follow the draw-first pattern"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "sc-ho-oss-backup-aws",
+      "category": "need",
+      "lang": "en",
+      "title": "Alibaba Cloud object storage only, as a backup target for AWS",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.008,
+      "meanMs": 8791,
+      "judge": {
+        "run": 1,
+        "mean": 3.5,
+        "signoff": false,
+        "scores": [
+          4,
+          3,
+          3,
+          4
+        ],
+        "defects": [
+          "Express Connect shown as a hop writing to OSS; OSS is a regional service outside the VPC reached via its endpoint, not through the VPC boundary device.",
+          "Cloud Backup node added without need: it backs up ECS/NAS/OSS/VMware, not AWS workloads, so it cannot manage AWS-to-OSS backup jobs.",
+          "No mention of how AWS data actually lands in OSS (S3-compatible tools, DTS, or third-party backup software), leaving the core flow unexplained.",
+          "Versioning/cross-region backup options for OSS not considered despite being the natural fit for a backup target."
+        ],
+        "reasons": [
+          "Correctly keeps everything on AWS as one other-cloud node and adds only OSS on Alibaba Cloud, with a stated region assumption and one relevant connectivity question.",
+          "Placement and data-path defects: Express Connect is a VPC boundary service, but OSS is regional and reached via its endpoint, so the ec->oss 'write' edge through the VPC is misleading; Cloud Backup is an unnecessary extra node for a simple AWS-to-OSS backup target.",
+          "Narration is clear and concise, but the diagram would need fixes (drop Cloud Backup or justify it, fix the OSS path) before signoff."
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "sc-ho-cdn-azure",
+      "category": "need",
+      "lang": "en",
+      "title": "CDN in front of a website that stays on Azure",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.007,
+      "meanMs": 7763,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Exactly the requested scope: CDN in front of an Azure-hosted site, nothing else redesigned",
+          "Placement correct: DNS shown as resolve hop only, CDN at edge, Azure as other-cloud origin",
+          "Narration concise and matches the diagram"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "sc-ho-multicloud-link",
+      "category": "need",
+      "lang": "en",
+      "title": "Link AWS and Azure workloads to a new Alibaba Cloud network",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "provider names only on other-cloud nodes and external groups": 3
+      },
+      "failedTypes": [
+        "scope"
+      ],
+      "meanCostUsd": 0.01,
+      "meanMs": 13944,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Express Connect nodes placed inside the VPC rather than at the VPC edge/boundary per catalog scope",
+          "No VPN Gateway node shown even as an alternative path, though it is mentioned in the assumption chip",
+          "CEN->tr edge labeled 'hub' as control is slightly redundant since TR is inherently part of CEN"
+        ],
+        "reasons": [
+          "Correctly draws only the network hub on Alibaba Cloud with two external cloud groups, matching the guidance",
+          "CEN + Transit Router is the right pattern for joining several networks; Express Connect offered with VPN alternative as an assumption chip",
+          "Follows draw-first-then-ask: stated assumptions as chips and two design-relevant questions with quick replies"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "sc-ho-lambda-s3-trap",
+      "category": "trap",
+      "lang": "en",
+      "title": "Replace AWS Lambda and S3 with Alibaba Cloud equivalents",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.008,
+      "meanMs": 10012,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Correct 1:1 mapping of Lambda to FC and S3 to OSS with event-driven trigger",
+          "All regional services correctly placed outside VPC in a single region group",
+          "Narration states assumptions as chips and asks one relevant question with quick replies"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "as-ho-zh-store",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "Online store with missing details (Chinese)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.011,
+      "meanMs": 18854,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          4,
+          5
+        ],
+        "defects": [
+          "ESA 已内置 WAF 和 DDoS 防护，额外叠加独立 WAF 未说明需要更深规则集的理由，略显冗余"
+        ],
+        "reasons": [
+          "完整覆盖网上商店所需组件：边缘加速、WAF、负载均衡、弹性计算、缓存、数据库、对象存储和日志",
+          "产品均为当前名称且放置正确：ESA 在边缘层、OSS/SLS 在 VPC 外、WAF 作为 ALB 徽章、ESS 作为 ECS 徽章、DNS 不在数据路径",
+          "先画图再提问，假设以 chips 展示，问题不超过两个且带快捷回复，叙述为中文"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "as-ho-zh-vague",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "Too vague to draw (Chinese): ask first",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.006,
+      "meanMs": 3354,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "请求过于模糊，正确地未绘制任何图",
+          "用中文提出两个关键问题，各带快速回复选项",
+          "问题聚焦用途与规模，足以确定设计方向"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "as-ho-ko-vague",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "Too vague to draw (Korean): ask first",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.006,
+      "meanMs": 3864,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "요청이 너무 모호하여 그리지 않고 질문만 한 것이 정확한 처리",
+          "한국어로 2개의 질문과 빠른 답변 옵션 제공",
+          "다이어그램 변경 없음이 지침과 일치"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": "sc-ho-zh-rds-aws",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "Just RDS for an app that runs on AWS (Chinese)",
+      "runs": 3,
+      "passes": 3,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.008,
+      "meanMs": 8651,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          4,
+          5
+        ],
+        "defects": [
+          "大流量场景下 Express Connect 仅作为提问选项，未在图中体现备选路径"
+        ],
+        "reasons": [
+          "仅绘制用户所需部分：RDS 加 AWS 侧连接，无多余应用层",
+          "RDS 双可用区高可用，产品用法与目录事实一致",
+          "中文叙述清晰，假设以 chips 展示且只问一个会改变设计的问题"
+        ]
+      },
+      "runPass": [
+        true,
+        true,
+        true
+      ]
+    }
+  ],
+  "warnings": {
+    "preRepairByCode": {
+      "containment": {
+        "total": 13,
+        "perTurn": 0.167,
+        "turns": 13
+      },
+      "missing-group": {
+        "total": 4,
+        "perTurn": 0.051,
+        "turns": 4
+      },
+      "bad-op": {
+        "total": 3,
+        "perTurn": 0.038,
+        "turns": 3
+      },
+      "orphan-node": {
+        "total": 3,
+        "perTurn": 0.038,
+        "turns": 3
+      },
+      "attach-host-missing": {
+        "total": 1,
+        "perTurn": 0.013,
+        "turns": 1
+      }
+    },
+    "postRepairByCode": {
+      "orphan-node": {
+        "total": 3,
+        "perTurn": 0.038,
+        "turns": 3
+      }
+    },
+    "preRepairBySeverity": {
+      "warn": 12,
+      "error": 9,
+      "info": 3
+    },
+    "postRepairBySeverity": {
+      "warn": 3
+    },
+    "fixesByCode": {
+      "containment": 14,
+      "missing-group": 4,
+      "attach-invalid": 1
+    },
+    "unknownProducts": {
+      "count": 0,
+      "top": []
+    },
+    "nonIdProducts": {
+      "count": 0,
+      "top": []
+    }
+  },
+  "latency": {
+    "firstByteMs": {
+      "n": 78,
+      "p50": 1182,
+      "p95": 1543,
+      "mean": 1171,
+      "max": 1675
+    },
+    "perceivedFirstByteMs": {
+      "n": 78,
+      "p50": 1182,
+      "p95": 1543,
+      "mean": 1171,
+      "max": 1675
+    },
+    "firstSayMs": {
+      "n": 78,
+      "p50": 1476,
+      "p95": 1887,
+      "mean": 1460,
+      "max": 2233
+    },
+    "firstOpMs": {
+      "n": 78,
+      "p50": 1913,
+      "p95": 2435,
+      "mean": 1921,
+      "max": 3384
+    },
+    "firstNodeMs": {
+      "n": 63,
+      "p50": 4480,
+      "p95": 5899,
+      "mean": 4468,
+      "max": 7263
+    },
+    "streamMs": {
+      "n": 78,
+      "p50": 12251,
+      "p95": 21407,
+      "mean": 12426,
+      "max": 24716
+    },
+    "turnMs": {
+      "n": 78,
+      "p50": 12252,
+      "p95": 21411,
+      "mean": 12428,
+      "max": 24719
+    },
+    "diagramStreamMs": {
+      "n": 63,
+      "p50": 14885,
+      "p95": 21519,
+      "mean": 14475,
+      "max": 24716
+    },
+    "productStreamMs": {
+      "n": 2,
+      "p50": 4846,
+      "p95": 5012,
+      "mean": 4846,
+      "max": 5030
+    },
+    "editStreamMs": {
+      "n": 6,
+      "p50": 20960,
+      "p95": 23098,
+      "mean": 20352,
+      "max": 23669
+    }
+  },
+  "tokens": {
+    "prompt": 1182246,
+    "cached": 1118208,
+    "cacheHit": 0.946,
+    "completion": 49337,
+    "completionPerTurn": {
+      "n": 78,
+      "p50": 630,
+      "p95": 1146,
+      "mean": 633,
+      "max": 1223
+    },
+    "costPerTurn": {
+      "n": 78,
+      "p50": 0.00894,
+      "p95": 0.01232,
+      "mean": 0.00902,
+      "max": 0.013826
+    },
+    "costPerConversation": {
+      "n": 72,
+      "p50": 0.00894,
+      "p95": 0.01845,
+      "mean": 0.00977,
+      "max": 0.024843999999999998
+    },
+    "costUsd": 0.704
+  },
+  "reliability": {
+    "turns": 78,
+    "truncatedMain": 0,
+    "continued": 0,
+    "repairTurns": 0,
+    "hedged": 0,
+    "hedgeWon": 0,
+    "fallbackUsed": 0,
+    "retriedAttempts": 0,
+    "apiFailures": 0,
+    "badLines": 0,
+    "escapes": 0
+  },
+  "failover": {
+    "turns": 0,
+    "rate": 0,
+    "byReason": {},
+    "stalledAttemptMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "fallbackFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "perceivedFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "turnMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "followUpFallbacks": 0,
+    "examples": []
+  },
+  "cutoff": {
+    "truncated": 0,
+    "byCause": {},
+    "rescued": 0,
+    "notRescued": 0,
+    "rescuedPassing": 0,
+    "turnPassRateExcludingRescued": 0.833,
+    "list": []
+  },
+  "constraints": {
+    "residency": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failing": [],
+      "warnMentions": 0,
+      "correctedByRepair": 0,
+      "scan": {
+        "checks": 3,
+        "passed": 3,
+        "failing": []
+      }
+    },
+    "pins": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failing": []
+    },
+    "avoid": {
+      "checks": 24,
+      "passed": 21,
+      "rate": 0.875
+    },
+    "product": {
+      "turnsWithConstraints": 12,
+      "findingsBefore": {},
+      "findingsAfter": {}
+    }
+  },
+  "repairs": {
+    "fixesByCode": {
+      "containment": {
+        "total": 14,
+        "turns": 14
+      },
+      "missing-group": {
+        "total": 4,
+        "turns": 4
+      },
+      "attach-invalid": {
+        "total": 1,
+        "turns": 1
+      }
+    },
+    "followUps": {
+      "turns": 0,
+      "byKind": {},
+      "byFindingCode": {},
+      "list": []
+    }
+  },
+  "i18n": {
+    "en": {
+      "turns": 63,
+      "completionPerTurn": 652,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 15166,
+      "sayLangPass": 63,
+      "sayLangChecks": 63,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    },
+    "ko": {
+      "turns": 3,
+      "completionPerTurn": 142,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 15113,
+      "sayLangPass": 3,
+      "sayLangChecks": 3,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    },
+    "zh": {
+      "turns": 12,
+      "completionPerTurn": 653,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 15122,
+      "sayLangPass": 12,
+      "sayLangChecks": 12,
+      "whyLangPass": 9,
+      "whyLangChecks": 9,
+      "escapes": 0
+    }
+  },
+  "multiturn": [
+    {
+      "case": "as-ho-answer-riders",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 0,
+          "passed": 0
+        },
+        {
+          "turn": 2,
+          "checks": 0,
+          "passed": 0
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "as-ho-flip-regions",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 0,
+          "passed": 0
+        },
+        {
+          "turn": 2,
+          "checks": 3,
+          "passed": 3
+        }
+      ],
+      "finalPassRate": 1
+    }
+  ],
+  "judge": {
+    "model": "kimi-k3",
+    "judged": 24,
+    "runsJudged": 30,
+    "constraintRuns": {
+      "runs": 9,
+      "signoff": 0.556,
+      "overall": 3.778,
+      "noSignoff": [
+        {
+          "case": "ai-ho-eu-training",
+          "run": 1,
+          "defects": [
+            "Lingjun node placed in Frankfurt region; catalog says Lingjun's only international region is Singapore, so this violates the EU-only constraint and is not available there",
+            "Narration never states that Lingjun is unavailable in Frankfurt nor offers the fallback (DLC on general GPU pools, GPU ECS, or ACK)",
+            "No discussion of GPU availability for 30B training in Frankfurt; A100/H100-class GPUs are not offered internationally, making the training design likely infeasible as drawn"
+          ]
+        },
+        {
+          "case": "ai-ho-eu-training",
+          "run": 2,
+          "defects": [
+            "gpu-cluster node places Lingjun in Frankfurt, where it is not available; catalog and case guidance say Lingjun's only international region is Singapore.",
+            "Narration asserts 'Lingjun bare-metal clusters with CPFS are the right fit' without disclosing that Lingjun cannot be deployed in Frankfurt, misleading a compliance-bound user.",
+            "No fallback design on general GPU pools (DLC public resources, GPU ECS or ACK) in Frankfurt is presented as the main architecture."
+          ]
+        },
+        {
+          "case": "ai-ho-eu-training",
+          "run": 3,
+          "defects": [
+            "Lingjun node placed in Frankfurt region despite catalog guidance that Lingjun's only international region is Singapore; this is the core defect.",
+            "Narration recommends Lingjun and asks about allowlisting for Frankfurt without stating it is unavailable there, misleading the user.",
+            "No fallback compute for training in Frankfurt (GPU ECS / ACK / PAI-DLC public or subscription GPU quotas) is proposed."
+          ]
+        },
+        {
+          "case": "as-ho-flip-regions",
+          "run": 1,
+          "defects": [
+            "GTM -> dns edge is backwards/pointless: GTM itself is the DNS steering layer; keeping both Cloud DNS and GTM with users->gtm(resolve) then gtm->dns muddles the resolve path.",
+            "ESA has no origin/failover path to the Tokyo ALB, so if Singapore fails the edge layer cannot reach the DR region; GTM steering to a region ESA cannot reach is broken.",
+            "CEN and both Transit Routers are isolated nodes with only control edges to each other; they never attach to either VPC, so the private cross-region link is decorative."
+          ]
+        }
+      ]
+    },
+    "errors": 0,
+    "means": {
+      "completeness": 4.5,
+      "accuracy": 4.375,
+      "rationality": 4.125,
+      "readability": 4.542,
+      "overall": 4.385
+    },
+    "signoffRate": 0.833,
+    "byCategory": {
+      "pattern": {
+        "n": 3,
+        "overall": 4.667,
+        "signoff": 1
+      },
+      "trap": {
+        "n": 6,
+        "overall": 4.125,
+        "signoff": 0.833
+      },
+      "i18n": {
+        "n": 5,
+        "overall": 4.65,
+        "signoff": 0.8
+      },
+      "need": {
+        "n": 8,
+        "overall": 4.406,
+        "signoff": 0.875
+      },
+      "multiturn": {
+        "n": 2,
+        "overall": 4,
+        "signoff": 0.5
+      }
+    },
+    "agreement": {
+      "n": 24,
+      "agree": 18,
+      "rate": 0.75,
+      "tp": 17,
+      "tn": 1,
+      "fp": 3,
+      "fn": 3,
+      "meanScorePass": 4.488,
+      "meanScoreFail": 3.875,
+      "pointBiserial": 0.395,
+      "disagreements": [
+        {
+          "case": "ai-ho-zh-rag-eas",
+          "run": 1,
+          "assertions": "pass",
+          "judge": "no",
+          "failed": [],
+          "defects": [
+            "Embedding 经 NAT 网关出公网调用 Model Studio，文档内容离开 VPC，与用户'向量数据留在 VPC 内网'的内网诉求冲突，应默认在 PAI-EAS 自托管 Embedding 或明确标注权衡",
+            "rag-service 与 llm 拆为两个独立 PAI-EAS 服务增加成本和运维复杂度，单服务即可承载 RAG 检索与推理",
+            "DNS 作为独立节点出现在数据路径边缘，虽标注 resolve 但可简化"
+          ]
+        },
+        {
+          "case": "ai-ho-langstudio",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "mentions 2027|retir"
+          ],
+          "defects": [
+            "Narration says LangStudio 'isn't in the current catalog' instead of stating it retires 2027-03-09 and that its successor (Model Studio app development) is closed to new international accounts",
+            "No ingestion path shown from OSS documents into Milvus (only rag->docs read); an embedding/ingestion step is implied but not drawn",
+            "Edge rag->nat labeled 'control' is vague; NAT is the egress path to Model Studio, so the rag->llm flow should route via NAT or the label should say egress"
+          ]
+        },
+        {
+          "case": "as-ho-flip-regions",
+          "run": 1,
+          "assertions": "pass",
+          "judge": "no",
+          "failed": [],
+          "defects": [
+            "GTM -> dns edge is backwards/pointless: GTM itself is the DNS steering layer; keeping both Cloud DNS and GTM with users->gtm(resolve) then gtm->dns muddles the resolve path.",
+            "ESA has no origin/failover path to the Tokyo ALB, so if Singapore fails the edge layer cannot reach the DR region; GTM steering to a region ESA cannot reach is broken.",
+            "CEN and both Transit Routers are isolated nodes with only control edges to each other; they never attach to either VPC, so the private cross-region link is decorative."
+          ]
+        },
+        {
+          "case": "sc-ho-onprem-db",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "include dts"
+          ],
+          "defects": [
+            "DTS for the migration is not mentioned or drawn, though moving the database implies a migration path",
+            "No backup/DR mention for RDS, a minor omission"
+          ]
+        },
+        {
+          "case": "sc-ho-oss-backup-aws",
+          "run": 1,
+          "assertions": "pass",
+          "judge": "no",
+          "failed": [],
+          "defects": [
+            "Express Connect shown as a hop writing to OSS; OSS is a regional service outside the VPC reached via its endpoint, not through the VPC boundary device.",
+            "Cloud Backup node added without need: it backs up ECS/NAS/OSS/VMware, not AWS workloads, so it cannot manage AWS-to-OSS backup jobs.",
+            "No mention of how AWS data actually lands in OSS (S3-compatible tools, DTS, or third-party backup software), leaving the core flow unexplained."
+          ]
+        },
+        {
+          "case": "sc-ho-multicloud-link",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "provider names only on other-cloud nodes and external groups"
+          ],
+          "defects": [
+            "Express Connect nodes placed inside the VPC rather than at the VPC edge/boundary per catalog scope",
+            "No VPN Gateway node shown even as an alternative path, though it is mentioned in the assumption chip",
+            "CEN->tr edge labeled 'hub' as control is slightly redundant since TR is inherently part of CEN"
+          ]
+        }
+      ]
+    },
+    "costUsd": 0.246
+  },
+  "failures": [
+    {
+      "case": "ai-ho-eu-training",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "exclude",
+      "name": "exclude lingjun",
+      "detail": "present: lingjun"
+    },
+    {
+      "case": "ai-ho-langstudio",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "mention",
+      "name": "mentions 2027|retir",
+      "detail": "pai-langstudio isn't in the current catalog, so i'll build your document q&a agent using pai-eas, model studio and milvus.\ndocument q&a agent built with pai-eas"
+    },
+    {
+      "case": "sc-ho-onprem-db",
+      "category": "need",
+      "run": 1,
+      "turn": 1,
+      "type": "include",
+      "name": "include dts",
+      "detail": "none of dts"
+    },
+    {
+      "case": "sc-ho-multicloud-link",
+      "category": "need",
+      "run": 1,
+      "turn": 1,
+      "type": "scope",
+      "name": "provider names only on other-cloud nodes and external groups",
+      "detail": "node ec-aws (express-connect) \"AWS link\"; node ec-azure (express-connect) \"Azure link\""
+    },
+    {
+      "case": "ai-ho-eu-training",
+      "category": "trap",
+      "run": 2,
+      "turn": 1,
+      "type": "exclude",
+      "name": "exclude lingjun",
+      "detail": "present: lingjun"
+    },
+    {
+      "case": "ai-ho-langstudio",
+      "category": "trap",
+      "run": 2,
+      "turn": 1,
+      "type": "mention",
+      "name": "mentions 2027|retir",
+      "detail": "pai-langstudio is not in the catalog. i will draw a document q&a agent using dify on ack with model studio and milvus.\ndocument q&a agent built with dify on ack"
+    },
+    {
+      "case": "as-ho-hr-internal",
+      "category": "need",
+      "run": 2,
+      "turn": 1,
+      "type": "reask",
+      "name": "assumes never repeat internal|400|singapore",
+      "detail": "assumes 400: About 400 staff"
+    },
+    {
+      "case": "sc-ho-onprem-db",
+      "category": "need",
+      "run": 2,
+      "turn": 1,
+      "type": "include",
+      "name": "include dts",
+      "detail": "none of dts"
+    },
+    {
+      "case": "sc-ho-multicloud-link",
+      "category": "need",
+      "run": 2,
+      "turn": 1,
+      "type": "scope",
+      "name": "provider names only on other-cloud nodes and external groups",
+      "detail": "node ec-aws (express-connect) \"Express Connect to AWS\"; node ec-azure (express-connect) \"Express Connect to Azure\""
+    },
+    {
+      "case": "ai-ho-eu-training",
+      "category": "trap",
+      "run": 3,
+      "turn": 1,
+      "type": "exclude",
+      "name": "exclude lingjun",
+      "detail": "present: lingjun"
+    },
+    {
+      "case": "ai-ho-langstudio",
+      "category": "trap",
+      "run": 3,
+      "turn": 1,
+      "type": "mention",
+      "name": "mentions 2027|retir",
+      "detail": "pai-langstudio is not in the catalog. i will build your document q&a agent using agentcore, model studio and a vector store instead.\ndocument q&a agent built wi"
+    },
+    {
+      "case": "sc-ho-onprem-db",
+      "category": "need",
+      "run": 3,
+      "turn": 1,
+      "type": "include",
+      "name": "include dts",
+      "detail": "none of dts"
+    },
+    {
+      "case": "sc-ho-multicloud-link",
+      "category": "need",
+      "run": 3,
+      "turn": 1,
+      "type": "scope",
+      "name": "provider names only on other-cloud nodes and external groups",
+      "detail": "node ec-aws (express-connect) \"EC to AWS\"; node ec-azure (express-connect) \"EC to Azure\""
+    }
+  ]
+}

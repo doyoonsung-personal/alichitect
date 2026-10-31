@@ -1,0 +1,167 @@
+2026-10-31T18-06-03-p1b-final-heldout-new: 24 cases, 72 of 72 conversations to run (concurrency 3, model qwen3.8-max, fallback qwen3.7-max)
+[1/72] ai-ho-inference-scale#1 PASS 1/1 turns 17s $0.011
+[2/72] ai-ho-zh-rag-eas#1 PASS 1/1 turns 18s $0.011
+[3/72] ai-ho-eu-training#1 PASS 1/1 turns 18s $0.011
+[4/72] ai-ho-no-k8s-sandbox#1 PASS 1/1 turns 11s $0.009
+[5/72] ai-ho-langstudio#1 FAIL 1/1 turns 12s $0.010 failed: mention
+[6/72] ai-ho-rl-sandboxes#1 PASS 1/1 turns 13s $0.010
+[7/72] ai-ho-gpu-inference-sg#1 PASS 1/1 turns 5s $0.006
+[8/72] ai-ho-gpu-in-sandbox#1 PASS 1/1 turns 9s $0.008
+[9/72] as-ho-furniture#1 PASS 1/1 turns 17s $0.011
+[10/72] as-ho-vague-move#1 PASS 1/1 turns 4s $0.006
+[11/72] as-ho-hr-internal#1 PASS 1/1 turns 17s $0.009
+[12/72] as-ho-game#1 PASS 1/1 turns 21s $0.012
+[13/72] sc-ho-dr-azure-sql#1 PASS 1/1 turns 8s $0.008
+[14/72] sc-ho-onprem-db#1 FAIL 1/1 turns 10s $0.008 failed: include
+[15/72] as-ho-answer-riders#1 PASS 2/2 turns 24s $0.018
+[16/72] sc-ho-cdn-azure#1 PASS 1/1 turns 7s $0.008
+[17/72] sc-ho-oss-backup-aws#1 PASS 1/1 turns 9s $0.008
+[18/72] as-ho-flip-regions#1 PASS 2/2 turns 33s $0.023
+[19/72] sc-ho-lambda-s3-trap#1 PASS 1/1 turns 9s $0.008
+[20/72] as-ho-zh-vague#1 PASS 1/1 turns 4s $0.006
+[21/72] sc-ho-multicloud-link#1 FAIL 1/1 turns 15s $0.010 failed: scope
+[22/72] as-ho-ko-vague#1 PASS 1/1 turns 4s $0.006
+[23/72] as-ho-zh-store#1 PASS 1/1 turns 19s $0.012
+[24/72] sc-ho-zh-rds-aws#1 PASS 1/1 turns 9s $0.008
+[25/72] ai-ho-inference-scale#2 PASS 1/1 turns 16s $0.011
+[26/72] ai-ho-eu-training#2 FAIL 1/1 turns 17s $0.011 failed: exclude
+[27/72] ai-ho-zh-rag-eas#2 PASS 1/1 turns 17s $0.011
+[28/72] ai-ho-rl-sandboxes#2 PASS 1/1 turns 13s $0.008
+[29/72] ai-ho-no-k8s-sandbox#2 PASS 1/1 turns 11s $0.007
+[30/72] ai-ho-gpu-inference-sg#2 PASS 1/1 turns 3s $0.006
+[31/72] ai-ho-gpu-in-sandbox#2 PASS 1/1 turns 9s $0.008
+[32/72] ai-ho-langstudio#2 FAIL 1/1 turns 17s $0.011 failed: mention
+[33/72] as-ho-hr-internal#2 PASS 1/1 turns 12s $0.008
+[34/72] as-ho-furniture#2 FAIL 1/1 turns 18s $0.010 failed: reask
+[35/72] as-ho-vague-move#2 PASS 1/1 turns 5s $0.005
+[36/72] as-ho-game#2 PASS 1/1 turns 22s $0.011
+[37/72] sc-ho-dr-azure-sql#2 PASS 1/1 turns 9s $0.007
+[38/72] as-ho-answer-riders#2 PASS 2/2 turns 22s $0.018
+[39/72] sc-ho-onprem-db#2 FAIL 1/1 turns 10s $0.007 failed: include
+[40/72] sc-ho-oss-backup-aws#2 PASS 1/1 turns 9s $0.006
+[41/72] sc-ho-cdn-azure#2 PASS 1/1 turns 8s $0.006
+[42/72] as-ho-flip-regions#2 PASS 2/2 turns 31s $0.020
+[43/72] sc-ho-lambda-s3-trap#2 PASS 1/1 turns 8s $0.006
+[44/72] as-ho-zh-vague#2 PASS 1/1 turns 4s $0.005
+[45/72] sc-ho-multicloud-link#2 FAIL 1/1 turns 14s $0.010 failed: scope
+[46/72] as-ho-ko-vague#2 PASS 1/1 turns 4s $0.005
+[47/72] as-ho-zh-store#2 PASS 1/1 turns 16s $0.010
+[48/72] sc-ho-zh-rds-aws#2 PASS 1/1 turns 8s $0.006
+[49/72] ai-ho-inference-scale#3 PASS 1/1 turns 19s $0.010
+[50/72] ai-ho-zh-rag-eas#3 FAIL 1/1 turns 16s $0.009 failed: format
+[51/72] ai-ho-eu-training#3 FAIL 1/1 turns 19s $0.012 failed: exclude
+[52/72] ai-ho-rl-sandboxes#3 PASS 1/1 turns 13s $0.008
+[53/72] ai-ho-no-k8s-sandbox#3 PASS 1/1 turns 11s $0.007
+[54/72] ai-ho-langstudio#3 FAIL 1/1 turns 14s $0.008 failed: mention
+[55/72] ai-ho-gpu-inference-sg#3 PASS 1/1 turns 2s $0.004
+[56/72] ai-ho-gpu-in-sandbox#3 PASS 1/1 turns 10s $0.008
+[57/72] as-ho-furniture#3 FAIL 1/1 turns 17s $0.010 failed: reask
+[58/72] as-ho-game#3 PASS 1/1 turns 18s $0.010
+[59/72] as-ho-vague-move#3 PASS 1/1 turns 4s $0.005
+[60/72] as-ho-hr-internal#3 PASS 1/1 turns 16s $0.009
+[61/72] sc-ho-dr-azure-sql#3 PASS 1/1 turns 8s $0.007
+[62/72] sc-ho-onprem-db#3 FAIL 1/1 turns 9s $0.007 failed: include
+[63/72] as-ho-answer-riders#3 FAIL 2/2 turns 23s $0.015 failed: reask
+[64/72] sc-ho-oss-backup-aws#3 PASS 1/1 turns 7s $0.006
+[65/72] sc-ho-cdn-azure#3 PASS 1/1 turns 7s $0.006
+[66/72] as-ho-flip-regions#3 PASS 2/2 turns 31s $0.020
+[67/72] sc-ho-lambda-s3-trap#3 PASS 1/1 turns 8s $0.006
+[68/72] sc-ho-multicloud-link#3 FAIL 1/1 turns 13s $0.008 failed: scope
+[69/72] as-ho-zh-vague#3 PASS 1/1 turns 3s $0.004
+[70/72] as-ho-ko-vague#3 PASS 1/1 turns 4s $0.005
+[71/72] sc-ho-zh-rds-aws#3 PASS 1/1 turns 10s $0.007
+[72/72] as-ho-zh-store#3 PASS 1/1 turns 17s $0.010
+judge kimi-k3: 30 runs to score
+judge ai-ho-eu-training#1: 4/3/4/4 signoff no
+judge ai-ho-inference-scale#1: 4/4/4/4 signoff yes
+judge ai-ho-eu-training#2: 4/2/2/4 signoff no
+judge ai-ho-eu-training#3: 4/2/2/4 signoff no
+judge ai-ho-langstudio#1: 4/4/4/4 signoff yes
+judge ai-ho-rl-sandboxes#1: 4/4/4/4 signoff yes
+judge ai-ho-zh-rag-eas#1: 4/4/4/4 signoff yes
+judge ai-ho-gpu-in-sandbox#1: 5/5/5/5 signoff yes
+judge ai-ho-no-k8s-sandbox#3: 5/5/5/4 signoff yes
+judge as-ho-furniture#1: 5/5/5/5 signoff yes
+judge as-ho-game#1: 5/5/4/4 signoff yes
+judge ai-ho-gpu-inference-sg#1: 4/5/4/4 signoff yes
+judge as-ho-hr-internal#1: 5/5/5/5 signoff yes
+judge as-ho-vague-move#1: 5/5/5/5 signoff yes
+judge ai-ho-no-k8s-sandbox#2: 5/5/5/4 signoff yes
+judge ai-ho-no-k8s-sandbox#1: 5/5/5/4 signoff yes
+judge as-ho-answer-riders#1: 5/5/4/5 signoff yes
+judge as-ho-flip-regions#1: 4/4/4/4 signoff yes
+judge sc-ho-dr-azure-sql#1: 4/4/4/4 signoff yes
+judge as-ho-flip-regions#3: 4/4/4/4 signoff yes
+judge as-ho-flip-regions#2: 4/4/4/4 signoff yes
+judge sc-ho-onprem-db#1: 4/5/4/5 signoff yes
+judge sc-ho-cdn-azure#1: 5/5/5/5 signoff yes
+judge sc-ho-lambda-s3-trap#1: 5/5/5/5 signoff yes
+judge sc-ho-oss-backup-aws#1: 4/4/4/4 signoff yes
+judge as-ho-zh-store#1: 5/5/5/5 signoff yes
+judge as-ho-zh-vague#1: 5/5/5/5 signoff yes
+judge sc-ho-multicloud-link#1: 4/3/3/4 signoff no
+judge as-ho-ko-vague#1: 5/5/5/5 signoff yes
+judge sc-ho-zh-rds-aws#1: 5/5/5/5 signoff yes
+
+results: C:\Users\mendo\ali_catalog\eval\results\2026-10-31T18-06-03-p1b-final-heldout-new
+spent this run: USD 0.889 (ledger total USD 61.272)
+# Evaluation summary
+
+Model qwen3.8-max (fallback qwen3.7-max), catalog 2026-10-31 (232 entries), system prompt 59711 chars (sha256 290480d0a20b), 3 runs per case, started 2026-10-31T18:06:03.880Z.
+
+## Overall
+
+**pass@1 79%, all 3 runs pass 71%** (24 cases). pass@3 is best-of-3 and is listed last.
+
+| measure | value |
+| --- | ---: |
+| cases / conversations / turns | 24 / 72 / 78 |
+| pass@1 (mean case pass rate) | 79% |
+| all runs pass | 71% |
+| majority (over half the runs pass) | 79% |
+| pass@3 (some run passes) | 88% |
+| conversations passing every assertion | 79% |
+| turns passing every assertion | 81% |
+| assertions passing (1032 checks) | 99% |
+| conversations that hit an API failure | 0 |
+| list-price cost of the model runs | $0.66 |
+
+## By category
+
+| category | cases | runs | run pass | all runs | majority | pass@3 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| pattern | 3 | 9 | 78% | 67% | 67% | 100% |
+| trap | 6 | 18 | 72% | 67% | 67% | 83% |
+| i18n | 5 | 15 | 93% | 80% | 100% | 100% |
+| need | 8 | 24 | 75% | 75% | 75% | 75% |
+| multiturn | 2 | 6 | 83% | 50% | 100% | 100% |
+
+## By language
+
+| language | cases | runs | run pass | all runs | majority | pass@3 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| en | 19 | 57 | 75% | 68% | 74% | 84% |
+| zh | 4 | 12 | 92% | 75% | 100% | 100% |
+| ko | 1 | 3 | 100% | 100% | 100% | 100% |
+
+## By assertion type (worst first)
+
+| type | checks | passed | rate | cases that failed it |
+| --- | ---: | ---: | ---: | ---: |
+| mention | 21 | 18 | 86% | 1 |
+| reask | 30 | 27 | 90% | 2 |
+| scope | 36 | 33 | 92% | 1 |
+| exclude | 27 | 25 | 93% | 1 |
+| include | 96 | 93 | 97% | 1 |
+| format | 78 | 77 | 99% | 1 |
+| region | 36 | 36 | 100% | 0 |
+| gpu | 15 | 15 | 100% | 0 |
+| linked | 6 | 6 | 100% | 0 |
+| noErrors | 78 | 78 | 100% | 0 |
+| pathOrder | 63 | 63 | 100% | 0 |
+| attachValid | 78 | 78 | 100% | 0 |
+| escapes | 78 | 78 | 100% | 0 |
+| noPrices | 78 | 78 | 100% | 0 |
+| sayLang | 78 | 78 | 100% | 0 |
+| askLang | 15 | 15 | 100% | 0 |
+| whyLang | 9 | 9 | 100% | 0 |

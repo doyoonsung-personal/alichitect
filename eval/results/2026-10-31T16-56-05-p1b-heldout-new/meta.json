@@ -1,0 +1,46 @@
+{
+  "startedAt": "2026-10-31T16:56:05.976Z",
+  "args": {
+    "runs": "3",
+    "concurrency": "3",
+    "budget": "120",
+    "cases-dir": "cases-heldout-p1c",
+    "label": "p1b-heldout-new"
+  },
+  "model": "qwen3.8-max",
+  "fallbackModel": "qwen3.7-max",
+  "judgeModel": "kimi-k3",
+  "runsPerCase": 3,
+  "concurrency": 3,
+  "cases": 24,
+  "units": 72,
+  "catalogVersion": "2026-10-31",
+  "catalogEntries": 232,
+  "systemPromptChars": 59133,
+  "systemPromptSha256": "be0d8972c4792a6b9edc2db0581174fc57fa640179a91d0f2acf1ecb847146b3",
+  "node": "v24.21.0",
+  "coreFiles": {
+    "asks.ts": "518a5cf61437",
+    "catalog-node.ts": "dade41cbd9ed",
+    "catalog.ts": "5bf2d46dc58f",
+    "constraints.ts": "eb0ddfc38ef9",
+    "diff.ts": "eaabf1ce1def",
+    "display.ts": "941ca6dec769",
+    "layout.ts": "5b76a21851a5",
+    "llm.ts": "a1a02c1e49ce",
+    "ndjson.ts": "3163a8232eaa",
+    "pricing.ts": "6fa3a32521c0",
+    "prompt.ts": "96f95bae38fa",
+    "reducer.ts": "c2c1ecfd68b4",
+    "regions.ts": "c34c43b79d8c",
+    "types.ts": "c8fa50d4efdc",
+    "validate.ts": "459e177bbb84"
+  },
+  "judgeAllRunsOf": [
+    "ai-ho-eu-training",
+    "ai-ho-no-k8s-sandbox",
+    "as-ho-flip-regions"
+  ],
+  "finishedAt": "2026-10-31T17:02:23.291Z",
+  "spentUsd": 0.9499259999999999
+}

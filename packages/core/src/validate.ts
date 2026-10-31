@@ -22,6 +22,7 @@ import { LANE_ORDER, checkLifecycle, placementOf, successorWarning } from './cat
 import type { PlaceKind } from './catalog.ts';
 import { DEFAULT_REGION, isOpenRegion, regionLabel, regionMentions, resolveRegions } from './regions.ts';
 import { allowedRegions, expandAvoid, familyOfWord } from './constraints.ts';
+import { ASK_LIMITS } from './asks.ts';
 
 export { normalizeId };
 export { checkConstraints, constraintChecker } from './constraints.ts';
@@ -35,6 +36,8 @@ const QUIET_LANES = new Set(['ops', 'security', 'governance', 'saas', 'network']
 export interface ValidateCtx {
   /** Written when a group of a non-container kind is dropped, read to re-point references to it. ApplyCtx has it. */
   groupAlias?: Record<string, string | null>;
+  /** Ids of the assume and ask ops accepted so far this turn; validateOp keeps it to enforce the per-turn caps (3 assume, 2 ask). Pass a fresh ctx per turn. */
+  turnAsks?: { assume: string[]; ask: string[] };
 }
 
 export interface ValidateResult {
@@ -65,8 +68,8 @@ export const REQ_LIMITS = { regions: 8, avoid: 20 };
 type Raw = Record<string, unknown>;
 type Severity = Warning['severity'];
 
-const OP_TYPES = new Set(['say', 'plan', 'req', 'group', 'node', 'edge', 'insert', 'move', 'remove', 'rec', 'gap', 'done']);
-const OP_ALIASES: Record<string, string> = { delete: 'remove', recommend: 'rec', recommendation: 'rec', end: 'done' };
+const OP_TYPES = new Set(['say', 'plan', 'req', 'group', 'node', 'edge', 'insert', 'move', 'remove', 'rec', 'gap', 'assume', 'ask', 'done']);
+const OP_ALIASES: Record<string, string> = { delete: 'remove', recommend: 'rec', recommendation: 'rec', end: 'done', assumption: 'assume', question: 'ask' };
 const GROUP_KINDS = new Set(['external', 'edge', 'region', 'vpc', 'zone', 'subnet', 'onprem']);
 const GROUP_KIND_ALIASES: Record<string, string> = {
   vswitch: 'subnet',
@@ -310,6 +313,51 @@ function reqRegionIds(v: unknown, warnings: Warning[]): string[] {
   return out;
 }
 
+/** A stable id for an assume or ask op that has none: the first words of its text. */
+function noteId(prefix: string, v: unknown, fallback: string): string {
+  return normalizeId(`${prefix}-${Array.from(String(v ?? '')).slice(0, 24).join('')}`) ?? fallback;
+}
+
+/** Records an accepted assume or ask id in the turn counters; false when the per-turn cap is reached (the same id again replaces and is free). */
+function takeTurnSlot(ctx: ValidateCtx | undefined, kind: 'assume' | 'ask', id: string): boolean {
+  if (!ctx) return true;
+  const t = ctx.turnAsks ?? (ctx.turnAsks = { assume: [], ask: [] });
+  const list = t[kind];
+  if (list.includes(id)) return true;
+  if (list.length >= (kind === 'assume' ? ASK_LIMITS.assumePerTurn : ASK_LIMITS.askPerTurn)) return false;
+  list.push(id);
+  return true;
+}
+
+/** Quick-reply options: trimmed, truncated to 40 characters, deduplicated, at most 4; fewer than 2 left means no options. */
+function optionList(v: unknown, id: string, warnings: Warning[]): string[] | undefined {
+  if (v === undefined || v === null) return undefined;
+  const list = typeof v === 'string' ? v.split('|') : v;
+  if (!Array.isArray(list)) {
+    warnings.push(W('bad-op', [id], 'ask options is not a list; dropped', 'info', true));
+    return undefined;
+  }
+  const out: string[] = [];
+  const seen = new Set<string>();
+  let over = false;
+  for (const raw of list) {
+    const c = clean(raw, ASK_LIMITS.optionText);
+    if (!c || !c.text) continue;
+    if (c.truncated) warnings.push(W('bad-op', [id], `ask option is longer than ${ASK_LIMITS.optionText} characters; truncated`, 'info', true));
+    const k = c.text.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    if (out.length >= ASK_LIMITS.optionsMax) over = true;
+    else out.push(c.text);
+  }
+  if (over) warnings.push(W('bad-op', [id], `ask has more than ${ASK_LIMITS.optionsMax} options; the rest are dropped`, 'info', true));
+  if (out.length < ASK_LIMITS.optionsMin) {
+    if (out.length) warnings.push(W('bad-op', [id], `ask needs at least ${ASK_LIMITS.optionsMin} options; asked without them`, 'info', true));
+    return undefined;
+  }
+  return out;
+}
+
 function gapFor(r: Raw, id: string): Op {
   const need = clean(r.label ?? r.name ?? r.product ?? id, TEXT_LIMITS.note);
   return { t: 'gap', need: (need && need.text) || id || 'component', note: `'${clip(r.product ?? '')}' is not in the catalog` };
@@ -471,6 +519,30 @@ export function validateOp(raw: unknown, catalog: Catalog, ctx?: ValidateCtx): V
       if (!need) return drop('gap without need', 'warn');
       const note = text(r.note ?? r.why, TEXT_LIMITS.note, 'gap note', [], warnings) ?? '';
       return { op: { t: 'gap', need, note }, warnings };
+    }
+    case 'assume': {
+      const txt = text(r.text ?? r.assumption, ASK_LIMITS.assumeText, 'assume text', [], warnings);
+      if (!txt) return drop('assume without text', 'info');
+      const id = r.id !== undefined && r.id !== null && r.id !== '' ? idField(r.id, 'assume id', warnings) : null;
+      const aid = id ?? noteId('assume', txt, 'assume');
+      if (!id) warnings.push(W('bad-op', [aid], `assume without a valid id; using '${aid}'`, 'info', true));
+      if (!takeTurnSlot(ctx, 'assume', aid)) return drop(`more than ${ASK_LIMITS.assumePerTurn} assume ops in one turn; '${aid}' dropped`, 'warn');
+      const op: Extract<Op, { t: 'assume' }> = { t: 'assume', id: aid, text: txt };
+      const alt = text(r.alt ?? r.alternative, ASK_LIMITS.assumeAlt, 'assume alt', [aid], warnings);
+      if (alt) op.alt = alt;
+      return { op, warnings };
+    }
+    case 'ask': {
+      const txt = text(r.text ?? r.question, ASK_LIMITS.askText, 'ask text', [], warnings);
+      if (!txt) return drop('ask without text', 'info');
+      const id = r.id !== undefined && r.id !== null && r.id !== '' ? idField(r.id, 'ask id', warnings) : null;
+      const qid = id ?? noteId('ask', txt, 'ask');
+      if (!id) warnings.push(W('bad-op', [qid], `ask without a valid id; using '${qid}'`, 'info', true));
+      if (!takeTurnSlot(ctx, 'ask', qid)) return drop(`more than ${ASK_LIMITS.askPerTurn} ask ops in one turn; '${qid}' dropped`, 'warn');
+      const op: Extract<Op, { t: 'ask' }> = { t: 'ask', id: qid, text: txt };
+      const options = optionList(r.options ?? r.choices, qid, warnings);
+      if (options) op.options = options;
+      return { op, warnings };
     }
     case 'done': {
       const summary = text(r.summary ?? r.text, TEXT_LIMITS.summary, 'done summary', [], warnings) ?? '';

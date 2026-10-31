@@ -1,0 +1,1072 @@
+{
+  "meta": {
+    "startedAt": "2026-10-31T16:52:34.642Z",
+    "args": {
+      "runs": "1",
+      "concurrency": "4",
+      "cases": "ai-,as-,sc-",
+      "no-judge": true,
+      "budget": "80",
+      "label": "p1b-smoke"
+    },
+    "model": "qwen3.8-max",
+    "fallbackModel": "qwen3.7-max",
+    "runsPerCase": 1,
+    "concurrency": 4,
+    "cases": 21,
+    "units": 21,
+    "catalogVersion": "2026-10-31",
+    "catalogEntries": 232,
+    "systemPromptChars": 59133,
+    "systemPromptSha256": "be0d8972c4792a6b9edc2db0581174fc57fa640179a91d0f2acf1ecb847146b3",
+    "node": "v24.21.0",
+    "coreFiles": {
+      "asks.ts": "518a5cf61437",
+      "catalog-node.ts": "dade41cbd9ed",
+      "catalog.ts": "5bf2d46dc58f",
+      "constraints.ts": "eb0ddfc38ef9",
+      "diff.ts": "eaabf1ce1def",
+      "display.ts": "941ca6dec769",
+      "layout.ts": "5b76a21851a5",
+      "llm.ts": "a1a02c1e49ce",
+      "ndjson.ts": "3163a8232eaa",
+      "pricing.ts": "6fa3a32521c0",
+      "prompt.ts": "96f95bae38fa",
+      "reducer.ts": "c2c1ecfd68b4",
+      "regions.ts": "c34c43b79d8c",
+      "types.ts": "c8fa50d4efdc",
+      "validate.ts": "459e177bbb84"
+    },
+    "judgeAllRunsOf": [],
+    "finishedAt": "2026-10-31T16:54:02.305Z",
+    "spentUsd": 0.22461600000000004
+  },
+  "totals": {
+    "cases": 21,
+    "conversations": 21,
+    "turns": 24,
+    "casePassRate": 0.857,
+    "passAtN": 0.857,
+    "majority": 0.857,
+    "allRuns": 0.857,
+    "runPassRate": 0.857,
+    "turnPassRate": 0.875,
+    "assertionPassRate": 0.991,
+    "assertions": 334,
+    "apiFailures": 0,
+    "costUsd": 0.225
+  },
+  "byCategory": {
+    "pattern": {
+      "cases": 6,
+      "runs": 6,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "multiturn": {
+      "cases": 3,
+      "runs": 3,
+      "runPassRate": 0.667,
+      "passAtN": 0.667,
+      "majority": 0.667,
+      "allRuns": 0.667
+    },
+    "i18n": {
+      "cases": 3,
+      "runs": 3,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    },
+    "need": {
+      "cases": 7,
+      "runs": 7,
+      "runPassRate": 0.857,
+      "passAtN": 0.857,
+      "majority": 0.857,
+      "allRuns": 0.857
+    },
+    "trap": {
+      "cases": 2,
+      "runs": 2,
+      "runPassRate": 0.5,
+      "passAtN": 0.5,
+      "majority": 0.5,
+      "allRuns": 0.5
+    }
+  },
+  "byLang": {
+    "en": {
+      "cases": 18,
+      "runs": 18,
+      "runPassRate": 0.833,
+      "passAtN": 0.833,
+      "majority": 0.833,
+      "allRuns": 0.833
+    },
+    "ko": {
+      "cases": 3,
+      "runs": 3,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    }
+  },
+  "byAssertionType": {
+    "scope": {
+      "checks": 10,
+      "passed": 9,
+      "rate": 0.9,
+      "failingCases": [
+        "sc-04-ec2-s3-trap"
+      ]
+    },
+    "exclude": {
+      "checks": 11,
+      "passed": 10,
+      "rate": 0.909,
+      "failingCases": [
+        "ai-07-training-residency"
+      ]
+    },
+    "asks": {
+      "checks": 14,
+      "passed": 13,
+      "rate": 0.929,
+      "failingCases": [
+        "as-03-fully-stated"
+      ]
+    },
+    "include": {
+      "checks": 41,
+      "passed": 41,
+      "rate": 1,
+      "failingCases": []
+    },
+    "size": {
+      "checks": 17,
+      "passed": 17,
+      "rate": 1,
+      "failingCases": []
+    },
+    "region": {
+      "checks": 16,
+      "passed": 16,
+      "rate": 1,
+      "failingCases": []
+    },
+    "gpu": {
+      "checks": 4,
+      "passed": 4,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noErrors": {
+      "checks": 24,
+      "passed": 24,
+      "rate": 1,
+      "failingCases": []
+    },
+    "pathOrder": {
+      "checks": 22,
+      "passed": 22,
+      "rate": 1,
+      "failingCases": []
+    },
+    "attachValid": {
+      "checks": 24,
+      "passed": 24,
+      "rate": 1,
+      "failingCases": []
+    },
+    "format": {
+      "checks": 24,
+      "passed": 24,
+      "rate": 1,
+      "failingCases": []
+    },
+    "escapes": {
+      "checks": 24,
+      "passed": 24,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noPrices": {
+      "checks": 24,
+      "passed": 24,
+      "rate": 1,
+      "failingCases": []
+    },
+    "sayLang": {
+      "checks": 24,
+      "passed": 24,
+      "rate": 1,
+      "failingCases": []
+    },
+    "linked": {
+      "checks": 5,
+      "passed": 5,
+      "rate": 1,
+      "failingCases": []
+    },
+    "attach": {
+      "checks": 1,
+      "passed": 1,
+      "rate": 1,
+      "failingCases": []
+    },
+    "placement": {
+      "checks": 2,
+      "passed": 2,
+      "rate": 1,
+      "failingCases": []
+    },
+    "req": {
+      "checks": 2,
+      "passed": 2,
+      "rate": 1,
+      "failingCases": []
+    },
+    "residency": {
+      "checks": 2,
+      "passed": 2,
+      "rate": 1,
+      "failingCases": []
+    },
+    "residencyScan": {
+      "checks": 2,
+      "passed": 2,
+      "rate": 1,
+      "failingCases": []
+    },
+    "pins": {
+      "checks": 1,
+      "passed": 1,
+      "rate": 1,
+      "failingCases": []
+    },
+    "editMinimal": {
+      "checks": 2,
+      "passed": 2,
+      "rate": 1,
+      "failingCases": []
+    },
+    "retention": {
+      "checks": 2,
+      "passed": 2,
+      "rate": 1,
+      "failingCases": []
+    },
+    "askLang": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "whyLang": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "askOptions": {
+      "checks": 13,
+      "passed": 13,
+      "rate": 1,
+      "failingCases": []
+    },
+    "mention": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "assumes": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "reask": {
+      "checks": 7,
+      "passed": 7,
+      "rate": 1,
+      "failingCases": []
+    },
+    "zones": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "chips": {
+      "checks": 1,
+      "passed": 1,
+      "rate": 1,
+      "failingCases": []
+    }
+  },
+  "cases": [
+    {
+      "id": "ai-01-dsw-sandbox",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Training sandboxes for data scientists (DSW, not an agent sandbox)",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.01,
+      "meanMs": 14855,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "ai-02-acs-agent-hosting",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Agent hosting with ACS sandboxes",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.011,
+      "meanMs": 20953,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "ai-03-post-train-eas",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Post-training on PAI, then serving on PAI-EAS",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.011,
+      "meanMs": 16741,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "ai-04-rag-eas",
+      "category": "pattern",
+      "lang": "en",
+      "title": "RAG on PAI-EAS with a self-hosted LLM",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.01,
+      "meanMs": 15446,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "ai-05-rag-model-studio",
+      "category": "pattern",
+      "lang": "en",
+      "title": "RAG on Model Studio APIs without GPUs",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.011,
+      "meanMs": 19177,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "ai-07-training-residency",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Training data stays in Singapore; evaluation added later",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "exclude agentloop": 1
+      },
+      "failedTypes": [
+        "exclude"
+      ],
+      "meanCostUsd": 0.018,
+      "meanMs": 20362,
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "ai-ko-02-acs-agent-hosting",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "Agent hosting with ACS sandboxes (Korean)",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.011,
+      "meanMs": 20005,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "ai-08-poc-finetune-8gpu",
+      "category": "need",
+      "lang": "en",
+      "title": "Fine-tune Qwen on 8 GPUs next week for a PoC (PAI-DLC, Lingjun not a prerequisite)",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.009,
+      "meanMs": 14623,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "ai-10-rl-flash-sandbox",
+      "category": "trap",
+      "lang": "en",
+      "title": "Agentic RL rollouts with no Kubernetes (Agent Sandbox Flash edition, no official reference)",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.009,
+      "meanMs": 11742,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "as-01-vague-company",
+      "category": "need",
+      "lang": "en",
+      "title": "Too vague to pick any pattern: ask before drawing",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.006,
+      "meanMs": 4797,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "as-02-store",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Online store with missing details: draw first, assume, ask at most two",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.011,
+      "meanMs": 17408,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "as-03-fully-stated",
+      "category": "need",
+      "lang": "en",
+      "title": "Everything stated: no ask ops and no restated assumptions",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "asks 0-0": 1
+      },
+      "failedTypes": [
+        "asks"
+      ],
+      "meanCostUsd": 0.011,
+      "meanMs": 16832,
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "as-04-answer-vague",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Answer to the question-first turn: the design appears and the question is not asked again",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.017,
+      "meanMs": 23082,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "as-05-flip-internal",
+      "category": "multiturn",
+      "lang": "en",
+      "title": "Flip the public-facing assumption to internal only",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.019,
+      "meanMs": 21541,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "sc-01-rds-aws",
+      "category": "need",
+      "lang": "en",
+      "title": "Just RDS for an app that runs on AWS",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.008,
+      "meanMs": 9050,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "sc-02-rds-aws-migrate",
+      "category": "need",
+      "lang": "en",
+      "title": "RDS on Alibaba Cloud with DTS migration from AWS",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.007,
+      "meanMs": 7546,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "sc-03-waf-cdn-gcp",
+      "category": "need",
+      "lang": "en",
+      "title": "Only WAF and CDN in front of a Google Cloud site",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.007,
+      "meanMs": 8017,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "sc-04-ec2-s3-trap",
+      "category": "trap",
+      "lang": "en",
+      "title": "EC2 and S3 to be built on Alibaba Cloud still map to ECS and OSS",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "provider names only on other-cloud nodes and external groups": 1
+      },
+      "failedTypes": [
+        "scope"
+      ],
+      "meanCostUsd": 0.01,
+      "meanMs": 13737,
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "sc-05-onprem-lb-waf",
+      "category": "need",
+      "lang": "en",
+      "title": "Load balancer and WAF in front of on-premises servers",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.009,
+      "meanMs": 13954,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "as-ko-02-store",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "Online store with missing details (Korean)",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.011,
+      "meanMs": 20332,
+      "runPass": [
+        true
+      ]
+    },
+    {
+      "id": "sc-ko-01-rds-aws",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "Just RDS for an app that runs on AWS (Korean)",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.008,
+      "meanMs": 8087,
+      "runPass": [
+        true
+      ]
+    }
+  ],
+  "warnings": {
+    "preRepairByCode": {
+      "containment": {
+        "total": 3,
+        "perTurn": 0.125,
+        "turns": 3
+      },
+      "unknown-id": {
+        "total": 3,
+        "perTurn": 0.125,
+        "turns": 1
+      },
+      "missing-group": {
+        "total": 2,
+        "perTurn": 0.083,
+        "turns": 2
+      },
+      "bad-op": {
+        "total": 1,
+        "perTurn": 0.042,
+        "turns": 1
+      }
+    },
+    "postRepairByCode": {},
+    "preRepairBySeverity": {
+      "info": 4,
+      "error": 3,
+      "warn": 2
+    },
+    "postRepairBySeverity": {},
+    "fixesByCode": {
+      "containment": 3,
+      "missing-group": 2
+    },
+    "unknownProducts": {
+      "count": 0,
+      "top": []
+    },
+    "nonIdProducts": {
+      "count": 0,
+      "top": []
+    }
+  },
+  "latency": {
+    "firstByteMs": {
+      "n": 24,
+      "p50": 1296,
+      "p95": 1634,
+      "mean": 1283,
+      "max": 1759
+    },
+    "perceivedFirstByteMs": {
+      "n": 24,
+      "p50": 1296,
+      "p95": 1634,
+      "mean": 1283,
+      "max": 1759
+    },
+    "firstSayMs": {
+      "n": 24,
+      "p50": 1676,
+      "p95": 2011,
+      "mean": 1597,
+      "max": 2377
+    },
+    "firstOpMs": {
+      "n": 24,
+      "p50": 2139,
+      "p95": 2506,
+      "mean": 2054,
+      "max": 2808
+    },
+    "firstNodeMs": {
+      "n": 22,
+      "p50": 4446,
+      "p95": 5326,
+      "mean": 4383,
+      "max": 5626
+    },
+    "streamMs": {
+      "n": 24,
+      "p50": 14731,
+      "p95": 20281,
+      "mean": 13258,
+      "max": 20951
+    },
+    "turnMs": {
+      "n": 24,
+      "p50": 14736,
+      "p95": 20282,
+      "mean": 13261,
+      "max": 20953
+    },
+    "diagramStreamMs": {
+      "n": 22,
+      "p50": 15144,
+      "p95": 20314,
+      "mean": 14089,
+      "max": 20951
+    },
+    "productStreamMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "editStreamMs": {
+      "n": 3,
+      "p50": 5844,
+      "p95": 18258,
+      "mean": 9884,
+      "max": 19637
+    }
+  },
+  "tokens": {
+    "prompt": 364827,
+    "cached": 344064,
+    "cacheHit": 0.943,
+    "completion": 16179,
+    "completionPerTurn": {
+      "n": 24,
+      "p50": 749,
+      "p95": 1044,
+      "mean": 674,
+      "max": 1054
+    },
+    "costPerTurn": {
+      "n": 24,
+      "p50": 0.00965,
+      "p95": 0.01147,
+      "mean": 0.00936,
+      "max": 0.011472
+    },
+    "costPerConversation": {
+      "n": 21,
+      "p50": 0.01018,
+      "p95": 0.0181,
+      "mean": 0.0107,
+      "max": 0.019077999999999998
+    },
+    "costUsd": 0.225
+  },
+  "reliability": {
+    "turns": 24,
+    "truncatedMain": 0,
+    "continued": 0,
+    "repairTurns": 0,
+    "hedged": 0,
+    "hedgeWon": 0,
+    "fallbackUsed": 0,
+    "retriedAttempts": 0,
+    "apiFailures": 0,
+    "badLines": 0,
+    "escapes": 0
+  },
+  "failover": {
+    "turns": 0,
+    "rate": 0,
+    "byReason": {},
+    "stalledAttemptMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "fallbackFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "perceivedFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "turnMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "followUpFallbacks": 0,
+    "examples": []
+  },
+  "cutoff": {
+    "truncated": 0,
+    "byCause": {},
+    "rescued": 0,
+    "notRescued": 0,
+    "rescuedPassing": 0,
+    "turnPassRateExcludingRescued": 0.875,
+    "list": []
+  },
+  "constraints": {
+    "residency": {
+      "checks": 2,
+      "passed": 2,
+      "rate": 1,
+      "failing": [],
+      "warnMentions": 0,
+      "correctedByRepair": 0,
+      "scan": {
+        "checks": 2,
+        "passed": 2,
+        "failing": []
+      }
+    },
+    "pins": {
+      "checks": 1,
+      "passed": 1,
+      "rate": 1,
+      "failing": []
+    },
+    "avoid": {
+      "checks": 11,
+      "passed": 10,
+      "rate": 0.909
+    },
+    "product": {
+      "turnsWithConstraints": 4,
+      "findingsBefore": {},
+      "findingsAfter": {}
+    }
+  },
+  "repairs": {
+    "fixesByCode": {
+      "containment": {
+        "total": 3,
+        "turns": 3
+      },
+      "missing-group": {
+        "total": 2,
+        "turns": 2
+      }
+    },
+    "followUps": {
+      "turns": 0,
+      "byKind": {},
+      "byFindingCode": {},
+      "list": []
+    }
+  },
+  "i18n": {
+    "en": {
+      "turns": 21,
+      "completionPerTurn": 652,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 15211,
+      "sayLangPass": 21,
+      "sayLangChecks": 21,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    },
+    "ko": {
+      "turns": 3,
+      "completionPerTurn": 832,
+      "ratioVsEnglish": 1.01,
+      "promptPerTurn": 15133,
+      "sayLangPass": 3,
+      "sayLangChecks": 3,
+      "whyLangPass": 3,
+      "whyLangChecks": 3,
+      "escapes": 0
+    }
+  },
+  "multiturn": [
+    {
+      "case": "ai-07-training-residency",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 2,
+          "passed": 2
+        },
+        {
+          "turn": 2,
+          "checks": 3,
+          "passed": 3
+        }
+      ],
+      "finalPassRate": 0
+    },
+    {
+      "case": "as-04-answer-vague",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 0,
+          "passed": 0
+        },
+        {
+          "turn": 2,
+          "checks": 0,
+          "passed": 0
+        }
+      ],
+      "finalPassRate": 1
+    },
+    {
+      "case": "as-05-flip-internal",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 0,
+          "passed": 0
+        },
+        {
+          "turn": 2,
+          "checks": 1,
+          "passed": 1
+        }
+      ],
+      "finalPassRate": 1
+    }
+  ],
+  "judge": {
+    "model": null,
+    "judged": 0,
+    "runsJudged": 0,
+    "constraintRuns": null,
+    "errors": 0,
+    "means": null,
+    "signoffRate": null,
+    "byCategory": {},
+    "agreement": null,
+    "costUsd": 0
+  },
+  "failures": [
+    {
+      "case": "ai-07-training-residency",
+      "category": "multiturn",
+      "run": 1,
+      "turn": 2,
+      "type": "exclude",
+      "name": "exclude agentloop",
+      "detail": "present: agentloop"
+    },
+    {
+      "case": "as-03-fully-stated",
+      "category": "need",
+      "run": 1,
+      "turn": 1,
+      "type": "asks",
+      "name": "asks 0-0",
+      "detail": "2 ask op(s): \"Do you prefer managed containers over virtual machines?\" [ECS (current) / SAE (serverless containers) / ACK (Kubernetes)]; \"Will you integrate an external payment gateway?\" [Yes, third-party API / No, cash on delivery only]"
+    },
+    {
+      "case": "sc-04-ec2-s3-trap",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "scope",
+      "name": "provider names only on other-cloud nodes and external groups",
+      "detail": "node app (ecs) \"App servers (EC2 equivalent)\"; node storage (oss) \"Object storage (S3 equivalent)\""
+    }
+  ]
+}

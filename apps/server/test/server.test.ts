@@ -702,3 +702,65 @@ describe('log rotation', () => {
     assert.ok(readFileSync(file, 'utf8').trim().split('\n').at(-1)!.includes('"i":39'), 'the newest line is in the current file');
   });
 });
+
+describe('assumptions and questions (draw first, then ask)', () => {
+  const REPLY = [
+    line({ t: 'say', text: 'A small API on SAE.' }),
+    line({ t: 'assume', id: 'exposure', text: 'Public-facing API', alt: 'Internal only' }),
+    line({ t: 'assume', id: 'scale', text: 'About 10k users' }),
+    line({ t: 'node', id: 'app', product: 'sae', label: 'API', why: 'Runs the API.' }),
+    line({ t: 'ask', id: 'data', text: 'Which database do you use?', options: ['MySQL', 'PostgreSQL', 'Not sure'] }),
+    line({ t: 'done', summary: 'API on SAE.' }),
+  ].join('\n');
+  const lastUser = (c: UpCall): string => {
+    const msgs = c.body.messages as Array<{ role: string; content: string }>;
+    return msgs[msgs.length - 1].content;
+  };
+
+  test('the commit event carries them; the browser sends them back and they reach the final user message, not the system prompt', async () => {
+    const up = upstream([ok(REPLY), ok(line({ t: 'say', text: 'MySQL it is.' }) + '\n' + line({ t: 'done', summary: 'ok' }))]);
+    const { srv, base } = await start({ fetchImpl: up.fetchImpl });
+    try {
+      const evs1 = await events(await post(base, turnBody({ ask: 'a small API' })));
+      const commit = evs1.find((e) => e.type === 'commit') as { memory: SessionMemory } | undefined;
+      assert.ok(commit, 'a commit event');
+      assert.deepEqual(commit.memory.assumptions, [{ id: 'exposure', text: 'Public-facing API', alt: 'Internal only' }, { id: 'scale', text: 'About 10k users' }]);
+      assert.deepEqual(commit.memory.questions, [{ id: 'data', text: 'Which database do you use?', options: ['MySQL', 'PostgreSQL', 'Not sure'] }]);
+      assert.ok(evs1.some((e) => e.type === 'op' && (e.op as { t: string }).t === 'assume'), 'assume ops stream as op events');
+      assert.ok(evs1.some((e) => e.type === 'op' && (e.op as { t: string }).t === 'ask'), 'ask ops stream as op events');
+      assert.ok(!String((up.calls[0].body.messages as Array<{ content: string }>)[0].content).includes('Public-facing API'), 'nothing of the memory in the system prompt');
+
+      const evs2 = await events(await post(base, turnBody({ ask: 'MySQL', memory: commit.memory })));
+      assert.equal(evs2.at(-1)!.type, 'commit');
+      const sent = lastUser(up.calls[1]);
+      assert.match(sent, /CURRENT ASSUMPTIONS[^\n]*\n- exposure: Public-facing API \(alternative: Internal only\)\n- scale: About 10k users/);
+      assert.match(sent, /OPEN QUESTIONS[^\n]*\n- data: Which database do you use\? \[MySQL \| PostgreSQL \| Not sure\]/);
+      assert.equal((up.calls[1].body.messages as Array<{ content: string }>)[0].content, (up.calls[0].body.messages as Array<{ content: string }>)[0].content, 'the system prompt is byte-stable across the two turns');
+      const commit2 = evs2.find((e) => e.type === 'commit') as { memory: SessionMemory };
+      assert.equal(commit2.memory.questions, undefined, 'the answered question is replaced by nothing');
+      assert.equal(commit2.memory.assumptions!.length, 2, 'assumptions persist');
+    } finally {
+      await srv.close();
+    }
+  });
+
+  test('checkTurnRequest keeps both fields, clips them to the spec limits and rebuilds them from known fields', () => {
+    const m = {
+      ...memory(),
+      assumptions: [{ id: 'exposure', text: 'P'.repeat(100), alt: 'Internal only', evil: 'x' }, { id: 'blank', text: '   ' }],
+      questions: [{ id: 'q', text: 'Who?\nnow', options: ['A', 'A', 'B', 'C', 'D', 'E', 'y'.repeat(60)], evil: 1 }, { id: 'one', text: 'Single?', options: ['Only'] }],
+    };
+    const r = checkTurnRequest({ sessionId: 's', ask: 'x', memory: m });
+    assert.ok(r.ok);
+    const mem = (r as { ok: true; value: { memory: SessionMemory } }).value.memory;
+    assert.deepEqual(mem.assumptions, [{ id: 'exposure', text: 'P'.repeat(60), alt: 'Internal only' }]);
+    assert.deepEqual(mem.questions, [{ id: 'q', text: 'Who? now', options: ['A', 'B', 'C', 'D'] }, { id: 'one', text: 'Single?' }]);
+    const none = checkTurnRequest({ sessionId: 's', ask: 'x', memory: { ...memory(), assumptions: [], questions: null } });
+    assert.ok(none.ok);
+    assert.equal((none as { ok: true; value: { memory: SessionMemory } }).value.memory.assumptions, undefined);
+    assert.equal((none as { ok: true; value: { memory: SessionMemory } }).value.memory.questions, undefined);
+    for (const bad of [{ assumptions: 'x' }, { assumptions: [{ id: 'Bad Id', text: 'x' }] }, { assumptions: [{ id: 'a' }] }, { questions: [{ id: 'q', text: 5 }] }, { assumptions: new Array(13).fill({ id: 'a', text: 'x' }) }, { questions: new Array(5).fill({ id: 'q', text: 'x' }) }]) {
+      assert.equal(checkTurnRequest({ sessionId: 's', ask: 'x', memory: { ...memory(), ...bad } }).ok, false, JSON.stringify(bad).slice(0, 60));
+    }
+  });
+});

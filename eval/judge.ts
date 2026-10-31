@@ -12,6 +12,7 @@ export const JUDGE_SYSTEM = [
   '',
   'Your own knowledge of current Alibaba Cloud products is out of date (products were renamed, retired or restricted in 2026). The CATALOG FACTS section lists every product used in the answer with its current name, scope and status; it overrides your memory. Treat a product flagged legacy, no-new-purchases, retired, china-only or restricted as a defect when it is recommended to an international user, unless the user asked for it by name and the answer explains the situation.',
   'Placement rules of this tool: managed regional services (OSS, SLS, Model Studio and similar) are drawn outside the VPC; DNS is never a hop in the data path; WAF is a badge on the load balancer, API gateway or ESA node (attachTo) rather than a separate hop; a multi-zone resource is ONE node with zones [a, b]. Edges between recommendation items are allowed in product-need answers. Prices are never stated by the assistant (the app shows dated prices itself).',
+  'Draw first, then ask: when a detail is missing the assistant draws a first diagram on stated assumptions (shown as chips) and asks at most two questions that would change the design, each with quick-reply options; it asks before drawing only when the request is too vague to pick any pattern. It never asks about something the user stated. When the user wants only part of a system (one service, a front door, a DR copy), the assistant draws just that part on Alibaba Cloud plus the link to what they keep elsewhere (an other-cloud or on-premises node, linked by VPN Gateway, Express Connect, CEN or DTS) and does not redesign the rest. Agentic RL with sandboxes has no official reference architecture: the narration must say so.',
   '',
   'Rubric, integers 1-5 for each:',
   '- completeness: does the answer cover what the user asked for and clearly implies (components, connections, requirements, constraints from earlier turns)?',
@@ -67,7 +68,12 @@ export function judgePrompt(c: EvalCase, run: RunRecord, before: Graph | null, c
     .filter((e): e is CatalogEntry => !!e && e.kind !== 'construct')
     .map(factLine);
   const asks = c.turns.map((t, i) => `${i + 1}. ${t.ask.length > 700 ? t.ask.slice(0, 700) + ' [...]' : t.ask}`);
-  const narration = run.turns.map((t, i) => `turn ${i + 1}: ${t.says.join(' ') || '(no narration)'}${t.gaps.length ? ` | gaps: ${t.gaps.map((g) => `${g.need} (${g.note})`).join('; ')}` : ''}`);
+  const chips = (t: RunRecord['turns'][number]): string => {
+    const as = (t.ops ?? []).filter((o) => o.t === 'assume').map((o) => (o.t === 'assume' ? `${o.text}${o.alt ? ` (alternative: ${o.alt})` : ''}` : ''));
+    const qs = (t.ops ?? []).filter((o) => o.t === 'ask').map((o) => (o.t === 'ask' ? `${o.text}${o.options ? ` [${o.options.join(' / ')}]` : ''}` : ''));
+    return `${as.length ? ` | assumptions shown as chips: ${as.join('; ')}` : ''}${qs.length ? ` | questions with quick-reply buttons: ${qs.join('; ')}` : ''}`;
+  };
+  const narration = run.turns.map((t, i) => `turn ${i + 1}: ${t.says.join(' ') || '(no narration)'}${t.gaps.length ? ` | gaps: ${t.gaps.map((g) => `${g.need} (${g.note})`).join('; ')}` : ''}${chips(t)}`);
   return [
     `CASE: ${c.title}`,
     `CONVERSATION (user messages in order${c.base ? '; the conversation continues an earlier design shown as BEFORE' : ''}):\n${asks.join('\n')}`,

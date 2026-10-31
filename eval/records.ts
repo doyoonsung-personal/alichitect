@@ -16,6 +16,8 @@ export interface TurnRecord {
   graph: Graph; // after the turn, repaired
   requirements: string[]; // pinned after the turn
   constraints?: Constraint[]; // machine-checkable constraints pinned after the turn (Phase 1 runs; absent in Phase 0 records)
+  assumptions?: Array<{ id: string; text: string; alt?: string }>; // memory.assumptions after the turn (Phase 1 asks; absent in older records)
+  questions?: Array<{ id: string; text: string; options?: string[] }>; // memory.questions after the turn (the latest turn's, replaced every turn)
   summary?: string; // rolling summary after the turn, when there is one
   stats: TurnStats; // repair.content is dropped to keep the file small
   assertions: AssertionResult[];

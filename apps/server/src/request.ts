@@ -4,6 +4,7 @@
 // Pure: no I/O.
 import type { Constraint, Graph, GraphEdge, GraphGroup, GraphNode, Recommendation, SessionMemory, TurnRequest, Turn } from '../../../packages/core/src/types.ts';
 import { ID_PATTERN } from '../../../packages/core/src/reducer.ts';
+import { ASK_LIMITS } from '../../../packages/core/src/asks.ts';
 
 export const LIMITS = {
   askChars: 6000, // code points of the new message
@@ -21,6 +22,8 @@ export const LIMITS = {
   groups: 80,
   recs: 40,
   tombstones: 300,
+  assumptions: 12, // memory.assumptions as the browser sends it back (the server keeps at most ASK_LIMITS.assumptionsKept)
+  questions: 4, // memory.questions (the server keeps at most ASK_LIMITS.askPerTurn)
   zones: 6,
   textChars: 400, // labels, why, edge labels and other short graph text
   sessionId: 128,
@@ -176,6 +179,43 @@ function constraint(v: unknown, p: string): Constraint {
   return c;
 }
 
+/** Clips to `max` code points, one line, no control characters. Text beyond the spec limit is cut, not rejected: the browser echoes what the server committed, and a cosmetic field must not fail a turn. */
+function note(v: unknown, p: string, max: number): string {
+  if (typeof v !== 'string') fail(p, 'expected a string');
+  const one = v.slice(0, max * 4).replace(/[\u0000-\u001f\u007f-\u009f]+/g, ' ').replace(/\s+/g, ' ').trim();
+  return Array.from(one).slice(0, max).join('').trim();
+}
+
+function assumptions(v: unknown, p: string): NonNullable<SessionMemory['assumptions']> {
+  const out: NonNullable<SessionMemory['assumptions']> = [];
+  for (const [i, x] of arr(v, p, LIMITS.assumptions)!.entries()) {
+    const o = obj(x, `${p}[${i}]`);
+    const a: { id: string; text: string; alt?: string } = { id: id(own(o, 'id'), `${p}[${i}].id`), text: note(own(o, 'text'), `${p}[${i}].text`, ASK_LIMITS.assumeText) };
+    const alt = own(o, 'alt');
+    if (alt !== undefined && alt !== null) {
+      const t = note(alt, `${p}[${i}].alt`, ASK_LIMITS.assumeAlt);
+      if (t) a.alt = t;
+    }
+    if (a.text) out.push(a);
+  }
+  return out.slice(-ASK_LIMITS.assumptionsKept);
+}
+
+function questions(v: unknown, p: string): NonNullable<SessionMemory['questions']> {
+  const out: NonNullable<SessionMemory['questions']> = [];
+  for (const [i, x] of arr(v, p, LIMITS.questions)!.entries()) {
+    const o = obj(x, `${p}[${i}]`);
+    const q: { id: string; text: string; options?: string[] } = { id: id(own(o, 'id'), `${p}[${i}].id`), text: note(own(o, 'text'), `${p}[${i}].text`, ASK_LIMITS.askText) };
+    const raw = own(o, 'options');
+    if (raw !== undefined && raw !== null) {
+      const opts = [...new Set(arr(raw, `${p}[${i}].options`, 20)!.map((x2, j) => note(x2, `${p}[${i}].options[${j}]`, ASK_LIMITS.optionText)).filter(Boolean))].slice(0, ASK_LIMITS.optionsMax);
+      if (opts.length >= ASK_LIMITS.optionsMin) q.options = opts;
+    }
+    if (q.text) out.push(q);
+  }
+  return out.slice(0, ASK_LIMITS.askPerTurn);
+}
+
 function memory(v: unknown, p: string): SessionMemory {
   const o = obj(v, p);
   const m: SessionMemory = {
@@ -188,6 +228,18 @@ function memory(v: unknown, p: string): SessionMemory {
   if (summary !== undefined) m.summary = summary;
   const constraints = arr(own(o, 'constraints'), `${p}.constraints`, LIMITS.constraints, true);
   if (constraints) m.constraints = constraints.map((c, i) => constraint(c, `${p}.constraints[${i}]`));
+  // Draw first, then ask: the assumptions the diagram rests on and the questions the last reply asked. They reach the
+  // final user message (prompt.ts), so they are rebuilt from known fields, clipped, and never copied as they came.
+  const asm = own(o, 'assumptions');
+  if (asm !== undefined && asm !== null) {
+    const list = assumptions(asm, `${p}.assumptions`);
+    if (list.length) m.assumptions = list;
+  }
+  const qs = own(o, 'questions');
+  if (qs !== undefined && qs !== null) {
+    const list = questions(qs, `${p}.questions`);
+    if (list.length) m.questions = list;
+  }
   return m;
 }
 

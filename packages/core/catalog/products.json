@@ -101,6 +101,26 @@
       "verified": "2026-10-31"
     },
     {
+      "id": "other-cloud",
+      "name": "Other cloud environment",
+      "short": "Other cloud",
+      "aliases": ["Other cloud","Another cloud","Existing cloud","Multi-cloud","Third-party cloud","AWS","Amazon Web Services","Azure","Microsoft Azure","Google Cloud","GCP"],
+      "kind": "construct",
+      "category": "External",
+      "icon": "internet",
+      "scope": "external",
+      "lane": "onprem",
+      "status": "ga",
+      "availability": "intl",
+      "purpose": "Workloads kept on another provider (AWS, Azure, Google Cloud); label each with provider and role.",
+      "useWhen": "The customer keeps part of their system on AWS, Azure or Google Cloud and links it to Alibaba Cloud.",
+      "avoidWhen": "Workloads the customer wants rebuilt on Alibaba Cloud; map those to catalog products instead.",
+      "pairsWith": ["vpn-gateway","express-connect","cen","dts"],
+      "alternatives": ["onprem-dc"],
+      "note": "One node per existing workload, labelled with the provider and the role, for example 'AWS app servers' or 'Azure SQL database', in an external group named for the provider. Only these nodes and their group may carry another provider's name or product names. Link choices: VPN Gateway (IPsec) for a quick start, Express Connect for a dedicated line, CEN or Transit Router when several networks join, DTS for database migration or sync.",
+      "verified": "2026-10-31"
+    },
+    {
       "id": "dns",
       "name": "Alibaba Cloud DNS",
       "short": "Cloud DNS",
@@ -259,6 +279,7 @@
       "avoidWhen": "Chinese mainland users; it has no mainland access points.",
       "pairsWith": ["nlb","ecs"],
       "alternatives": ["ga"],
+      "docs": "https://www.alibabacloud.com/help/en/anycast-eip/",
       "note": "Inbound only; backends in Hong Kong, Singapore, Tokyo, Frankfurt or US regions.",
       "verified": "2026-10-31"
     },
@@ -482,6 +503,7 @@
       "purpose": "Controls IPv6 internet access for a VPC, including egress-only rules.",
       "useWhen": "Dual-stack apps that must serve or reach IPv6 clients.",
       "pairsWith": ["vpc","ecs"],
+      "docs": "https://www.alibabacloud.com/help/en/ipv6-gateway/",
       "verified": "2026-10-31"
     },
     {
@@ -500,6 +522,7 @@
       "useWhen": "Reaching managed or partner services privately from a VPC.",
       "pairsWith": ["vpc","transit-router"],
       "docs": "https://www.alibabacloud.com/product/private-link",
+      "note": "Model Studio private endpoints are documented for Beijing and Hong Kong only, not Singapore. AI services on the list include PAI EAS, Milvus, AgentRun and OSS; Tablestore, Tair and AI Gateway are not listed.",
       "verified": "2026-10-31"
     },
     {
@@ -694,9 +717,9 @@
       "purpose": "GPU-accelerated ECS instance families for training, inference and rendering.",
       "useWhen": "Inference, rendering or small training jobs that need dedicated GPUs.",
       "pairsWith": ["ebs","cpfs","oss"],
-      "alternatives": ["pai","lingjun"],
+      "alternatives": ["pai-dlc","pai-eas","lingjun","acs"],
       "docs": "https://www.alibabacloud.com/product/heterogeneous_computing",
-      "note": "These are ECS GPU instance families; draw as an ECS node with a GPU marker.",
+      "note": "ECS GPU instance families; draw as an ECS node with a GPU marker. GPUs generally available in Singapore: A10, T4, V100 and P100 (families gn7i, gn6i, gn6v, gn6e, gn5). L20 and H20 (gn8is, gn8v) are sales-negotiated exceptions; A100, A800, H100 and H800 are never offered internationally. No page states Singapore stock: check the console.",
       "verified": "2026-10-31"
     },
     {
@@ -937,12 +960,13 @@
       "multiAz": true,
       "status": "ga",
       "availability": "intl",
-      "purpose": "Serverless Kubernetes: pay-per-pod CPU and GPU compute, Agent Sandbox and Knative.",
-      "useWhen": "Kubernetes workloads without node management, or bursty jobs.",
-      "pairsWith": ["alb","acr","nas"],
+      "purpose": "Serverless Kubernetes: pay-per-pod compute, Agent Sandbox pods and Knative; GPU pods by invitation only.",
+      "useWhen": "Kubernetes workloads without node management, bursty jobs, or hosting agent sandboxes.",
+      "avoidWhen": "Dedicated GPU inference or training in Singapore (GPU pods are invitational); use pai-eas or pai-dlc.",
+      "pairsWith": ["alb","acr","nas","acs-agent-sandbox"],
       "alternatives": ["ack","eci"],
       "docs": "https://www.alibabacloud.com/product/acs",
-      "note": "Recommended successor for ACK Serverless clusters.",
+      "note": "Recommended successor for ACK Serverless clusters. GPU pods (gpu and gpu-hpn compute classes) are an invitational preview: outside China, GPU prices are published for T4 and A10 only, and whether ACS GPU is sold in Singapore at all is unconfirmed. Do not put it in a proposal without a sales or PDSA confirmation. Agent Sandbox pods have no GPU; draw them as acs-agent-sandbox.",
       "verified": "2026-10-31"
     },
     {
@@ -1100,7 +1124,7 @@
       "availability": "intl",
       "purpose": "Parallel file system with very high throughput for HPC and AI training data.",
       "useWhen": "GPU training clusters or HPC that need very high throughput.",
-      "pairsWith": ["lingjun","pai","ehpc","oss"],
+      "pairsWith": ["lingjun","pai-dlc","ehpc","oss"],
       "alternatives": ["nas"],
       "docs": "https://www.alibabacloud.com/product/cpfs",
       "verified": "2026-10-31"
@@ -1122,9 +1146,10 @@
       "purpose": "Serverless NoSQL for wide-column, time-series and agent-memory data at massive scale.",
       "useWhen": "Huge key-value, IoT time series or AI agent memory with serverless pricing.",
       "avoidWhen": "Relational queries and joins; use RDS or PolarDB.",
-      "pairsWith": ["fc","iot-platform","maxcompute"],
+      "pairsWith": ["fc","iot-platform","maxcompute","agentrun"],
       "alternatives": ["lindorm","mongodb"],
       "docs": "https://www.alibabacloud.com/product/table-store",
+      "note": "The documented memory store for AgentRun, and a knowledge-base connector for AgentCore.",
       "verified": "2026-10-31"
     },
     {
@@ -1177,6 +1202,7 @@
       "purpose": "Copies data online into OSS from S3, NAS, HDFS or other clouds.",
       "useWhen": "Moving existing object or file data into OSS.",
       "pairsWith": ["oss"],
+      "docs": "https://www.alibabacloud.com/help/en/data-online-migration/",
       "verified": "2026-10-31"
     },
     {
@@ -1625,6 +1651,7 @@
       "pairsWith": ["model-studio","oss","fc"],
       "alternatives": ["opensearch","dashvector","analyticdb"],
       "docs": "https://www.alibabacloud.com/product/milvus",
+      "note": "The managed knowledge-base feature in the Milvus tutorials lists mainland China regions only: internationally, use Milvus as a plain vector store with your own ingestion. The PAI-EAS RAG template does not offer Milvus as a built-in store.",
       "verified": "2026-10-31",
       "intents": ["vector database for RAG","semantic search over documents"]
     },
@@ -1704,6 +1731,7 @@
       "avoidWhen": "Simple web apps where ALB routing is enough.",
       "pairsWith": ["waf","fc","sae","ack"],
       "alternatives": ["alb","ai-gateway"],
+      "docs": "https://www.alibabacloud.com/help/en/api-gateway/cloud-native-api-gateway/",
       "note": "Successor of API Gateway (Classic) and the MSE cloud-native gateway, which stopped new purchases on 2026-08-23.",
       "verified": "2026-10-31"
     },
@@ -1722,10 +1750,10 @@
       "availability": "intl",
       "purpose": "LLM, MCP and agent gateway: multi-model routing, fallback, token limits, caching and guardrails.",
       "useWhen": "Apps calling several models or MCP servers that need quotas and failover.",
-      "pairsWith": ["model-studio","ai-guardrails","pai"],
+      "pairsWith": ["model-studio","ai-guardrails","pai-eas"],
       "alternatives": ["cloud-native-api-gateway"],
       "docs": "https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/what-is-an-ai-gateway",
-      "note": "Sits between the app and its models; part of the API Gateway family.",
+      "note": "Sits between the app and its models; part of the API Gateway family. A vLLM or SGLang service on PAI-EAS is fronted as a self-hosted OpenAI-compatible backend; EAS is not a named service type.",
       "verified": "2026-10-31",
       "intents": ["one gateway for LLMs, MCP servers and agents"]
     },
@@ -1891,6 +1919,7 @@
       "availability": "intl",
       "purpose": "Distributed cron and DAG job scheduling, including managed XXL-JOB.",
       "pairsWith": ["sae","ack","fc"],
+      "docs": "https://www.alibabacloud.com/help/en/schedulerx/",
       "verified": "2026-10-31"
     },
     {
@@ -1997,6 +2026,7 @@
       "availability": "intl",
       "purpose": "Cloud load testing compatible with JMeter scripts.",
       "pairsWith": ["alb","ecs"],
+      "docs": "https://www.alibabacloud.com/help/en/pts/",
       "verified": "2026-10-31"
     },
     {
@@ -2288,6 +2318,7 @@
       "purpose": "Security experts who monitor, detect and respond to threats on your workloads.",
       "avoidWhen": "It is a service engagement, not a diagram component.",
       "pairsWith": ["security-center"],
+      "docs": "https://www.alibabacloud.com/help/en/mss/",
       "verified": "2026-10-31"
     },
     {
@@ -2407,6 +2438,7 @@
       "availability": "intl",
       "purpose": "SAML single sign-on and SCIM provisioning across Resource Directory accounts.",
       "pairsWith": ["resource-management","ram","idaas"],
+      "docs": "https://www.alibabacloud.com/help/en/cloudsso/",
       "verified": "2026-10-31"
     },
     {
@@ -2474,6 +2506,7 @@
       "availability": "intl",
       "purpose": "Migrates physical servers, VMs and other-cloud servers to ECS.",
       "pairsWith": ["ecs","onprem-dc"],
+      "docs": "https://www.alibabacloud.com/help/en/smc/",
       "verified": "2026-10-31"
     },
     {
@@ -2507,6 +2540,7 @@
       "availability": "intl",
       "purpose": "Governed self-service provisioning of approved infrastructure-as-code products.",
       "pairsWith": ["ros","resource-management"],
+      "docs": "https://www.alibabacloud.com/help/en/service-catalog/",
       "verified": "2026-10-31"
     },
     {
@@ -2538,6 +2572,7 @@
       "status": "ga",
       "availability": "intl",
       "purpose": "The aliyun command-line tool for managing cloud resources.",
+      "docs": "https://www.alibabacloud.com/help/en/cli/",
       "verified": "2026-10-31"
     },
     {
@@ -2588,6 +2623,7 @@
       "availability": "intl",
       "purpose": "HashiCorp Terraform provider for defining Alibaba Cloud infrastructure as code.",
       "alternatives": ["ros"],
+      "docs": "https://www.alibabacloud.com/help/en/terraform/",
       "note": "Provider v2.1.0 was released on 2026-10-22.",
       "verified": "2026-10-31"
     },
@@ -2624,6 +2660,7 @@
       "purpose": "Third-party software, SaaS and images with BYOL, pay-as-you-go or private offers.",
       "avoidWhen": "It is a procurement channel, not a diagram node.",
       "pairsWith": ["qoder-teams","qoder-enterprise"],
+      "docs": "https://www.alibabacloud.com/help/en/marketplace/",
       "verified": "2026-10-31"
     },
     {
@@ -2641,6 +2678,7 @@
       "purpose": "Mandatory filing for websites served from Chinese mainland regions.",
       "avoidWhen": "International accounts cannot file; a China-site account is required.",
       "alternatives": ["gochina-icp"],
+      "docs": "https://www.alibabacloud.com/help/en/icp-filing/",
       "note": "Needed only for servers in the Chinese mainland; the filing system is in Chinese only.",
       "verified": "2026-10-31"
     },
@@ -2694,21 +2732,21 @@
       "regions": ["ap-southeast-1","cn-hongkong","ap-northeast-1","eu-central-1","us-east-1"],
       "purpose": "Managed model APIs for Qwen (such as qwen3.8-max) and third-party models; OpenAI-compatible.",
       "useWhen": "Apps that call LLMs, embeddings or realtime voice models by API.",
-      "avoidWhen": "Coding-tool subscriptions; use Coding Plan or Token Plan. Self-hosted weights; use PAI.",
+      "avoidWhen": "Coding-tool subscriptions (use Coding Plan or Token Plan); dedicated GPUs, custom weights, VPC-private endpoints or an SLA (use PAI-EAS).",
       "pairsWith": ["ai-gateway","milvus","ai-guardrails","fc"],
-      "alternatives": ["pai","qwen-cloud"],
+      "alternatives": ["pai-eas","pai-token-service","qwen-cloud"],
       "docs": "https://www.alibabacloud.com/product/modelstudio",
-      "note": "Keys and model lists are per region. Agent apps and knowledge base are closed to new international accounts (see model-studio-apps).",
+      "note": "Application inference belongs here. For dedicated GPUs, custom or fine-tuned weights, VPC-private endpoints or a throughput SLA use pai-eas. PAI Token Service is a separate product at 1.2 times these token prices. Keys and model lists are per region. Agent apps and knowledge base are closed to new international accounts (see model-studio-apps). Fine-tuning and batch exist only in Singapore among international regions; Singapore fine-tuning is SFT on a few Qwen models, and tuned models cannot be exported. PrivateLink is documented for Beijing and Hong Kong only, not Singapore.",
       "verified": "2026-10-31",
       "purchase": "cloud-payg",
       "price": {"summary":"Pay per token; qwen3.8-max $2 per 1M input and $6 per 1M output tokens (Singapore); 1M free tokens per model for 90 days","asOf":"2026-10-31"},
-      "intents": ["call Qwen or other LLM APIs from our app","embeddings for RAG"]
+      "intents": ["call Qwen or other LLM APIs from our app","embeddings for RAG","light SFT of a Qwen model without managing GPUs"]
     },
     {
       "id": "pai",
       "name": "Platform for AI (PAI)",
       "short": "PAI",
-      "aliases": ["Platform for AI","Machine Learning Platform for AI","PAI-EAS","EAS","Elastic Algorithm Service","pai_eas","PAI Studio","PAI-DSW","PAI-DLC","Model Gallery"],
+      "aliases": ["Platform for AI","Machine Learning Platform for AI","PAI Studio","PAI Designer","Machine Learning Designer"],
       "kind": "service",
       "category": "AI & Machine Learning",
       "icon": "ai",
@@ -2717,14 +2755,174 @@
       "vpcAttachable": true,
       "status": "ga",
       "availability": "intl",
-      "purpose": "End-to-end ML: DSW notebooks, DLC training, EAS model serving and Model Gallery.",
-      "useWhen": "Hosting, fine-tuning or training your own models.",
-      "avoidWhen": "Simply calling hosted Qwen models; use Model Studio.",
-      "pairsWith": ["oss","cpfs","lingjun","ai-gateway"],
+      "purpose": "Alibaba's AI platform umbrella; prefer its stage entries: pai-dsw, pai-dlc, pai-eas, pai-model-gallery.",
+      "useWhen": "A generic mention of PAI before the stage is known, or Designer low-code ML.",
+      "avoidWhen": "Any design that shows a specific stage (use pai-dsw, pai-dlc, pai-eas); hosted Qwen calls (use Model Studio).",
+      "pairsWith": ["pai-dsw","pai-dlc","pai-eas","lingjun"],
       "alternatives": ["model-studio"],
       "docs": "https://www.alibabacloud.com/product/machine-learning",
+      "note": "Designer (low-code ML on MaxCompute) stays under this entry. PAI-Studio 1.0 is retired in every region (last phase 2026-09-30). iTAG is China-only and closed to new PAI customers since 2026-08-01.",
       "verified": "2026-10-31",
       "intents": ["host, fine-tune or train our own models"]
+    },
+    {
+      "id": "pai-eas",
+      "name": "PAI Elastic Algorithm Service (EAS)",
+      "short": "PAI-EAS",
+      "aliases": ["EAS","PAI EAS","Elastic Algorithm Service","pai_eas","PAI model serving"],
+      "kind": "service",
+      "category": "AI & Machine Learning",
+      "icon": "ai",
+      "scope": "region",
+      "lane": "ai",
+      "vpcAttachable": true,
+      "status": "ga",
+      "availability": "intl",
+      "regions": ["ap-southeast-1","ap-southeast-3","ap-southeast-8","ap-southeast-5","ap-southeast-7","ap-northeast-1","ap-northeast-2","cn-hongkong","eu-central-1","us-east-1","us-west-1","na-south-1","me-east-1"],
+      "purpose": "Managed online serving for your own LLMs, RAG services and agent apps, with autoscaling.",
+      "useWhen": "Self-hosted or fine-tuned models behind a private endpoint, RAG services, or agent and Dify apps on GPUs.",
+      "avoidWhen": "Calling hosted Qwen models with no custom weights; use Model Studio. Training; use PAI-DLC.",
+      "pairsWith": ["oss","alb","ai-gateway","elasticsearch","nat","pai-dlc"],
+      "alternatives": ["model-studio","acs","egs"],
+      "docs": "https://www.alibabacloud.com/help/en/pai/overview-2",
+      "note": "Billed for as long as resources are held, even if a service fails to start. Public pool is pay-as-you-go; dedicated groups are subscription or pay-as-you-go (delete machines to stop billing). Shared gateway by default; ALB or managed dedicated gateways, VPC direct, NLB and Nacos are options. Scale to zero is not allowed with a dedicated gateway. Calling Model Studio or the internet needs NAT with SNAT. GPUs generally available in Singapore: A10, T4, V100 and P100 (EAS's supported list also has P4). L20 and H20 are sales-negotiated exceptions; A100, A800, H100 and H800 are never offered internationally. No Singapore-specific spec list is published.",
+      "verified": "2026-10-31",
+      "intents": ["host our own LLM behind a private endpoint","RAG chatbot on a self-hosted model","host an agent or Dify app on GPUs"]
+    },
+    {
+      "id": "pai-dlc",
+      "name": "PAI Deep Learning Containers (DLC)",
+      "short": "PAI-DLC",
+      "aliases": ["DLC","PAI DLC","Deep Learning Containers","PAI training jobs"],
+      "kind": "service",
+      "category": "AI & Machine Learning",
+      "icon": "ai",
+      "scope": "region",
+      "lane": "ai",
+      "vpcAttachable": true,
+      "status": "ga",
+      "availability": "intl",
+      "regions": ["ap-southeast-1","ap-southeast-3","ap-southeast-5","ap-northeast-1","cn-hongkong","eu-central-1","us-east-1","us-west-1"],
+      "purpose": "Managed distributed training and fine-tuning jobs on GPU pools or Lingjun quotas, without running clusters.",
+      "useWhen": "Multi-GPU or multi-node fine-tuning, pre-training or RL jobs; the default for PoCs because public GPUs need no allowlist.",
+      "avoidWhen": "Interactive experiments (use PAI-DSW) or serving a model (use PAI-EAS).",
+      "pairsWith": ["oss","cpfs","lingjun","pai-eas"],
+      "alternatives": ["ack","egs"],
+      "docs": "https://www.alibabacloud.com/help/en/pai/what-is-dlc",
+      "note": "Public resources are pay-as-you-go; resource quotas are subscription. Lingjun quotas need allowlist access. Model Gallery fine-tuning jobs run here. Public GPUs in Singapore are realistically A10, T4, V100 and P100 (no Singapore list is published); the official RL walkthroughs run on A10 public resources with no gating. The official Megatron and GRPO walkthroughs recommend or require China (Ulanqab): check Singapore capacity first. No official reference pairs DLC with Agent Sandbox; the nearest documented pattern is the ACK plus VeRL walkthrough.",
+      "verified": "2026-10-31",
+      "intents": ["fine-tune or post-train a model on our data","distributed training job"]
+    },
+    {
+      "id": "pai-dsw",
+      "name": "PAI Data Science Workshop (DSW)",
+      "short": "PAI-DSW",
+      "aliases": ["DSW","PAI DSW","Data Science Workshop","PAI notebook"],
+      "kind": "service",
+      "category": "AI & Machine Learning",
+      "icon": "devtools",
+      "scope": "region",
+      "lane": "ai",
+      "vpcAttachable": true,
+      "status": "ga",
+      "availability": "intl",
+      "regions": ["ap-southeast-1","ap-southeast-3","ap-southeast-5","ap-northeast-1","cn-hongkong","eu-central-1","us-east-1","us-west-1"],
+      "purpose": "Cloud notebook, VS Code and terminal workspaces on CPU or GPU for model development.",
+      "useWhen": "Per-person GPU environments where data scientists prototype, fine-tune and debug before DLC jobs or EAS.",
+      "avoidWhen": "Production serving or long multi-node training; use PAI-EAS or PAI-DLC.",
+      "pairsWith": ["oss","nas","cpfs","pai-dlc"],
+      "alternatives": ["egs","ecs"],
+      "docs": "https://www.alibabacloud.com/help/en/pai/dsw-overview",
+      "note": "Public resources are pay-as-you-go; dedicated quotas (general or Lingjun) are subscription. Mounts OSS, NAS or CPFS. Attach a RAM role so notebooks use STS credentials instead of AccessKeys. The overview describes no isolation beyond that, so separate teams by workspace or VPC.",
+      "verified": "2026-10-31",
+      "intents": ["sandbox environments for data scientists","GPU notebooks for model development"]
+    },
+    {
+      "id": "pai-model-gallery",
+      "name": "PAI Model Gallery",
+      "short": "Model Gallery",
+      "aliases": ["PAI QuickStart"],
+      "kind": "service",
+      "category": "AI & Machine Learning",
+      "icon": "ai",
+      "scope": "region",
+      "lane": "ai",
+      "status": "ga",
+      "availability": "intl",
+      "regions": ["ap-southeast-1","ap-southeast-3","ap-southeast-5","ap-northeast-1","ap-northeast-2","cn-hongkong","eu-central-1","us-east-1","us-west-1"],
+      "purpose": "Open-model catalog with no-code fine-tuning (SFT, DPO) on DLC and one-click deployment to EAS.",
+      "useWhen": "Fine-tuning or deploying open models such as Qwen3 without writing training code.",
+      "avoidWhen": "Custom training code or large pre-training; use PAI-DLC directly.",
+      "pairsWith": ["pai-dlc","pai-eas","oss"],
+      "alternatives": ["model-studio","pai-dlc"],
+      "docs": "https://www.alibabacloud.com/help/en/pai/model-deployment-and-training",
+      "note": "Free itself; you pay for the DLC jobs and EAS services it starts. SFT and DPO with full-parameter, LoRA or QLoRA. GRPO is documented only in the Qwen3 guide, for Qwen3 32B and smaller.",
+      "verified": "2026-10-31",
+      "intents": ["fine-tune an open model on our data without code","post-train and deploy Qwen"]
+    },
+    {
+      "id": "pai-instant",
+      "name": "PAI-Instant Service",
+      "short": "PAI-Instant",
+      "aliases": ["Instant Service","PAI Instant Service","PAI Sandbox","PAI-Sandbox"],
+      "kind": "service",
+      "category": "AI & Machine Learning",
+      "icon": "agent",
+      "scope": "region",
+      "lane": "ai",
+      "status": "ga",
+      "availability": "china-only",
+      "purpose": "PAI's E2B-compatible MicroVM sandboxes for RL training and evaluation; China regions only.",
+      "avoidWhen": "International designs; use acs-agent-sandbox or agent-sandbox.",
+      "pairsWith": ["pai-dlc"],
+      "alternatives": ["acs-agent-sandbox","agent-sandbox"],
+      "docs": "https://www.alibabacloud.com/help/en/pai/instant-service-overview",
+      "note": "Documented on the international help site, but its page lists only China East 2 (Shanghai), China North 6 (Ulanqab) and China Northwest 2 (Zhongwei). Lifecycle stage not stated.",
+      "verified": "2026-10-31"
+    },
+    {
+      "id": "pai-langstudio",
+      "name": "PAI-LangStudio",
+      "short": "LangStudio",
+      "aliases": ["LangStudio","PAI LangStudio"],
+      "kind": "service",
+      "category": "AI & Machine Learning",
+      "icon": "ai",
+      "scope": "region",
+      "lane": "ai",
+      "status": "legacy",
+      "successor": "pai-eas",
+      "availability": "intl",
+      "purpose": "PAI's builder for LLM application and RAG flows; retires on 2027-03-09.",
+      "avoidWhen": "Any new design; it retires on 2027-03-09.",
+      "alternatives": ["pai-eas","agentcore","dify-on-ack"],
+      "docs": "https://www.alibabacloud.com/help/en/pai/product-overview/pai-langstudio-feature-retirement-and-migration-guide",
+      "note": "Retires 2027-03-09 16:00. Its named successor, Model Studio application development, supports only China (Beijing) and is closed to new international accounts. For new builds use a PAI-EAS RAG or Dify service, AgentCore or Dify on ACK.",
+      "verified": "2026-10-31"
+    },
+    {
+      "id": "pai-token-service",
+      "name": "PAI Token Service",
+      "short": "PAI Token Service",
+      "aliases": ["Token Service","PAI Token API","PAI Token 服务"],
+      "kind": "service",
+      "category": "AI & Machine Learning",
+      "icon": "ai",
+      "scope": "region",
+      "lane": "ai",
+      "status": "ga",
+      "availability": "intl",
+      "purpose": "PAI-native serverless model API with its own endpoint, key and price list; separate from Model Studio.",
+      "useWhen": "Workloads already inside PAI tooling (DSW, evaluation, distillation) where unified PAI billing matters.",
+      "avoidWhen": "Plain application inference: Model Studio costs less and adds batch and cache discounts; use model-studio.",
+      "pairsWith": ["pai-dsw"],
+      "alternatives": ["model-studio","pai-eas"],
+      "docs": "https://www.alibabacloud.com/help/en/pai/product-overview/billing-of-pai-token-service",
+      "note": "A separate product from Model Studio, not a region of it: its own endpoint, PAI-side API key and price list. Only the Beijing endpoint is confirmed; the Singapore endpoint URL is not. Every PAI price equals exactly 1.2 times Model Studio's for the same region and currency, so Model Studio is about 17% cheaper, and Model Studio also lists batch (50% off), context-cache discounts and a free quota that the PAI page does not. Neither product needs a deployment; dedicated capacity is PAI-EAS, billed on compute.",
+      "verified": "2026-10-31",
+      "purchase": "cloud-payg",
+      "price": {"summary":"Pay per token, 1.2 times Model Studio: qwen3.8-max $2.40 per 1M input and $7.20 per 1M output tokens (Singapore International scope)","asOf":"2026-10-31"},
+      "intents": ["call Qwen models from inside PAI tooling with unified PAI billing"]
     },
     {
       "id": "lingjun",
@@ -2739,12 +2937,13 @@
       "status": "ga",
       "availability": "intl",
       "regions": ["ap-southeast-1"],
-      "purpose": "Bare-metal GPU clusters with RDMA networking for large-model training and inference.",
+      "purpose": "Allowlist-only bare-metal GPU clusters with RDMA networking for large multi-node training and inference.",
       "useWhen": "Large-scale distributed training that needs many GPUs.",
-      "pairsWith": ["pai","cpfs"],
+      "avoidWhen": "PoCs and demos (allowlist only, no published lead time; use pai-dlc on public GPUs), or regions other than Singapore.",
+      "pairsWith": ["pai-dlc","pai-eas","cpfs"],
       "alternatives": ["egs"],
       "docs": "https://www.alibabacloud.com/product/pai-lingjun",
-      "note": "Subscription (pay-as-you-go by allowlist only). ACK Lingjun cluster creation ends December 2026; use ACK Pro Lingjun.",
+      "note": "Allowlist access only, requested through your account manager or a support ticket; no published lead time, and no pay-as-you-go. Subscription is the standard path. Directional, from internal delivery experience: the minimum purchase is whole machines by the week. Backs PAI DSW, DLC and EAS quotas. ACK Lingjun cluster creation ends December 2026; use ACK Pro Lingjun. Never make it a prerequisite for a PoC.",
       "verified": "2026-10-31"
     },
     {
@@ -2760,10 +2959,13 @@
       "pathRank": 60,
       "status": "ga",
       "availability": "intl",
-      "purpose": "Fully serverless vector search exposed as an API.",
+      "regions": ["ap-southeast-1","us-east-1"],
+      "purpose": "Managed vector search API (Proxima engine); paid clusters bill per instance-hour.",
+      "avoidWhen": "Designs that need documented private VPC access; use Milvus.",
       "pairsWith": ["model-studio"],
       "alternatives": ["milvus","opensearch"],
       "docs": "https://www.alibabacloud.com/product/dashvector",
+      "note": "Singapore and Virginia. The free trial cluster is for testing and is released after 30 days. The docs describe no VPC access.",
       "verified": "2026-10-31"
     },
     {
@@ -2785,7 +2987,7 @@
       "pairsWith": ["model-studio","oss"],
       "alternatives": ["elasticsearch","milvus"],
       "docs": "https://www.alibabacloud.com/product/opensearch",
-      "note": "Vector Search edition in Singapore and Frankfurt; conversational search edition in Singapore.",
+      "note": "Vector Search edition in Singapore and Frankfurt; LLM-based conversational search edition in Singapore. AI Search Open Platform services (parsing, chunking, rerank) are documented for Shanghai and Frankfurt only. A PAI-EAS RAG service reaches OpenSearch over the public network only.",
       "verified": "2026-10-31"
     },
     {
@@ -3074,6 +3276,7 @@
       "useWhen": "Managing large fleets of connected devices.",
       "pairsWith": ["iot-devices","tablestore","datahub"],
       "alternatives": ["mqtt"],
+      "docs": "https://www.alibabacloud.com/help/en/iot/",
       "verified": "2026-10-31"
     },
     {
@@ -3147,6 +3350,7 @@
       "successor": "acs",
       "availability": "intl",
       "purpose": "Former serverless Kubernetes cluster type; new clusters go to ACS.",
+      "docs": "https://www.alibabacloud.com/help/en/ack/serverless-kubernetes/",
       "note": "Renamed from ASK on 2023-07-31; creation closed on 2025-02-17 for accounts that never created one. Use ACS.",
       "verified": "2026-10-31"
     },
@@ -3166,6 +3370,7 @@
       "successor": "ack",
       "availability": "intl",
       "purpose": "Self-managed control-plane ACK cluster type, no longer sold.",
+      "docs": "https://www.alibabacloud.com/help/en/ack/ack-managed-and-ack-dedicated/",
       "note": "End of sale 2024-08-21; use ACK Pro managed clusters.",
       "verified": "2026-10-31"
     },
@@ -3185,6 +3390,7 @@
       "successor": "ack",
       "availability": "intl",
       "purpose": "Edge Kubernetes cluster type; new clusters are closed.",
+      "docs": "https://www.alibabacloud.com/help/en/ack/ack-edge/",
       "note": "No new clusters from 2026-09-03; use ACK Pro with edge node pools.",
       "verified": "2026-10-31"
     },
@@ -3203,6 +3409,7 @@
       "successor": "ehpc",
       "availability": "intl",
       "purpose": "Former batch job service, removed from the catalog.",
+      "docs": "https://www.alibabacloud.com/help/en/batchcompute/",
       "note": "Gone from the catalog; use E-HPC, or run jobs on ACK or ACS.",
       "verified": "2026-10-31"
     },
@@ -3307,6 +3514,7 @@
       "successor": "lindorm",
       "availability": "intl",
       "purpose": "Former managed Cassandra service, discontinued.",
+      "docs": "https://www.alibabacloud.com/help/en/apsaradb-for-cassandra/",
       "note": "Discontinuation announced 2023-10-17; use Lindorm for wide-column workloads.",
       "verified": "2026-10-31"
     },
@@ -3343,6 +3551,7 @@
       "successor": "polardb",
       "availability": "intl",
       "purpose": "Distributed relational database, deprecated on the international site.",
+      "docs": "https://www.alibabacloud.com/help/en/apsaradb-for-oceanbase/",
       "note": "Deprecated on the international site and moving to Marketplace; use PolarDB, or OceanBase via Marketplace.",
       "verified": "2026-10-31"
     },
@@ -3359,6 +3568,7 @@
       "status": "retired",
       "availability": "intl",
       "purpose": "Former agent that connected on-premises databases to DTS and DMS.",
+      "docs": "https://www.alibabacloud.com/help/en/database-gateway",
       "note": "Deprecated; reach on-premises databases from DTS or DMS over VPN Gateway or Express Connect.",
       "verified": "2026-10-31"
     },
@@ -3376,6 +3586,7 @@
       "successor": "arms",
       "availability": "intl",
       "purpose": "Former entry edition of ARMS, now discontinued.",
+      "docs": "https://www.alibabacloud.com/help/en/arms/",
       "note": "Discontinued on 2026-10-15; use ARMS Pro.",
       "verified": "2026-10-31"
     },
@@ -3394,6 +3605,7 @@
       "successor": "alb",
       "availability": "intl",
       "purpose": "Pay-by-specification billing for Classic Load Balancer, no longer sold.",
+      "docs": "https://www.alibabacloud.com/help/en/slb/classic-load-balancer/",
       "note": "End of sale 2026-01-01; use ALB for HTTP or NLB for TCP/UDP.",
       "verified": "2026-10-31"
     },
@@ -3411,6 +3623,7 @@
       "successor": "anti-ddos-native",
       "availability": "intl",
       "purpose": "Pay-as-you-go billing for Anti-DDoS Native 2.0, closed to new purchases.",
+      "docs": "https://www.alibabacloud.com/help/en/anti-ddos/anti-ddos-origin/",
       "note": "No new purchases from 2026-06-20; buy the Anti-DDoS Native subscription instead.",
       "verified": "2026-10-31"
     },

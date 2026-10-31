@@ -27,10 +27,20 @@ Shared code for the live architecture builder: the product catalog, the diagram 
 | `src/display.ts` | protocol | What the canvas shows while a turn streams: `displayGraph`, `holdBack`, `touchedBy`. At turn end it equals the server's committed repair |
 | `src/diff.ts` | protocol | `diffGraphs(before, after)`: the net change between two graphs as one `ApplyResult` |
 | `src/pricing.ts` | eval | The one price table (`PRICES`, `UNKNOWN_PRICE`) and `costOf`, `estimateCost`. Used by `llm.ts`, the eval ledger and `tools/qwen/ask.ts` |
-| `src/prompt.ts` | eval | System prompt (rules + catalog rows, byte-stable prefix), history window, pinned requirements and constraints (sent only in the last user message), CURRENT DIAGRAM serializer, repair messages |
-| `src/llm.ts` | eval | Streaming Chat Completions client and turn runner. Watchdogs: no hedge by default; fail over at once to `qwen3.7-max` (thinking off) after 8 s warm or 12 s cold with no first token; 10 s idle; 120 s per stream; one continuation; content-filter rejections are never retried. `onStatus` reports fallback, retry, continue, repair and summary. The default `checkConstraints` is `constraintChecker`. Emits say, op, warn, usage and done events |
+| `src/asks.ts` | protocol | The assume and ask limits (`ASK_LIMITS`), `settles` (a pinned requirement that states an assumption or its alternative settles it), `mergeAssumptions`. No Node APIs, so the Worker can import it |
+| `src/prompt.ts` | eval | System prompt (rules R1-R23 + catalog rows, byte-stable prefix), history window, pinned requirements and constraints, CURRENT ASSUMPTIONS and OPEN QUESTIONS (all sent only in the last user message), CURRENT DIAGRAM serializer, repair messages |
+| `src/llm.ts` | eval | Streaming Chat Completions client and turn runner. Watchdogs: no hedge by default; fail over at once to `qwen3.7-max` (thinking off) after 8 s warm or 12 s cold with no first token; 10 s idle; 120 s per stream; one continuation; content-filter rejections are never retried. `onStatus` reports fallback, retry, continue, repair and summary. The default `checkConstraints` is `constraintChecker`. Emits say, op, warn, usage and done events. `runTurn` collects the assume and ask ops into `memory.assumptions` and `memory.questions` |
 | `src/layout.ts` | canvas | Catalog-driven lane-grid layout v2 (stacked shelves, sticky slots and reserves), `fitCamera`, `fitTitle`, `cardText`. `GEOMETRY` holds every size. `test/layout.test.ts` gates stability, legibility and speed on `test/fixtures/replay/sessions.json`, which `spikes/layout-bench/out/core-v2/extract-fixture.ts` regenerates |
 | `../../apps/server` | server | Local HTTP server (`node apps/server/src/main.ts`, 127.0.0.1:8787) that streams NDJSON turns: `POST /api/turn`, `GET /api/health`. See its own tests and `scripts/smoke.ts` |
+
+## Draw first, then ask (assume and ask ops)
+
+Spec: `research/phase1-asks-and-scope.md` section 1. The model draws first, states the defaults it picked as `assume` ops (right after the plan) and ends with at most two `ask` ops.
+- **Validator.** `validateOp` enforces `ASK_LIMITS`: at most 3 assume and 2 ask per turn (counted in `ctx.turnAsks`, so pass one ctx per turn; the same id again replaces and is free), assume text and alt up to 60 characters, ask text up to 160, 2-4 options of up to 40 characters. Longer text is cut, extra options and extra ops are dropped, one option is no option (the question stays, without quick replies), each with a warning.
+- **Reducer and display.** `applyOp` leaves the graph alone for both ops. The console turns them into chips and question buttons.
+- **Memory.** `runTurn` keeps `memory.questions` as exactly the latest turn's questions (omitted when there are none) and merges `memory.assumptions` by id (the same id replaces in place, the newest 8 stay). A pinned requirement that states an assumption or its alternative (`settles`, the same rule the console applies to its chips) drops it, so "Change: Internal only instead of Public-facing" plus the req op that follows clears the chip. A failed turn leaves both as they were. If a follow-up (repair or continue) turn emits more, the per-turn caps are applied again over both.
+- **Prompt.** CURRENT ASSUMPTIONS and OPEN QUESTIONS go in the final user message only, after REMOVED EARLIER, so the system prompt stays byte-stable. Assumptions a requirement settles are not sent.
+- **Server.** `apps/server/src/request.ts` rebuilds both fields from known fields on the way in (clipped to the spec limits rather than rejected, since the browser echoes what the server committed), and the `commit` event carries them in `memory`.
 
 ## Pinned constraints (Phase 1 review fixes)
 
@@ -45,7 +55,7 @@ Shared code for the live architecture builder: the product catalog, the diagram 
 
 ## Prompt caching
 
-The prompt is one byte-stable prefix (rules and the full catalog, about 12k tokens) followed by the history and the current diagram. The default is **implicit caching**: no cache marker is sent (`cache: 'none'`). Phase 0 measured a 96% cache hit rate this way, and a single explicit marker on the system block leaves the history uncached, which doubles the cost of a follow-up. Explicit markers remain available as an option in `prompt.ts` (`CacheMode`) but are not used. Pinned constraints go only in the last user message, so they never break the prefix.
+The prompt is one byte-stable prefix (rules and the full catalog, about 14.8k tokens) followed by the history and the current diagram. The default is **implicit caching**: no cache marker is sent (`cache: 'none'`). Phase 0 measured a 96% cache hit rate this way, and a single explicit marker on the system block leaves the history uncached, which doubles the cost of a follow-up. Explicit markers remain available as an option in `prompt.ts` (`CacheMode`) but are not used. Pinned constraints go only in the last user message, so they never break the prefix.
 
 ## Placement is decided by the catalog
 

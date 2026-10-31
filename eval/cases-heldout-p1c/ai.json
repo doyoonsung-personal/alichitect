@@ -1,0 +1,349 @@
+[
+  {
+    "id": "ai-ho-inference-scale",
+    "category": "pattern",
+    "title": "Self-hosted LLM inference at scale with per-team quotas",
+    "reference": "AI Gateway (token quotas per consumer, fallback) in front of a PAI-EAS LLM service (vLLM or SGLang) with weights in OSS; autoscaling and router or prefill-decode separation described in the why text, not as extra nodes; a Lingjun quota optional for very large models with the allowlist caveat; optional Model Studio fallback and AI Guardrails. No Auto Scaling node and no single PAI box.",
+    "turns": [
+      {
+        "ask": "We want to self-host a large Qwen model for about 2,000 concurrent internal users in Singapore, with per-team token quotas and failover.",
+        "expect": {
+          "include": [
+            [
+              "pai-eas"
+            ],
+            [
+              "ai-gateway"
+            ]
+          ],
+          "exclude": [
+            "ess",
+            "pai",
+            "model-studio-apps"
+          ],
+          "linked": [
+            {
+              "from": [
+                "ai-gateway"
+              ],
+              "to": [
+                "pai-eas"
+              ],
+              "directed": true
+            }
+          ],
+          "regions": {
+            "min": 1
+          },
+          "gpuNames": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-ho-eu-training",
+    "category": "trap",
+    "title": "EU-only training data and large distributed training (no Lingjun in Frankfurt)",
+    "reference": "Everything in Frankfurt: PAI-DLC on general GPU resources (or GPU ECS or ACK) with OSS and NAS or CPFS, and PAI-EAS (or Kubernetes) for serving. Says Lingjun is not offered in Frankfurt (Singapore is its only international region), so it is left out. No other region.",
+    "turns": [
+      {
+        "ask": "We are a German company and our training data must stay in Frankfurt. We want to train a 30B model across many GPUs with fast shared storage, then serve it.",
+        "expect": {
+          "include": [
+            [
+              "pai-dlc",
+              "egs",
+              "ack"
+            ],
+            [
+              "pai-eas",
+              "ack",
+              "acs",
+              "egs"
+            ],
+            [
+              "oss",
+              "nas",
+              "cpfs"
+            ]
+          ],
+          "exclude": [
+            "lingjun"
+          ],
+          "req": [
+            [
+              "frankfurt",
+              "germany",
+              "eu",
+              "eu-central-1"
+            ]
+          ],
+          "residency": [
+            "eu-central-1"
+          ],
+          "regions": {
+            "only": [
+              "frankfurt",
+              "eu-central-1"
+            ],
+            "min": 1
+          },
+          "gpuNames": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-ho-zh-rag-eas",
+    "category": "i18n",
+    "lang": "zh",
+    "title": "Self-hosted RAG on PAI-EAS in Singapore (Chinese)",
+    "reference": "PAI-EAS for the self-hosted Qwen model (and the RAG service), a vector store inside the VPC (Elasticsearch, Hologres or RDS PostgreSQL for the EAS RAG template; Milvus or AnalyticDB if the app is custom), knowledge files in OSS, Singapore region. No Model Studio knowledge base, no LangStudio, no single PAI box. Say and why text in Chinese.",
+    "turns": [
+      {
+        "ask": "我们在新加坡，想用 PAI-EAS 部署自己的 Qwen 模型，做一个基于内部文档的知识库问答系统，向量数据要留在 VPC 内网。请设计架构。",
+        "expect": {
+          "include": [
+            [
+              "pai-eas"
+            ],
+            [
+              "elasticsearch",
+              "hologres",
+              "rds",
+              "milvus",
+              "analyticdb"
+            ],
+            [
+              "oss"
+            ]
+          ],
+          "exclude": [
+            "model-studio-apps",
+            "pai-langstudio",
+            "pai"
+          ],
+          "regions": {
+            "min": 1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-ho-rl-sandboxes",
+    "category": "trap",
+    "title": "Sandbox fleet for agentic RL rollouts (international, no official reference)",
+    "reference": "A PAI-DLC trainer on public GPUs calling Agent Sandbox (Flash edition, Singapore) for the rollout environments, or ACS Agent Sandbox only if the customer runs ACK or ACS; checkpoints and trajectories in OSS or CPFS; the final policy on PAI-EAS. The narration states plainly that this is a custom design with no official reference and points to the documented ACK with KubeRay and VeRL walkthrough as the nearest official pattern. PAI-Instant Service (China-only) is not drawn. Lingjun is never a prerequisite. Sandboxes have no GPU.",
+    "turns": [
+      {
+        "ask": "We do agentic RL post-training and need thousands of short-lived sandboxed environments for rollouts. We are an international customer in Singapore.",
+        "expect": {
+          "include": [
+            [
+              "agent-sandbox",
+              "acs-agent-sandbox"
+            ],
+            [
+              "pai-dlc",
+              "ack"
+            ],
+            [
+              "oss",
+              "cpfs",
+              "nas"
+            ]
+          ],
+          "exclude": [
+            "pai-instant"
+          ],
+          "linked": [
+            {
+              "from": [
+                "pai-dlc",
+                "ack",
+                "acs"
+              ],
+              "to": [
+                "agent-sandbox",
+                "acs-agent-sandbox"
+              ],
+              "directed": true
+            }
+          ],
+          "mention": [
+            [
+              "no official",
+              "without an official",
+              "not an official",
+              "isn't an official",
+              "no documented",
+              "there is no official",
+              "not officially"
+            ],
+            [
+              "custom",
+              "proposed",
+              "bespoke",
+              "our own design"
+            ],
+            [
+              "verl"
+            ]
+          ],
+          "placement": true,
+          "regions": {
+            "min": 1
+          },
+          "gpuNames": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-ho-langstudio",
+    "category": "trap",
+    "title": "Asked to build on PAI-LangStudio",
+    "reference": "Says LangStudio retires on 2027-03-09 and that its named successor (Model Studio application development) is not open to new international accounts; draws a PAI-EAS RAG or Dify service, AgentCore or Dify on ACK instead, with a vector store and OSS. Never writes LangStudio as a product.",
+    "turns": [
+      {
+        "ask": "Build our document Q&A agent with PAI-LangStudio.",
+        "expect": {
+          "excludeRaw": [
+            "pai-langstudio",
+            "langstudio",
+            "PAI-LangStudio"
+          ],
+          "include": [
+            [
+              "pai-eas",
+              "agentcore",
+              "dify-on-ack",
+              "agentrun",
+              "model-studio"
+            ]
+          ],
+          "mention": [
+            [
+              "2027",
+              "retir"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-ho-no-k8s-sandbox",
+    "category": "trap",
+    "title": "Agent code sandbox when Kubernetes is ruled out",
+    "reference": "Pins 'no Kubernetes'. Uses Agent Sandbox (Flash Edition, managed E2B API) or AgentBay with AgentRun (or Function Compute or SAE) for the agent, Model Studio for the model, and explains in one sentence why the ACS sandbox is not used. No ACS, ACK or ACS Agent Sandbox.",
+    "turns": [
+      {
+        "ask": "We don't run Kubernetes and won't. Host our coding agent in Singapore; it needs an isolated sandbox to run the code it writes.",
+        "expect": {
+          "include": [
+            [
+              "agent-sandbox",
+              "agentbay"
+            ],
+            [
+              "agentrun",
+              "fc",
+              "sae",
+              "ecs",
+              "agentcore"
+            ]
+          ],
+          "exclude": [
+            "acs-agent-sandbox",
+            "acs",
+            "ack"
+          ],
+          "req": [
+            [
+              "kubernetes",
+              "k8s"
+            ]
+          ],
+          "pins": {
+            "avoid": [
+              [
+                "ack",
+                "acs",
+                "acs-agent-sandbox"
+              ]
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-ho-gpu-in-sandbox",
+    "category": "trap",
+    "title": "GPU fine-tuning inside ACS Agent Sandbox",
+    "reference": "Explains that Agent Sandbox pods are CPU and memory only, so fine-tuning cannot run there; draws the training on PAI-DLC (or PAI-DSW, Model Gallery, GPU ECS, Lingjun, or ACS GPU pods with the invitational-preview caveat) with data in OSS. Does not draw ACS Agent Sandbox as the training node.",
+    "turns": [
+      {
+        "ask": "Can we fine-tune Qwen3-8B on GPUs inside ACS Agent Sandbox? Draw the training setup.",
+        "expect": {
+          "include": [
+            [
+              "pai-dlc",
+              "pai-dsw",
+              "pai-model-gallery",
+              "egs",
+              "lingjun",
+              "acs"
+            ]
+          ],
+          "exclude": [
+            "acs-agent-sandbox"
+          ],
+          "mention": [
+            [
+              "no gpu",
+              "not support",
+              "without gpu",
+              "cpu only",
+              "cpu and memory",
+              "cannot use gpu",
+              "can't use gpu",
+              "do not have gpu",
+              "don't have gpu"
+            ]
+          ],
+          "gpuNames": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-ho-gpu-inference-sg",
+    "category": "need",
+    "title": "What GPUs can we get for inference in Singapore? (only A10, T4, V100, P100)",
+    "reference": "Names only A10, T4, V100 or P100 as generally available in Singapore (through PAI-EAS or GPU ECS), says newer cards need sales confirmation and are not guaranteed, and may offer to draw a PAI-EAS inference service. Does not name A100, H100, H20, L20 or any other model.",
+    "turns": [
+      {
+        "ask": "What GPUs can we get for inference in Singapore?",
+        "expect": {
+          "mention": [
+            [
+              "a10",
+              "t4",
+              "v100",
+              "p100"
+            ],
+            [
+              "sales",
+              "account manager",
+              "account team"
+            ]
+          ],
+          "gpuNames": true
+        }
+      }
+    ]
+  }
+]

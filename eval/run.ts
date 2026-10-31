@@ -154,6 +154,8 @@ export async function runUnit(c: EvalCase, run: number, ctx: UnitContext): Promi
       before,
       requirements: r.memory.requirements,
       constraints: r.memory.constraints ?? [],
+      assumptions: r.memory.assumptions ?? [],
+      questions: r.memory.questions ?? [],
       stats: r.stats,
       userTexts: [...userTexts],
     };
@@ -172,6 +174,8 @@ export async function runUnit(c: EvalCase, run: number, ctx: UnitContext): Promi
       graph: r.memory.graph,
       requirements: r.memory.requirements,
       constraints: r.memory.constraints ?? [],
+      assumptions: r.memory.assumptions ?? [],
+      questions: r.memory.questions ?? [],
       summary: r.memory.summary,
       stats: slimStats(r.stats),
       assertions,
@@ -223,7 +227,7 @@ function rescore(dir: string, cases: EvalCase[], catalog: ReturnType<typeof load
     run.turns.forEach((t, i) => {
       const turn = c.turns[i];
       userTexts.push(t.ask);
-      const view: TurnView = { ask: t.ask, ops: t.ops, says: t.says, reqs: t.reqs, gaps: t.gaps, rawProducts: t.rawProducts, graph: t.graph, before, requirements: t.requirements, constraints: t.constraints ?? [], stats: t.stats, userTexts: [...userTexts] };
+      const view: TurnView = { ask: t.ask, ops: t.ops, says: t.says, reqs: t.reqs, gaps: t.gaps, rawProducts: t.rawProducts, graph: t.graph, before, requirements: t.requirements, constraints: t.constraints ?? [], assumptions: t.assumptions, questions: t.questions, stats: t.stats, userTexts: [...userTexts] };
       t.assertions = evaluateTurn(view, turn, c.lang ?? 'en', names, catalog);
       t.pass = t.assertions.every((a) => a.pass);
       if (!t.pass) run.pass = false;

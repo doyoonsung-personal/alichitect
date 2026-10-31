@@ -549,7 +549,8 @@ export function applyOp(graph: Graph, op: Op, ctx?: ApplyCtx): ApplyResult {
   const c = ensureCtx(ctx);
   if (op.t === 'done') return endTurn(graph, c);
   const acc: Acc = { added: [], updated: [], removed: [], tombstones: [], warnings: [] };
-  if (op.t === 'say' || op.t === 'plan' || op.t === 'req' || op.t === 'gap') {
+  if (op.t === 'say' || op.t === 'plan' || op.t === 'req' || op.t === 'gap' || op.t === 'assume' || op.t === 'ask') {
+    // not graph ops: assume and ask feed the console's chips and questions (llm.ts collects them into memory)
     return { graph, ...acc };
   }
   const g = draft(graph);

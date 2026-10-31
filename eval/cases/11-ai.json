@@ -1,0 +1,424 @@
+[
+  {
+    "id": "ai-01-dsw-sandbox",
+    "category": "pattern",
+    "title": "Training sandboxes for data scientists (DSW, not an agent sandbox)",
+    "reference": "PAI-DSW workspaces for each data scientist with OSS and NAS (or CPFS) mounts, PAI-DLC for bigger fine-tuning jobs, a VPC with NAT for package installs and a RAM role instead of keys, in Singapore. No agent sandbox (ACS Agent Sandbox, Agent Sandbox, AgentBay or PAI-Instant), and no single PAI box.",
+    "turns": [
+      {
+        "ask": "Our 12 data scientists need sandbox environments with GPUs where they can experiment with and fine-tune models on our datasets. We are in Singapore.",
+        "expect": {
+          "include": [
+            [
+              "pai-dsw"
+            ],
+            [
+              "oss",
+              "nas",
+              "cpfs"
+            ]
+          ],
+          "exclude": [
+            "acs-agent-sandbox",
+            "agent-sandbox",
+            "agentbay",
+            "pai-instant",
+            "pai"
+          ],
+          "regions": {
+            "min": 1
+          },
+          "minNodes": 3,
+          "gpuNames": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-02-acs-agent-hosting",
+    "category": "pattern",
+    "title": "Agent hosting with ACS sandboxes",
+    "reference": "Users reach an agent API on ACS (behind an ALB); the ACS cluster claims sandboxes from ACS Agent Sandbox (Container edition, generally available) for the generated code, drawn inside the VPC with an edge from the ACS node; the agent calls Qwen through AI Gateway and Model Studio (or a PAI-EAS model); sandbox egress is allowlisted through NAT; credentials through Agent Identity or KMS. Says the sandbox has CPU and memory only, no GPU. No PAI-Instant Service, and no preview wording.",
+    "turns": [
+      {
+        "ask": "A client wants to host AI agents for their own customers. Each agent writes and runs Python code, which must execute in isolated sandboxes on ACS. The agents use Qwen models.",
+        "expect": {
+          "include": [
+            [
+              "acs-agent-sandbox"
+            ],
+            [
+              "acs"
+            ],
+            [
+              "model-studio",
+              "pai-eas"
+            ]
+          ],
+          "exclude": [
+            "pai-instant"
+          ],
+          "linked": [
+            {
+              "from": [
+                "acs"
+              ],
+              "to": [
+                "acs-agent-sandbox"
+              ],
+              "directed": true
+            }
+          ],
+          "noAttach": [
+            "acs-agent-sandbox"
+          ],
+          "placement": true,
+          "regions": {
+            "min": 1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-03-post-train-eas",
+    "category": "pattern",
+    "title": "Post-training on PAI, then serving on PAI-EAS",
+    "reference": "Training data in OSS; SFT through PAI Model Gallery or a PAI-DLC job; checkpoints back to OSS; a deploy edge to PAI-EAS (vLLM) serving a private endpoint, ideally behind AI Gateway. Separate stage nodes, not one PAI box. No LangStudio.",
+    "turns": [
+      {
+        "ask": "We want to fine-tune Qwen3-8B on our support tickets with SFT and then serve it privately for our internal apps. Use PAI.",
+        "expect": {
+          "include": [
+            [
+              "pai-eas"
+            ],
+            [
+              "pai-dlc",
+              "pai-model-gallery"
+            ],
+            [
+              "oss"
+            ]
+          ],
+          "exclude": [
+            "pai",
+            "pai-langstudio",
+            "model-studio-apps"
+          ],
+          "linked": [
+            {
+              "from": [
+                "pai-dlc",
+                "pai-model-gallery"
+              ],
+              "to": [
+                "pai-eas"
+              ],
+              "directed": true
+            }
+          ],
+          "regions": {
+            "min": 1
+          },
+          "gpuNames": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-04-rag-eas",
+    "category": "pattern",
+    "title": "RAG on PAI-EAS with a self-hosted LLM",
+    "reference": "An ALB in front of a PAI-EAS RAG service and a separate PAI-EAS LLM service (decoupled mode); vector store Elasticsearch, Hologres or RDS PostgreSQL in the same VPC; knowledge files in OSS. No Milvus in the template, no FAISS in production, no Model Studio knowledge base and no LangStudio.",
+    "turns": [
+      {
+        "ask": "Build a RAG chatbot over our product manuals using the PAI-EAS RAG deployment with our own self-hosted LLM, in Singapore.",
+        "expect": {
+          "include": [
+            [
+              "pai-eas"
+            ],
+            [
+              "elasticsearch",
+              "hologres",
+              "rds"
+            ],
+            [
+              "oss"
+            ]
+          ],
+          "exclude": [
+            "model-studio-apps",
+            "pai-langstudio",
+            "milvus",
+            "pai"
+          ],
+          "minNodes": 4,
+          "regions": {
+            "min": 1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-05-rag-model-studio",
+    "category": "pattern",
+    "title": "RAG on Model Studio APIs without GPUs",
+    "reference": "Compute (Function Compute, SAE, ACS or AgentRun) calls Model Studio for embedding, rerank and generation, retrieves from Milvus or OpenSearch, keeps documents in OSS and has an ingestion step; AI Gateway and AI Guardrails are good additions; NAT egress from VPC compute because Singapore has no documented Model Studio private endpoint. No Model Studio knowledge base and no self-hosted model.",
+    "turns": [
+      {
+        "ask": "We want a RAG assistant over our help-center articles that uses Qwen through Model Studio. We don't want to manage GPUs or host models ourselves.",
+        "expect": {
+          "include": [
+            [
+              "model-studio"
+            ],
+            [
+              "milvus",
+              "opensearch",
+              "elasticsearch",
+              "analyticdb",
+              "dashvector",
+              "hologres",
+              "lindorm",
+              "tablestore"
+            ],
+            [
+              "fc",
+              "sae",
+              "acs",
+              "ack",
+              "ecs",
+              "agentrun",
+              "agentcore"
+            ]
+          ],
+          "exclude": [
+            "model-studio-apps",
+            "pai-eas",
+            "pai-dlc",
+            "lingjun"
+          ],
+          "minNodes": 4
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-07-training-residency",
+    "category": "multiturn",
+    "title": "Training data stays in Singapore; evaluation added later",
+    "reference": "Turn 1 pins Singapore and draws PAI-DLC or Model Gallery training with OSS and PAI-EAS serving, all in Singapore. Turn 2 adds tracing and evaluation with in-region SLS or ARMS (or Model Studio as a judge), not AgentLoop, which runs only in Hong Kong internationally; if it mentions AgentLoop it says why it is left out.",
+    "turns": [
+      {
+        "ask": "Our training data must stay in Singapore. We want to post-train an open Qwen model on PAI and serve it to our app.",
+        "expect": {
+          "include": [
+            [
+              "pai-dlc",
+              "pai-model-gallery"
+            ],
+            [
+              "pai-eas"
+            ]
+          ],
+          "req": [
+            [
+              "singapore",
+              "ap-southeast-1"
+            ]
+          ],
+          "pins": {
+            "regions": [
+              "ap-southeast-1"
+            ]
+          },
+          "residency": [
+            "ap-southeast-1"
+          ],
+          "regions": {
+            "only": [
+              "singapore",
+              "ap-southeast-1"
+            ],
+            "min": 1
+          }
+        }
+      },
+      {
+        "ask": "Add tracing and quality evaluation for the model's answers.",
+        "expect": {
+          "exclude": [
+            "agentloop"
+          ],
+          "edit": {
+            "minChanged": 1
+          }
+        },
+        "retain": {
+          "req": [
+            [
+              "singapore",
+              "ap-southeast-1"
+            ]
+          ],
+          "regions": {
+            "only": [
+              "singapore",
+              "ap-southeast-1"
+            ]
+          },
+          "residency": [
+            "ap-southeast-1"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-ko-02-acs-agent-hosting",
+    "category": "i18n",
+    "lang": "ko",
+    "of": "ai-02-acs-agent-hosting",
+    "title": "Agent hosting with ACS sandboxes (Korean)",
+    "reference": "Same as the English case: ACS with ACS Agent Sandbox inside the VPC and an edge from the ACS node, AI Gateway and Model Studio (or PAI-EAS), allowlisted egress, the no-GPU caveat. Say and why text in Korean; product names as in the catalog.",
+    "turns": [
+      {
+        "ask": "고객사가 자사 고객을 위한 AI 에이전트를 호스팅하려고 합니다. 에이전트가 생성한 파이썬 코드는 ACS의 격리된 샌드박스에서 실행되어야 하고, 모델은 Qwen을 사용합니다. 아키텍처를 그려 주세요.",
+        "expect": {
+          "include": [
+            [
+              "acs-agent-sandbox"
+            ],
+            [
+              "acs"
+            ],
+            [
+              "model-studio",
+              "pai-eas"
+            ]
+          ],
+          "exclude": [
+            "pai-instant"
+          ],
+          "linked": [
+            {
+              "from": [
+                "acs"
+              ],
+              "to": [
+                "acs-agent-sandbox"
+              ],
+              "directed": true
+            }
+          ],
+          "placement": true,
+          "regions": {
+            "min": 1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-08-poc-finetune-8gpu",
+    "category": "need",
+    "title": "Fine-tune Qwen on 8 GPUs next week for a PoC (PAI-DLC, Lingjun not a prerequisite)",
+    "reference": "PAI-DLC on public GPUs with data and checkpoints in OSS (and optionally PAI-EAS to try the result). Lingjun is not drawn and not described as required: it is allowlisted through the account manager with no published lead time, which does not fit a PoC next week. No GPU model named other than A10, T4, V100 or P100, with newer cards flagged for sales confirmation.",
+    "turns": [
+      {
+        "ask": "We want to fine-tune Qwen on 8 GPUs next week for a PoC. We are in Singapore.",
+        "expect": {
+          "include": [
+            [
+              "pai-dlc"
+            ],
+            [
+              "oss",
+              "nas",
+              "cpfs"
+            ]
+          ],
+          "exclude": [
+            "lingjun",
+            "pai-instant",
+            "pai"
+          ],
+          "regions": {
+            "min": 1
+          },
+          "gpuNames": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-10-rl-flash-sandbox",
+    "category": "trap",
+    "title": "Agentic RL rollouts with no Kubernetes (Agent Sandbox Flash edition, no official reference)",
+    "reference": "A PAI-DLC trainer on public GPUs calling Agent Sandbox (Flash edition, E2B-compatible API) for the rollouts, checkpoints and trajectories in OSS, the final policy on PAI-EAS. No ACS, ACK or ACS Agent Sandbox because the customer has no Kubernetes. The narration states this is a custom design with no official reference and points to the documented ACK plus VeRL walkthrough. No PAI-Instant (China-only).",
+    "turns": [
+      {
+        "ask": "Our RL training runs on PAI-DLC GPUs. Every rollout executes code the model wrote, so thousands of sandboxes must run at once. We are in Singapore and have no Kubernetes.",
+        "expect": {
+          "include": [
+            [
+              "agent-sandbox"
+            ],
+            [
+              "pai-dlc"
+            ],
+            [
+              "oss",
+              "cpfs",
+              "nas"
+            ]
+          ],
+          "exclude": [
+            "acs-agent-sandbox",
+            "acs",
+            "ack",
+            "pai-instant"
+          ],
+          "linked": [
+            {
+              "from": [
+                "pai-dlc"
+              ],
+              "to": [
+                "agent-sandbox"
+              ],
+              "directed": true
+            }
+          ],
+          "mention": [
+            [
+              "no official",
+              "without an official",
+              "not an official",
+              "isn't an official",
+              "no documented",
+              "there is no official",
+              "not officially"
+            ],
+            [
+              "custom",
+              "proposed",
+              "bespoke",
+              "our own design"
+            ],
+            [
+              "verl"
+            ]
+          ],
+          "regions": {
+            "min": 1
+          },
+          "gpuNames": true
+        }
+      }
+    ]
+  }
+]
