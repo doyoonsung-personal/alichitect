@@ -39,7 +39,12 @@ function Invoke-Put([string]$Name, [string[]]$Extra = @()) {
 Push-Location $worker
 try {
   $existing = @()
-  $json = & node $wrangler secret list --env= --format json 2>$null
+  # Before the first deploy the Worker does not exist yet and `secret list` fails; treat that as "no secrets".
+  $json = $null
+  $prevPreference = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try { $json = & node $wrangler secret list --env= --format json 2>$null } catch { $json = $null }
+  $ErrorActionPreference = $prevPreference
   if ($LASTEXITCODE -eq 0 -and $json) {
     try { $existing = @(($json | Out-String | ConvertFrom-Json) | ForEach-Object { $_.name }) } catch { $existing = @() }
   }
