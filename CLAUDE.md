@@ -21,11 +21,14 @@ The user's Model Studio key costs the user nothing; Claude time does. Send routi
   - final review and judging quality
 - **Verify every Qwen output before using it:** run the tests, validate JSON against the schema, and spot-check facts. Qwen's own knowledge of current Alibaba products is stale (it recommended Tongyi Lingma and never Qoder), so give it facts from `research/` or the catalog rather than asking it to recall them.
 
+- **Web lookups go to Qwen first.** Run `node tools/qwen/search.ts --query "..."`; it answers from Model Studio's built-in web search and lists the source URLs. Then open the cited page to verify each load-bearing fact before using it. Results lean towards the China site (aliyun.com), so confirm international availability on alibabacloud.com.
+
 ```bash
 node tools/qwen/ask.ts --prompt-file task.md --files src/a.ts,src/b.ts --out draft.ts --code
 node tools/qwen/ask.ts --model qwen3.8-flash --json --prompt "..."
 node tools/qwen/ask.ts --batch tasks.jsonl --out-dir out/ --concurrency 4
 node tools/qwen/ask.ts --usage
+node tools/qwen/search.ts --query "Is Agent Sandbox part of ACS?" --json --out notes.json
 ```
 
 - **Defaults:** `qwen3.8-max`, thinking off, streamed, with retries.

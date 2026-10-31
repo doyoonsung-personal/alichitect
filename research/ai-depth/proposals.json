@@ -1,0 +1,1245 @@
+{
+  "meta": {
+    "title": "AI depth proposal: PAI stages, ACS sandboxes, RAG and agent hosting",
+    "requirement": "2026-10-31: focus on AI products as much as cloud products; present sandbox environments for model training or agent hosting with ACS sandboxes, and PAI-EAS for post-training and RAG.",
+    "date": "2026-10-31",
+    "basis": "Four research areas (pai, sandboxes, rag-agents, patterns) and their fact-checks. Only facts the fact-checks confirmed or corrected are used; unverifiable items are kept out of catalog text and listed under openQuestions.",
+    "conventions": [
+      "catalog[].action 'add' gives a full CatalogEntry. 'change' gives the id plus only the fields to set; each listed field replaces the old value wholesale (pairsWith and alternatives are full lists, not deltas). Unlisted fields stay.",
+      "kind 'offering' entries go to offerings.json, 'service' entries to products.json.",
+      "Prompt rows show only id, name, scope, lane, rank, purpose, pairs-with and flags; avoidWhen goes to the WHEN NOT TO USE section. useWhen, note, regions and intents never reach the model, so model-facing facts live in purpose, avoidWhen and the new rules.",
+      "New PAI stage entries carry no pathRank, like model-studio and pai: they are called by the app or AI Gateway and call stores, and EAS can also host an agent app that calls AI Gateway, so any fixed rank would raise false path-order warnings.",
+      "Region ids are limited to the open REGIONS in packages/core/src/regions.ts. Atlanta (us-southeast-1) and Riyadh appear in Alibaba region tables but are not open in regions.ts, so they are left out."
+    ],
+    "measured": {
+      "systemPromptTokensBefore": 12148,
+      "systemPromptBudget": 12500,
+      "systemPromptTokensAfterCatalogOnly": 12736,
+      "systemPromptTokensAfterCatalogAndRules": 13247,
+      "systemPromptTokensWithExampleToo": 13913,
+      "workedExampleTokens": 666,
+      "promptRowTokensAfter": 7954,
+      "promptRowBudget": 12000,
+      "offeringsAfter": 40,
+      "productsAfter": 190,
+      "recommendableRowsAfter": 208,
+      "suggestedBudget": "13,500 with R19-R21; 14,000 if the worked example is adopted",
+      "note": "Measured with estimateTokens (4 chars per token) on a patched in-memory catalog by the synthesizer's validation script, which also checked ids, references, word and length limits, key conflicts, the offerings range, resolution of the new aliases, pattern edges against pathRank, the eval cases with eval/lib.ts checkCases, and the worked example through validateOp, applyOp, repairGraph and checkGraph (no warnings)."
+    },
+    "testChanges": [
+      "packages/core/test/prompt.test.ts: the 12,500-token system prompt budget cannot hold these rules and rows; raise it (see meta.measured) or trim elsewhere. This is a cost decision: with implicit caching (96% hit in Phase 0) the extra prefix is mostly cached.",
+      "packages/core/test/catalog.test.ts 'resolve: ids from the recorded probe streams': pai_eas now resolves to pai-eas, not pai.",
+      "apps/web/scripts/icons/mapping.json: every catalog id needs a mapping row, including the legacy and china-only entries (see icons).",
+      "eval/check-cases.ts will reject the new eval cases until the catalog adds the new ids."
+    ]
+  },
+  "catalog": [
+    {
+      "action": "add",
+      "entry": {
+        "id": "pai-eas",
+        "name": "PAI Elastic Algorithm Service (EAS)",
+        "short": "PAI-EAS",
+        "aliases": ["EAS", "PAI EAS", "Elastic Algorithm Service", "pai_eas", "PAI model serving"],
+        "kind": "service",
+        "category": "AI & Machine Learning",
+        "icon": "ai",
+        "scope": "region",
+        "lane": "ai",
+        "vpcAttachable": true,
+        "status": "ga",
+        "availability": "intl",
+        "regions": ["ap-southeast-1", "ap-southeast-3", "ap-southeast-8", "ap-southeast-5", "ap-southeast-7", "ap-northeast-1", "ap-northeast-2", "cn-hongkong", "eu-central-1", "us-east-1", "us-west-1", "na-south-1", "me-east-1"],
+        "purpose": "Managed online serving for your own LLMs, RAG services and agent apps, with autoscaling.",
+        "useWhen": "Self-hosted or fine-tuned models behind a private endpoint, RAG services, or agent and Dify apps on GPUs.",
+        "avoidWhen": "Calling hosted Qwen models with no custom weights; use Model Studio. Training; use PAI-DLC.",
+        "pairsWith": ["oss", "alb", "ai-gateway", "elasticsearch", "nat", "pai-dlc"],
+        "alternatives": ["model-studio", "acs", "egs"],
+        "docs": "https://www.alibabacloud.com/help/en/pai/user-guide/overview-2",
+        "note": "Billed for as long as resources are held, even if a service fails to start. Public pool is pay-as-you-go; dedicated groups are subscription or pay-as-you-go (delete machines to stop billing). Shared gateway by default; ALB or managed dedicated gateways, VPC direct, NLB and Nacos are options. Scale to zero is not allowed with a dedicated gateway. Calling Model Studio or the internet needs NAT with SNAT.",
+        "verified": "2026-10-31",
+        "intents": ["host our own LLM behind a private endpoint", "RAG chatbot on a self-hosted model", "host an agent or Dify app on GPUs"]
+      },
+      "rationale": "The node customers ask for most (private LLM hosting, RAG, agent and Dify apps, post-training output). It has its own buying options, gateways and network behaviour, so it cannot stay an alias of the pai umbrella. Region scope with vpcAttachable matches it: a managed control plane that places ENIs in the customer vSwitch when a VPC is configured. layout.ts always draws region scope on the shelf, so private access is drawn as an edge (prompt rule R19).",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/pai/product-overview/regions-and-zones (read 2026-10-31; updated 2026-08-25)",
+        "https://www.alibabacloud.com/help/en/pai/user-guide/overview-2 (read 2026-10-31; updated 2026-08-07)",
+        "https://www.alibabacloud.com/help/en/pai/product-overview/billing-of-eas (read 2026-10-31; updated 2026-09-09)",
+        "https://www.alibabacloud.com/help/en/pai/user-guide/methods-for-calling-services (read 2026-10-31; updated 2026-09-09)",
+        "https://www.alibabacloud.com/help/en/pai/enable-or-disable-the-horizontal-auto-scaling-feature (read 2026-10-31; updated 2026-09-22)",
+        "https://www.alibabacloud.com/help/en/pai/user-guide/rag-dialogue-system (read 2026-10-31; updated 2026-09-22)",
+        "https://www.alibabacloud.com/help/en/pai/user-guide/deploy-an-llm (read 2026-10-31; updated 2026-09-22)"
+      ]
+    },
+    {
+      "action": "add",
+      "entry": {
+        "id": "pai-dlc",
+        "name": "PAI Deep Learning Containers (DLC)",
+        "short": "PAI-DLC",
+        "aliases": ["DLC", "PAI DLC", "Deep Learning Containers", "PAI training jobs"],
+        "kind": "service",
+        "category": "AI & Machine Learning",
+        "icon": "ai",
+        "scope": "region",
+        "lane": "ai",
+        "vpcAttachable": true,
+        "status": "ga",
+        "availability": "intl",
+        "regions": ["ap-southeast-1", "ap-southeast-3", "ap-southeast-5", "ap-northeast-1", "cn-hongkong", "eu-central-1", "us-east-1", "us-west-1"],
+        "purpose": "Managed distributed training and fine-tuning jobs on GPU pools or Lingjun quotas, without running clusters.",
+        "useWhen": "Multi-GPU or multi-node fine-tuning, pre-training or RL jobs that read data from OSS, NAS or CPFS.",
+        "avoidWhen": "Interactive experiments (use PAI-DSW) or serving a model (use PAI-EAS).",
+        "pairsWith": ["oss", "cpfs", "lingjun", "pai-eas"],
+        "alternatives": ["ack", "egs"],
+        "docs": "https://www.alibabacloud.com/help/en/pai/what-is-dlc",
+        "note": "Public resources are pay-as-you-go; resource quotas are subscription. Lingjun quotas need allowlist access. Model Gallery fine-tuning jobs run here. The official Megatron and GRPO walkthroughs recommend or require China (Ulanqab); check Singapore capacity first.",
+        "verified": "2026-10-31",
+        "intents": ["fine-tune or post-train a model on our data", "distributed training job"]
+      },
+      "rationale": "Training and serving must be separate boxes so a diagram can show train -> checkpoints -> deploy. DLC is where Model Gallery, the Megatron walkthrough and the ChatLearn GRPO guide run multi-node jobs.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/pai/product-overview/regions-and-zones (read 2026-10-31; updated 2026-08-25)",
+        "https://www.alibabacloud.com/help/en/pai/use-cases/train-fine-tune-and-deploy-qwen-by-using-intelligent-computing-lingjun (read 2026-10-31; updated 2026-09-16)",
+        "https://www.alibabacloud.com/help/en/pai/use-cases/qwen3-reinforcement-learning-best-practices (read 2026-10-31; updated 2026-08-25)",
+        "https://www.alibabacloud.com/help/en/pai/product-overview/pai-product-purchase-guidelines (read 2026-10-31; updated 2026-10-09)"
+      ]
+    },
+    {
+      "action": "add",
+      "entry": {
+        "id": "pai-dsw",
+        "name": "PAI Data Science Workshop (DSW)",
+        "short": "PAI-DSW",
+        "aliases": ["DSW", "PAI DSW", "Data Science Workshop", "PAI notebook"],
+        "kind": "service",
+        "category": "AI & Machine Learning",
+        "icon": "devtools",
+        "scope": "region",
+        "lane": "ai",
+        "vpcAttachable": true,
+        "status": "ga",
+        "availability": "intl",
+        "regions": ["ap-southeast-1", "ap-southeast-3", "ap-southeast-5", "ap-northeast-1", "cn-hongkong", "eu-central-1", "us-east-1", "us-west-1"],
+        "purpose": "Cloud notebook, VS Code and terminal workspaces on CPU or GPU for model development.",
+        "useWhen": "Per-person GPU environments where data scientists prototype, fine-tune and debug before DLC jobs or EAS.",
+        "avoidWhen": "Production serving or long multi-node training; use PAI-EAS or PAI-DLC.",
+        "pairsWith": ["oss", "nas", "cpfs", "pai-dlc"],
+        "alternatives": ["egs", "ecs"],
+        "docs": "https://www.alibabacloud.com/help/en/pai/dsw-overview",
+        "note": "Public resources are pay-as-you-go; dedicated quotas (general or Lingjun) are subscription. Mounts OSS, NAS or CPFS. Attach a RAM role so notebooks use STS credentials instead of AccessKeys. The overview describes no isolation beyond that, so separate teams by workspace or VPC.",
+        "verified": "2026-10-31",
+        "intents": ["sandbox environments for data scientists", "GPU notebooks for model development"]
+      },
+      "rationale": "A customer who asks for 'sandbox environments for model training' usually means per-person dev environments for people. That is DSW, not an agent sandbox. Without this entry the model has no way to tell a notebook from a training job or a serving endpoint.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/pai/dsw-overview (read 2026-10-31; updated 2026-09-17)",
+        "https://www.alibabacloud.com/help/en/pai/product-overview/regions-and-zones (read 2026-10-31; updated 2026-08-25)"
+      ]
+    },
+    {
+      "action": "add",
+      "entry": {
+        "id": "pai-model-gallery",
+        "name": "PAI Model Gallery",
+        "short": "Model Gallery",
+        "aliases": ["PAI QuickStart"],
+        "kind": "service",
+        "category": "AI & Machine Learning",
+        "icon": "ai",
+        "scope": "region",
+        "lane": "ai",
+        "status": "ga",
+        "availability": "intl",
+        "regions": ["ap-southeast-1", "ap-southeast-3", "ap-southeast-5", "ap-northeast-1", "ap-northeast-2", "cn-hongkong", "eu-central-1", "us-east-1", "us-west-1"],
+        "purpose": "Open-model catalog with no-code fine-tuning (SFT, DPO) on DLC and one-click deployment to EAS.",
+        "useWhen": "Fine-tuning or deploying open models such as Qwen3 without writing training code.",
+        "avoidWhen": "Custom training code or large pre-training; use PAI-DLC directly.",
+        "pairsWith": ["pai-dlc", "pai-eas", "oss"],
+        "alternatives": ["model-studio", "pai-dlc"],
+        "docs": "https://www.alibabacloud.com/help/en/pai/model-deployment-and-training",
+        "note": "Free itself; you pay for the DLC jobs and EAS services it starts. SFT and DPO with full-parameter, LoRA or QLoRA. GRPO is documented only in the Qwen3 guide, for Qwen3 32B and smaller.",
+        "verified": "2026-10-31",
+        "intents": ["fine-tune an open model on our data without code", "post-train and deploy Qwen"]
+      },
+      "rationale": "Post-training is a headline example, and Model Gallery is the documented no-code path. It has no compute of its own but launches DLC jobs and EAS services, so it is drawn as an orchestrating node with control edges. An alias cannot do this, because 'Model Gallery' would have to resolve to both DLC and EAS.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/pai/model-deployment-and-training (read 2026-10-31; updated 2026-09-22)",
+        "https://www.alibabacloud.com/help/en/pai/use-cases/deploy-fine-tune-and-evaluate-qwen3-in-quickstart (read 2026-10-31; updated 2026-08-25)",
+        "https://www.alibabacloud.com/help/en/pai/product-overview/model-gallery-quick-start (read 2026-10-31; updated 2026-09-22)"
+      ]
+    },
+    {
+      "action": "add",
+      "entry": {
+        "id": "acs-agent-sandbox",
+        "name": "Agent Sandbox Container Edition (ACS)",
+        "short": "ACS Sandbox",
+        "aliases": ["ACS Agent Sandbox", "ACS sandbox", "Agent Sandbox Container Edition", "Kubernetes agent sandbox", "SandboxSet"],
+        "kind": "offering",
+        "category": "AI & Machine Learning",
+        "icon": "agent",
+        "scope": "vpc",
+        "lane": "compute",
+        "pathRank": 40,
+        "status": "preview",
+        "availability": "intl",
+        "regions": ["ap-southeast-1", "ap-southeast-3", "ap-southeast-5", "ap-southeast-6", "ap-southeast-7", "ap-northeast-1", "ap-northeast-2", "cn-hongkong", "us-east-1", "us-west-1", "eu-central-1", "eu-west-1"],
+        "purpose": "VM-isolated agent sandboxes as pods in your ACS cluster, with warm pools, hibernation and E2B API.",
+        "useWhen": "Many agent or RL-rollout sandboxes on Kubernetes with warm pools, multi-tenancy and VPC egress control.",
+        "avoidWhen": "GPU work inside the sandbox (none), or no Kubernetes; use agent-sandbox for a managed E2B API.",
+        "pairsWith": ["acs", "alb", "nas", "oss", "agent-identity"],
+        "alternatives": ["agent-sandbox", "agentbay", "agentrun"],
+        "docs": "https://www.alibabacloud.com/help/en/cs/user-guide/agent-sandbox",
+        "note": "Public preview per the ACS page (2026-06-23); confirm with the account team. CPU and memory only, no GPU. Needs Agent Sandbox activated on an ACS cluster, the controller and sandbox-manager add-ons, and an Ingress (ALB) with a domain and TLS. Default creation quota is low (burst 100, then 20 per minute): request more for RL fleets. Sandbox types per region are not listed.",
+        "verified": "2026-10-31",
+        "audience": "Platform and AI infrastructure teams",
+        "purchase": "cloud-payg",
+        "intents": ["agent sandboxes on our own Kubernetes (ACS)", "sandbox fleet for agent RL rollouts", "multi-tenant code execution for our agent platform"]
+      },
+      "rationale": "The user's own words are 'ACS sandboxes'. Container Edition sandboxes are pods inside the customer's ACS cluster and VPC, so the entry is VPC-scoped in the compute lane, drawn as an ordinary node with an edge from the acs node (like dify-on-ack from ack). Today the alias 'ACS Agent Sandbox' points at the region-scoped agent-sandbox entry, which would draw it outside the VPC with no cluster. Status is preview because the only page that states a status says public preview.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/cs/user-guide/agent-sandbox/ (read 2026-10-31; updated 2026-06-23; states public preview and no GPU)",
+        "https://www.alibabacloud.com/help/en/cs/user-guide/create-an-agent-sandbox (read 2026-10-31; updated 2026-09-15)",
+        "https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/open-service-area (read 2026-10-31; updated 2026-10-13; Container Edition region list)",
+        "https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/limits-of-agent-sandbox (read 2026-10-31; updated 2026-10-13)",
+        "https://www.alibabacloud.com/help/en/cs/user-guide/manage-agent-sandbox-egress-traffic (read 2026-10-31; updated 2026-09-23)",
+        "https://www.alibabacloud.com/help/en/cs/user-guide/hibernate-and-wake-up-the-agent-sandbox (read 2026-10-31; updated 2026-10-08)"
+      ]
+    },
+    {
+      "action": "add",
+      "entry": {
+        "id": "pai-instant",
+        "name": "PAI-Instant Service",
+        "short": "PAI-Instant",
+        "aliases": ["Instant Service", "PAI Instant Service", "PAI Sandbox", "PAI-Sandbox"],
+        "kind": "service",
+        "category": "AI & Machine Learning",
+        "icon": "agent",
+        "scope": "region",
+        "lane": "ai",
+        "status": "ga",
+        "availability": "china-only",
+        "purpose": "PAI's E2B-compatible MicroVM sandboxes for RL training and evaluation; China regions only.",
+        "avoidWhen": "International designs; use acs-agent-sandbox or agent-sandbox.",
+        "pairsWith": ["pai-dlc"],
+        "alternatives": ["acs-agent-sandbox", "agent-sandbox"],
+        "docs": "https://www.alibabacloud.com/help/en/pai/instant-service-overview",
+        "note": "Documented on the international help site, but its page lists only China East 2 (Shanghai), China North 6 (Ulanqab) and China Northwest 2 (Zhongwei). Lifecycle stage not stated.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "A guard entry. The docs describe exactly the user's 'sandboxes for model training' case, so a search or a customer may name it. With an entry, 'PAI Sandbox' resolves, the row carries the china-only flag, and the validator warns instead of the model guessing.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/pai/instant-service-overview (read 2026-10-31; updated 2026-08-28)",
+        "https://www.alibabacloud.com/help/en/pai/product-overview/regions-and-zones (read 2026-10-31; Instant Service not listed)"
+      ]
+    },
+    {
+      "action": "add",
+      "entry": {
+        "id": "pai-langstudio",
+        "name": "PAI-LangStudio",
+        "short": "LangStudio",
+        "aliases": ["LangStudio", "PAI LangStudio"],
+        "kind": "service",
+        "category": "AI & Machine Learning",
+        "icon": "ai",
+        "scope": "region",
+        "lane": "ai",
+        "status": "legacy",
+        "successor": "pai-eas",
+        "availability": "intl",
+        "purpose": "PAI's builder for LLM application and RAG flows; retires on 2027-03-09.",
+        "avoidWhen": "Any new design; it retires on 2027-03-09.",
+        "alternatives": ["pai-eas", "agentcore", "dify-on-ack"],
+        "docs": "https://www.alibabacloud.com/help/en/pai/product-overview/pai-langstudio-feature-retirement-and-migration-guide",
+        "note": "Retires 2027-03-09 16:00. Its named successor, Model Studio application development, supports only China (Beijing) and is closed to new international accounts. For new builds use a PAI-EAS RAG or Dify service, AgentCore or Dify on ACK.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "Older PAI tutorials and the model's memory recommend LangStudio for RAG. As a legacy entry with a successor it costs no prompt row: resolve() switches a 'LangStudio' node to pai-eas with a retired-product warning that carries the date. pai-eas is our judgment for the successor (the RAG and Dify scenario templates are its PAI-native replacements); the official successor is unusable internationally.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/pai/product-overview/pai-langstudio-feature-retirement-and-migration-guide (read 2026-10-31; updated 2026-09-23)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "pai",
+        "aliases": ["Platform for AI", "Machine Learning Platform for AI", "PAI Studio", "PAI Designer", "Machine Learning Designer"],
+        "purpose": "Alibaba's AI platform umbrella; prefer its stage entries: pai-dsw, pai-dlc, pai-eas, pai-model-gallery.",
+        "useWhen": "A generic mention of PAI before the stage is known, or Designer low-code ML.",
+        "avoidWhen": "Any design that shows a specific stage (use pai-dsw, pai-dlc, pai-eas); hosted Qwen calls (use Model Studio).",
+        "pairsWith": ["pai-dsw", "pai-dlc", "pai-eas", "lingjun"],
+        "alternatives": ["model-studio"],
+        "note": "Designer (low-code ML on MaxCompute) stays under this entry. PAI-Studio 1.0 is retired in every region (last phase 2026-09-30). iTAG is China-only and closed to new PAI customers since 2026-08-01.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "Keep a thin umbrella so 'use PAI' and older diagrams still resolve. Move the module aliases (EAS, PAI-EAS, pai_eas, PAI-DSW, PAI-DLC, Model Gallery) to the stage entries, because an alias may name only one id.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/pai/machine-learning-designer-overview (read 2026-10-31; updated 2026-09-15)",
+        "https://www.alibabacloud.com/help/en/pai/product-overview/pai-studio-visual-modeling-1-0-retirement-notice (read 2026-10-31; updated 2026-08-25)",
+        "https://www.alibabacloud.com/help/en/pai/itag (read 2026-10-31; updated 2026-09-10)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "agent-sandbox",
+        "name": "Agent Sandbox (Flash Edition)",
+        "short": "Agent Sandbox",
+        "aliases": ["Agent Sandbox", "Agent Sandbox Flash Edition", "Agent Sandbox Express Edition", "Agent Sandbox Speed Edition", "E2B sandbox", "FC Agent Sandbox", "FC Cloud Sandbox"],
+        "status": "preview",
+        "regions": ["ap-southeast-1", "ap-southeast-8", "us-east-1", "us-west-1", "cn-hongkong"],
+        "purpose": "Managed E2B-compatible sandboxes for agent code, browser and desktop tasks, created by API; no cluster.",
+        "useWhen": "Agents running untrusted code or browsers, teams moving from E2B, or teams that want no cluster to run.",
+        "avoidWhen": "The user wants sandboxes on ACS or Kubernetes (use acs-agent-sandbox), or GPU work.",
+        "pairsWith": ["agentrun", "oss", "model-studio"],
+        "alternatives": ["acs-agent-sandbox", "agentbay", "agentrun"],
+        "note": "Same service the Function Compute docs call FC Agent Sandbox (inferred; Flash needs Function Compute). No lifecycle stage stated, and independent billing is an invite-only preview. The Desktop template must be built once; snapshots and AgenticFS volumes are invite-only. Container Edition on ACS is acs-agent-sandbox.",
+        "verified": "2026-10-31",
+        "intents": ["managed E2B-compatible agent sandbox", "sandbox for an agent to run code or browse"]
+      },
+      "rationale": "Split the two editions so each lands in the right container. This entry becomes the managed Flash Edition (region scope, outside the VPC) and the default for a generic 'agent sandbox'. Status moves from ga to preview: no page states GA, and the FC billing page calls independent billing an invite-only preview. Express, Speed and Flash all stay as aliases because the docs still use all three.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/agent-sandbox/agent-sandbox-overview (read 2026-10-31; updated 2026-09-16)",
+        "https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/open-service-area (read 2026-10-31; updated 2026-10-13; Flash region list)",
+        "https://www.alibabacloud.com/help/en/functioncompute/pay-as-you-go-of-fc-agent-sandbox (read 2026-10-31; updated 2026-08-20)",
+        "https://www.alibabacloud.com/help/en/agent-sandbox/alibaba-cloud-sdk-api-description-1 (read 2026-10-31; updated 2026-09-21; Function Compute prerequisite)",
+        "https://www.alibabacloud.com/help/en/agent-sandbox/agent-bay-linux-desktop-migration-fc-agent-sandbox-desktop-guide (read 2026-10-31; updated 2026-10-27; Desktop template build)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "acs",
+        "useWhen": "Kubernetes workloads without node management, bursty jobs, or hosting agent sandboxes.",
+        "pairsWith": ["alb", "acr", "nas", "acs-agent-sandbox"],
+        "note": "Recommended successor for ACK Serverless clusters. GPU pods (gpu and gpu-hpn compute classes) are an invitational preview: confirm access with the account team. Agent Sandbox pods have no GPU; draw them as acs-agent-sandbox.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "ACS hosts both GPU pods and the Container Edition sandbox. Pairing it with acs-agent-sandbox lets the model find the new entry, and the note stops anyone from putting training inside a sandbox.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/cs/product-overview/product-introduction (read 2026-10-31; updated 2026-09-21)",
+        "https://www.alibabacloud.com/help/en/cs/user-guide/agent-sandbox/ (read 2026-10-31; updated 2026-06-23)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "lingjun",
+        "avoidWhen": "Regions other than Singapore (the only international region), or no allowlist access yet; use pai-dlc on GPUs.",
+        "pairsWith": ["pai-dlc", "pai-eas", "cpfs"],
+        "note": "Allowlist access, requested by support ticket or your account manager. Subscription is the standard path; pay-as-you-go is a further allowlisted option. Backs PAI DSW, DLC and EAS quotas. ACK Lingjun cluster creation ends December 2026; use ACK Pro Lingjun.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "The fact-check found the allowlist applies to Lingjun access as a whole, not only to pay-as-you-go, so 'pay-as-you-go by allowlist only' understates it. The avoidWhen line puts the Singapore-only fact where the model can see it, which matters for EU or Japan training designs.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/pai/create-and-manage-intelligent-computing-lingjun-resources (read 2026-10-31; updated 2026-08-24)",
+        "https://www.alibabacloud.com/help/en/pai/product-overview/pai-product-purchase-guidelines (read 2026-10-31; updated 2026-10-09)",
+        "https://www.alibabacloud.com/help/en/pai/product-overview/regions-and-zones (read 2026-10-31; updated 2026-08-25)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "egs",
+        "alternatives": ["pai-dlc", "pai-eas", "lingjun", "acs"],
+        "note": "ECS GPU instance families; draw as an ECS node with a GPU marker. Newer families (gn8v, gn8is, gn9 and ebmgn9) are limited to select regions or invitation, and no page states Singapore stock: check the console.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "Point the alternatives at the PAI stages instead of the umbrella, and stop diagrams from implying that every GPU family is self-serve in Singapore.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/egs/gpu-accelerated-compute-optimized-instance-families (read 2026-10-31; updated 2026-09-23)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "model-studio",
+        "avoidWhen": "Coding-tool subscriptions; use Coding Plan or Token Plan. Self-hosted or custom weights; use PAI-EAS.",
+        "alternatives": ["pai-eas", "qwen-cloud"],
+        "note": "Keys and model lists are per region. Agent apps and knowledge base are closed to new international accounts (see model-studio-apps). Fine-tuning and batch exist only in Singapore among international regions; Singapore fine-tuning is SFT on a few Qwen models, and tuned models cannot be exported. PrivateLink is documented for Beijing and Hong Kong only, not Singapore.",
+        "verified": "2026-10-31",
+        "intents": ["call Qwen or other LLM APIs from our app", "embeddings for RAG", "light SFT of a Qwen model without managing GPUs"]
+      },
+      "rationale": "Gives the model the managed-versus-PAI boundary for post-training and the Singapore private-access gap, which changes RAG network drawings (NAT egress instead of a PrivateLink badge).",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/model-studio/regions (read 2026-10-31; updated 2026-10-13)",
+        "https://www.alibabacloud.com/help/en/model-studio/model-training-overview (read 2026-10-31; updated 2026-10-21)",
+        "https://www.alibabacloud.com/help/en/model-studio/access-model-studio-through-privatelink (read 2026-10-31; updated 2026-10-27)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "ai-gateway",
+        "pairsWith": ["model-studio", "ai-guardrails", "pai-eas"],
+        "note": "Sits between the app and its models; part of the API Gateway family. A vLLM or SGLang service on PAI-EAS is fronted as a self-hosted OpenAI-compatible backend; EAS is not a named service type.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "Replace the umbrella id with pai-eas, the node AI Gateway actually fronts. The note records that this pairing is an inference: the gateway documents self-hosted vLLM and SGLang, and EAS LLM endpoints are OpenAI-compatible.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/what-is-an-ai-gateway (read 2026-10-31; updated 2026-09-09)",
+        "https://www.alibabacloud.com/help/en/pai/user-guide/deploy-an-llm (read 2026-10-31; updated 2026-09-22)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "cpfs",
+        "pairsWith": ["lingjun", "pai-dlc", "ehpc", "oss"],
+        "verified": "2026-10-31"
+      },
+      "rationale": "Replace the umbrella with the training stage that mounts CPFS.",
+      "sources": ["https://www.alibabacloud.com/help/en/pai/use-cases/qwen3-reinforcement-learning-best-practices (read 2026-10-31; CPFS or NAS dataset mount on DLC)"]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "agentloop",
+        "avoidWhen": "Traces that must stay in Singapore or the EU: it runs only in Hong Kong internationally; use SLS or ARMS.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "The region limit is only in the note, which the model never sees. A residency-pinned AI design that adds 'evaluation and tracing' would otherwise draw a cross-region AgentLoop.",
+      "sources": ["https://www.alibabacloud.com/help/en/agentloop/product-overview/server-launch-regions-of-agentloop.md (read 2026-10-31)"]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "agentrun",
+        "vpcAttachable": true,
+        "pairsWith": ["model-studio", "agentcore", "sls", "tablestore", "agent-sandbox"],
+        "note": "Singapore is the only international endpoint (endpoint list, 2026-08-22). Runs on Function Compute; AgentRun is listed for PrivateLink. The memory store is Tablestore (RDS memory is in maintenance mode). Its built-in sandbox has an optional upgrade path to FC Cloud Sandbox (agent-sandbox), with no retirement date.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "AgentRun reaches the customer VPC and is on the PrivateLink list, so it may sit VPC-attached. Tablestore is the documented memory backend, and the sandbox upgrade path ties it to agent-sandbox.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/agentrun/api-agentrun-2025-09-10-endpoint.md (read 2026-10-31; updated 2026-08-22)",
+        "https://www.alibabacloud.com/help/en/agentrun/memory-storage-overview.md (read 2026-10-31; updated 2026-10-10)",
+        "https://www.alibabacloud.com/help/en/agentrun/agenrun-sandbox-upgrade-fc-cloud-sandbox-scheme.md (read 2026-10-31; updated 2026-08-24)",
+        "https://www.alibabacloud.com/help/en/privatelink/aliyun-services-that-integrate-with-privatelink (read 2026-10-31; updated 2026-09-20)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "agentbay",
+        "alternatives": ["agent-sandbox", "acs-agent-sandbox"],
+        "useWhen": "Agents that must drive Windows or Android environments, browse, or operate desktops safely.",
+        "note": "A separate product from Agent Sandbox; SDK endpoints in Singapore and Shanghai. Covers Windows and Android runtimes. A guide (2026-10-27) moves Linux desktop automation to Agent Sandbox's Desktop template; no deprecation is announced.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "Keeps AgentBay distinct from the two Agent Sandbox editions and gives it the job only it does: Windows and Android environments.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/agentbay/llms.txt (read 2026-10-31; index page only)",
+        "https://www.alibabacloud.com/help/en/agent-sandbox/agent-bay-linux-desktop-migration-fc-agent-sandbox-desktop-guide (read 2026-10-31; updated 2026-10-27)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "tablestore",
+        "pairsWith": ["fc", "iot-platform", "maxcompute", "agentrun"],
+        "note": "The documented memory store for AgentRun, and a knowledge-base connector for AgentCore.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "Lets the managed agent pattern find its memory store.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/agentrun/memory-storage-overview.md (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/agentcore/overview-of-knowledge-base-connections.md (read 2026-10-31; updated 2026-10-21)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "agentcore",
+        "pairsWith": ["model-studio", "agentrun", "ai-gateway", "agent-security-center", "tablestore"],
+        "note": "Renamed from Multi-agent Governance and Collaboration Platform (AgentTeams) on 2026-08-28; billed since 2026-09-18; activate the service before first use. Knowledge-base connectors are Tablestore and the Model Studio knowledge base (Beijing only per the earlier review). Not Amazon Bedrock AgentCore.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "In Singapore the working knowledge-base path for AgentCore is Tablestore.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/agentcore/overview-of-knowledge-base-connections.md (read 2026-10-31; updated 2026-10-21)",
+        "research/findings/5-ai-dev-products.md F8 (Bailian connector Beijing-only, from the AgentCore llms.txt index)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "dashvector",
+        "purpose": "Managed vector search API (Proxima engine); paid clusters bill per instance-hour.",
+        "avoidWhen": "Designs that need documented private VPC access; use Milvus.",
+        "regions": ["ap-southeast-1", "us-east-1"],
+        "note": "Singapore and Virginia. The free trial cluster is for testing and is released after 30 days. The docs describe no VPC access.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "The current purpose ('fully serverless') holds only for the free trial. Paid clusters bill per instance-hour, and no VPC path is documented, which matters for private RAG.",
+      "sources": ["https://www.alibabacloud.com/help/en/vrs/latest/opening-service (read 2026-10-31; updated 2026-06-17)"]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "milvus",
+        "note": "The managed knowledge-base feature in the Milvus tutorials lists mainland China regions only: internationally, use Milvus as a plain vector store with your own ingestion. The PAI-EAS RAG template does not offer Milvus as a built-in store.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "Stops the app from promising the console knowledge-base workflow to a Singapore customer, or wiring Milvus into the EAS RAG template.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/milvus/use-cases/build-customer-service-qa-app (read 2026-10-31; updated 2026-09-01)",
+        "https://www.alibabacloud.com/help/en/pai/user-guide/rag-dialogue-system (read 2026-10-31; updated 2026-09-22)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "opensearch",
+        "note": "Vector Search edition in Singapore and Frankfurt; LLM-based conversational search edition in Singapore. AI Search Open Platform services (parsing, chunking, rerank) are documented for Shanghai and Frankfurt only. A PAI-EAS RAG service reaches OpenSearch over the public network only.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "Two region and network facts that change Singapore RAG drawings.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/open-search/search-platform/user-guide/get-service-call-address (read 2026-10-31; updated 2026-06-21)",
+        "https://www.alibabacloud.com/help/en/open-search/select-an-opensearch-edition (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/pai/user-guide/rag-dialogue-system (read 2026-10-31)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "privatelink",
+        "note": "Model Studio private endpoints are documented for Beijing and Hong Kong only, not Singapore. AI services on the list include PAI EAS, Milvus, AgentRun and OSS; Tablestore, Tair and AI Gateway are not listed.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "So a 'private RAG in Singapore' diagram does not draw a PrivateLink badge to Model Studio.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/privatelink/aliyun-services-that-integrate-with-privatelink (read 2026-10-31; updated 2026-09-20)",
+        "https://www.alibabacloud.com/help/en/model-studio/access-model-studio-through-privatelink (read 2026-10-31; updated 2026-10-27)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "agent-identity",
+        "pairsWith": ["agentcore", "ram", "acs-agent-sandbox"],
+        "note": "New in 2026; supports OIDC and on-behalf-of access. ACS Agent Sandbox uses it for OSS mounts and egress credential injection. Regions and billing were not confirmed in this review: check Singapore before proposing it.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "It is the documented credential path for Container Edition sandboxes, but its availability field 'intl' is an assumption nobody verified.",
+      "sources": [
+        "https://www.alibabacloud.com/help/en/cs/user-guide/manage-agent-sandbox-egress-traffic (read 2026-10-31; HTTPS termination needs ack-agent-identity 0.2.0+)",
+        "https://www.alibabacloud.com/help/en/cs/llms.txt (read 2026-10-31; index lists the OSS mount with Agent Identity page)"
+      ]
+    },
+    {
+      "action": "change",
+      "entry": {
+        "id": "dify-on-ack",
+        "alternatives": ["agentcore", "pai-eas"],
+        "note": "Dify can also run as one PAI-EAS service backed by RDS PostgreSQL, Tair (Redis), Elasticsearch and OSS in the same VPC; their VPCs cannot change after creation. Dify's own code sandbox container is not an agent sandbox product.",
+        "verified": "2026-10-31"
+      },
+      "rationale": "EAS-hosted Dify is the second documented Dify path and a practical LangStudio replacement.",
+      "sources": ["https://www.alibabacloud.com/help/en/pai/user-guide/deploy-dify (read 2026-10-31; updated 2026-09-22)"]
+    }
+  ],
+  "notAdded": [
+    {
+      "id": "pai-inferx / pai-token-service",
+      "why": "InferX lists no regions, availability or allowlist. Token Service is in Beijing, Singapore, Frankfurt and Tokyo, but its relationship to Model Studio is unexplained, and it prices qwen3.8-max differently ($2.40/$7.20 vs $2/$6 per 1M in Singapore). An entry now would split 'call Qwen by API' across two products. Revisit when the relationship is documented."
+    },
+    {
+      "id": "model-studio-tuning",
+      "why": "Managed SFT and dedicated deployment are still the Model Studio endpoint, so a second box would duplicate model-studio. Captured in the model-studio note and prompt rule R19 instead."
+    },
+    {
+      "id": "ack-ai-suite",
+      "why": "Not re-verified by the fact-checks, and it is an add-on rather than a drawable hop; ack's purpose already mentions its AI suite."
+    },
+    {
+      "id": "opensearch-llm-search",
+      "why": "Singapore is supported, but 'same product as LLM Intelligent Q&A Edition' is only inferred, and the edition already resolves as an alias of opensearch. Low value for the requested patterns."
+    },
+    {
+      "id": "tair-semantic-cache",
+      "why": "Free public beta with no SLA, no stated regions, and cached data cleared when the beta ends."
+    },
+    {
+      "id": "pai gateways, pai-designer, pai-itag",
+      "why": "The ALB dedicated gateway is the existing alb node; the shared gateway is implicit; the managed dedicated gateway is an edge label. Designer stays under the pai umbrella. iTAG is China-only and closed to new customers."
+    }
+  ],
+  "patterns": [
+    {
+      "id": "ai-dev-sandbox",
+      "name": "Training sandboxes for people (isolated data-science workspaces)",
+      "evidence": "documented parts, composed by us: DSW and DLC features are documented; the isolation story (workspace, VPC, RAM role, NAT-only egress) is our design.",
+      "triggers": ["sandbox environments for data scientists", "GPU notebooks to train or fine-tune models", "isolated ML development environment", "each researcher gets a GPU workspace", "replace our JupyterHub"],
+      "core": ["users", "pai-dsw", "pai-dlc", "oss", "nas"],
+      "optional": ["cpfs", "lingjun", "nat", "acr", "pai-eas", "ram", "actiontrail", "kms"],
+      "nodes": [],
+      "edges": [
+        { "from": "users", "to": "pai-dsw", "label": "notebook, SSH" },
+        { "from": "pai-dsw", "to": "oss", "label": "datasets, results" },
+        { "from": "pai-dsw", "to": "nas", "label": "home, code" },
+        { "from": "pai-dsw", "to": "pai-dlc", "label": "submit job", "kind": "control" },
+        { "from": "pai-dlc", "to": "oss", "label": "data, checkpoints" },
+        { "from": "pai-dlc", "to": "cpfs", "label": "hot dataset" },
+        { "from": "pai-dlc", "to": "lingjun", "label": "GPU quota", "kind": "control" },
+        { "from": "pai-dsw", "to": "nat", "label": "package installs" },
+        { "from": "pai-dsw", "to": "ram", "label": "STS role", "kind": "control" }
+      ],
+      "placement": "pai-dsw and pai-dlc are region scope and sit on the AI shelf; nas, cpfs and nat need a VPC group in the region (nat on its boundary). ram and actiontrail go to the account band. Say where the isolation comes from: per-person instances, workspace quotas, the VPC, NAT-only egress and RAM roles. DSW documents nothing stronger, so do not call it a hardened multi-tenant sandbox.",
+      "mistakes": [
+        "Drawing an agent sandbox (acs-agent-sandbox, agent-sandbox, agentbay) for people who train models.",
+        "Drawing the pai umbrella, or one box for notebooks, training and serving.",
+        "AccessKeys in notebooks instead of a RAM role with STS credentials.",
+        "Using DSW to host a production model; that is pai-eas.",
+        "Promising Lingjun without the allowlist, or outside Singapore."
+      ],
+      "sources": [
+        "https://www.alibabacloud.com/help/en/pai/dsw-overview (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/pai/product-overview/regions-and-zones (read 2026-10-31)"
+      ]
+    },
+    {
+      "id": "post-train-serve",
+      "name": "Post-training on PAI, then serving on PAI-EAS",
+      "evidence": "documented: Model Gallery runs SFT and DPO on DLC and deploys to EAS; the ChatLearn GRPO and Megatron walkthroughs go DSW -> DLC -> EAS (both recommend or require China (Ulanqab)).",
+      "triggers": ["fine-tune Qwen on our data and host it", "SFT or DPO", "GRPO or RLHF", "post-training pipeline", "LoRA fine-tune then serve privately", "train our own model then deploy it"],
+      "core": ["oss", "pai-dlc", "pai-eas"],
+      "optional": ["pai-model-gallery", "pai-dsw", "lingjun", "cpfs", "nas", "acr", "ai-gateway", "alb", "model-studio"],
+      "nodes": [],
+      "edges": [
+        { "from": "pai-model-gallery", "to": "pai-dlc", "label": "fine-tune", "kind": "control" },
+        { "from": "pai-dlc", "to": "oss", "label": "data, checkpoints" },
+        { "from": "pai-dlc", "to": "lingjun", "label": "GPU quota", "kind": "control" },
+        { "from": "pai-dlc", "to": "cpfs", "label": "dataset" },
+        { "from": "pai-dlc", "to": "pai-eas", "label": "deploy", "kind": "control" },
+        { "from": "pai-model-gallery", "to": "pai-eas", "label": "deploy", "kind": "control" },
+        { "from": "pai-eas", "to": "oss", "label": "load weights" },
+        { "from": "ai-gateway", "to": "pai-eas", "label": "private endpoint" }
+      ],
+      "variants": [
+        "No-code: pai-model-gallery -> pai-dlc (SFT or DPO, full, LoRA or QLoRA) -> oss -> pai-eas.",
+        "Custom or RL: pai-dsw (single-node debug) -> pai-dlc on lingjun with cpfs or nas -> pai-eas (vLLM).",
+        "Managed: model-studio only, for light SFT of a supported Qwen model in Singapore; no weight export, and dedicated deployment is billed separately."
+      ],
+      "placement": "All PAI stages sit on the AI shelf; draw only one deploy edge (from the gallery when it is used, else from pai-dlc). The consumer app and AI Gateway sit in the VPC and call pai-eas with an edge labelled 'private endpoint' or 'VPC direct'.",
+      "mistakes": [
+        "One pai node standing for both training and serving, or no deploy edge.",
+        "Model Studio fine-tuning when the customer needs DPO, RL, another base model or weights they keep: in Singapore it is SFT only, with no export.",
+        "Presenting GRPO as a general Model Gallery feature; it is documented only for Qwen3 32B and smaller in the Qwen3 guide.",
+        "Promising pay-as-you-go Lingjun, or Lingjun outside Singapore.",
+        "Exposing the tuned model on a public endpoint with no gateway, quota or guardrails."
+      ],
+      "sources": [
+        "https://www.alibabacloud.com/help/en/pai/model-deployment-and-training (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/pai/use-cases/deploy-fine-tune-and-evaluate-qwen3-in-quickstart (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/pai/use-cases/qwen3-reinforcement-learning-best-practices (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/pai/use-cases/train-fine-tune-and-deploy-qwen-by-using-intelligent-computing-lingjun (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/model-studio/model-training-overview (read 2026-10-31)"
+      ]
+    },
+    {
+      "id": "llm-serving-eas",
+      "name": "Self-hosted LLM inference at scale on PAI-EAS",
+      "evidence": "documented: EAS LLM deployment (vLLM, SGLang, BladeLLM, OpenAI-compatible), autoscaling, resource types, gateways and the MoE template with prefill, decode and router sub-services. AI Gateway in front of EAS is inferred.",
+      "triggers": ["host our own LLM", "serve DeepSeek or Qwen ourselves", "private OpenAI-compatible endpoint", "high-throughput inference", "token quotas per team on our own GPUs", "MoE model serving"],
+      "core": ["pai-eas", "ai-gateway", "oss"],
+      "optional": ["users", "alb", "acs", "model-studio", "ai-guardrails", "nas", "lingjun", "nat", "sls"],
+      "nodes": [],
+      "edges": [
+        { "from": "users", "to": "alb", "label": "HTTPS" },
+        { "from": "alb", "to": "acs", "label": "app" },
+        { "from": "acs", "to": "ai-gateway", "label": "chat completions" },
+        { "from": "ai-gateway", "to": "pai-eas", "label": "private endpoint" },
+        { "from": "ai-gateway", "to": "model-studio", "label": "fallback" },
+        { "from": "ai-gateway", "to": "ai-guardrails", "label": "screen", "kind": "control" },
+        { "from": "pai-eas", "to": "oss", "label": "load weights" },
+        { "from": "pai-eas", "to": "lingjun", "label": "GPU quota", "kind": "control" }
+      ],
+      "placement": "pai-eas sits on the AI shelf; the app and AI Gateway sit in the VPC. Scaling, the LLM router and prefill-decode separation are EAS features: put them in the why text, never as extra nodes or an ess node. Spiky traffic: a dedicated group as the baseline with public overflow (virtual resource group or elastic pool). Very large models: a Lingjun quota (allowlist).",
+      "mistakes": [
+        "Apps calling the EAS endpoint directly with no gateway, quota or guardrails.",
+        "Scale to zero together with a dedicated gateway (not allowed), or no warning about the cold start.",
+        "An ess (Auto Scaling) node or a separate router node.",
+        "Saying AI Gateway lists EAS as a built-in service type; it is fronted as a self-hosted OpenAI-compatible backend.",
+        "Assuming per-request billing: EAS bills for as long as resources are held, even when a service fails to start.",
+        "VPC direct, NLB or Nacos access without security group rules: that traffic is subject to them."
+      ],
+      "sources": [
+        "https://www.alibabacloud.com/help/en/pai/user-guide/deploy-an-llm (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/pai/enable-or-disable-the-horizontal-auto-scaling-feature (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/pai/user-guide/methods-for-calling-services (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/pai/product-overview/billing-of-eas (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/pai/deployment-moe-model-based-on-expert-parallel-and-pd-separation (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/what-is-an-ai-gateway (read 2026-10-31)"
+      ]
+    },
+    {
+      "id": "rag-eas",
+      "name": "RAG on PAI-EAS with a self-hosted model",
+      "evidence": "documented: the PAI-EAS RAG scenario (PAI-RAG) with LLM-decoupled or integrated modes and its listed vector stores.",
+      "triggers": ["RAG chatbot with our own model", "knowledge assistant on PAI-EAS", "documents must stay with self-hosted weights", "PAI RAG"],
+      "core": ["pai-eas", "elasticsearch", "oss"],
+      "optional": ["users", "alb", "ai-gateway", "ai-guardrails", "hologres", "rds", "nat", "model-studio", "sls"],
+      "nodes": [
+        { "key": "rag-svc", "product": "pai-eas", "label": "RAG service" },
+        { "key": "llm-svc", "product": "pai-eas", "label": "LLM service (vLLM)" }
+      ],
+      "edges": [
+        { "from": "users", "to": "alb", "label": "questions" },
+        { "from": "alb", "to": "rag-svc", "label": "RAG API" },
+        { "from": "rag-svc", "to": "llm-svc", "label": "generate" },
+        { "from": "rag-svc", "to": "elasticsearch", "label": "retrieve" },
+        { "from": "rag-svc", "to": "oss", "label": "knowledge files" },
+        { "from": "llm-svc", "to": "oss", "label": "load weights" },
+        { "from": "rag-svc", "to": "nat", "label": "outbound" },
+        { "from": "nat", "to": "model-studio", "label": "hosted LLM option" }
+      ],
+      "placement": "Both pai-eas nodes sit on the AI shelf; elasticsearch or rds sit in the VPC, hologres on the shelf. Services and the vector store share one VPC for private access. Use LLM-decoupled mode for anything but small models. If the LLM is a Model Studio model instead of llm-svc, the RAG service needs NAT with SNAT.",
+      "mistakes": [
+        "Model Studio knowledge base or app builder: closed to new international accounts.",
+        "PAI-LangStudio: retires on 2027-03-09.",
+        "Milvus as the template's vector store (not offered), or FAISS in production (quick start only).",
+        "OpenSearch drawn as a private in-VPC store for this service; it is reached over the public network only.",
+        "Copying the Beijing Model Studio endpoint from the guide; use the Singapore key and endpoint.",
+        "Calling PAI-RAG's code sandbox an ACS sandbox; it uses Function Compute (AgentRun) sandboxes only."
+      ],
+      "sources": [
+        "https://www.alibabacloud.com/help/en/pai/user-guide/rag-dialogue-system (read 2026-10-31; updated 2026-09-22)",
+        "https://www.alibabacloud.com/help/en/pai/use-cases/deploy-a-rag-based-dialogue-system (read 2026-10-31; updated 2026-10-10)",
+        "https://www.alibabacloud.com/help/en/pai/web-ui-configuration-guide (read 2026-10-31)"
+      ]
+    },
+    {
+      "id": "rag-model-studio",
+      "name": "RAG on Model Studio APIs, built from parts",
+      "evidence": "composed by us: Model Studio embedding, rerank and generation plus a vector store are documented; the ingestion worker (OSS -> FC -> embed -> Milvus) has no official reference architecture.",
+      "triggers": ["chatbot on our documents with Qwen", "RAG without managing GPUs", "customer-support bot on our manuals", "knowledge base Q&A for a new international account"],
+      "core": ["model-studio", "milvus", "oss", "fc"],
+      "optional": ["users", "alb", "acs", "sae", "agentrun", "ai-gateway", "ai-guardrails", "opensearch", "elasticsearch", "analyticdb", "nat", "sls"],
+      "nodes": [
+        { "key": "app", "product": "acs", "label": "Chat API" },
+        { "key": "ingest", "product": "fc", "label": "Ingestion worker" }
+      ],
+      "edges": [
+        { "from": "users", "to": "alb", "label": "HTTPS" },
+        { "from": "alb", "to": "app", "label": "chat" },
+        { "from": "app", "to": "ai-gateway", "label": "generate" },
+        { "from": "ai-gateway", "to": "model-studio", "label": "Qwen, rerank" },
+        { "from": "app", "to": "milvus", "label": "retrieve" },
+        { "from": "ingest", "to": "oss", "label": "read documents" },
+        { "from": "ingest", "to": "model-studio", "label": "embed" },
+        { "from": "ingest", "to": "milvus", "label": "upsert vectors" }
+      ],
+      "placement": "milvus and the app sit in the VPC; model-studio, oss and fc sit on the shelf. Model Studio has no documented private endpoint in Singapore, so VPC compute reaches it through NAT (draw nat when the egress path matters). Use the Batch API (Singapore) for bulk re-embedding. Do not hard-code model ids in labels.",
+      "mistakes": [
+        "Model Studio knowledge base, app builder or the Responses file_search tool (all depend on the restricted application features).",
+        "The Milvus console knowledge-base workflow (mainland regions only).",
+        "AI Search Open Platform parsing in a Singapore design (Shanghai and Frankfurt only).",
+        "A PrivateLink badge to Model Studio in Singapore.",
+        "DashVector when the design needs a documented private VPC path.",
+        "Embedding model, vector store and app in different regions."
+      ],
+      "sources": [
+        "https://www.alibabacloud.com/help/en/model-studio/rag-knowledge-base (read 2026-10-31; updated 2026-10-11)",
+        "https://www.alibabacloud.com/help/en/model-studio/access-model-studio-through-privatelink (read 2026-10-31; updated 2026-10-27)",
+        "https://www.alibabacloud.com/help/en/model-studio/regions (read 2026-10-31; updated 2026-10-13)",
+        "https://www.alibabacloud.com/help/en/milvus/product-overview/region-and-zone (read 2026-10-31; updated 2026-06-17)",
+        "https://www.alibabacloud.com/help/en/open-search/search-platform/user-guide/get-service-call-address (read 2026-10-31)"
+      ]
+    },
+    {
+      "id": "agent-hosting-acs-sandbox",
+      "name": "Agent hosting with ACS sandboxes for code and browser tools",
+      "evidence": "documented parts: Container Edition components, E2B flow, egress control and hibernation; the Kimi case (official Container Service blog) runs agents on ACK and ACS Agent Sandbox at scale. The full composition is ours.",
+      "triggers": ["host AI agents for our customers", "agents must run generated code safely", "per-user sandbox on Kubernetes", "E2B alternative on our own cluster", "ACS sandbox", "OpenClaw for every employee"],
+      "core": ["acs", "acs-agent-sandbox", "ai-gateway", "model-studio"],
+      "optional": ["users", "alb", "nas", "oss", "tablestore", "nat", "agent-identity", "kms", "ai-guardrails", "agent-security-center", "sls", "arms", "pai-eas"],
+      "nodes": [],
+      "edges": [
+        { "from": "users", "to": "alb", "label": "HTTPS" },
+        { "from": "alb", "to": "acs", "label": "agent API" },
+        { "from": "acs", "to": "acs-agent-sandbox", "label": "claim sandbox (E2B)" },
+        { "from": "acs", "to": "ai-gateway", "label": "model, MCP calls" },
+        { "from": "ai-gateway", "to": "model-studio", "label": "Qwen" },
+        { "from": "ai-gateway", "to": "pai-eas", "label": "self-hosted model" },
+        { "from": "ai-gateway", "to": "ai-guardrails", "label": "screen", "kind": "control" },
+        { "from": "acs-agent-sandbox", "to": "nas", "label": "workspace" },
+        { "from": "acs-agent-sandbox", "to": "nat", "label": "allowlisted egress" },
+        { "from": "acs", "to": "tablestore", "label": "memory" },
+        { "from": "acs", "to": "agent-identity", "label": "workload identity", "kind": "control" },
+        { "from": "acs", "to": "sls", "label": "logs", "kind": "control" }
+      ],
+      "variants": [
+        "Agent uses sandbox: the agent runs in the acs app tier and calls sandboxes as its tool layer (shown above).",
+        "Agent in sandbox: each user's long-lived agent (for example OpenClaw) lives in its own sandbox; idle ones hibernate.",
+        "No Kubernetes: see agent-hosting-managed (agentrun with agent-sandbox).",
+        "Windows or Android environments: agentbay."
+      ],
+      "placement": "acs and acs-agent-sandbox both sit in the VPC; the sandbox is an ordinary node with an edge from acs, never an attachment. The sandbox-manager E2B endpoint sits behind an Ingress (ALB) with an API key; users reach the agent API, never the sandboxes. Egress goes through the cluster egress gateway with L7 allowlist rules; credentials are injected there, so sandboxes hold no long-term keys.",
+      "mistakes": [
+        "GPU work inside a sandbox: Agent Sandbox pods are CPU and memory only.",
+        "Sandboxes reachable straight from the internet, or with open internet egress.",
+        "Presenting Agent Sandbox as GA: the ACS page says public preview.",
+        "Using pai-instant (China-only) or calling PAI-RAG's code sandbox or Dify's sandbox container an ACS sandbox.",
+        "Expecting hibernation to keep WebSocket, SSE or gRPC connections; clients must reconnect.",
+        "Taking '15,000 sandboxes per minute' as a design number; the default creation quota is burst 100, then 20 per minute.",
+        "Adding AgentLoop to a Singapore design without flagging that traces go to Hong Kong."
+      ],
+      "sources": [
+        "https://www.alibabacloud.com/help/en/cs/user-guide/create-an-agent-sandbox (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/cs/user-guide/agent-sandbox/ (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/cs/user-guide/manage-agent-sandbox-egress-traffic (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/cs/user-guide/hibernate-and-wake-up-the-agent-sandbox (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/agent-sandbox/agent-sandbox-overview (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/limits-of-agent-sandbox (read 2026-10-31)",
+        "https://www.alibabacloud.com/blog/602942 (read 2026-10-31; Kimi case, vendor-stated)"
+      ]
+    },
+    {
+      "id": "agentic-rl-acs-sandboxes",
+      "name": "Sandbox fleet for agentic RL and evaluation rollouts",
+      "evidence": "Variant A is documented (VeRL on ACK with KubeRay, a Lingjun GPU node, sandbox-manager and a SandboxSet warm pool behind ALB Ingress, OSS); whether those sandboxes run on ACS compute is not stated on the page. Variant B (a PAI-DLC trainer driving ACS sandboxes) is our proposed design: no page connects DLC or EAS to Agent Sandbox.",
+      "triggers": ["sandbox environments for model training", "environments for agent reinforcement learning", "thousands of parallel rollouts", "SWE-bench style evaluation", "trajectory sampling with checkpoints"],
+      "core": ["acs-agent-sandbox", "acs", "pai-dlc", "oss"],
+      "optional": ["ack", "lingjun", "cpfs", "pai-eas", "alb", "acr", "sls"],
+      "nodes": [],
+      "edges": [
+        { "from": "pai-dlc", "to": "acs-agent-sandbox", "label": "rollouts (E2B)" },
+        { "from": "acs", "to": "acs-agent-sandbox", "label": "warm pool", "kind": "control" },
+        { "from": "pai-dlc", "to": "oss", "label": "data, checkpoints" },
+        { "from": "pai-dlc", "to": "lingjun", "label": "GPU quota", "kind": "control" },
+        { "from": "pai-dlc", "to": "pai-eas", "label": "deploy policy", "kind": "control" },
+        { "from": "ack", "to": "acs-agent-sandbox", "label": "rollouts (E2B)" }
+      ],
+      "variants": [
+        "A documented: ack (KubeRay and VeRL on a Lingjun GPU node, sandbox-manager behind ALB Ingress) -> acs-agent-sandbox warm pool; data and checkpoints in oss.",
+        "B proposed: pai-dlc trainer (Lingjun quota, cpfs) -> acs-agent-sandbox in an acs cluster in the same VPC; final policy served on pai-eas. Say it is a proposed design."
+      ],
+      "placement": "The trainer (pai-dlc on the shelf, or ack in the VPC) and the acs cluster must share a VPC or be connected; acs and acs-agent-sandbox sit in the VPC. GPUs stay with the trainer; sandboxes run the environments and tools.",
+      "mistakes": [
+        "pai-instant: built for this, but China regions only.",
+        "Training or policy inference inside the sandboxes (no GPU).",
+        "Presenting variant B as an Alibaba reference architecture.",
+        "Planning a large fleet on the default creation quota; request an increase first.",
+        "Lingjun outside Singapore or without allowlist access.",
+        "Rollout sandboxes with open internet egress."
+      ],
+      "sources": [
+        "https://www.alibabacloud.com/help/en/ack/cloud-native-ai-suite/use-cases/run-reinforcement-learning-workloads-on-ack (read 2026-10-31; updated 2026-06-24)",
+        "https://www.alibabacloud.com/help/en/agent-sandbox/agent-sandbox-overview (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/limits-of-agent-sandbox (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/pai/instant-service-overview (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/pai/use-cases/qwen3-reinforcement-learning-best-practices (read 2026-10-31)"
+      ]
+    },
+    {
+      "id": "agent-hosting-managed",
+      "name": "Managed agent hosting without Kubernetes (AgentRun and Flash sandboxes)",
+      "evidence": "documented parts: AgentRun runtime and Tablestore memory in Singapore; Agent Sandbox Flash Edition in Singapore. The composition is ours.",
+      "triggers": ["host our LangChain agent without servers", "no Kubernetes", "managed E2B sandbox", "agent with memory, tools and tracing"],
+      "core": ["agentrun", "agent-sandbox", "model-studio", "tablestore"],
+      "optional": ["users", "cloud-native-api-gateway", "ai-gateway", "oss", "milvus", "agent-identity", "kms", "ai-guardrails", "sls", "arms", "agentloop"],
+      "nodes": [],
+      "edges": [
+        { "from": "users", "to": "agentrun", "label": "chat API" },
+        { "from": "agentrun", "to": "model-studio", "label": "Qwen" },
+        { "from": "agentrun", "to": "agent-sandbox", "label": "run code (E2B)" },
+        { "from": "agentrun", "to": "tablestore", "label": "memory, sessions" },
+        { "from": "agent-sandbox", "to": "oss", "label": "files" },
+        { "from": "agentrun", "to": "sls", "label": "traces", "kind": "control" }
+      ],
+      "placement": "agentrun, agent-sandbox, model-studio and tablestore all sit on the region shelf; there is no cluster. A VPC appears only when the agent must reach private databases (AgentRun VPC access).",
+      "mistakes": [
+        "RDS as the AgentRun memory store (in maintenance mode); use Tablestore.",
+        "Sandboxes drawn as plain Function Compute functions.",
+        "AgentLoop in a Singapore- or EU-pinned design (Hong Kong only).",
+        "Calling Agent Sandbox GA (no lifecycle stage stated)."
+      ],
+      "sources": [
+        "https://www.alibabacloud.com/help/en/agentrun/api-agentrun-2025-09-10-endpoint.md (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/agentrun/memory-storage-overview.md (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/open-service-area (read 2026-10-31)",
+        "https://www.alibabacloud.com/help/en/agentloop/product-overview/server-launch-regions-of-agentloop.md (read 2026-10-31)"
+      ]
+    }
+  ],
+  "promptRules": {
+    "placement": "Append after R18 under a new heading '# AI designs'. Rules only mention ids, never prices or figures (R16).",
+    "rules": [
+      "R19 PAI is drawn as its stages: pai-dsw (notebooks for people), pai-dlc (training and fine-tuning jobs), pai-eas (serving models, RAG services and agent apps) and pai-model-gallery (no-code fine-tune and deploy; it starts DLC jobs and EAS services and has no compute). Use pai only for a generic mention, never two pai nodes. Train then serve: pai-dlc -> oss (checkpoints) and one deploy edge to pai-eas (kind control). Self-hosted or tuned weights go on pai-eas; hosted Qwen calls go to model-studio. Light SFT of a supported Qwen model without GPUs is model-studio (Singapore, no weight export); DPO, RL, other models or weights the customer keeps are PAI. Large training is pai-dlc on lingjun with cpfs; Lingjun needs allowlist access and its only international region is Singapore: say so. pai-eas sits on the region shelf: draw private access as an edge labelled \"private endpoint\" or \"VPC direct\", and add nat when EAS calls Model Studio or the internet.",
+      "R20 Sandbox means two things; say which you drew. People who develop or train models: pai-dsw, with pai-dlc for bigger jobs, never an agent sandbox. Isolated execution of agent-written code, browsers or RL rollouts: acs-agent-sandbox when the user says ACS, Kubernetes, many tenants or RL rollouts (draw the acs node too, with an edge acs -> acs-agent-sandbox); otherwise agent-sandbox (managed E2B API, no cluster); agentbay for Windows or Android. No sandbox has GPUs: training and models stay on pai-dlc, pai-eas, lingjun or egs. Both sandbox entries are preview: say so once. A pai-dlc trainer driving ACS sandboxes is a proposed design, not an Alibaba reference: say so. pai-instant is China-only.",
+      "R21 RAG on a self-hosted model: the PAI-EAS RAG service and the LLM are two pai-eas nodes, the vector store is elasticsearch, hologres or rds in the same VPC (milvus is not in that template; FAISS is for demos), and files are in oss. RAG on hosted models follows R14. Model Studio has no documented private endpoint in Singapore: VPC compute reaches it through nat."
+    ],
+    "workedExample": {
+      "recommendation": "Optional. Ship R19-R21 first and run the new eval cases; add this example only if structural failures remain (two pai nodes, a missing deploy edge, a sandbox outside the VPC). It costs about the tokens shown in meta.measured.workedExampleTokens, on top of a prompt already over budget.",
+      "lines": [
+        "User: fine-tune Qwen3-8B on our support tickets and serve it privately to our internal app",
+        "{\"t\":\"say\",\"text\":\"I'll fine-tune Qwen3-8B with PAI Model Gallery on DLC, keep data and checkpoints in OSS, and serve it privately on PAI-EAS behind AI Gateway.\"}",
+        "{\"t\":\"plan\",\"products\":[\"users\",\"alb\",\"acs\",\"ai-gateway\",\"pai-model-gallery\",\"pai-dlc\",\"pai-eas\",\"oss\"]}",
+        "{\"t\":\"group\",\"id\":\"office\",\"kind\":\"external\",\"label\":\"Support staff\",\"parent\":null}",
+        "{\"t\":\"node\",\"id\":\"staff\",\"product\":\"users\",\"label\":\"Support agents\",\"group\":\"office\",\"why\":\"Use the internal app that calls the tuned model.\"}",
+        "{\"t\":\"group\",\"id\":\"sg\",\"kind\":\"region\",\"label\":\"Singapore (ap-southeast-1)\",\"parent\":null}",
+        "{\"t\":\"group\",\"id\":\"vpc\",\"kind\":\"vpc\",\"label\":\"App VPC\",\"parent\":\"sg\"}",
+        "{\"t\":\"node\",\"id\":\"alb\",\"product\":\"alb\",\"label\":\"ALB\",\"group\":\"vpc\",\"zones\":[\"a\",\"b\"],\"why\":\"Private entry to the support app.\"}",
+        "{\"t\":\"node\",\"id\":\"app\",\"product\":\"acs\",\"label\":\"Support app\",\"group\":\"vpc\",\"why\":\"Builds prompts from tickets and calls the model.\"}",
+        "{\"t\":\"node\",\"id\":\"gw\",\"product\":\"ai-gateway\",\"label\":\"AI Gateway\",\"group\":\"vpc\",\"why\":\"Token quotas and failover in front of the model.\"}",
+        "{\"t\":\"edge\",\"id\":\"e-staff-alb\",\"from\":\"staff\",\"to\":\"alb\",\"label\":\"HTTPS\"}",
+        "{\"t\":\"edge\",\"id\":\"e-alb-app\",\"from\":\"alb\",\"to\":\"app\"}",
+        "{\"t\":\"edge\",\"id\":\"e-app-gw\",\"from\":\"app\",\"to\":\"gw\"}",
+        "{\"t\":\"say\",\"text\":\"Model Gallery starts the SFT job on DLC and deploys the result to EAS; the gateway reaches EAS over its private endpoint.\"}",
+        "{\"t\":\"node\",\"id\":\"data\",\"product\":\"oss\",\"label\":\"Tickets and checkpoints\",\"group\":\"sg\",\"why\":\"Training data in, tuned weights out.\"}",
+        "{\"t\":\"node\",\"id\":\"gallery\",\"product\":\"pai-model-gallery\",\"label\":\"Model Gallery\",\"group\":\"sg\",\"why\":\"Starts the fine-tune and the deployment without training code.\"}",
+        "{\"t\":\"node\",\"id\":\"train\",\"product\":\"pai-dlc\",\"label\":\"SFT job (LoRA)\",\"group\":\"sg\",\"why\":\"Runs the fine-tuning on GPUs and writes checkpoints.\"}",
+        "{\"t\":\"node\",\"id\":\"serve\",\"product\":\"pai-eas\",\"label\":\"Qwen3-8B on vLLM\",\"group\":\"sg\",\"why\":\"Private OpenAI-compatible endpoint that autoscales.\"}",
+        "{\"t\":\"edge\",\"id\":\"e-gallery-train\",\"from\":\"gallery\",\"to\":\"train\",\"label\":\"fine-tune\",\"kind\":\"control\"}",
+        "{\"t\":\"edge\",\"id\":\"e-train-data\",\"from\":\"train\",\"to\":\"data\",\"label\":\"data, checkpoints\"}",
+        "{\"t\":\"edge\",\"id\":\"e-gallery-serve\",\"from\":\"gallery\",\"to\":\"serve\",\"label\":\"deploy\",\"kind\":\"control\"}",
+        "{\"t\":\"edge\",\"id\":\"e-serve-data\",\"from\":\"serve\",\"to\":\"data\",\"label\":\"load weights\"}",
+        "{\"t\":\"edge\",\"id\":\"e-gw-serve\",\"from\":\"gw\",\"to\":\"serve\",\"label\":\"private endpoint\"}",
+        "{\"t\":\"done\",\"summary\":\"Qwen3-8B fine-tuned with Model Gallery on PAI-DLC and served privately on PAI-EAS behind AI Gateway.\"}"
+      ]
+    }
+  },
+  "evalCases": [
+    {
+      "file": "eval/cases/11-ai.json",
+      "heldOut": false,
+      "case": {
+        "id": "ai-01-dsw-sandbox",
+        "category": "pattern",
+        "title": "Training sandboxes for data scientists (DSW, not an agent sandbox)",
+        "reference": "PAI-DSW workspaces for each data scientist with OSS and NAS (or CPFS) mounts, PAI-DLC for bigger fine-tuning jobs, a VPC with NAT for package installs and a RAM role instead of keys, in Singapore. No agent sandbox (ACS Agent Sandbox, Agent Sandbox, AgentBay or PAI-Instant), and no single PAI box.",
+        "turns": [
+          {
+            "ask": "Our 12 data scientists need sandbox environments with GPUs where they can experiment with and fine-tune models on our datasets. We are in Singapore.",
+            "expect": {
+              "include": [["pai-dsw"], ["oss", "nas", "cpfs"]],
+              "exclude": ["acs-agent-sandbox", "agent-sandbox", "agentbay", "pai-instant", "pai"],
+              "regions": { "min": 1 },
+              "minNodes": 3
+            }
+          }
+        ]
+      }
+    },
+    {
+      "file": "eval/cases/11-ai.json",
+      "heldOut": false,
+      "case": {
+        "id": "ai-02-acs-agent-hosting",
+        "category": "pattern",
+        "title": "Agent hosting with ACS sandboxes",
+        "reference": "Users reach an agent API on ACS (behind an ALB); the ACS cluster claims sandboxes from ACS Agent Sandbox (Container Edition) for the generated code, drawn inside the VPC with an edge from the ACS node; the agent calls Qwen through AI Gateway and Model Studio (or a PAI-EAS model); sandbox egress is allowlisted through NAT; credentials through Agent Identity or KMS. Says the sandbox is in preview and has no GPU. No PAI-Instant Service.",
+        "turns": [
+          {
+            "ask": "A client wants to host AI agents for their own customers. Each agent writes and runs Python code, which must execute in isolated sandboxes on ACS. The agents use Qwen models.",
+            "expect": {
+              "include": [["acs-agent-sandbox"], ["acs"], ["model-studio", "pai-eas"]],
+              "exclude": ["pai-instant"],
+              "linked": [{ "from": ["acs"], "to": ["acs-agent-sandbox"], "directed": true }],
+              "noAttach": ["acs-agent-sandbox"],
+              "placement": true,
+              "regions": { "min": 1 }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "file": "eval/cases/11-ai.json",
+      "heldOut": false,
+      "case": {
+        "id": "ai-03-post-train-eas",
+        "category": "pattern",
+        "title": "Post-training on PAI, then serving on PAI-EAS",
+        "reference": "Training data in OSS; SFT through PAI Model Gallery or a PAI-DLC job; checkpoints back to OSS; a deploy edge to PAI-EAS (vLLM) serving a private endpoint, ideally behind AI Gateway. Separate stage nodes, not one PAI box. No LangStudio.",
+        "turns": [
+          {
+            "ask": "We want to fine-tune Qwen3-8B on our support tickets with SFT and then serve it privately for our internal apps. Use PAI.",
+            "expect": {
+              "include": [["pai-eas"], ["pai-dlc", "pai-model-gallery"], ["oss"]],
+              "exclude": ["pai", "pai-langstudio", "model-studio-apps"],
+              "linked": [{ "from": ["pai-dlc", "pai-model-gallery"], "to": ["pai-eas"], "directed": true }],
+              "regions": { "min": 1 }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "file": "eval/cases/11-ai.json",
+      "heldOut": false,
+      "case": {
+        "id": "ai-04-rag-eas",
+        "category": "pattern",
+        "title": "RAG on PAI-EAS with a self-hosted LLM",
+        "reference": "An ALB in front of a PAI-EAS RAG service and a separate PAI-EAS LLM service (decoupled mode); vector store Elasticsearch, Hologres or RDS PostgreSQL in the same VPC; knowledge files in OSS. No Milvus in the template, no FAISS in production, no Model Studio knowledge base and no LangStudio.",
+        "turns": [
+          {
+            "ask": "Build a RAG chatbot over our product manuals using the PAI-EAS RAG deployment with our own self-hosted LLM, in Singapore.",
+            "expect": {
+              "include": [["pai-eas"], ["elasticsearch", "hologres", "rds"], ["oss"]],
+              "exclude": ["model-studio-apps", "pai-langstudio", "milvus", "pai"],
+              "minNodes": 4,
+              "regions": { "min": 1 }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "file": "eval/cases/11-ai.json",
+      "heldOut": false,
+      "case": {
+        "id": "ai-05-rag-model-studio",
+        "category": "pattern",
+        "title": "RAG on Model Studio APIs without GPUs",
+        "reference": "Compute (Function Compute, SAE, ACS or AgentRun) calls Model Studio for embedding, rerank and generation, retrieves from Milvus or OpenSearch, keeps documents in OSS and has an ingestion step; AI Gateway and AI Guardrails are good additions; NAT egress from VPC compute because Singapore has no documented Model Studio private endpoint. No Model Studio knowledge base and no self-hosted model.",
+        "turns": [
+          {
+            "ask": "We want a RAG assistant over our help-center articles that uses Qwen through Model Studio. We don't want to manage GPUs or host models ourselves.",
+            "expect": {
+              "include": [["model-studio"], ["milvus", "opensearch", "elasticsearch", "analyticdb", "dashvector", "hologres", "lindorm", "tablestore"], ["fc", "sae", "acs", "ack", "ecs", "agentrun", "agentcore"]],
+              "exclude": ["model-studio-apps", "pai-eas", "pai-dlc", "lingjun"],
+              "minNodes": 4
+            }
+          }
+        ]
+      }
+    },
+    {
+      "file": "eval/cases-heldout/ai.json",
+      "heldOut": true,
+      "case": {
+        "id": "ai-ho-inference-scale",
+        "category": "pattern",
+        "title": "Self-hosted LLM inference at scale with per-team quotas",
+        "reference": "AI Gateway (token quotas per consumer, fallback) in front of a PAI-EAS LLM service (vLLM or SGLang) with weights in OSS; autoscaling and router or prefill-decode separation described in the why text, not as extra nodes; a Lingjun quota optional for very large models with the allowlist caveat; optional Model Studio fallback and AI Guardrails. No Auto Scaling node and no single PAI box.",
+        "turns": [
+          {
+            "ask": "We want to self-host a large Qwen model for about 2,000 concurrent internal users in Singapore, with per-team token quotas and failover.",
+            "expect": {
+              "include": [["pai-eas"], ["ai-gateway"]],
+              "exclude": ["ess", "pai", "model-studio-apps"],
+              "linked": [{ "from": ["ai-gateway"], "to": ["pai-eas"], "directed": true }],
+              "regions": { "min": 1 }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "file": "eval/cases/11-ai.json",
+      "heldOut": false,
+      "case": {
+        "id": "ai-07-training-residency",
+        "category": "multiturn",
+        "title": "Training data stays in Singapore; evaluation added later",
+        "reference": "Turn 1 pins Singapore and draws PAI-DLC or Model Gallery training with OSS and PAI-EAS serving, all in Singapore. Turn 2 adds tracing and evaluation with in-region SLS or ARMS (or Model Studio as a judge), not AgentLoop, which runs only in Hong Kong internationally; if it mentions AgentLoop it says why it is left out.",
+        "turns": [
+          {
+            "ask": "Our training data must stay in Singapore. We want to post-train an open Qwen model on PAI and serve it to our app.",
+            "expect": {
+              "include": [["pai-dlc", "pai-model-gallery"], ["pai-eas"]],
+              "req": [["singapore", "ap-southeast-1"]],
+              "pins": { "regions": ["ap-southeast-1"] },
+              "residency": ["ap-southeast-1"],
+              "regions": { "only": ["singapore", "ap-southeast-1"], "min": 1 }
+            }
+          },
+          {
+            "ask": "Add tracing and quality evaluation for the model's answers.",
+            "expect": {
+              "exclude": ["agentloop"],
+              "edit": { "minChanged": 1 }
+            },
+            "retain": {
+              "req": [["singapore", "ap-southeast-1"]],
+              "regions": { "only": ["singapore", "ap-southeast-1"] },
+              "residency": ["ap-southeast-1"]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "file": "eval/cases-heldout/ai.json",
+      "heldOut": true,
+      "case": {
+        "id": "ai-ho-eu-training",
+        "category": "trap",
+        "title": "EU-only training data and large distributed training (no Lingjun in Frankfurt)",
+        "reference": "Everything in Frankfurt: PAI-DLC on general GPU resources (or GPU ECS or ACK) with OSS and NAS or CPFS, and PAI-EAS (or Kubernetes) for serving. Says Lingjun is not offered in Frankfurt (Singapore is its only international region), so it is left out. No other region.",
+        "turns": [
+          {
+            "ask": "We are a German company and our training data must stay in Frankfurt. We want to train a 30B model across many GPUs with fast shared storage, then serve it.",
+            "expect": {
+              "include": [["pai-dlc", "egs", "ack"], ["pai-eas", "ack", "acs", "egs"], ["oss", "nas", "cpfs"]],
+              "exclude": ["lingjun"],
+              "req": [["frankfurt", "germany", "eu", "eu-central-1"]],
+              "residency": ["eu-central-1"],
+              "regions": { "only": ["frankfurt", "eu-central-1"], "min": 1 }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "file": "eval/cases/11-ai.json",
+      "heldOut": false,
+      "case": {
+        "id": "ai-ko-02-acs-agent-hosting",
+        "category": "i18n",
+        "lang": "ko",
+        "of": "ai-02-acs-agent-hosting",
+        "title": "Agent hosting with ACS sandboxes (Korean)",
+        "reference": "Same as the English case: ACS with ACS Agent Sandbox inside the VPC and an edge from the ACS node, AI Gateway and Model Studio (or PAI-EAS), allowlisted egress, preview and no-GPU caveats. Say and why text in Korean; product names as in the catalog.",
+        "turns": [
+          {
+            "ask": "고객사가 자사 고객을 위한 AI 에이전트를 호스팅하려고 합니다. 에이전트가 생성한 파이썬 코드는 ACS의 격리된 샌드박스에서 실행되어야 하고, 모델은 Qwen을 사용합니다. 아키텍처를 그려 주세요.",
+            "expect": {
+              "include": [["acs-agent-sandbox"], ["acs"], ["model-studio", "pai-eas"]],
+              "exclude": ["pai-instant"],
+              "linked": [{ "from": ["acs"], "to": ["acs-agent-sandbox"], "directed": true }],
+              "placement": true,
+              "regions": { "min": 1 }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "file": "eval/cases-heldout/ai.json",
+      "heldOut": true,
+      "case": {
+        "id": "ai-ho-zh-rag-eas",
+        "category": "i18n",
+        "lang": "zh",
+        "title": "Self-hosted RAG on PAI-EAS in Singapore (Chinese)",
+        "reference": "PAI-EAS for the self-hosted Qwen model (and the RAG service), a vector store inside the VPC (Elasticsearch, Hologres or RDS PostgreSQL for the EAS RAG template; Milvus or AnalyticDB if the app is custom), knowledge files in OSS, Singapore region. No Model Studio knowledge base, no LangStudio, no single PAI box. Say and why text in Chinese.",
+        "turns": [
+          {
+            "ask": "我们在新加坡，想用 PAI-EAS 部署自己的 Qwen 模型，做一个基于内部文档的知识库问答系统，向量数据要留在 VPC 内网。请设计架构。",
+            "expect": {
+              "include": [["pai-eas"], ["elasticsearch", "hologres", "rds", "milvus", "analyticdb"], ["oss"]],
+              "exclude": ["model-studio-apps", "pai-langstudio", "pai"],
+              "regions": { "min": 1 }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "file": "eval/cases-heldout/ai.json",
+      "heldOut": true,
+      "case": {
+        "id": "ai-ho-rl-sandboxes",
+        "category": "trap",
+        "title": "Sandbox fleet for agentic RL rollouts (international)",
+        "reference": "ACS Agent Sandbox warm pools in an ACS cluster for the rollout environments, a GPU trainer on PAI-DLC (Lingjun quota with the allowlist caveat) or on ACK with KubeRay and VeRL (the documented recipe), checkpoints and trajectories in OSS or CPFS, the final policy on PAI-EAS. Says a DLC trainer driving ACS sandboxes is a proposed design, that sandboxes have no GPU, and that PAI-Instant Service is China-only. Mentions the creation quota for large fleets.",
+        "turns": [
+          {
+            "ask": "We do agentic RL post-training and need thousands of short-lived sandboxed environments for rollouts. We are an international customer in Singapore.",
+            "expect": {
+              "include": [["acs-agent-sandbox"], ["pai-dlc", "ack"], ["oss", "cpfs", "nas"]],
+              "exclude": ["pai-instant"],
+              "linked": [{ "from": ["pai-dlc", "ack", "acs"], "to": ["acs-agent-sandbox"], "directed": true }],
+              "placement": true,
+              "regions": { "min": 1 }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "file": "eval/cases-heldout/ai.json",
+      "heldOut": true,
+      "case": {
+        "id": "ai-ho-langstudio",
+        "category": "trap",
+        "title": "Asked to build on PAI-LangStudio",
+        "reference": "Says LangStudio retires on 2027-03-09 and that its named successor (Model Studio application development) is not open to new international accounts; draws a PAI-EAS RAG or Dify service, AgentCore or Dify on ACK instead, with a vector store and OSS. Never writes LangStudio as a product.",
+        "turns": [
+          {
+            "ask": "Build our document Q&A agent with PAI-LangStudio.",
+            "expect": {
+              "excludeRaw": ["pai-langstudio", "langstudio", "PAI-LangStudio"],
+              "include": [["pai-eas", "agentcore", "dify-on-ack", "agentrun", "model-studio"]],
+              "mention": [["2027", "retir"]]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "file": "eval/cases-heldout/ai.json",
+      "heldOut": true,
+      "case": {
+        "id": "ai-ho-no-k8s-sandbox",
+        "category": "trap",
+        "title": "Agent code sandbox when Kubernetes is ruled out",
+        "reference": "Pins 'no Kubernetes'. Uses Agent Sandbox (Flash Edition, managed E2B API) or AgentBay with AgentRun (or Function Compute or SAE) for the agent, Model Studio for the model, and explains in one sentence why the ACS sandbox is not used. No ACS, ACK or ACS Agent Sandbox.",
+        "turns": [
+          {
+            "ask": "We don't run Kubernetes and won't. Host our coding agent in Singapore; it needs an isolated sandbox to run the code it writes.",
+            "expect": {
+              "include": [["agent-sandbox", "agentbay"], ["agentrun", "fc", "sae", "ecs", "agentcore"]],
+              "exclude": ["acs-agent-sandbox", "acs", "ack"],
+              "req": [["kubernetes", "k8s"]],
+              "pins": { "avoid": [["ack", "acs", "acs-agent-sandbox"]] }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "file": "eval/cases-heldout/ai.json",
+      "heldOut": true,
+      "case": {
+        "id": "ai-ho-gpu-in-sandbox",
+        "category": "trap",
+        "title": "GPU fine-tuning inside ACS Agent Sandbox",
+        "reference": "Explains that Agent Sandbox pods are CPU and memory only, so fine-tuning cannot run there; draws the training on PAI-DLC (or PAI-DSW, Model Gallery, GPU ECS, Lingjun, or ACS GPU pods with the invitational-preview caveat) with data in OSS. Does not draw ACS Agent Sandbox as the training node.",
+        "turns": [
+          {
+            "ask": "Can we fine-tune Qwen3-8B on GPUs inside ACS Agent Sandbox? Draw the training setup.",
+            "expect": {
+              "include": [["pai-dlc", "pai-dsw", "pai-model-gallery", "egs", "lingjun", "acs"]],
+              "exclude": ["acs-agent-sandbox"],
+              "mention": [["no gpu", "not support", "without gpu", "cpu only", "cpu and memory", "cannot use gpu", "can't use gpu", "do not have gpu", "don't have gpu"]]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "icons": [
+    { "id": "pai-eas", "family": "ai", "mapNow": "fallback:pai", "want": "new fallback glyph 'model_serving' so EAS differs from DLC on one canvas", "priority": "high" },
+    { "id": "pai-dlc", "family": "ai", "mapNow": "fallback:pai", "want": "new fallback glyph 'training_job'", "priority": "high" },
+    { "id": "pai-dsw", "family": "devtools", "mapNow": "official:cloudshell", "want": "close enough (terminal glyph); a notebook glyph is optional", "priority": "low" },
+    { "id": "pai-model-gallery", "family": "ai", "mapNow": "fallback:pai", "want": "new fallback glyph 'model_catalog' (optional)", "priority": "medium" },
+    { "id": "acs-agent-sandbox", "family": "agent", "mapNow": "official:csk", "want": "new fallback glyph 'sandbox', shared with agent-sandbox, so sandboxes differ from agent runtimes", "priority": "high" },
+    { "id": "pai-instant", "family": "agent", "mapNow": "fallback:agent", "want": "none (china-only guard entry)", "priority": "low" },
+    { "id": "pai-langstudio", "family": "ai", "mapNow": "fallback:pai", "want": "none (legacy; the mapping row is needed because every catalog id must resolve)", "priority": "low" },
+    { "id": "agent-sandbox", "family": "agent", "mapNow": "fallback:agent (existing)", "want": "switch to the new 'sandbox' glyph", "priority": "medium" }
+  ],
+  "openQuestions": [
+    "Agent Sandbox lifecycle: only the ACS page (2026-06-23) states a status (public preview). Sep-Oct 2026 pages carry no label, an SLA took effect 2026-09-13 without naming editions, and a reported 2026-09-22 'release' could not be fetched. Confirm with the account team before the app drops the preview flag for either edition.",
+    "Which sandbox types (code, browser, desktop, mobile) each edition offers in Singapore. The regions page lists regions but not types.",
+    "Is Agent Sandbox Flash Edition the same service as FC Agent Sandbox and FC Cloud Sandbox? Shared API names, FC prerequisites and identical wording point that way, but no page says so.",
+    "Should layout.ts let a VPC-configured, vpcAttachable region node (pai-eas, pai-dsw, pai-dlc, agentrun) render inside the VPC group? Today it is always shelved, so 'EAS in my VPC' can only be shown as a labelled edge.",
+    "No documented integration connects PAI-DLC or EAS to ACS Agent Sandbox for RL rollouts, and the ACK RL walkthrough does not say its sandboxes run on ACS compute. Ask Alibaba solution architects for a reference before presenting variant B as standard.",
+    "Lingjun in Singapore: how routine is the allowlist grant? Pre-sales need to know whether to lead with DLC on general GPUs. This needs an Alibaba contact, not docs.",
+    "Which GPU families a Singapore customer can actually buy on EAS, DLC, ECS GPU and ACS GPU pods. No page states Singapore stock, and ACS GPU pods are an invitational preview.",
+    "PAI Token Service versus Model Studio: separate backend or a second storefront? The prices differ ($2.40/$7.20 vs $2/$6 per 1M for qwen3.8-max in Singapore).",
+    "InferX (TokenWorks in the index) lists no regions or allowlist. Is it available in Singapore?",
+    "Model Studio private access from a Singapore VPC: the PrivateLink page lists Beijing and Hong Kong only; the legacy vpc-ap-southeast-1.dashscope.aliyuncs.com domain is untested. And what is Singapore's inference deployment scope for residency statements?",
+    "Model Studio fine-tuning in Singapore: the overview says SFT only (2026-10-21), its FAQ contradicts the body, and qwen3.8-27b dedicated deployment needs a whitelist. Re-check in the console before quoting it to customers.",
+    "Unverified details kept out of catalog text, for a follow-up read: EAS CPFS mounts needing a Lingjun quota, DLC jobs needing the CPFS VPC, EAS log collection to SLS, the LLM router limits (vLLM or SGLang only, fixed at creation), the OpenClaw, QwenPaw and Hermes EAS templates, Container Edition security defaults (dedicated vSwitch, default-deny L4), the ACK cloud-native AI suite, FC GPU instance types, and AgentCore VPC binding.",
+    "Region ids: Atlanta (us-southeast-1) appears for EAS and Container Edition, and Riyadh for EAS, but neither is open in regions.ts. Decide whether to add them or keep understating availability."
+  ]
+}
