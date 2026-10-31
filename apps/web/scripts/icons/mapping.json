@@ -1,0 +1,957 @@
+{
+  "catalogVersion": "2026-10-31",
+  "provenance": "First pass by qwen3.8-max from the catalog and official icon lists; every row verified by Claude by rule (code and name overlap) and on the contact sheets. Rows Claude changed carry a note when the reason is not obvious.",
+  "families": {
+    "users": "fallback:users",
+    "device": "fallback:iot_device",
+    "onprem": "fallback:datacenter",
+    "internet": "fallback:third_party",
+    "dns": "official:dns_2",
+    "cdn": "official:cdn",
+    "shield": "official:yundun",
+    "firewall": "official:cfw",
+    "loadbalancer": "official:slb",
+    "gateway": "official:apigateway",
+    "compute": "official:ecs",
+    "container": "official:csk",
+    "serverless": "official:fc",
+    "database": "fallback:database",
+    "cache": "official:kvstore",
+    "storage": "official:oss",
+    "filestore": "official:nas",
+    "search": "official:opensearch",
+    "queue": "official:mq",
+    "stream": "official:datahub",
+    "analytics": "official:odps",
+    "bi": "official:quickbi",
+    "ai": "fallback:model_studio",
+    "agent": "fallback:agent",
+    "network": "official:vpc",
+    "vpn": "official:vpn",
+    "monitor": "official:cms",
+    "logs": "official:sls",
+    "key": "fallback:kms",
+    "identity": "official:ram",
+    "audit": "official:actiontrail",
+    "devtools": "official:cloudshell",
+    "desktop": "official:clouddesktop",
+    "media": "official:vod",
+    "saas": "fallback:saas",
+    "generic": "fallback:generic"
+  },
+  "entries": {
+    "users": {
+      "icon": "fallback:users",
+      "confidence": "exact"
+    },
+    "mobile-app": {
+      "icon": "fallback:mobile",
+      "confidence": "exact"
+    },
+    "iot-devices": {
+      "icon": "fallback:iot_device",
+      "confidence": "exact"
+    },
+    "onprem-dc": {
+      "icon": "fallback:datacenter",
+      "confidence": "exact"
+    },
+    "branch-office": {
+      "icon": "fallback:branch_office",
+      "confidence": "exact"
+    },
+    "third-party-api": {
+      "icon": "fallback:third_party",
+      "confidence": "exact"
+    },
+    "dns": {
+      "icon": "official:dns_2",
+      "confidence": "exact"
+    },
+    "gtm": {
+      "icon": "official:alidnsgtm",
+      "confidence": "exact"
+    },
+    "httpdns": {
+      "icon": "official:httpdns",
+      "confidence": "exact"
+    },
+    "domains": {
+      "icon": "official:domain",
+      "confidence": "exact"
+    },
+    "esa": {
+      "icon": "fallback:esa",
+      "confidence": "exact",
+      "note": "The set has dcdn (全站加速), ESA's predecessor; ESA gets its own glyph."
+    },
+    "cdn": {
+      "icon": "official:cdn",
+      "confidence": "exact"
+    },
+    "ga": {
+      "icon": "official:ga",
+      "confidence": "exact"
+    },
+    "anycast-eip": {
+      "icon": "official:eip",
+      "confidence": "close"
+    },
+    "anti-ddos-proxy": {
+      "icon": "official:ddos_dip",
+      "confidence": "exact",
+      "note": "ddos_dip is DDoS高防国际 (Anti-DDoS Premium); ddos_pro has no published name."
+    },
+    "waf": {
+      "icon": "official:waf",
+      "confidence": "exact"
+    },
+    "ens": {
+      "icon": "official:ens",
+      "confidence": "exact"
+    },
+    "vpc": {
+      "icon": "official:vpc",
+      "confidence": "exact"
+    },
+    "alb": {
+      "icon": "official:slb",
+      "confidence": "close"
+    },
+    "nlb": {
+      "icon": "official:slb",
+      "confidence": "close"
+    },
+    "clb": {
+      "icon": "official:slb",
+      "confidence": "exact"
+    },
+    "gwlb": {
+      "icon": "official:slb",
+      "confidence": "close"
+    },
+    "eip": {
+      "icon": "official:eip",
+      "confidence": "exact"
+    },
+    "nat": {
+      "icon": "official:nat",
+      "confidence": "exact"
+    },
+    "ipv6-gateway": {
+      "icon": "official:ipv6gateway",
+      "confidence": "exact"
+    },
+    "privatelink": {
+      "icon": "official:privatelink",
+      "confidence": "exact"
+    },
+    "privatezone": {
+      "icon": "official:pvtz",
+      "confidence": "exact"
+    },
+    "cen": {
+      "icon": "official:cbn",
+      "confidence": "exact"
+    },
+    "transit-router": {
+      "icon": "fallback:transit_router",
+      "confidence": "exact",
+      "note": "CEN uses cbn (云企业网) and the two usually appear together, so Transit Router gets its own router glyph."
+    },
+    "express-connect": {
+      "icon": "official:expressconnect",
+      "confidence": "exact"
+    },
+    "vpn-gateway": {
+      "icon": "official:vpn",
+      "confidence": "exact"
+    },
+    "sag": {
+      "icon": "official:smartag",
+      "confidence": "exact"
+    },
+    "ena": {
+      "icon": "official:expressconnect",
+      "confidence": "generic"
+    },
+    "nis": {
+      "icon": "official:cmn",
+      "confidence": "generic"
+    },
+    "ecs": {
+      "icon": "official:ecs",
+      "confidence": "exact"
+    },
+    "egs": {
+      "icon": "official:ecsgpu",
+      "confidence": "exact"
+    },
+    "ebm": {
+      "icon": "official:xdragon",
+      "confidence": "exact"
+    },
+    "swas": {
+      "icon": "official:swas",
+      "confidence": "exact"
+    },
+    "ddh": {
+      "icon": "official:ddh",
+      "confidence": "exact"
+    },
+    "ess": {
+      "icon": "official:ess",
+      "confidence": "exact"
+    },
+    "ehpc": {
+      "icon": "official:ehpc",
+      "confidence": "exact"
+    },
+    "fc": {
+      "icon": "official:fc",
+      "confidence": "exact"
+    },
+    "sae": {
+      "icon": "official:sae",
+      "confidence": "exact"
+    },
+    "computenest": {
+      "icon": "official:computenest",
+      "confidence": "exact"
+    },
+    "cloudbox": {
+      "icon": "official:cloudbox",
+      "confidence": "exact"
+    },
+    "alinux": {
+      "icon": "official:alinux",
+      "confidence": "exact"
+    },
+    "ack": {
+      "icon": "official:csk",
+      "confidence": "exact"
+    },
+    "acs": {
+      "icon": "official:csk",
+      "confidence": "close"
+    },
+    "eci": {
+      "icon": "official:eci",
+      "confidence": "exact"
+    },
+    "acr": {
+      "icon": "official:acr",
+      "confidence": "exact"
+    },
+    "asm": {
+      "icon": "official:servicemesh",
+      "confidence": "exact"
+    },
+    "ack-one": {
+      "icon": "official:csk",
+      "confidence": "close"
+    },
+    "ebs": {
+      "icon": "official:disk",
+      "confidence": "exact"
+    },
+    "oss": {
+      "icon": "official:oss",
+      "confidence": "exact"
+    },
+    "nas": {
+      "icon": "official:nas",
+      "confidence": "exact"
+    },
+    "cpfs": {
+      "icon": "fallback:cpfs",
+      "confidence": "exact",
+      "note": "Draft used alidfs (HDFS file storage), a different product."
+    },
+    "tablestore": {
+      "icon": "official:ots",
+      "confidence": "exact"
+    },
+    "cloud-backup": {
+      "icon": "official:hbr",
+      "confidence": "exact"
+    },
+    "imm": {
+      "icon": "official:imm",
+      "confidence": "exact"
+    },
+    "data-online-migration": {
+      "icon": "official:hcs_mgw",
+      "confidence": "close",
+      "note": "Sibling of Lightning Cube (闪电立方) in the mgw migration family."
+    },
+    "data-transport": {
+      "icon": "official:hcs_mgw",
+      "confidence": "exact"
+    },
+    "csg": {
+      "icon": "official:hcs_sgw",
+      "confidence": "exact"
+    },
+    "polardb": {
+      "icon": "official:polardb",
+      "confidence": "exact"
+    },
+    "rds": {
+      "icon": "official:mysql",
+      "confidence": "close",
+      "note": "RDS has no icon of its own; the RDS MySQL icon shows the MySQL dolphin."
+    },
+    "tair": {
+      "icon": "official:kvstore",
+      "confidence": "exact"
+    },
+    "mongodb": {
+      "icon": "official:mongodb",
+      "confidence": "exact"
+    },
+    "lindorm": {
+      "icon": "official:hitsdb",
+      "confidence": "exact"
+    },
+    "hbase": {
+      "icon": "official:hbase",
+      "confidence": "exact"
+    },
+    "analyticdb": {
+      "icon": "official:ads",
+      "confidence": "exact"
+    },
+    "clickhouse": {
+      "icon": "official:clickhouse",
+      "confidence": "exact"
+    },
+    "selectdb": {
+      "icon": "official:selectdb",
+      "confidence": "exact"
+    },
+    "dts": {
+      "icon": "official:dts",
+      "confidence": "exact"
+    },
+    "dms": {
+      "icon": "official:dms",
+      "confidence": "exact"
+    },
+    "das": {
+      "icon": "official:hdm",
+      "confidence": "exact"
+    },
+    "maxcompute": {
+      "icon": "official:odps",
+      "confidence": "exact"
+    },
+    "hologres": {
+      "icon": "official:hologram",
+      "confidence": "exact"
+    },
+    "flink": {
+      "icon": "official:sc",
+      "confidence": "exact"
+    },
+    "emr": {
+      "icon": "official:emapreduce",
+      "confidence": "exact"
+    },
+    "dlf": {
+      "icon": "official:dlf",
+      "confidence": "exact"
+    },
+    "dataworks": {
+      "icon": "official:dide",
+      "confidence": "exact"
+    },
+    "datahub": {
+      "icon": "official:datahub",
+      "confidence": "exact"
+    },
+    "elasticsearch": {
+      "icon": "official:elasticsearch",
+      "confidence": "exact"
+    },
+    "milvus": {
+      "icon": "fallback:vector_db",
+      "confidence": "exact"
+    },
+    "datav": {
+      "icon": "official:datav",
+      "confidence": "exact"
+    },
+    "quick-bi": {
+      "icon": "official:quickbi",
+      "confidence": "exact"
+    },
+    "mse": {
+      "icon": "official:mse",
+      "confidence": "exact"
+    },
+    "cloud-native-api-gateway": {
+      "icon": "official:apigateway",
+      "confidence": "close"
+    },
+    "ai-gateway": {
+      "icon": "fallback:ai_gateway",
+      "confidence": "exact"
+    },
+    "rocketmq": {
+      "icon": "official:mq",
+      "confidence": "exact"
+    },
+    "kafka": {
+      "icon": "official:alikafka",
+      "confidence": "exact"
+    },
+    "rabbitmq": {
+      "icon": "official:amqp",
+      "confidence": "exact"
+    },
+    "mqtt": {
+      "icon": "official:onsmqtt",
+      "confidence": "exact"
+    },
+    "confluent": {
+      "icon": "official:alikafka",
+      "confidence": "close"
+    },
+    "smq": {
+      "icon": "official:mns",
+      "confidence": "exact"
+    },
+    "eventbridge": {
+      "icon": "official:eventbridge",
+      "confidence": "exact"
+    },
+    "cloudflow": {
+      "icon": "official:fnf",
+      "confidence": "exact"
+    },
+    "schedulerx": {
+      "icon": "fallback:scheduler",
+      "confidence": "exact",
+      "note": "Draft used edas, a different product."
+    },
+    "edas": {
+      "icon": "official:edas",
+      "confidence": "exact"
+    },
+    "arms": {
+      "icon": "official:arms",
+      "confidence": "exact"
+    },
+    "prometheus": {
+      "icon": "official:prometheus",
+      "confidence": "exact"
+    },
+    "grafana": {
+      "icon": "official:arms",
+      "confidence": "generic"
+    },
+    "opentelemetry": {
+      "icon": "official:xtrace",
+      "confidence": "exact"
+    },
+    "pts": {
+      "icon": "official:pts",
+      "confidence": "exact"
+    },
+    "anti-ddos-native": {
+      "icon": "official:ddos_bgp",
+      "confidence": "exact"
+    },
+    "cloud-firewall": {
+      "icon": "official:cfw",
+      "confidence": "exact"
+    },
+    "security-center": {
+      "icon": "official:sas",
+      "confidence": "exact"
+    },
+    "bastionhost": {
+      "icon": "official:bastionhost",
+      "confidence": "exact"
+    },
+    "kms": {
+      "icon": "fallback:kms",
+      "confidence": "exact",
+      "note": "Draft used hsm (加密服务 = Cloud HSM), a different product."
+    },
+    "cloud-hsm": {
+      "icon": "official:hsm",
+      "confidence": "exact"
+    },
+    "certificate-management": {
+      "icon": "official:cas",
+      "confidence": "exact"
+    },
+    "dsc": {
+      "icon": "official:sddp",
+      "confidence": "exact"
+    },
+    "sase": {
+      "icon": "official:csas",
+      "confidence": "exact"
+    },
+    "idaas": {
+      "icon": "fallback:identity",
+      "confidence": "exact"
+    },
+    "ram": {
+      "icon": "official:ram",
+      "confidence": "exact"
+    },
+    "id-verification": {
+      "icon": "official:cloudauth",
+      "confidence": "exact"
+    },
+    "captcha": {
+      "icon": "official:afs",
+      "confidence": "close",
+      "note": "afs is labelled 数据风控; Captcha historically shipped under afs."
+    },
+    "content-moderation": {
+      "icon": "official:lvwang",
+      "confidence": "exact"
+    },
+    "fraud-detection": {
+      "icon": "official:saf",
+      "confidence": "exact"
+    },
+    "mss": {
+      "icon": "official:sos",
+      "confidence": "exact"
+    },
+    "sls": {
+      "icon": "official:sls",
+      "confidence": "exact"
+    },
+    "cloudmonitor": {
+      "icon": "official:cms",
+      "confidence": "exact"
+    },
+    "oos": {
+      "icon": "official:oos",
+      "confidence": "exact"
+    },
+    "actiontrail": {
+      "icon": "official:actiontrail",
+      "confidence": "exact"
+    },
+    "cloud-config": {
+      "icon": "official:config",
+      "confidence": "exact"
+    },
+    "resource-management": {
+      "icon": "fallback:hierarchy",
+      "confidence": "exact",
+      "note": "Draft used governance, which ACGC already uses."
+    },
+    "cloudsso": {
+      "icon": "fallback:cloudsso",
+      "confidence": "exact"
+    },
+    "acgc": {
+      "icon": "official:governance",
+      "confidence": "exact"
+    },
+    "advisor": {
+      "icon": "official:advisor",
+      "confidence": "exact"
+    },
+    "cadt": {
+      "icon": "official:bpstudio",
+      "confidence": "exact"
+    },
+    "smc": {
+      "icon": "official:smc",
+      "confidence": "exact"
+    },
+    "cmh": {
+      "icon": "official:smc",
+      "confidence": "generic"
+    },
+    "service-catalog": {
+      "icon": "fallback:generic",
+      "confidence": "generic",
+      "note": "Draft used computenest, a different product."
+    },
+    "openapi-portal": {
+      "icon": "official:openapiexplorer",
+      "confidence": "exact"
+    },
+    "cli": {
+      "icon": "official:cloudshell",
+      "confidence": "close"
+    },
+    "cloud-shell": {
+      "icon": "official:cloudshell",
+      "confidence": "exact"
+    },
+    "ros": {
+      "icon": "official:ros",
+      "confidence": "exact"
+    },
+    "terraform": {
+      "icon": "official:ros",
+      "confidence": "generic"
+    },
+    "devops": {
+      "icon": "official:rdc",
+      "confidence": "exact"
+    },
+    "marketplace": {
+      "icon": "fallback:saas",
+      "confidence": "generic",
+      "note": "Draft used linkedmall, a different product."
+    },
+    "icp-filing": {
+      "icon": "official:beian",
+      "confidence": "exact"
+    },
+    "gochina-icp": {
+      "icon": "official:beian",
+      "confidence": "close"
+    },
+    "apsara-stack": {
+      "icon": "fallback:datacenter",
+      "confidence": "generic"
+    },
+    "model-studio": {
+      "icon": "fallback:model_studio",
+      "confidence": "exact"
+    },
+    "pai": {
+      "icon": "fallback:pai",
+      "confidence": "exact",
+      "note": "The set's learn (机器学习) is the old Machine Learning icon; the brief asks for a PAI glyph."
+    },
+    "lingjun": {
+      "icon": "official:bccluster",
+      "confidence": "exact"
+    },
+    "dashvector": {
+      "icon": "fallback:vector_db",
+      "confidence": "exact",
+      "note": "Shares the vector-database glyph with Milvus."
+    },
+    "opensearch": {
+      "icon": "official:opensearch",
+      "confidence": "exact"
+    },
+    "speech": {
+      "icon": "official:nls",
+      "confidence": "exact"
+    },
+    "machine-translation": {
+      "icon": "official:alimt",
+      "confidence": "exact"
+    },
+    "image-search": {
+      "icon": "official:imagesearch",
+      "confidence": "exact"
+    },
+    "vod": {
+      "icon": "official:vod",
+      "confidence": "exact"
+    },
+    "live": {
+      "icon": "official:live",
+      "confidence": "exact"
+    },
+    "rts": {
+      "icon": "official:live",
+      "confidence": "close"
+    },
+    "artc": {
+      "icon": "official:rtc",
+      "confidence": "exact"
+    },
+    "mps": {
+      "icon": "official:mts",
+      "confidence": "exact"
+    },
+    "ims": {
+      "icon": "official:ice",
+      "confidence": "exact",
+      "note": "ice is labelled 智能媒体生产, the earlier name of IMS."
+    },
+    "sms": {
+      "icon": "official:dysms",
+      "confidence": "exact"
+    },
+    "direct-mail": {
+      "icon": "official:directmail",
+      "confidence": "exact"
+    },
+    "chatapp": {
+      "icon": "official:dysms",
+      "confidence": "generic"
+    },
+    "voice-service": {
+      "icon": "official:dyvms",
+      "confidence": "exact"
+    },
+    "pnvs": {
+      "icon": "official:dypns",
+      "confidence": "exact"
+    },
+    "alibaba-mail": {
+      "icon": "official:alimail",
+      "confidence": "exact"
+    },
+    "zoloz-real-id": {
+      "icon": "official:cloudauth",
+      "confidence": "generic"
+    },
+    "iot-platform": {
+      "icon": "official:iot",
+      "confidence": "exact"
+    },
+    "app-streaming": {
+      "icon": "official:clouddesktop",
+      "confidence": "close"
+    },
+    "api-gateway": {
+      "icon": "official:apigateway",
+      "confidence": "exact"
+    },
+    "mse-cloud-native-gateway": {
+      "icon": "official:mse",
+      "confidence": "close"
+    },
+    "ack-serverless": {
+      "icon": "official:csk",
+      "confidence": "close"
+    },
+    "ack-dedicated": {
+      "icon": "official:csk",
+      "confidence": "close"
+    },
+    "ack-edge": {
+      "icon": "official:csk",
+      "confidence": "close"
+    },
+    "batch-compute": {
+      "icon": "official:batchcompute",
+      "confidence": "exact"
+    },
+    "hybrid-cloud-storage": {
+      "icon": "official:hcs_hgw",
+      "confidence": "exact"
+    },
+    "airec": {
+      "icon": "official:airec",
+      "confidence": "exact"
+    },
+    "graphcompute": {
+      "icon": "official:graphcompute",
+      "confidence": "exact"
+    },
+    "id-verification-global": {
+      "icon": "official:cloudauth",
+      "confidence": "close"
+    },
+    "mobile-testing": {
+      "icon": "official:mqc",
+      "confidence": "exact"
+    },
+    "cassandra": {
+      "icon": "official:cds",
+      "confidence": "exact"
+    },
+    "tsdb": {
+      "icon": "official:hitsdb",
+      "confidence": "close"
+    },
+    "oceanbase": {
+      "icon": "official:oceanbase",
+      "confidence": "exact"
+    },
+    "database-gateway": {
+      "icon": "official:dg",
+      "confidence": "exact"
+    },
+    "arms-basic": {
+      "icon": "official:arms",
+      "confidence": "close"
+    },
+    "clb-pay-by-spec": {
+      "icon": "official:slb",
+      "confidence": "close"
+    },
+    "anti-ddos-native-payg": {
+      "icon": "official:ddos_bgp",
+      "confidence": "close"
+    },
+    "gtm-legacy": {
+      "icon": "official:alidnsgtm",
+      "confidence": "close"
+    },
+    "qoder": {
+      "icon": "fallback:qoder",
+      "confidence": "exact"
+    },
+    "qoder-teams": {
+      "icon": "fallback:qoder",
+      "confidence": "close"
+    },
+    "qoder-enterprise": {
+      "icon": "fallback:qoder",
+      "confidence": "close"
+    },
+    "qoderwake": {
+      "icon": "fallback:qoder",
+      "confidence": "close"
+    },
+    "qoder-cloud-agents": {
+      "icon": "fallback:qoder",
+      "confidence": "close"
+    },
+    "qoderwork": {
+      "icon": "fallback:qoder",
+      "confidence": "close"
+    },
+    "qoder-cn": {
+      "icon": "fallback:qoder",
+      "confidence": "close"
+    },
+    "lingma": {
+      "icon": "fallback:qoder",
+      "confidence": "close",
+      "note": "Predecessor of Qoder CN."
+    },
+    "qwenwork": {
+      "icon": "fallback:qwen",
+      "confidence": "close"
+    },
+    "coding-plan": {
+      "icon": "fallback:model_studio",
+      "confidence": "close"
+    },
+    "token-plan": {
+      "icon": "fallback:qwen",
+      "confidence": "close"
+    },
+    "qwen-code": {
+      "icon": "fallback:qwen",
+      "confidence": "close"
+    },
+    "qwen-cloud": {
+      "icon": "fallback:qwen",
+      "confidence": "exact"
+    },
+    "model-studio-apps": {
+      "icon": "fallback:model_studio",
+      "confidence": "close"
+    },
+    "agentcore": {
+      "icon": "fallback:agent",
+      "confidence": "generic"
+    },
+    "agentrun": {
+      "icon": "fallback:agent",
+      "confidence": "generic"
+    },
+    "agentbay": {
+      "icon": "fallback:agent",
+      "confidence": "generic"
+    },
+    "agent-sandbox": {
+      "icon": "fallback:agent",
+      "confidence": "generic"
+    },
+    "agentic-computer": {
+      "icon": "official:clouddesktop",
+      "confidence": "close",
+      "note": "Built on EDS."
+    },
+    "agentloop": {
+      "icon": "official:arms",
+      "confidence": "generic"
+    },
+    "starops": {
+      "icon": "fallback:agent",
+      "confidence": "generic"
+    },
+    "ai-guardrails": {
+      "icon": "official:lvwang",
+      "confidence": "close",
+      "note": "Content Moderation (内容安全) is its moderation layer; draft used waf."
+    },
+    "agent-security-center": {
+      "icon": "official:sas",
+      "confidence": "generic"
+    },
+    "agent-identity": {
+      "icon": "fallback:identity",
+      "confidence": "close"
+    },
+    "cloud-agent-catalog": {
+      "icon": "fallback:agent",
+      "confidence": "generic"
+    },
+    "quick-bi-aipro": {
+      "icon": "official:quickbi",
+      "confidence": "close"
+    },
+    "smart-q": {
+      "icon": "official:quickbi",
+      "confidence": "close"
+    },
+    "dms-data-agent": {
+      "icon": "official:dms",
+      "confidence": "close"
+    },
+    "dataworks-agent": {
+      "icon": "official:dide",
+      "confidence": "close"
+    },
+    "eds": {
+      "icon": "official:clouddesktop",
+      "confidence": "exact",
+      "note": "gws is also labelled 云桌面 but is the Graphic Workstation icon."
+    },
+    "cloud-phone": {
+      "icon": "fallback:mobile",
+      "confidence": "generic"
+    },
+    "ims-conversational-ai": {
+      "icon": "official:ice",
+      "confidence": "close"
+    },
+    "conversational-ai-service": {
+      "icon": "official:beebot",
+      "confidence": "exact"
+    },
+    "dify-on-ack": {
+      "icon": "official:csk",
+      "confidence": "close"
+    },
+    "dingtalk": {
+      "icon": "fallback:saas",
+      "confidence": "generic",
+      "note": "Draft used yida (宜搭), a different product."
+    },
+    "accio-work": {
+      "icon": "fallback:agent",
+      "confidence": "generic"
+    },
+    "cloud-contact-center": {
+      "icon": "official:ccc",
+      "confidence": "exact"
+    },
+    "cloud-application-platform": {
+      "icon": "official:fc",
+      "confidence": "close",
+      "note": "Function AI runs on Function Compute; draft used webx."
+    },
+    "meoo": {
+      "icon": "fallback:saas",
+      "confidence": "generic"
+    }
+  }
+}

@@ -1,0 +1,3 @@
+[qwen] nav · qwen3.8-max · 553 in (0 cached) · 2348 out · $0.0152 · 36.1 s -> nav.out.md
+[qwen] popover · qwen3.8-max · 596 in (0 cached) · 2298 out · $0.0150 · 37.1 s -> popover.out.md
+[qwen] batch done: 2 ok, 0 skipped (output exists), 0 failed, list-price value $0.030

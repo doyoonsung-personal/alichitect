@@ -1,0 +1,114 @@
+/* Base: reset, document, the button vocabulary, the Cursor, utilities. Tokens come from tokens.css; no raw colours here.
+   Orange appears only through --cursor, --brand-icon and the caret (tokens.css); it is never a control colour. */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--sheet);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  line-height: var(--lh-14);
+  font-weight: var(--w-regular);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+:root:lang(ko) body, :root:lang(zh) body { line-height: calc(1em * var(--lh-cjk)); }
+:root:lang(ko) p, :root:lang(ko) .example__brief { word-break: keep-all; }
+#root { min-height: 100vh; }
+
+h1, h2, h3, p, ul, ol, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+button, input, textarea, select { font: inherit; color: inherit; letter-spacing: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; border-radius: var(--r-control); }
+button:disabled { cursor: default; }
+textarea { resize: none; }
+img, svg { display: block; }
+[hidden] { display: none !important; }
+
+/* the numerals in counts, timings, revision numbers and zoom values */
+.num { font-variant-numeric: var(--num); }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+/* skip links: first in tab order, visible on focus */
+.skip {
+  position: fixed; left: var(--s-5); top: var(--s-3); z-index: 100;
+  padding: var(--s-3) var(--s-5);
+  background: var(--sheet); color: var(--ink);
+  border: 1px solid var(--line-control);
+  font-weight: var(--w-medium);
+  transform: translateY(-200%);
+}
+.skip:focus-visible { transform: none; }
+
+/* ---------- buttons: one vocabulary (spec section 7) ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-3);
+  min-height: 32px; padding: 0 var(--s-5);
+  font-size: var(--t-14); line-height: var(--lh-14); font-weight: var(--w-medium);
+  border: 1px solid transparent; border-radius: var(--r-control);
+  white-space: nowrap; text-decoration: none;
+  transition: background-color var(--d-hover) linear, border-color var(--d-hover) linear, color var(--d-hover) linear;
+}
+.btn .icon { flex: none; }
+
+.btn--primary { min-height: 36px; background: var(--action); color: var(--on-action); }
+.btn--primary:hover:not(:disabled) { background: var(--action-hover); }
+.btn--primary:active:not(:disabled) { background: var(--action-press); transform: translateY(1px); }
+.btn--primary:disabled { background: var(--line-1); color: var(--ink-disabled); }
+.btn--primary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.btn--secondary { background: var(--sheet); color: var(--ink); border-color: var(--line-control); }
+.btn--secondary:hover:not(:disabled) { background: var(--surface-2); border-color: var(--ink); }
+.btn--secondary:active:not(:disabled) { background: var(--action-soft-2); }
+.btn--secondary:disabled { color: var(--ink-disabled); border-color: var(--ink-disabled); }
+
+.btn--ghost { color: var(--ink-2); padding: 0 var(--s-4); }
+.btn--ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--ink); }
+.btn--ghost:active:not(:disabled) { background: var(--action-soft-2); }
+.btn--ghost:disabled { color: var(--ink-disabled); }
+.btn--ghost[aria-pressed="true"] { color: var(--ink); background: var(--action-soft); }
+
+.btn--icon { width: 32px; padding: 0; }
+
+/* ---------- icons ---------- */
+.icon { flex: none; }
+.icon--spin { animation: spin 900ms linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- the Cursor: the bar from the centre of the Alibaba Cloud logo ---------- */
+.cursor {
+  display: inline-block;
+  width: var(--cursor-w); height: var(--cursor-h);
+  background: var(--cursor);
+  vertical-align: baseline;
+  margin-left: 0.12em;
+}
+.cursor--blink { animation: cursor-blink var(--cursor-blink) steps(1) infinite; }
+.cursor--solid, .cursor--still { animation: none; }
+@keyframes cursor-blink { 0% { opacity: 1; } 50% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor--blink { animation: none; }
+  .icon--spin { animation: none; }
+}
+
+/* ---------- browser surfaces carry the palette ---------- */
+textarea::placeholder { color: var(--ink-3); opacity: 1; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--line-2); border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--line-control); background-clip: padding-box; border: 2px solid transparent; }
+::-webkit-scrollbar-track { background: transparent; }
+button:focus-visible, a:focus-visible, textarea:focus-visible, [tabindex]:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}

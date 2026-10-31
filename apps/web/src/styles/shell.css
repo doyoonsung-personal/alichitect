@@ -1,0 +1,373 @@
+/* src/styles/shell.css */
+
+/* ---------- Header ---------- */
+.header {
+  position: relative;
+  z-index: 20; /* console track: the lockup flies over the stage during the landing handoff */
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: var(--header-h);
+  background: var(--sheet);
+  border-bottom: 1px solid var(--line-1);
+  padding: 0 16px;
+  flex: none;
+}
+
+.brand--header {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--r-control);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.brand--header .brand__logo {
+  height: 18px;
+  width: auto;
+}
+
+.brand--header .brand__rule {
+  display: block;
+  width: 1px;
+  height: 16px;
+  background: var(--line-1);
+  flex: none;
+}
+
+.brand--header .brand__name {
+  font-size: var(--t-14);
+  line-height: var(--lh-14);
+  font-weight: var(--w-medium);
+  color: var(--ink);
+  text-decoration: none;
+  transition: text-decoration-color var(--d-hover) linear;
+}
+
+.brand--header:hover:not(:disabled) .brand__name {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.brand--header:disabled {
+  cursor: default;
+}
+
+.header__title {
+  flex: 1;
+  min-width: 0;
+  margin-left: 24px;
+  margin-right: 16px; /* console track: the session title no longer touches the mode label when it truncates */
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header__right {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+}
+
+.header .btn--ghost {
+  height: 32px;
+}
+
+/* Mode state */
+.mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.mode__dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  flex: none;
+}
+
+.mode__label {
+  font-size: var(--t-12);
+  line-height: var(--lh-12);
+  color: var(--ink-3);
+}
+
+.mode--live .mode__dot { background: var(--ok); }
+.mode--replay .mode__dot { background: var(--warn); }
+.mode--offline .mode__dot { background: var(--danger); }
+.mode--checking .mode__dot { background: var(--ink-disabled); }
+
+/* ---------- Menu ---------- */
+.menu {
+  position: relative;
+}
+
+.menu__list {
+  position: absolute;
+  top: calc(100% + 4px);
+  min-width: 240px;
+  background: var(--sheet);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-pop);
+  box-shadow: var(--shadow-raise);
+  padding: 4px;
+  z-index: 50;
+}
+
+.menu__list--end { right: 0; }
+.menu__list--start { left: 0; }
+
+.menu--sessions .menu__list {
+  min-width: 320px;
+}
+
+.menu__item {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 12px;
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--ink);
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: var(--r-control);
+  cursor: pointer;
+  transition: background-color var(--d-hover) linear;
+}
+
+.menu__item:hover,
+.menu__item:focus-visible {
+  background: var(--surface-2);
+}
+
+.menu__item:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: -2px;
+}
+
+.menu__item[aria-current="true"] {
+  font-weight: var(--w-medium);
+}
+
+.menu__label {
+  display: block;
+}
+
+.menu__title {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu__meta {
+  display: block;
+  font-size: var(--t-12);
+  line-height: var(--lh-12);
+  color: var(--ink-3);
+  margin-top: var(--s-1);
+}
+
+.menu__empty {
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--ink-3);
+  padding: 8px 12px;
+  margin: 0;
+}
+
+.menu__rule {
+  height: 1px;
+  background: var(--line-1);
+  margin: 4px 0;
+}
+
+/* ---------- Offline notice ---------- */
+.notice {
+  border: 1px solid var(--line-2);
+  background: var(--sheet);
+  padding: 16px;
+  border-radius: var(--r-control);
+}
+
+.notice__title {
+  font-size: var(--t-14);
+  line-height: var(--lh-14);
+  font-weight: var(--w-medium);
+  color: var(--ink);
+  margin: 0;
+}
+
+.notice__body {
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--ink-2);
+  margin: 4px 0 0;
+}
+
+.notice__actions {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* ---------- Working view layout ---------- */
+.app--working {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: var(--header-h) 1fr;
+  height: 100vh;
+  min-height: 600px;
+}
+
+.work {
+  display: grid;
+  grid-template-columns: var(--console-w) minmax(0, 1fr);
+  min-height: 0;
+}
+
+[data-focus] > .work, .app--working[data-focus] .work {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.work__console {
+  background: var(--record);
+  border-right: 1px solid var(--line-1);
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Stage and canvas entrance */
+.stage {
+  position: relative;
+  background: var(--sheet);
+  display: grid;
+  grid-template-rows: 1fr var(--panel-bar-h);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.stage__canvas {
+  grid-row: 1;
+  position: relative;
+  overflow: hidden;
+  outline: none;
+}
+
+@keyframes stage-enter {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.stage[data-enter] {
+  animation: stage-enter var(--d-handoff) var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes stage-enter {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
+/* Panel wrapper inside stage */
+.stage__panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--panel-open-h);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.stage__panel > * {
+  pointer-events: auto;
+}
+
+/* Reflow at narrow widths */
+@media (max-width: 760px) {
+  .app--working {
+    height: auto;
+  }
+  .work {
+    grid-template-columns: 1fr;
+  }
+  .work__console {
+    border-right: none;
+    border-bottom: 1px solid var(--line-1);
+    max-height: 60vh;
+  }
+  .stage {
+    height: 70vh;
+  }
+}
+
+/* ---------- Handoff ghost ---------- */
+.handoff-ghost {
+  position: fixed;
+  box-sizing: border-box;
+  background: var(--sheet);
+  border: 1px solid var(--line-control);
+  font-size: var(--t-18);
+  line-height: var(--lh-18);
+  color: var(--ink);
+  padding: 20px;
+  overflow: hidden;
+  pointer-events: none;
+  transform-origin: 0 0;
+  z-index: 60;
+  white-space: pre-wrap;
+}
+
+/* ---------- Console root (the rest of the console is in console.css) ---------- */
+.console {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+/* Reflow for 200% browser zoom: the header keeps icons and drops the session title */
+@media (max-width: 760px) {
+  .header__title { display: none; }
+  .header__right { margin-left: auto; }
+  .header .btn > span {
+    position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+  .header .btn { padding: 0 var(--s-3); }
+}
+
+/* Phone width: the header keeps the logo and the controls; the product name and the rule go */
+@media (max-width: 560px) {
+  .brand--header .brand__name,
+  .brand--header .brand__rule { display: none; }
+  .header { padding: 0 8px; }
+  .header__right { gap: 0; }
+}

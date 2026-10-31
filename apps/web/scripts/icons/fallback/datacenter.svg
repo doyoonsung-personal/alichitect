@@ -1,0 +1,14 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" d="M112 106H472V918H112ZM192 186V838H392V186Z"/>
+<path fill-rule="evenodd" d="M552 106H912V918H552ZM632 186V838H832V186Z"/>
+<rect x="192" y="350" width="200" height="80"/>
+<rect x="192" y="594" width="200" height="80"/>
+<rect x="632" y="350" width="200" height="80"/>
+<rect x="632" y="594" width="200" height="80"/>
+<circle cx="268" cy="268" r="36"/>
+<circle cx="268" cy="512" r="36"/>
+<circle cx="268" cy="756" r="36"/>
+<circle cx="708" cy="268" r="36"/>
+<circle cx="708" cy="512" r="36"/>
+<circle cx="708" cy="756" r="36"/>
+</svg>

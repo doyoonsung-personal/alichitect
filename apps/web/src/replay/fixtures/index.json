@@ -1,0 +1,145 @@
+[
+ {
+  "id": "ecommerce",
+  "title": "Cross-border e-commerce, then \"oh i also want waf\"",
+  "lang": "en",
+  "recordedAt": "2026-10-30",
+  "synthetic": false,
+  "turns": 2,
+  "ask": "We are launching a cross-border e-commerce site for Southeast Asia: about 50k daily active users, 10x traffic spikes during flash sales, product search, lots of product images, and we want an AI shopping-assistant chatbot. It must be highly available.",
+  "durationMs": 39261,
+  "note": "The Phase 0 canvas spike scenario F with its WAF follow-up (WAF was already drawn, so Qwen says so and changes nothing). Real per-line timings."
+ },
+ {
+  "id": "ecommerce-k8s",
+  "title": "Cross-border e-commerce, then Kubernetes instead of ECS",
+  "lang": "en",
+  "recordedAt": "2026-10-30",
+  "synthetic": false,
+  "turns": 2,
+  "ask": "We are launching a cross-border e-commerce site for Southeast Asia: about 50k daily active users, 10x traffic spikes during flash sales, product search, lots of product images, and we want an AI shopping-assistant chatbot. It must be highly available.",
+  "durationMs": 48052,
+  "note": "Scenario F with the Kubernetes swap: a removal and an add in one lane, a replacement line, ghosts and moved edges. Real per-line timings."
+ },
+ {
+  "id": "ha",
+  "title": "Highly available web architecture",
+  "lang": "en",
+  "recordedAt": "2026-10-31",
+  "synthetic": false,
+  "turns": 1,
+  "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
+  "durationMs": 17412,
+  "note": "One turn, the landing example \"High availability\"."
+ },
+ {
+  "id": "residency",
+  "title": "Singapore fintech: data must stay in Singapore, then four follow-ups",
+  "lang": "en",
+  "recordedAt": "2026-10-31",
+  "synthetic": false,
+  "turns": 4,
+  "ask": "We're a Singapore fintech and customer data must stay in Singapore. Design a web app with a database for our customer portal.",
+  "durationMs": 44413,
+  "note": "Four revisions: a pinned data-residency requirement, disaster recovery, an AI chatbot, and a question that needs no change. Timings synthesized from the run stats."
+ },
+ {
+  "id": "ai-agent",
+  "title": "An AI agent my team of 15 developers can use",
+  "lang": "en",
+  "recordedAt": "2026-10-31",
+  "synthetic": false,
+  "turns": 1,
+  "ask": "I need an AI agent my team of 15 software developers can use for coding.",
+  "durationMs": 5050,
+  "note": "A product need: the answer is a solution map with recommendations, not infrastructure."
+ },
+ {
+  "id": "korean",
+  "title": "음식 배달 앱 백엔드 (Korean, three revisions)",
+  "lang": "ko",
+  "recordedAt": "2026-10-31",
+  "synthetic": false,
+  "turns": 3,
+  "ask": "음식 배달 앱의 백엔드를 만들고 있습니다. 마이크로서비스 12개 정도, 모바일 앱용 REST API, 주문 이벤트가 있어요. 팀에 쿠버네티스 경험이 없으니 쿠버네티스는 피해 주세요.",
+  "durationMs": 35655,
+  "note": "Korean asks and notes; the user rules out Kubernetes in revision 1."
+ },
+ {
+  "id": "chinese",
+  "title": "外卖应用后端 (Chinese, three revisions)",
+  "lang": "zh",
+  "recordedAt": "2026-10-31",
+  "synthetic": false,
+  "turns": 3,
+  "ask": "我们在做一个外卖应用的后端：大约 12 个微服务、给移动端的 REST API，还有订单事件。团队没有 Kubernetes 经验，请不要使用 Kubernetes。",
+  "durationMs": 37748,
+  "note": "Chinese asks and notes; the user rules out Kubernetes in revision 1."
+ },
+ {
+  "id": "chinese-fix",
+  "title": "澳大利亚客户, 数据留在新加坡 (Chinese, repaired before commit)",
+  "lang": "zh",
+  "recordedAt": "2026-10-31",
+  "synthetic": false,
+  "turns": 1,
+  "ask": "请把我们的 Web 应用部署到悉尼地域，服务澳大利亚的客户。",
+  "durationMs": 22875,
+  "note": "The turn labelled users \"Australian customers\", which the pinned region check read as data in Sydney; the repair turn relabelled them. Shows Checking, the FixBlock and Held by a fix. The eval run checked constraints with the full checker, which also reads client labels; the server default now exempts them, so this repair no longer happens live. The findings the record says were handed to the repair turn are streamed as warn events before the repair status, as the stream contract in the spec expects (the server does not emit them yet). The eval record does not keep the repair turn content, so its say line and node op are rebuilt from the record own say list and final graph."
+ },
+ {
+  "id": "stub-fallback",
+  "title": "Stub: the model stalls and the server switches to a backup",
+  "lang": "en",
+  "recordedAt": "2026-10-31",
+  "synthetic": true,
+  "turns": 1,
+  "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
+  "durationMs": 20612,
+  "note": "Adds the server's fallback status line before the first token."
+ },
+ {
+  "id": "stub-fatal",
+  "title": "Stub: the answer stops partway and the server reports a fatal",
+  "lang": "en",
+  "recordedAt": "2026-10-31",
+  "synthetic": true,
+  "turns": 1,
+  "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
+  "durationMs": 8387,
+  "note": "Ends the recorded turn partway with the server's idle-timeout fatal."
+ },
+ {
+  "id": "stub-filtered",
+  "title": "Stub: the content filter declines the request",
+  "lang": "en",
+  "recordedAt": "2026-10-31",
+  "synthetic": true,
+  "turns": 1,
+  "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
+  "durationMs": 900,
+  "note": "A fatal with the content-filtered code, which has its own message and no Try again."
+ },
+ {
+  "id": "stub-network",
+  "title": "Stub: the connection drops mid-stream",
+  "lang": "en",
+  "recordedAt": "2026-10-31",
+  "synthetic": true,
+  "turns": 1,
+  "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
+  "durationMs": 7629,
+  "note": "The stream ends with no commit and no fatal; the player reports a network drop."
+ },
+ {
+  "id": "stub-summary",
+  "title": "Stub: older revisions are summarized after the commit",
+  "lang": "en",
+  "recordedAt": "2026-10-31",
+  "synthetic": true,
+  "turns": 1,
+  "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
+  "durationMs": 20012,
+  "note": "Adds the summary status and a summary event after the commit, as the server sends them when history overflows."
+ }
+]

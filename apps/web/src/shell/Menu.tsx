@@ -1,0 +1,118 @@
+// A small menu button: a trigger and a list of items in a popover. Closes on Escape, outside click and selection;
+// arrow keys move between items; focus returns to the trigger. Used for Sessions and the language menu.
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import type { KeyboardEvent, ReactElement, ReactNode } from 'react';
+
+export interface MenuItem {
+  key: string;
+  label: ReactNode;
+  /** Plain text for the accessible name when `label` is rich. */
+  text?: string;
+  meta?: ReactNode;
+  current?: boolean;
+  lang?: string;
+  onSelect(): void;
+}
+
+export interface MenuProps {
+  trigger: ReactNode;
+  triggerLabel: string;
+  triggerClassName?: string;
+  items: MenuItem[];
+  /** Shown when there are no items. */
+  empty?: string;
+  disabled?: boolean;
+  disabledTitle?: string;
+  align?: 'start' | 'end';
+  /** A fixed row at the end of the list (for example New session), separated by a rule. */
+  footer?: MenuItem;
+  className?: string;
+}
+
+export function Menu(p: MenuProps): ReactElement {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const trig = useRef<HTMLButtonElement>(null);
+  const id = useId();
+
+  const close = useCallback((refocus: boolean) => {
+    setOpen(false);
+    if (refocus) trig.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent): void => {
+      if (root.current && !root.current.contains(e.target as Node)) close(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open, close]);
+
+  useEffect(() => {
+    if (open) root.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+  }, [open]);
+
+  const onKey = (e: KeyboardEvent<HTMLDivElement>): void => {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      close(true);
+      return;
+    }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') return;
+    const items = [...(root.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
+    if (!items.length) return;
+    e.preventDefault();
+    const i = items.indexOf(document.activeElement as HTMLElement);
+    const next = e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1 : e.key === 'ArrowDown' ? (i + 1) % items.length : (i - 1 + items.length) % items.length;
+    items[next].focus();
+  };
+
+  const row = (it: MenuItem): ReactElement => (
+    <button
+      key={it.key}
+      type="button"
+      role="menuitem"
+      className="menu__item"
+      aria-current={it.current ? 'true' : undefined}
+      lang={it.lang}
+      onClick={() => {
+        close(true);
+        it.onSelect();
+      }}
+    >
+      <span className="menu__label">{it.label}</span>
+      {it.meta ? <span className="menu__meta">{it.meta}</span> : null}
+    </button>
+  );
+
+  return (
+    <div className={`menu ${p.className ?? ''}`} ref={root} onKeyDown={onKey}>
+      <button
+        ref={trig}
+        type="button"
+        className={p.triggerClassName ?? 'btn btn--ghost'}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={open ? id : undefined}
+        aria-label={p.triggerLabel}
+        title={p.disabled ? p.disabledTitle : undefined}
+        disabled={p.disabled}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {p.trigger}
+      </button>
+      {open ? (
+        <div id={id} role="menu" aria-label={p.triggerLabel} className={`menu__list menu__list--${p.align ?? 'end'}`}>
+          {p.items.length ? p.items.map(row) : <p className="menu__empty">{p.empty}</p>}
+          {p.footer ? (
+            <>
+              <div className="menu__rule" role="separator" />
+              {row(p.footer)}
+            </>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}

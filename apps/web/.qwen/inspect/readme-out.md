@@ -1,0 +1,7 @@
+## Checking the whole flow
+
+Run `node scripts/flow.mjs` in `apps/web`. The script builds the app once into a temporary folder and serves it via `vite preview` on a free port between 5185 and 5199. This prevents external edits from triggering reloads during execution. It starts a fake drawing service that streams a recorded fixture ("residency", four turns) at 2x speed, requiring no API keys or Qwen access.
+
+The tool captures numbered PNGs for viewports 1280x720, 1366x768, 1440x900, 1536x864, and 1920x1080 under `screenshots/flow/<size>/`. These images cover states including landing, typing, IME composition, handoff, card rendering, streaming, panel interactions, hovers, popovers, follow-ups, change lines, revisions, and long sessions. In replay mode, it also saves solution maps, error states, filtered messages, and localized views. A check for 390x844 ensures no horizontal scroll occurs.
+
+A `report.json` file is generated alongside the images, recording zoom levels, minimum card title pixel sizes, card counts, horizontal scroll status, and IME behavior per viewport. Use `--sizes` to limit viewports, `--out` to set the directory, `--no-390` to skip mobile checks, `--no-build` to reuse the previous build, and `--dist` to specify the build directory.

@@ -1,0 +1,16 @@
+{
+  "ko": {
+    "header.home": "Alibaba Cloud 아키텍처 빌더, 홈",
+    "header.checking": "확인 중",
+    "header.modelTooltip": "{model}, {endpoint}",
+    "sessions.revisions.one": "리비전 1개",
+    "sessions.revisions.other": "리비전 {n}개"
+  },
+  "zh": {
+    "header.home": "Alibaba Cloud 架构构建器，首页",
+    "header.checking": "检查中",
+    "header.modelTooltip": "{model}，{endpoint}",
+    "sessions.revisions.one": "1 个修订",
+    "sessions.revisions.other": "{n} 个修订"
+  }
+}

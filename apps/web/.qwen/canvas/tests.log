@@ -1,0 +1,3 @@
+[qwen] hover-test · qwen3.8-max · 1301 in (0 cached) · 1366 out · $0.0108 · 24.1 s -> apps/web/.qwen/canvas/hover-test.out.md
+[qwen] edge-geom-test · qwen3.8-max · 1746 in (0 cached) · 2660 out · $0.0195 · 46.0 s -> apps/web/.qwen/canvas/edge-geom-test.out.md
+[qwen] batch done: 2 ok, 0 skipped (output exists), 0 failed, list-price value $0.030

@@ -1,0 +1,25 @@
+{
+  // Strict typecheck for the icon pipeline and the icon module, usable before apps/web has its own node_modules:
+  //   spikes/canvas/node_modules/.bin/tsc -p apps/web/scripts/icons/tsconfig.json
+  // React and Node types are borrowed from the Phase 0 canvas spike (same versions the app will use).
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "skipLibCheck": true,
+    "typeRoots": ["../../../../spikes/canvas/node_modules/@types"],
+    "types": ["node"],
+    "paths": {
+      "react": ["../../../../spikes/canvas/node_modules/@types/react/index.d.ts"],
+      "react/jsx-runtime": ["../../../../spikes/canvas/node_modules/@types/react/jsx-runtime.d.ts"]
+    }
+  },
+  "include": ["*.ts", "test/*.ts", "../../src/icons/**/*.ts", "../../src/icons/**/*.tsx"]
+}

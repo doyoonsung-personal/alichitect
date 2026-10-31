@@ -1,0 +1,74 @@
+{
+  "model_studio": {
+    "name": "Model Studio: hexagon (model) with a sparkle"
+  },
+  "qwen": {
+    "name": "Qwen: speech bubble with a sparkle"
+  },
+  "pai": {
+    "name": "Platform for AI: neural network (three inputs into a node)"
+  },
+  "qoder": {
+    "name": "Qoder: code brackets with a sparkle"
+  },
+  "esa": {
+    "name": "Edge Security Acceleration: shield with a lightning bolt"
+  },
+  "kms": {
+    "name": "Key Management Service: key"
+  },
+  "cloudsso": {
+    "name": "CloudSSO: sign-in arrow entering a door"
+  },
+  "cpfs": {
+    "name": "CPFS: folder with parallel bars"
+  },
+  "vector_db": {
+    "name": "Vector database: cylinder with a vector arrow"
+  },
+  "ai_gateway": {
+    "name": "AI Gateway: arch (gateway) with a sparkle"
+  },
+  "users": {
+    "name": "Users: two people"
+  },
+  "mobile": {
+    "name": "Mobile app: phone"
+  },
+  "iot_device": {
+    "name": "IoT devices: chip with radio waves"
+  },
+  "datacenter": {
+    "name": "On-premises data center: server racks"
+  },
+  "branch_office": {
+    "name": "Branch office: building"
+  },
+  "third_party": {
+    "name": "Third-party service: external link"
+  },
+  "agent": {
+    "name": "AI agent: robot head"
+  },
+  "saas": {
+    "name": "SaaS application: browser window with apps"
+  },
+  "generic": {
+    "name": "Generic product: cube"
+  },
+  "database": {
+    "name": "Database: cylinder"
+  },
+  "identity": {
+    "name": "Identity: ID card"
+  },
+  "scheduler": {
+    "name": "Scheduler: clock"
+  },
+  "hierarchy": {
+    "name": "Resource hierarchy: org tree"
+  },
+  "transit_router": {
+    "name": "Transit Router: router symbol (ring with four arrows)"
+  }
+}

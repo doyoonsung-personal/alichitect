@@ -1,0 +1,946 @@
+{
+ "sizes": {
+  "1366x768": {
+   "landing": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": null,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "ime": {
+    "prevented": false,
+    "view": "landing",
+    "hint": "Enter to draw · Shift+Enter for a new line",
+    "stayedOnLanding": true
+   },
+   "mid": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.898,
+    "minTitlePx": 12.5,
+    "cards": 8,
+    "overflowing": []
+   },
+   "done1": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.898,
+    "minTitlePx": 12.5,
+    "cards": 12,
+    "overflowing": []
+   },
+   "done4": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.898,
+    "minTitlePx": 12.5,
+    "cards": 18,
+    "overflowing": []
+   },
+   "long": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.898,
+    "minTitlePx": 12.5,
+    "cards": 18,
+    "overflowing": []
+   },
+   "errors": [],
+   "21-fatal-live": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.898,
+    "minTitlePx": 12.5,
+    "cards": 12,
+    "overflowing": []
+   },
+   "17-solution-map": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.25,
+    "minTitlePx": 17.4,
+    "cards": 3,
+    "overflowing": []
+   },
+   "18-fatal": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "19-filtered": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "20-ko": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.898,
+    "minTitlePx": 12.5,
+    "cards": 13,
+    "overflowing": []
+   },
+   "20-zh": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.898,
+    "minTitlePx": 12.5,
+    "cards": 13,
+    "overflowing": []
+   }
+  },
+  "1366x768:landing": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": null,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1366x768:mid": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.898,
+   "minTitlePx": 12.5,
+   "cards": 8,
+   "overflowing": []
+  },
+  "1366x768:done1": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.898,
+   "minTitlePx": 12.5,
+   "cards": 12,
+   "overflowing": []
+  },
+  "1366x768:done4": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.898,
+   "minTitlePx": 12.5,
+   "cards": 18,
+   "overflowing": []
+  },
+  "1366x768:long": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.898,
+   "minTitlePx": 12.5,
+   "cards": 18,
+   "overflowing": []
+  },
+  "1366x768:fatal-live": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.898,
+   "minTitlePx": 12.5,
+   "cards": 12,
+   "overflowing": []
+  },
+  "1366x768:17-solution-map": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.25,
+   "minTitlePx": 17.4,
+   "cards": 3,
+   "overflowing": []
+  },
+  "1366x768:18-fatal": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1366x768:19-filtered": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1366x768:ko": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.898,
+   "minTitlePx": 12.5,
+   "cards": 13,
+   "overflowing": []
+  },
+  "1366x768:zh": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.898,
+   "minTitlePx": 12.5,
+   "cards": 13,
+   "overflowing": []
+  },
+  "1440x900": {
+   "landing": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": null,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "ime": {
+    "prevented": false,
+    "view": "landing",
+    "hint": "Enter to draw · Shift+Enter for a new line",
+    "stayedOnLanding": true
+   },
+   "mid": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.95,
+    "minTitlePx": 13.2,
+    "cards": 8,
+    "overflowing": []
+   },
+   "done1": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.95,
+    "minTitlePx": 13.2,
+    "cards": 12,
+    "overflowing": []
+   },
+   "done4": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.95,
+    "minTitlePx": 13.2,
+    "cards": 18,
+    "overflowing": []
+   },
+   "long": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.95,
+    "minTitlePx": 13.2,
+    "cards": 18,
+    "overflowing": []
+   },
+   "errors": [],
+   "21-fatal-live": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.95,
+    "minTitlePx": 13.2,
+    "cards": 12,
+    "overflowing": []
+   },
+   "17-solution-map": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.25,
+    "minTitlePx": 17.4,
+    "cards": 3,
+    "overflowing": []
+   },
+   "18-fatal": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "19-filtered": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "20-ko": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.95,
+    "minTitlePx": 13.2,
+    "cards": 13,
+    "overflowing": []
+   },
+   "20-zh": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.95,
+    "minTitlePx": 13.2,
+    "cards": 13,
+    "overflowing": []
+   }
+  },
+  "1440x900:landing": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": null,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1440x900:mid": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.95,
+   "minTitlePx": 13.2,
+   "cards": 8,
+   "overflowing": []
+  },
+  "1440x900:done1": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.95,
+   "minTitlePx": 13.2,
+   "cards": 12,
+   "overflowing": []
+  },
+  "1440x900:done4": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.95,
+   "minTitlePx": 13.2,
+   "cards": 18,
+   "overflowing": []
+  },
+  "1440x900:long": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.95,
+   "minTitlePx": 13.2,
+   "cards": 18,
+   "overflowing": []
+  },
+  "1440x900:fatal-live": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.95,
+   "minTitlePx": 13.2,
+   "cards": 12,
+   "overflowing": []
+  },
+  "1440x900:17-solution-map": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.25,
+   "minTitlePx": 17.4,
+   "cards": 3,
+   "overflowing": []
+  },
+  "1440x900:18-fatal": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1440x900:19-filtered": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1440x900:ko": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.95,
+   "minTitlePx": 13.2,
+   "cards": 13,
+   "overflowing": []
+  },
+  "1440x900:zh": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.95,
+   "minTitlePx": 13.2,
+   "cards": 13,
+   "overflowing": []
+  },
+  "1280x720": {
+   "landing": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": null,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "ime": {
+    "prevented": false,
+    "view": "landing",
+    "hint": "Enter to draw · Shift+Enter for a new line",
+    "stayedOnLanding": true
+   },
+   "mid": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.835,
+    "minTitlePx": 11.6,
+    "cards": 8,
+    "overflowing": []
+   },
+   "done1": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.835,
+    "minTitlePx": 11.6,
+    "cards": 12,
+    "overflowing": []
+   },
+   "done4": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.835,
+    "minTitlePx": 11.6,
+    "cards": 18,
+    "overflowing": []
+   },
+   "long": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.835,
+    "minTitlePx": 11.6,
+    "cards": 18,
+    "overflowing": []
+   },
+   "errors": [],
+   "21-fatal-live": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.835,
+    "minTitlePx": 11.6,
+    "cards": 12,
+    "overflowing": []
+   },
+   "17-solution-map": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.243,
+    "minTitlePx": 17.3,
+    "cards": 3,
+    "overflowing": []
+   },
+   "18-fatal": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "19-filtered": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "20-ko": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.835,
+    "minTitlePx": 11.6,
+    "cards": 13,
+    "overflowing": []
+   },
+   "20-zh": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 0.835,
+    "minTitlePx": 11.6,
+    "cards": 13,
+    "overflowing": []
+   }
+  },
+  "1280x720:landing": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": null,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1280x720:mid": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.835,
+   "minTitlePx": 11.6,
+   "cards": 8,
+   "overflowing": []
+  },
+  "1280x720:done1": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.835,
+   "minTitlePx": 11.6,
+   "cards": 12,
+   "overflowing": []
+  },
+  "1280x720:done4": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.835,
+   "minTitlePx": 11.6,
+   "cards": 18,
+   "overflowing": []
+  },
+  "1280x720:long": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.835,
+   "minTitlePx": 11.6,
+   "cards": 18,
+   "overflowing": []
+  },
+  "1280x720:fatal-live": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.835,
+   "minTitlePx": 11.6,
+   "cards": 12,
+   "overflowing": []
+  },
+  "1280x720:17-solution-map": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.243,
+   "minTitlePx": 17.3,
+   "cards": 3,
+   "overflowing": []
+  },
+  "1280x720:18-fatal": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1280x720:19-filtered": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1280x720:ko": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.835,
+   "minTitlePx": 11.6,
+   "cards": 13,
+   "overflowing": []
+  },
+  "1280x720:zh": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 0.835,
+   "minTitlePx": 11.6,
+   "cards": 13,
+   "overflowing": []
+  },
+  "1536x864": {
+   "landing": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": null,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "ime": {
+    "prevented": false,
+    "view": "landing",
+    "hint": "Enter to draw · Shift+Enter for a new line",
+    "stayedOnLanding": true
+   },
+   "mid": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.019,
+    "minTitlePx": 14.2,
+    "cards": 8,
+    "overflowing": []
+   },
+   "done1": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.019,
+    "minTitlePx": 14.2,
+    "cards": 12,
+    "overflowing": []
+   },
+   "done4": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.019,
+    "minTitlePx": 14.2,
+    "cards": 18,
+    "overflowing": []
+   },
+   "long": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.019,
+    "minTitlePx": 14.2,
+    "cards": 18,
+    "overflowing": []
+   },
+   "errors": [],
+   "21-fatal-live": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.019,
+    "minTitlePx": 14.2,
+    "cards": 12,
+    "overflowing": []
+   },
+   "17-solution-map": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.25,
+    "minTitlePx": 17.4,
+    "cards": 3,
+    "overflowing": []
+   },
+   "18-fatal": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "19-filtered": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "20-ko": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.019,
+    "minTitlePx": 14.2,
+    "cards": 13,
+    "overflowing": []
+   },
+   "20-zh": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.019,
+    "minTitlePx": 14.2,
+    "cards": 13,
+    "overflowing": []
+   }
+  },
+  "1536x864:landing": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": null,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1536x864:mid": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.019,
+   "minTitlePx": 14.2,
+   "cards": 8,
+   "overflowing": []
+  },
+  "1536x864:done1": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.019,
+   "minTitlePx": 14.2,
+   "cards": 12,
+   "overflowing": []
+  },
+  "1536x864:done4": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.019,
+   "minTitlePx": 14.2,
+   "cards": 18,
+   "overflowing": []
+  },
+  "1536x864:long": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.019,
+   "minTitlePx": 14.2,
+   "cards": 18,
+   "overflowing": []
+  },
+  "1536x864:fatal-live": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.019,
+   "minTitlePx": 14.2,
+   "cards": 12,
+   "overflowing": []
+  },
+  "1536x864:17-solution-map": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.25,
+   "minTitlePx": 17.4,
+   "cards": 3,
+   "overflowing": []
+  },
+  "1536x864:18-fatal": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1536x864:19-filtered": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1536x864:ko": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.019,
+   "minTitlePx": 14.2,
+   "cards": 13,
+   "overflowing": []
+  },
+  "1536x864:zh": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.019,
+   "minTitlePx": 14.2,
+   "cards": 13,
+   "overflowing": []
+  },
+  "1920x1080": {
+   "landing": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": null,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "ime": {
+    "prevented": false,
+    "view": "landing",
+    "hint": "Enter to draw · Shift+Enter for a new line",
+    "stayedOnLanding": true
+   },
+   "mid": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.25,
+    "minTitlePx": 17.4,
+    "cards": 8,
+    "overflowing": []
+   },
+   "done1": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.25,
+    "minTitlePx": 17.4,
+    "cards": 12,
+    "overflowing": []
+   },
+   "done4": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.25,
+    "minTitlePx": 17.4,
+    "cards": 18,
+    "overflowing": []
+   },
+   "long": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.25,
+    "minTitlePx": 17.4,
+    "cards": 18,
+    "overflowing": []
+   },
+   "errors": [],
+   "21-fatal-live": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.25,
+    "minTitlePx": 17.4,
+    "cards": 12,
+    "overflowing": []
+   },
+   "17-solution-map": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.25,
+    "minTitlePx": 17.4,
+    "cards": 3,
+    "overflowing": []
+   },
+   "18-fatal": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "19-filtered": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1,
+    "minTitlePx": null,
+    "cards": 0,
+    "overflowing": []
+   },
+   "20-ko": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.25,
+    "minTitlePx": 17.4,
+    "cards": 13,
+    "overflowing": []
+   },
+   "20-zh": {
+    "hscroll": false,
+    "vscroll": false,
+    "zoom": 1.25,
+    "minTitlePx": 17.4,
+    "cards": 13,
+    "overflowing": []
+   }
+  },
+  "1920x1080:landing": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": null,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1920x1080:mid": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.25,
+   "minTitlePx": 17.4,
+   "cards": 8,
+   "overflowing": []
+  },
+  "1920x1080:done1": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.25,
+   "minTitlePx": 17.4,
+   "cards": 12,
+   "overflowing": []
+  },
+  "1920x1080:done4": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.25,
+   "minTitlePx": 17.4,
+   "cards": 18,
+   "overflowing": []
+  },
+  "1920x1080:long": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.25,
+   "minTitlePx": 17.4,
+   "cards": 18,
+   "overflowing": []
+  },
+  "1920x1080:fatal-live": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.25,
+   "minTitlePx": 17.4,
+   "cards": 12,
+   "overflowing": []
+  },
+  "1920x1080:17-solution-map": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.25,
+   "minTitlePx": 17.4,
+   "cards": 3,
+   "overflowing": []
+  },
+  "1920x1080:18-fatal": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1920x1080:19-filtered": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "1920x1080:ko": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.25,
+   "minTitlePx": 17.4,
+   "cards": 13,
+   "overflowing": []
+  },
+  "1920x1080:zh": {
+   "hscroll": false,
+   "vscroll": false,
+   "zoom": 1.25,
+   "minTitlePx": 17.4,
+   "cards": 13,
+   "overflowing": []
+  },
+  "390x844:landing": {
+   "hscroll": false,
+   "vscroll": true,
+   "zoom": null,
+   "minTitlePx": null,
+   "cards": 0,
+   "overflowing": []
+  },
+  "390x844:working": {
+   "hscroll": false,
+   "vscroll": true,
+   "zoom": 0.328,
+   "minTitlePx": 4.6,
+   "cards": 18,
+   "overflowing": []
+  }
+ },
+ "issues": []
+}

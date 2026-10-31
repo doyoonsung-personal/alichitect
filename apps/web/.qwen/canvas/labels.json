@@ -1,0 +1,117 @@
+{
+  "lane.storage": {
+    "en": "Storage",
+    "ko": "스토리지",
+    "zh": "存储"
+  },
+  "lane.ai": {
+    "en": "AI",
+    "ko": "AI",
+    "zh": "AI"
+  },
+  "lane.analytics": {
+    "en": "Analytics",
+    "ko": "분석",
+    "zh": "分析"
+  },
+  "lane.integration": {
+    "en": "Integration",
+    "ko": "통합",
+    "zh": "集成"
+  },
+  "lane.compute": {
+    "en": "Compute",
+    "ko": "컴퓨팅",
+    "zh": "计算"
+  },
+  "lane.ops": {
+    "en": "Operations",
+    "ko": "운영",
+    "zh": "运维"
+  },
+  "lane.security": {
+    "en": "Security",
+    "ko": "보안",
+    "zh": "安全"
+  },
+  "lane.network": {
+    "en": "Network",
+    "ko": "네트워크",
+    "zh": "网络"
+  },
+  "frame.region": {
+    "en": "Region",
+    "ko": "리전",
+    "zh": "地域"
+  },
+  "frame.vpc": {
+    "en": "VPC",
+    "ko": "VPC",
+    "zh": "VPC"
+  },
+  "frame.internet": {
+    "en": "Internet",
+    "ko": "인터넷",
+    "zh": "互联网"
+  },
+  "frame.onprem": {
+    "en": "On-premises",
+    "ko": "온프레미스",
+    "zh": "本地"
+  },
+  "frame.global": {
+    "en": "Global",
+    "ko": "글로벌",
+    "zh": "全球"
+  },
+  "legend.path": {
+    "en": "Request path",
+    "ko": "요청 경로",
+    "zh": "请求路径"
+  },
+  "legend.control": {
+    "en": "Control (on hover)",
+    "ko": "컨트롤 (호버 시)",
+    "zh": "控制 (悬停时)"
+  },
+  "conn.heading": {
+    "en": "Connections",
+    "ko": "연결",
+    "zh": "连接"
+  },
+  "zoom.value": {
+    "en": "Zoom {value}",
+    "ko": "확대/축소 {value}",
+    "zh": "缩放 {value}"
+  },
+  "badge.on": {
+    "en": "{badge} on {host}",
+    "ko": "{host}의 {badge}",
+    "zh": "{host}上的{badge}"
+  },
+  "card.where.zones": {
+    "en": "zones {list}",
+    "ko": "가용 영역 {list}",
+    "zh": "可用区 {list}"
+  },
+  "card.cautionLabel": {
+    "en": "Lifecycle note",
+    "ko": "라이프사이클 노트",
+    "zh": "生命周期说明"
+  },
+  "card.revTag": {
+    "en": "Revision {n}",
+    "ko": "리비전 {n}",
+    "zh": "版本 {n}"
+  },
+  "card.build": {
+    "en": "Added in this revision",
+    "ko": "이 리비전에 추가됨",
+    "zh": "在此版本中添加"
+  },
+  "canvas.hint.keys": {
+    "en": "Arrow keys move between products. Enter opens details. F fits the diagram.",
+    "ko": "화살표 키로 제품 간 이동. Enter로 상세 정보 열기. F로 다이어그램 맞춤.",
+    "zh": "方向键在产品间移动。Enter打开详情。F适配视图。"
+  }
+}

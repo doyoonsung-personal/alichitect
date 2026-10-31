@@ -1,0 +1,32 @@
+{
+  "name": "@ali/web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Alibaba Cloud architecture builder: landing prompt, revision console, canvas and products panel",
+  "scripts": {
+    "dev": "vite --port 5174 --strictPort",
+    "build": "vite build",
+    "preview": "vite preview --port 5174 --strictPort",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node --import ./scripts/alias.mjs --test \"src/**/*.test.ts\" \"scripts/**/*.test.ts\"",
+    "shots": "node scripts/shots.mjs",
+    "icons:ui": "node scripts/ui-icons/build.ts",
+    "replay:build": "node --import ./scripts/alias.mjs scripts/replay/build-fixtures.ts"
+  },
+  "dependencies": {
+    "@xyflow/react": "12.12.0",
+    "libavoid-js": "0.5.0-beta.5",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "puppeteer-core": "25.16.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.4"
+  }
+}

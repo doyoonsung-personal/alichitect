@@ -1,0 +1,272 @@
+/* src/styles/landing.css */
+
+.landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.landing__stack {
+  width: var(--landing-box-w);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: max(64px, calc((100vh - 580px) / 2 - 15px));
+}
+
+/* Utility row pinned top-right */
+.landing__util {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  z-index: 10;
+}
+
+/* Lockup */
+.landing__lockup {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  margin: 0;
+}
+
+.brand--landing {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--t-24);
+}
+
+.brand--landing .brand__logo {
+  height: 32px;
+  width: auto;
+}
+
+.brand--landing .brand__rule {
+  display: block;
+  width: 1px;
+  height: 28px;
+  background: var(--line-1);
+  margin: 0 20px;
+  flex: none;
+}
+
+.brand--landing .brand__name {
+  font-size: var(--t-24);
+  line-height: var(--lh-24);
+  font-weight: var(--w-medium);
+  color: var(--ink);
+}
+
+/* Lead */
+.landing__lead {
+  font-size: var(--t-18);
+  line-height: var(--lh-18);
+  color: var(--ink-2);
+  max-width: 600px;
+  text-align: center;
+  margin-top: 20px; /* keeps 0.6 x the logo height (19px) clear below the logo */
+  margin-bottom: 32px;
+  text-wrap: balance;
+}
+
+/* Brief box */
+.brief {
+  width: 100%;
+  border: 1px solid var(--line-control);
+  background: var(--sheet);
+  border-radius: var(--r-control);
+  display: flex;
+  flex-direction: column;
+  transition: border-color var(--d-hover) linear, box-shadow var(--d-hover) linear;
+}
+
+.brief:focus-within {
+  border-color: var(--action);
+  box-shadow: inset 0 0 0 1px var(--action);
+}
+
+.brief__input {
+  width: 100%;
+  font-size: var(--t-18);
+  line-height: var(--lh-18);
+  color: var(--ink);
+  padding: 16px 20px 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  min-height: 88px;
+  max-height: 232px;
+}
+.brief__input:focus-visible { outline: none; }
+
+.brief__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px 12px;
+  gap: var(--s-3);
+}
+
+.brief__hint {
+  font-size: var(--t-12);
+  line-height: var(--lh-12);
+  color: var(--ink-3);
+  margin: 0;
+}
+
+.brief__hint--error {
+  color: var(--danger);
+}
+
+/* Language switch segmented control */
+.seg {
+  display: inline-flex;
+  flex-direction: row;
+  border: 1px solid var(--line-control);
+  border-radius: var(--r-control);
+  height: 32px;
+}
+
+.seg__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 var(--s-4);
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--ink-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--r-control);
+  cursor: pointer;
+  transition: background-color var(--d-hover) linear, color var(--d-hover) linear;
+}
+
+.seg__btn[aria-pressed="true"] {
+  color: var(--ink);
+  background: var(--action-soft);
+}
+
+.seg__btn:not([aria-pressed="true"]):hover {
+  background: var(--surface-2);
+}
+
+/* Examples */
+.examples {
+  width: 100%;
+}
+
+.examples__heading {
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  font-weight: var(--w-medium);
+  color: var(--ink-2);
+  margin-top: 40px;
+  margin-bottom: 8px;
+}
+
+.examples__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--line-1);
+}
+
+.examples__list li {
+  border-bottom: 1px solid var(--line-1);
+}
+
+.example {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--r-control);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--d-hover) linear;
+}
+
+.example:hover,
+.example:focus-visible {
+  background: var(--surface-2);
+}
+
+.example__tag {
+  flex: none;
+  width: 152px;
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--ink-3);
+  padding-left: var(--s-5);
+}
+
+.example__brief {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-14);
+  line-height: var(--lh-14);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.example__arrow {
+  opacity: 0;
+  color: var(--ink-2);
+  margin-right: var(--s-5);
+  transition: opacity var(--d-hover) linear;
+}
+
+.example:hover .example__arrow,
+.example:focus-visible .example__arrow {
+  opacity: 1;
+}
+
+/* Notice on landing */
+.notice--landing {
+  width: 100%;
+  margin-top: 16px;
+  text-align: left;
+}
+
+/* Footer */
+.landing__footer {
+  margin: auto 0 0;
+  padding: var(--s-8) var(--s-5) 20px;
+  font-size: var(--t-12);
+  line-height: var(--lh-12);
+  color: var(--ink-3);
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* Phones are not a target (spec 4), but nothing may break: the lockup stacks and the example rows lose their tag column */
+@media (max-width: 560px) {
+  .landing { --landing-box-w: calc(100vw - 32px); }
+  .landing__stack { margin-top: 72px; }
+  .brand--landing { flex-wrap: wrap; justify-content: center; row-gap: 12px; }
+  .brand--landing .brand__logo { flex: 0 0 100%; width: 100%; height: 32px; object-fit: contain; }
+  .brand--landing .brand__name { flex: none; }
+  .brand--landing .brand__rule { display: none; }
+  .landing__lead { font-size: var(--t-16); line-height: var(--lh-16); }
+  .example { height: auto; flex-direction: column; align-items: flex-start; gap: 0; padding: 10px 0; }
+  .example__tag { width: auto; padding-left: 0; }
+  .example__brief { width: 100%; }
+  .example__arrow { display: none; }
+  .examples__list li { padding: 0; }
+}

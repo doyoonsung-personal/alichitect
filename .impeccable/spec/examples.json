@@ -1,0 +1,55 @@
+{
+ "_note": "Landing briefs: real, catalog-grounded briefs taken from the eval cases. Each passed 3 of 3 runs in the final Phase 1 run, eval/results/2026-10-31T08-01-35-p1-full, and leadsTo records what that run drew (run 1). Show the variant that matches the UI language; clicking a brief fills the brief box and does not submit it. Tags use the strings.json keys example.tag.*. leadsTo is for builders and reviewers, never shown in the UI.",
+ "examples": [
+  {
+   "id": "residency",
+   "tag": "example.tag.residency",
+   "eval": "mt-03-data-in-singapore",
+   "leadsTo": "Pins \"Customer data must stay in Singapore\", then ESA, ALB with WAF and a TLS certificate, ECS with Auto Scaling, Tair, RDS, OSS, KMS, NAT Gateway, Cloud Firewall and SLS, all in Singapore",
+   "en": "We're a Singapore fintech and customer data must stay in Singapore. Design a web app with a database for our customer portal.",
+   "ko": "저희는 싱가포르의 핀테크 기업이며 고객 데이터는 반드시 싱가포르 안에 있어야 합니다. 고객 포털용 데이터베이스를 포함한 웹 앱을 설계해 주세요.",
+   "zh": "我们是一家新加坡的金融科技公司，客户数据必须保留在新加坡境内。请为客户门户设计一个包含数据库的 Web 应用。",
+   "source": "eval mt-03-data-in-singapore; ko and zh drafted by Qwen and corrected by hand"
+  },
+  {
+   "id": "ha",
+   "tag": "example.tag.ha",
+   "eval": "pat-01-web-ha",
+   "leadsTo": "DNS, ESA, ALB with WAF, ECS with Auto Scaling across two zones, Tair, RDS, OSS and SLS",
+   "en": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
+   "ko": "동남아시아에서 일일 사용자가 약 3만 명이고 세일 기간에 트래픽이 크게 몰리는 온라인 쇼핑몰을 운영합니다. 고가용성 웹 아키텍처를 설계해 주세요.",
+   "zh": "我们在东南亚运营一家网上商店，每天大约 3 万用户，大促期间流量激增。请设计一个高可用的 Web 架构。",
+   "source": "eval pat-01-web-ha; ko and zh are the eval cases ko-pat-01-web-ha and zh-pat-01-web-ha"
+  },
+  {
+   "id": "need",
+   "tag": "example.tag.need",
+   "eval": "need-01-dev-team",
+   "leadsTo": "A solution map: Qoder Teams (recommended, $40/seat/month as of 2026-10-31), with Token Plan and Model Studio as options",
+   "en": "I need an AI agent my team of 15 software developers can use for coding.",
+   "ko": "개발자 15명으로 구성된 우리 팀이 코딩에 쓸 수 있는 AI 에이전트가 필요해요.",
+   "zh": "我需要一个 AI 智能体，给我们 15 人的软件开发团队写代码用。",
+   "source": "eval need-01-dev-team; ko and zh are the eval cases ko-need-01-dev-team and zh-need-01-dev-team"
+  },
+  {
+   "id": "rag",
+   "tag": "example.tag.rag",
+   "eval": "pat-04-rag",
+   "leadsTo": "AgentCore, Model Studio, Milvus as the vector store, OSS for the documents, and SLS",
+   "en": "We want an internal assistant that answers employees' questions from our policy documents and wiki, using Qwen models.",
+   "ko": "직원들이 사내 정책 문서와 위키를 바탕으로 질문하면 답해 주는 사내 어시스턴트를 Qwen 모델로 만들고 싶습니다.",
+   "zh": "我们想用通义千问（Qwen）模型做一个内部助手，根据公司的制度文档和 Wiki 回答员工的问题。",
+   "source": "eval pat-04-rag; ko and zh are the eval cases ko-pat-04-rag and zh-pat-04-rag"
+  },
+  {
+   "id": "k8s",
+   "tag": "example.tag.k8s",
+   "eval": "pat-02-k8s",
+   "leadsTo": "ACK, MSE, the cloud-native API gateway, ALB, RocketMQ, Tair, PolarDB and SLS",
+   "en": "We're moving 20 Java microservices to Kubernetes. We need service discovery and configuration, one API entry point, async messaging between services, a cache and a relational database.",
+   "ko": "Java 마이크로서비스 20개를 Kubernetes로 옮기려고 합니다. 서비스 디스커버리와 구성 관리, 단일 API 진입점, 서비스 간 비동기 메시징, 캐시, 관계형 데이터베이스가 필요합니다.",
+   "zh": "我们正在将 20 个 Java 微服务迁移到 Kubernetes。需要服务发现与配置、统一的 API 入口、服务间的异步消息传递、缓存以及关系型数据库。",
+   "source": "eval pat-02-k8s; ko and zh drafted by Qwen and corrected by hand"
+  }
+ ]
+}

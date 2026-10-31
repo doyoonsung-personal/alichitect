@@ -1,0 +1,180 @@
+/*
+  Architecture Builder design tokens: the source of truth for apps/web (copy into apps/web/src/styles/tokens.css).
+  Every brand value was checked on 2026-10-31 against Alibaba Cloud's own published identity; see
+  .impeccable/spec/app-spec.md section 2 for each fact and its source. Every text pair below was measured (WCAG 2.x);
+  the numbers in the comments are contrast ratios. Light theme only: the use scene forces it (spec section 1).
+  Product UI: fixed px sizes, never fluid type.
+*/
+:root {
+  color-scheme: light;
+
+  /* ---------- Brand layer: Alibaba Cloud ---------- */
+  /* Intelligent Orange, Pantone 1585C, C0 M73 Y98 K0 (brand guide 2021). Logo, official product icons and the Cursor only.
+     2.87:1 on white: it never carries text on a light ground, and white text never sits on it.
+     Ink text on orange (6.18:1) and orange text on ink (6.18:1) both pass AA. */
+  --brand-orange: #ff6a00;
+  --brand-icon: var(--brand-orange); /* official product icons: decorative, the name beside them carries the meaning */
+  --cursor: var(--brand-orange); /* the Alibaba Cloud Cursor (the bar from the logo's centre): the live-build mark */
+  --cursor-w: 0.6em;
+  --cursor-h: 0.18em;
+  --cursor-blink: 1060ms; /* 530 ms on, 530 ms off, like a system caret */
+
+  /* ---------- Neutrals: alibabacloud.com ink plus the brand guide's Pantone grey scale ---------- */
+  --ink: #181818; /* titles, body, asks. docs and site ink. 17.8 sheet, 16.3 record */
+  --ink-2: #414042; /* Pantone 11C. narration, secondary body, frame labels. 10.3 sheet, 9.5 record */
+  --ink-3: #636466; /* Pantone 9C. meta, hints, placeholders, table secondary. 5.9 sheet, 5.4 record, 5.3 action-soft */
+  --ink-disabled: #9d9fa2; /* Pantone 6C. disabled text only (exempt from 1.4.3) */
+  --sheet: #ffffff; /* canvas, header, products panel, popovers, inputs */
+  --record: #f4f5f7; /* console column ground (Alibaba Cloud docs centre ground) */
+  --surface-2: #f7f9fc; /* row hover, table group rows, region frame fill (docs centre) */
+  --line-1: #dcddde; /* Pantone 3C. hairlines: header bottom, revision dividers, table rows */
+  --line-2: #bcbec0; /* Pantone 5C. card and frame borders (decorative boundaries) */
+  --line-control: #808285; /* Pantone 8C. input, button and handle borders: 3.85 sheet, 3.53 record (1.4.11) */
+
+  /* ---------- Action: alibabacloud.com's primary button blue ---------- */
+  --action: #1354ee; /* primary buttons, links, focus, selection, hover links. White on it 5.95 */
+  --action-hover: #0f44c7; /* white on it 7.86 */
+  --action-press: #0b38a6;
+  --action-soft: #edf2ff; /* site's soft blue: selected rows, highlighted change lines */
+  --action-soft-2: #dde8ff; /* site's secondary-button blue: ::selection, pressed soft rows */
+  --on-action: #ffffff;
+
+  /* ---------- Revision marks ---------- */
+  --rev-tag: var(--ink); /* the latest revision's tag: ink square, white numeral (17.8) */
+  --rev-tag-old: var(--ink-3); /* older revision numbers: outline square, ink-2 numeral */
+
+  /* ---------- State (text values pass 4.5:1 on sheet, record and their soft grounds) ---------- */
+  --ok: #006621; /* Pantone 335C, the brand guide's tertiary green. requirement held. 7.2 sheet, 6.6 record, 6.4 ok-soft */
+  --ok-soft: #e8f4ec;
+  /* Orange's hue darkened until it passes AA. The guide's own dark orange steps (#C84107, #A32D05) shift toward red and
+     would read as danger, so this is derived, not taken from the scale. Checking, fixed, lifecycle notes. */
+  --warn: #a85800; /* 5.2 sheet, 4.7 record, 4.7 warn-soft */
+  --warn-soft: #fdf3e3;
+  --danger: #c4281c; /* not met, failed. 5.7 sheet, 5.3 record, 5.0 danger-soft */
+  --danger-soft: #fdeceb;
+
+  /* ---------- Canvas ---------- */
+  --frame-region-fill: var(--surface-2);
+  --frame-region-line: var(--line-1);
+  --frame-vpc-fill: #ffffff;
+  --frame-vpc-line: var(--line-2);
+  --frame-zone-line: var(--line-2); /* dashed 4 3 */
+  --frame-edge-fill: var(--record); /* edge network and global */
+  --frame-ext-line: var(--line-2); /* internet, on-prem: dashed 4 3, no fill */
+  --frame-band-fill: var(--record); /* account and SaaS bands, solution-map lanes */
+  --card-fill: #ffffff;
+  --card-line: var(--line-2);
+  --edge: #808285; /* 3.85 sheet, 3.7 region fill */
+  --edge-path: var(--ink-2); /* the request path, 2 px */
+  --edge-label-fill: #ffffff;
+  --dim-opacity: 0.28; /* cards outside a highlighted revision or product */
+
+  /* ---------- Type ---------- */
+  /* Brand faces (brand guide 2021): Alibaba Sans (Latin, free for commercial use) and Alibaba PuHuiTi (Chinese, free for
+     commercial use). Not installed and not yet approved for download: until then the brand's own fallback renders,
+     Helvetica class (Helvetica Neue on macOS, Arial on Windows), as on the Alibaba Cloud docs centre. */
+  --font-latin: "Alibaba Sans", "Helvetica Neue", Helvetica, Arial;
+  --font-ui: var(--font-latin), "Alibaba PuHuiTi 3.0", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei",
+    "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  --font-ui-ko: var(--font-latin), "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  --font-ui-zh: var(--font-latin), "Alibaba PuHuiTi 3.0", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --w-regular: 400;
+  --w-medium: 500; /* Alibaba Sans Medium; falls back to 700 synthesis-free bold on Arial */
+  --w-bold: 700;
+  /* size / line-height pairs: a 1.125-1.17 product ramp */
+  --t-12: 12px; --lh-12: 16px; /* meta, tags, badge labels, table notes, counts */
+  --t-13: 13px; --lh-13: 18px; /* change lines, table body, secondary UI */
+  --t-14: 14px; --lh-14: 20px; /* body: asks, narration, buttons, popover body */
+  --t-16: 16px; --lh-16: 24px; /* composer text, popover title */
+  --t-18: 18px; --lh-18: 28px; /* landing brief text, landing lead */
+  --t-24: 24px; --lh-24: 32px; /* landing product name */
+  --lh-cjk: 1.6; /* body line-height multiplier for ko and zh paragraphs */
+  --num: tabular-nums; /* every count, timing, zoom value and revision number */
+
+  /* Canvas type in world units (zoom 1). Rendered size = value x zoom. The zoom floor keeps titles at 12 px or more. */
+  --c-title: 14px; /* card title, weight 500 */
+  --c-sub: 12px; /* card subtitle */
+  --c-frame: 12px; /* frame labels, weight 500 */
+  --c-lane: 12px; /* shelf lane labels */
+  --c-badge: 12px; /* badge labels */
+  --c-edge: 12px; /* edge labels */
+  --c-tag: 12px; /* revision tag numeral, weight 700 */
+  --zoom-floor: 0.857; /* 12 / 14 */
+  --zoom-max: 1.25;
+
+  /* ---------- Space (4 px base) ---------- */
+  --s-1: 2px;
+  --s-2: 4px;
+  --s-3: 8px;
+  --s-4: 12px;
+  --s-5: 16px;
+  --s-6: 20px;
+  --s-7: 24px;
+  --s-8: 32px;
+  --s-9: 40px;
+  --s-10: 48px;
+  --s-11: 64px;
+
+  /* ---------- Radii: Alibaba Cloud's square product grammar (site buttons are 0 px) ---------- */
+  --r-control: 0px; /* buttons, inputs, tags, chips, the handle */
+  --r-card: 2px; /* canvas cards */
+  --r-frame: 4px; /* canvas frames */
+  --r-pop: 2px; /* popovers, toasts, the expanded panel */
+
+  /* ---------- Elevation (offset and soft blur; nothing glows) ---------- */
+  --shadow-card: 0 1px 2px rgba(24, 24, 24, 0.06);
+  --shadow-raise: 0 6px 16px -4px rgba(24, 24, 24, 0.16), 0 2px 4px -2px rgba(24, 24, 24, 0.08); /* hovered card, popover */
+  --shadow-panel: 0 -12px 28px -12px rgba(24, 24, 24, 0.2); /* expanded products panel */
+
+  /* ---------- Motion ---------- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* exponential ease-out: entrances and moves */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* panel expand and collapse */
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0); /* exits */
+  --d-press: 90ms;
+  --d-hover: 120ms;
+  --d-fade: 200ms;
+  --d-enter: 240ms; /* card entrance: opacity 0 -> 1, translateY 6px -> 0 */
+  --d-move: 300ms; /* card moves inside its block */
+  --d-exit: 160ms; /* card exit through a dashed ghost */
+  --d-panel: 280ms;
+  --d-handoff: 420ms; /* landing box -> console */
+  --d-settle: 1200ms; /* the Cursor mark under a new card hands over to the revision tag at commit */
+  --rise: 6px;
+
+  /* ---------- Focus: square, blue, offset ---------- */
+  --focus-outline: 2px solid var(--action);
+  --focus-offset: 2px;
+  --focus-ring: 0 0 0 2px var(--sheet), 0 0 0 4px var(--action); /* on filled controls and canvas cards */
+
+  /* ---------- Layout ---------- */
+  --header-h: 48px;
+  --console-w: clamp(360px, calc(25vw + 40px), 440px); /* 360 @1280, 381 @1366, 400 @1440, 424 @1536, 440 @1920 */
+  --console-rail-w: 0px; /* Focus diagram hides the console entirely; the header keeps the way back */
+  --panel-bar-h: 52px;
+  --panel-open-h: min(600px, 64%); /* of the canvas column height */
+  --landing-box-w: min(760px, calc(100vw - 96px));
+  --logo-h-header: 18px; /* brand minimum is 4.5 mm, about 17 px */
+  --logo-h-landing: 32px;
+}
+
+:root:lang(ko) { --font-ui: var(--font-ui-ko); }
+:root:lang(zh) { --font-ui: var(--font-ui-zh); }
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --d-enter: 120ms; /* opacity only; components drop the transform */
+    --d-move: 0ms;
+    --d-exit: 120ms;
+    --d-panel: 0ms;
+    --d-handoff: 120ms; /* crossfade instead of travel */
+    --d-settle: 0ms;
+    --rise: 0px;
+    --cursor-blink: 0ms; /* the Cursor holds still */
+  }
+}
+
+/* Browser surfaces carry the palette too. */
+::selection { background: var(--action-soft-2); color: var(--ink); }
+html { caret-color: var(--brand-orange); scrollbar-color: var(--line-2) transparent; scrollbar-width: thin; accent-color: var(--action); }
+a { color: var(--action); text-underline-offset: 2px; text-decoration-thickness: 1px; }
+:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }

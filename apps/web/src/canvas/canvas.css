@@ -1,0 +1,391 @@
+/* The canvas (spec 7.15 to 7.24). Only tokens: no raw colours. Orange appears here as the official product icons
+   (--brand-icon) and the BuildMark / Cursor (--cursor), nowhere else. Sizes inside the world are world px (they scale with
+   the zoom); the furniture on the sheet (tools, legend, hint, popover) is screen px. */
+
+.cv {
+  position: absolute;
+  inset: 0;
+  background: var(--sheet);
+  overflow: hidden;
+  isolation: isolate; /* the legend, tools and popover stay inside the canvas, under the open products panel */
+  font-family: var(--font-ui);
+  --xy-background-color: var(--sheet);
+}
+
+.cv .react-flow { background: var(--sheet); }
+.cv .react-flow__pane { cursor: grab; }
+.cv .react-flow__pane.dragging { cursor: grabbing; }
+.cv .react-flow__renderer { z-index: 0; }
+.cv .react-flow__node { cursor: default; }
+.cv .react-flow__node-card { pointer-events: all !important; }
+/* React Flow's attribution stays (its licence asks for it without a Pro subscription): quiet, bottom right */
+.cv .react-flow__attribution { background: transparent; font-size: 10px; line-height: 14px; padding: 0 var(--s-3); margin: 0 var(--s-2) var(--s-2) 0; }
+.cv .react-flow__attribution a { color: var(--ink-disabled); text-decoration: none; }
+.cv .react-flow__node[data-id='edges'] { pointer-events: none; }
+.cv .react-flow__node-frame { pointer-events: none; }
+
+/* ---------- moves: only the nodes that changed ease (spec section 10) ---------- */
+.cv .react-flow__node.is-moving {
+  transition: transform var(--d-move) var(--ease-out), width var(--d-move) var(--ease-out), height var(--d-move) var(--ease-out);
+}
+
+/* ---------- frames (7.16) ---------- */
+.cv-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--r-frame);
+  font-size: var(--c-frame);
+  line-height: 16px;
+  font-weight: var(--w-medium);
+  color: var(--ink-2);
+}
+.cv-frame[data-kind='region'] { background: var(--frame-region-fill); border: 1px solid var(--frame-region-line); }
+.cv-frame[data-kind='vpc'] { background: var(--frame-vpc-fill); border: 1px solid var(--frame-vpc-line); }
+.cv-frame[data-kind='zone'] { border: 1px dashed var(--frame-zone-line); }
+.cv-frame[data-kind='edge'] { background: var(--frame-edge-fill); }
+.cv-frame[data-kind='external'],
+.cv-frame[data-kind='onprem'] { border: 1px dashed var(--frame-ext-line); }
+.cv-frame[data-kind='account'],
+.cv-frame[data-kind='saas'],
+.cv-frame[data-kind='recs'],
+.cv-frame[data-kind='outside'],
+.cv-frame[data-kind='solution'] { background: var(--frame-band-fill); }
+.cv-frame[data-kind='lane'] { color: var(--ink-3); border-radius: 0; }
+.cv-frame__label {
+  position: absolute;
+  left: 12px;
+  top: 6px;
+  max-width: calc(100% - 24px);
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  white-space: nowrap;
+}
+.cv-frame[data-kind='lane'] .cv-frame__label { left: 0; top: 2px; }
+.cv-frame__name { overflow: hidden; text-overflow: ellipsis; }
+.cv-frame__aside { font-weight: var(--w-regular); color: var(--ink-3); }
+.cv-frame__aside--before { font-weight: var(--w-medium); }
+.cv-frame[data-kind='vpc'] .cv-frame__name { color: var(--ink-2); }
+.cv-frame__empty {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 36px;
+  bottom: 12px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--line-2);
+  color: var(--ink-3);
+  font-weight: var(--w-regular);
+  text-align: center;
+  padding: 0 var(--s-4);
+}
+
+/* ---------- cards (7.17) ---------- */
+/* the unit holds the card and what hangs off it (badges, the revision tag), so none of them nests inside the card's button */
+.cv-unit { position: relative; width: 100%; height: 100%; transition: opacity var(--d-hover) linear; }
+.cv-unit[data-dim] { opacity: var(--dim-opacity); }
+.cv-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--card-fill);
+  border: 1px solid var(--card-line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+  outline: none;
+  transition: box-shadow var(--d-hover) linear, border-color var(--d-hover) linear, opacity var(--d-hover) linear;
+}
+.cv-card:hover,
+.cv-card[data-hot] { box-shadow: var(--shadow-raise); border-color: var(--ink-3); }
+.cv-card:focus-visible { box-shadow: var(--focus-ring); border-color: var(--ink-3); }
+.cv-card[data-lit] { outline: 2px solid var(--action); outline-offset: 2px; }
+.cv-card__body {
+  position: absolute;
+  inset: -1px; /* over the 1 px border: the text column is exactly GEOMETRY.textW wide */
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 10px;
+  overflow: hidden;
+}
+.cv-card__icon {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: var(--brand-icon);
+}
+.cv-card__text {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.cv-card__title {
+  display: block;
+  font-size: var(--tpx, var(--c-title));
+  line-height: 1.28;
+  font-weight: var(--w-medium);
+  color: var(--ink);
+}
+.cv-card__title > span { display: block; white-space: nowrap; }
+.cv-card__sub {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2);
+  font-size: var(--c-sub);
+  line-height: 1.27;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.cv-card__subtext { overflow: hidden; text-overflow: clip; }
+.cv-card__zones { flex: none; margin-left: auto; font-weight: var(--w-medium); }
+.cv-card__caution { position: absolute; right: 8px; top: 6px; color: var(--warn); }
+
+/* the revision tag at the corner (7.19) */
+.cv-tag {
+  position: absolute;
+  right: -9px;
+  top: -9px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  background: var(--rev-tag);
+  color: var(--on-action);
+  font-size: var(--c-tag);
+  line-height: 1;
+  font-weight: var(--w-bold);
+  border-radius: var(--r-control);
+  z-index: 3;
+  animation: cv-tag-in var(--d-settle) var(--ease-in-out) both;
+}
+.cv-tag:hover { background: var(--ink-2); }
+.cv-tag[aria-pressed='true'] { box-shadow: 0 0 0 2px var(--sheet), 0 0 0 4px var(--action); }
+.cv-tag:focus-visible { box-shadow: var(--focus-ring); }
+@keyframes cv-tag-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* the BuildMark: the Cursor's bar under a card the streaming revision added (7.18) */
+.cv-mark {
+  position: absolute;
+  left: 10px;
+  bottom: 0;
+  width: 24px;
+  height: 3px;
+  background: var(--cursor);
+  opacity: 0;
+  transition: opacity var(--d-settle) var(--ease-in-out);
+  pointer-events: none;
+}
+.cv-mark[data-on] { opacity: 1; transition-duration: var(--d-enter); transition-timing-function: var(--ease-out); }
+
+/* a recommendation's chip on the top edge (7.28) */
+.cv-chip {
+  position: absolute;
+  left: 10px;
+  top: -9px;
+  height: 18px;
+  padding: 0 var(--s-3);
+  display: grid;
+  place-items: center;
+  font-size: var(--c-badge);
+  line-height: 16px;
+  font-weight: var(--w-medium);
+  white-space: nowrap;
+  border-radius: var(--r-control);
+}
+.cv-chip[data-fit='primary'] { background: var(--ink); color: var(--on-action); }
+.cv-chip[data-fit='complement'] { background: var(--sheet); color: var(--ink-2); border: 1px solid var(--line-control); }
+
+/* badges and attachments (7.20) */
+.cv-badge {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  background: var(--sheet);
+  border: 1px solid var(--card-line);
+  border-radius: var(--r-card);
+  color: var(--brand-icon);
+  z-index: 2;
+  outline: none;
+  transition: box-shadow var(--d-hover) linear, border-color var(--d-hover) linear;
+}
+.cv-badge:hover { border-color: var(--ink-3); box-shadow: var(--shadow-raise); }
+.cv-badge:focus-visible { box-shadow: var(--focus-ring); border-color: var(--ink-3); }
+.cv-badge[data-lit] { outline: 2px solid var(--action); outline-offset: 2px; }
+.cv-badge[data-as='attachment'] { justify-content: flex-start; padding: 0 var(--s-3) 0 6px; font-size: var(--c-badge); line-height: 16px; font-weight: var(--w-medium); color: var(--ink-2); }
+.cv-badge[data-as='attachment'] > svg { color: var(--brand-icon); flex: none; }
+.cv-badge__name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* entrance: from a visible default; only cards that enter in a batch carry data-enter (section 10) */
+@keyframes cv-card-in { from { opacity: 0; transform: translateY(var(--rise)); } }
+.cv-unit[data-enter] { animation: cv-card-in var(--d-enter) var(--ease-out) var(--delay, 0ms) backwards; }
+
+/* exit: the card becomes a dashed ghost at its slot, its content fades, then the ghost fades */
+@keyframes cv-ghost-content { to { opacity: 0; } }
+@keyframes cv-ghost-out { to { opacity: 0; } }
+.cv-card--ghost {
+  background: transparent;
+  border: 1px dashed var(--line-2);
+  box-shadow: none;
+  pointer-events: none;
+  animation: cv-ghost-out var(--d-exit) linear var(--d-exit) forwards;
+}
+.cv-card--ghost .cv-card__body { animation: cv-ghost-content var(--d-exit) var(--ease-in) forwards; }
+
+/* ---------- edges (7.21) ---------- */
+.cv-edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.cv-edge { transition: opacity var(--d-hover) linear; }
+.cv-edge[data-appear] { animation: cv-edge-in var(--d-fade) linear backwards; }
+@keyframes cv-edge-in { from { opacity: 0; } }
+.cv-edge__line,
+.cv-edge__arrow { fill: none; stroke: var(--edge); stroke-width: 1.5; stroke-linecap: butt; stroke-linejoin: round; }
+.cv-edge[data-path] .cv-edge__line,
+.cv-edge[data-path] .cv-edge__arrow { stroke: var(--edge-path); stroke-width: 2; }
+.cv-edge[data-fresh] .cv-edge__line,
+.cv-edge[data-fresh] .cv-edge__arrow { stroke: var(--ink-2); }
+.cv-edge[data-kind='async'] .cv-edge__line { stroke-dasharray: 5 4; }
+.cv-edge[data-kind='resolve'] .cv-edge__line { stroke-dasharray: 0.1 4.5; stroke-linecap: round; }
+.cv-edge[data-kind='control'] .cv-edge__line,
+.cv-edge[data-kind='control'] .cv-edge__arrow { stroke-width: 1; stroke-dasharray: 3 3; }
+.cv-edge[data-kind='control'] .cv-edge__arrow { stroke-dasharray: none; }
+.cv-edge[data-hot] .cv-edge__line,
+.cv-edge[data-hot] .cv-edge__arrow { stroke: var(--ink); }
+.cv-edge[data-dim] { opacity: var(--dim-opacity); }
+.cv-edge__label rect { fill: var(--edge-label-fill); }
+.cv-edge__label text { fill: var(--ink-3); font-size: var(--c-edge); line-height: 16px; dominant-baseline: central; }
+
+/* ---------- furniture on the sheet ---------- */
+.cv-tools {
+  position: absolute;
+  right: var(--s-4);
+  top: var(--s-4);
+  height: 32px;
+  display: flex;
+  align-items: center;
+  background: var(--sheet);
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-control);
+  z-index: 5;
+}
+.cv-tool { width: 32px; height: 30px; display: grid; place-items: center; color: var(--ink-2); transition: background-color var(--d-hover) linear; }
+.cv-tool:hover { background: var(--surface-2); color: var(--ink); }
+.cv-tool:active { background: var(--action-soft); }
+.cv-tool:focus-visible { outline: var(--focus-outline); outline-offset: -2px; }
+.cv-tools__value { min-width: 44px; text-align: center; font-size: var(--t-12); line-height: var(--lh-12); color: var(--ink-2); cursor: default; }
+.cv-tools__value[data-low] { color: var(--warn); }
+.cv-tools__rule { width: 1px; height: 16px; background: var(--line-1); margin: 0 var(--s-1); }
+
+.cv-legend {
+  position: absolute;
+  left: var(--s-4);
+  bottom: var(--s-4);
+  display: flex;
+  gap: var(--s-5);
+  font-size: var(--t-12);
+  line-height: var(--lh-12);
+  color: var(--ink-3);
+  z-index: 4;
+  pointer-events: none;
+}
+.cv-legend li { display: flex; align-items: center; gap: var(--s-2); }
+.cv-legend__line,
+.cv-legend__arrow { fill: none; stroke: var(--edge); stroke-width: 1.5; }
+.cv-legend__line[data-kind='path'],
+.cv-legend__arrow[data-kind='path'] { stroke: var(--edge-path); stroke-width: 2; }
+.cv-legend__line[data-kind='async'] { stroke-dasharray: 5 4; }
+.cv-legend__line[data-kind='resolve'] { stroke-dasharray: 0.1 4.5; stroke-linecap: round; }
+
+.cv-hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--s-4) + 28px); /* above the legend row, so the two never overlap on a narrow sheet */
+  transform: translateX(-50%);
+  padding: var(--s-2) var(--s-4);
+  background: var(--sheet);
+  border: 1px solid var(--line-1);
+  font-size: var(--t-12);
+  line-height: var(--lh-12);
+  color: var(--ink-2);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--d-fade) linear;
+  z-index: 4;
+}
+.cv-hint[data-show] { opacity: 1; }
+
+/* the first turn, before the first card */
+.cv-reading {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  font-size: var(--t-14);
+  line-height: var(--lh-14);
+  color: var(--ink-3);
+}
+.cv-cursor {
+  display: inline-block;
+  width: var(--cursor-w);
+  height: var(--cursor-h);
+  background: var(--cursor);
+  animation: cv-blink var(--cursor-blink) steps(1) infinite;
+}
+@keyframes cv-blink { 50% { opacity: 0; } }
+
+/* ---------- the popover (7.27) ---------- */
+.cv-pop {
+  position: fixed;
+  z-index: 80;
+  padding: var(--s-5);
+  background: var(--sheet);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-pop);
+  box-shadow: var(--shadow-raise);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  line-height: var(--lh-14);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  animation: cv-pop-in var(--d-hover) linear;
+}
+@keyframes cv-pop-in { from { opacity: 0; } }
+.cv-pop__head { display: flex; gap: var(--s-4); align-items: flex-start; }
+.cv-pop__icon { flex: none; width: 20px; height: 24px; display: grid; place-items: center; color: var(--brand-icon); }
+.cv-pop__titles { display: flex; flex-direction: column; min-width: 0; }
+.cv-pop__title { font-size: var(--t-16); line-height: var(--lh-16); font-weight: var(--w-medium); }
+.cv-pop__meta { font-size: var(--t-12); line-height: var(--lh-12); color: var(--ink-3); }
+.cv-pop__attached { color: var(--ink-3); font-size: var(--t-12); line-height: var(--lh-12); }
+.cv-pop__sec { display: flex; flex-direction: column; gap: var(--s-1); }
+.cv-pop__h { margin: 0; font-size: var(--t-12); line-height: var(--lh-12); font-weight: var(--w-medium); color: var(--ink-3); }
+.cv-pop__why { color: var(--ink); }
+.cv-pop__what { color: var(--ink-2); }
+.cv-pop__note { font-size: var(--t-13); line-height: var(--lh-13); color: var(--warn); }
+.cv-pop__price { font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink-2); }
+.cv-pop__foot { display: flex; justify-content: space-between; align-items: center; gap: var(--s-4); font-size: var(--t-12); line-height: var(--lh-12); color: var(--ink-3); }
+.cv-pop__rev { color: var(--ink-3); text-align: left; }
+button.cv-pop__rev { text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+button.cv-pop__rev:hover { color: var(--ink); }
+.cv-pop__link { display: inline-flex; align-items: center; gap: var(--s-2); }
+:root:lang(ko) .cv-pop p,
+:root:lang(ko) .cv-pop__why { word-break: keep-all; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cv-unit[data-enter] { animation: cv-fade var(--d-enter) linear var(--delay, 0ms) backwards; }
+  @keyframes cv-fade { from { opacity: 0; } }
+  .cv-cursor { animation: none; }
+}

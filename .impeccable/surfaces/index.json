@@ -1,0 +1,14 @@
+{
+  "note": "Surface briefs, written by hand because the impeccable launcher is not installed. One entry per surface; the brief path is relative to .impeccable/.",
+  "briefs": [
+    {
+      "target": "apps/web/index.html",
+      "related": ["apps/web/src"],
+      "brief": "surfaces/app.md",
+      "mode": "operate",
+      "buildPath": "code",
+      "spec": "spec/app-spec.md",
+      "updated": "2026-10-31"
+    }
+  ]
+}
