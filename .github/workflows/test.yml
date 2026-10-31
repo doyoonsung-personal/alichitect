@@ -1,0 +1,65 @@
+# Tests on every push and pull request. Nothing here deploys or needs a secret: the turn tests use a fake upstream.
+name: Test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: Core, eval and local server
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Tests (packages/core, eval, apps/server)
+        run: npm test
+
+  web-and-worker:
+    name: Web app and Worker
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            apps/web/package-lock.json
+            apps/worker/package-lock.json
+      - name: Install (web)
+        working-directory: apps/web
+        run: npm ci --no-audit --no-fund
+      - name: Test (web)
+        working-directory: apps/web
+        run: npm test
+      - name: Build (web)
+        working-directory: apps/web
+        run: npm run build
+      - name: Install (worker)
+        working-directory: apps/worker
+        run: npm ci --no-audit --no-fund
+      - name: Type check (worker)
+        working-directory: apps/worker
+        run: npm run typecheck
+      - name: Test (worker)
+        working-directory: apps/worker
+        run: npm test
+      - name: Bundle check (worker, wrangler --dry-run, no Node built-ins)
+        working-directory: apps/worker
+        run: npm run check:bundle

@@ -1,0 +1,73 @@
+// alichitect: one Worker serving the architecture builder at https://architect.alikorea-demo.com.
+// It gates every request (Google sign-in, admin approval), serves the SPA from apps/web/dist and runs POST /api/turn
+// against Model Studio (dashscope-intl). Account: Dysung.alicloud@gmail.com's Account (Workers Paid), which also owns
+// alikorea-demo.com for other demos, so the only route is the custom domain below. Deploy steps: docs/DEPLOY.md.
+//
+// Secrets (never in this file; set with scripts/set-secrets.ps1): DASHSCOPE_API_KEY, GOOGLE_CLIENT_SECRET, SESSION_SECRET.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "alichitect",
+  "account_id": "cfd2a327acfb7d93dc045825f12dd38d",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-20",
+  // request.signal aborts when the browser disconnects, so the upstream Qwen request is cancelled with it
+  "compatibility_flags": ["enable_request_signal"],
+  "assets": {
+    "directory": "../web/dist", // built by `npm run build` in apps/web before every deploy (scripts/deploy.ps1)
+    "binding": "ASSETS",
+    "run_worker_first": true, // every request goes through the sign-in gate first
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  },
+  "d1_databases": [
+    // database_id: fill in from `wrangler d1 create alichitect` (docs/DEPLOY.md, one-time setup)
+    { "binding": "DB", "database_name": "alichitect", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" }
+  ],
+  // Cloudflare Email Service, as in the WonderClip platform: the sender domain alikorea-demo.com is already onboarded
+  "send_email": [{ "name": "EMAIL", "remote": true }],
+  "vars": {
+    "ADMIN_EMAILS": "dysung.alicloud@gmail.com", // comma-separated; approved as admins at their first sign-in
+    "TURNS_PER_DAY": "60", // per non-admin user, UTC day; admins are unlimited
+    "ALLOWED_ORIGIN": "https://architect.alikorea-demo.com",
+    "GOOGLE_CLIENT_ID": "REPLACE_WITH_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+    "MAIL_FROM": "no-reply@alikorea-demo.com",
+    "SITE_NAME": "Alibaba Cloud Architecture Builder",
+    "NOTIFY_ON_APPROVAL": "1",
+    "REQUEST_MAILS_PER_DAY": "30" // access-request mails to the admins per rolling day; later requests are kept but not mailed
+  },
+  "routes": [{ "pattern": "architect.alikorea-demo.com", "custom_domain": true }],
+  "workers_dev": false,
+  "preview_urls": false,
+  // Application logs only (our own metadata lines). Invocation logs are off so request URLs, which include the one-time
+  // /auth/callback?code=&state=, are not stored in Cloudflare's logs.
+  "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
+  "limits": { "cpu_ms": 60000 },
+
+  // Local development and the end-to-end check: `npm run dev` (wrangler dev --env dev --port 8800).
+  // No email is sent (MAIL_LOG), D1 is the local simulator, and the fake Google sign-in is on. The fake is refused by
+  // the Worker unless the page and ALLOWED_ORIGIN are both on a loopback address (src/fake-google.ts).
+  "env": {
+    "dev": {
+      "d1_databases": [
+        { "binding": "DB", "database_name": "alichitect", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" }
+      ],
+      // simulated locally (no "remote"), and MAIL_LOG below means the code only logs the subject anyway
+      "send_email": [{ "name": "EMAIL" }],
+      "vars": {
+        "ADMIN_EMAILS": "dysung.alicloud@gmail.com",
+        "TURNS_PER_DAY": "60",
+        "ALLOWED_ORIGIN": "http://localhost:8800",
+        "GOOGLE_CLIENT_ID": "local-test-client.apps.googleusercontent.com",
+        "MAIL_FROM": "no-reply@alikorea-demo.com",
+        "SITE_NAME": "Alibaba Cloud Architecture Builder",
+        "NOTIFY_ON_APPROVAL": "1",
+        "MAIL_LOG": "1",
+        "DEV_FAKE_GOOGLE": "1"
+      },
+      // Secrets come from .dev.vars (dummy values); with --env-file they may come from the process environment instead.
+      "secrets": { "required": ["DASHSCOPE_API_KEY", "GOOGLE_CLIENT_SECRET", "SESSION_SECRET"] },
+      "routes": [],
+      "workers_dev": false
+    }
+  }
+}

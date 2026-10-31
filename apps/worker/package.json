@@ -1,0 +1,25 @@
+{
+  "name": "@ali/worker",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Cloudflare Worker for architect.alikorea-demo.com: Google sign-in, admin approval, the SPA from static assets and POST /api/turn",
+  "scripts": {
+    "dev": "wrangler dev --env dev --port 8800 --inspector-port 8809",
+    "deploy": "wrangler deploy --env=\"\"",
+    "d1:migrate:local": "wrangler d1 migrations apply alichitect --local --env dev",
+    "d1:migrate:remote": "wrangler d1 migrations apply alichitect --remote --env=\"\"",
+    "test": "node --test --test-concurrency=1 \"test/**/*.test.ts\"",
+    "typecheck": "tsc -p tsconfig.json",
+    "check:bundle": "node scripts/check-bundle.ts",
+    "sync:tokens": "node scripts/sync-tokens.ts",
+    "preflight": "node scripts/preflight.ts",
+    "e2e:local": "node scripts/e2e-local.ts"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "puppeteer-core": "25.16.0",
+    "typescript": "6.0.3",
+    "wrangler": "4.156.0"
+  }
+}
