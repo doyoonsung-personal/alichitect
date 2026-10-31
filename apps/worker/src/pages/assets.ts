@@ -1,4 +1,4 @@
-// The stylesheet, script and Google mark of the server-rendered pages, served from the Worker at /_auth/*. They are
+// The stylesheet and script of the server-rendered pages, served from the Worker at /_auth/*. They are
 // files (not inline) so the Content Security Policy needs no 'unsafe-inline'. The CSS starts with the app's own design
 // tokens (tokens.ts, copied from apps/web) and uses the app's vocabulary: square controls in the action blue, ink on
 // white, hairline rules, and orange only in the logo and the Cursor.
@@ -54,14 +54,7 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .btn--ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--ink); }
 .btn--ghost:active:not(:disabled) { background: var(--action-soft-2); }
 .btn--sm { min-height: 28px; padding: 0 var(--s-4); font-size: var(--t-13); line-height: var(--lh-13); }
-.btn--google {
-  width: 100%; min-height: 44px; gap: var(--s-4);
-  background: var(--sheet); color: var(--ink); border-color: var(--line-control);
-  font-size: var(--t-16); line-height: var(--lh-16);
-}
-.btn--google:hover { background: var(--surface-2); border-color: var(--ink); }
-.btn--google:active { background: var(--action-soft-2); }
-.btn--google img { width: 20px; height: 20px; }
+.btn--block { width: 100%; min-height: 44px; font-size: var(--t-16); line-height: var(--lh-16); }
 .inline { display: inline; margin: 0; }
 
 /* ---------- the Cursor: the bar from the centre of the Alibaba Cloud logo ---------- */
@@ -86,12 +79,22 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .seg__btn:not([aria-current="true"]):hover { background: var(--surface-2); color: var(--ink); }
 .seg__btn + .seg__btn { border-left: 1px solid var(--line-1); }
 
-/* ---------- centred pages: sign-in and request access ---------- */
+/* ---------- centred pages: sign-in, sign-up, codes, waiting for approval ---------- */
 .util { position: fixed; top: var(--s-5); right: var(--s-5); display: flex; gap: var(--s-3); align-items: center; z-index: 2; }
 .centre { width: min(560px, calc(100vw - 48px)); margin: 0 auto; padding: max(72px, calc((100vh - 680px) / 2)) 0 var(--s-10); display: flex; flex-direction: column; align-items: center; }
 .centre--wide { width: min(760px, calc(100vw - 48px)); }
 .lead { font-size: var(--t-18); line-height: var(--lh-18); color: var(--ink-2); text-align: center; max-width: 600px; margin-top: 20px; text-wrap: balance; }
 .block { width: 100%; max-width: 440px; margin-top: var(--s-9); }
+.block > .title { margin-bottom: var(--s-3); }
+.block > .intro { margin-bottom: var(--s-6); }
+.intro { font-size: var(--t-14); line-height: var(--lh-14); color: var(--ink-2); overflow-wrap: anywhere; text-wrap: pretty; }
+.intro strong { color: var(--ink); font-weight: var(--w-medium); }
+.intro--left { margin-bottom: var(--s-5); max-width: 60ch; }
+.alt { margin-top: var(--s-6); font-size: var(--t-14); line-height: var(--lh-14); color: var(--ink-2); text-align: center; }
+.alt a, .link-sm { color: var(--action); text-decoration: none; }
+.alt a:hover, .link-sm:hover { text-decoration: underline; }
+.link-sm { font-size: var(--t-13); line-height: var(--lh-13); }
+.hint--block { display: block; margin-top: var(--s-6); }
 .page--centre { display: flex; flex-direction: column; }
 .page--centre > main { flex: 1 0 auto; }
 .foot { padding: var(--s-4) var(--s-5) var(--s-5); text-align: center; font-size: var(--t-12); line-height: var(--lh-12); color: var(--ink-3); }
@@ -124,6 +127,19 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .avatar--blank { display: inline-flex; align-items: center; justify-content: center; font-size: var(--t-12); font-weight: var(--w-medium); color: var(--ink-2); border: 1px solid var(--line-1); }
 
 .form { display: flex; flex-direction: column; gap: var(--s-3); }
+.form--auth { gap: var(--s-5); margin-top: var(--s-2); }
+.form--narrow { max-width: 400px; }
+.field { display: flex; flex-direction: column; gap: var(--s-3); }
+.field__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-4); }
+.field__error { font-size: var(--t-13); line-height: var(--lh-13); color: var(--danger); }
+.input[aria-invalid="true"], .textarea[aria-invalid="true"] { border-color: var(--danger); }
+.input { min-height: 40px; }
+.input--code { font-family: ui-monospace, Consolas, "Courier New", monospace; font-size: var(--t-24); line-height: var(--lh-24); letter-spacing: 0.3em; font-variant-numeric: var(--num); padding-left: var(--s-5); }
+.pw { position: relative; }
+.pw .input { padding-right: 72px; }
+.pw__toggle { position: absolute; top: 4px; right: 4px; bottom: 4px; padding: 0 var(--s-4); font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink-2); font-weight: var(--w-medium); }
+.pw__toggle:hover { background: var(--surface-2); color: var(--ink); }
+.pw__toggle[hidden] { display: none; }
 .label { font-size: var(--t-13); line-height: var(--lh-13); font-weight: var(--w-medium); color: var(--ink-2); }
 .input, .textarea {
   width: 100%; padding: var(--s-3) var(--s-4);
@@ -138,6 +154,7 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .check { display: flex; gap: var(--s-3); align-items: center; font-size: var(--t-13); }
 .quote { padding-left: var(--s-4); border-left: 1px solid var(--line-2); color: var(--ink-2); font-size: var(--t-13); line-height: var(--lh-13); white-space: pre-wrap; overflow-wrap: anywhere; }
 .actions { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; margin-top: var(--s-7); }
+.actions--tight { margin-top: var(--s-4); }
 
 .tag { display: inline-flex; align-items: center; height: 20px; padding: 0 var(--s-3); font-size: var(--t-12); line-height: var(--lh-12); font-weight: var(--w-medium); white-space: nowrap; }
 .tag--warn { background: var(--warn-soft); color: var(--warn); }
@@ -150,7 +167,9 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .appbar { position: sticky; top: 0; z-index: 3; height: var(--header-h); display: flex; align-items: center; gap: var(--s-4); padding: 0 var(--s-5); background: var(--sheet); border-bottom: 1px solid var(--line-1); }
 .appbar__section { font-size: var(--t-14); line-height: var(--lh-14); color: var(--ink-2); padding-left: var(--s-4); border-left: 1px solid var(--line-1); }
 .appbar__right { margin-left: auto; display: flex; align-items: center; gap: var(--s-3); }
-.appbar__me { display: flex; align-items: center; gap: var(--s-3); font-size: var(--t-13); color: var(--ink-2); padding: 0 var(--s-3); }
+.appbar__me { display: flex; align-items: center; gap: var(--s-3); height: 32px; font-size: var(--t-13); color: var(--ink-2); padding: 0 var(--s-3); text-decoration: none; }
+.appbar__me:hover { background: var(--surface-2); color: var(--ink); }
+.appbar__me[aria-current="page"] { color: var(--ink); background: var(--action-soft); }
 .appbar__me .avatar { width: 24px; height: 24px; }
 .admin { max-width: 1280px; margin: 0 auto; padding: var(--s-8) var(--s-7) var(--s-11); }
 .admin__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-5); flex-wrap: wrap; }
@@ -179,20 +198,35 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .muted { color: var(--ink-3); }
 .empty { padding: var(--s-6) 0; color: var(--ink-3); border-top: 1px solid var(--line-1); border-bottom: 1px solid var(--line-1); }
 .status { margin-top: var(--s-6); }
+.status:empty { display: none; }
+.block > .status { margin-top: var(--s-5); margin-bottom: var(--s-5); }
+.block > .status .notice { margin-bottom: 0; }
+
+/* ---------- account settings ---------- */
+.account { max-width: 760px; margin: 0 auto; padding: var(--s-8) var(--s-7) var(--s-11); }
+.account .section { margin-top: var(--s-8); padding-top: var(--s-6); border-top: 1px solid var(--line-1); }
+.account > .status .notice { margin-bottom: 0; }
+.facts { margin: 0; display: grid; grid-template-columns: max-content 1fr; column-gap: var(--s-8); row-gap: var(--s-4); }
+.facts > div { display: contents; }
+.facts dt { font-size: var(--t-13); line-height: 20px; color: var(--ink-3); }
+.facts dd { margin: 0; font-size: var(--t-14); line-height: 20px; color: var(--ink); overflow-wrap: anywhere; }
 
 @media (max-width: 720px) {
   .lockup--landing .lockup__logo { height: 24px; }
   .lockup--landing .lockup__name { font-size: var(--t-18); }
   .lockup--landing .lockup__rule { margin: 0 12px; height: 22px; }
   .appbar__section, .appbar__me span { display: none; }
-  .admin { padding: var(--s-6) var(--s-5) var(--s-10); }
+  .admin, .account { padding: var(--s-6) var(--s-5) var(--s-10); }
+  .facts { grid-template-columns: 1fr; row-gap: var(--s-1); }
+  .facts dd { margin-bottom: var(--s-3); }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
 `;
 
 export const PAGES_CSS = `${TOKENS_CSS}\n${PAGE_CSS}`;
 
-export const PAGES_JS = `// The pages' only script: the language choice shared with the app, confirmations for admin actions, local times.
+export const PAGES_JS = `// The pages' only script: the language choice shared with the app, confirmations for admin actions, local times,
+// the note counter and the password show/hide buttons.
 (() => {
   const root = document.documentElement;
   const KEY = 'ab.lang';
@@ -220,6 +254,25 @@ export const PAGES_JS = `// The pages' only script: the language choice shared w
     const d = new Date(el.getAttribute('datetime'));
     if (!Number.isNaN(d.getTime())) { el.title = el.textContent; el.textContent = fmt.format(d); }
   }
+  for (const b of document.querySelectorAll('button[data-pw-toggle]')) {
+    const input = document.getElementById(b.dataset.pwToggle);
+    if (!(input instanceof HTMLInputElement)) continue;
+    b.hidden = false;
+    b.addEventListener('click', () => {
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      b.textContent = show ? b.dataset.hide : b.dataset.show;
+      b.setAttribute('aria-pressed', String(show));
+      input.focus();
+    });
+  }
+  // hide shown passwords again on submit, so a page restored from the back-forward cache never shows one
+  document.addEventListener('submit', () => {
+    for (const b of document.querySelectorAll('button[data-pw-toggle]')) {
+      const input = document.getElementById(b.dataset.pwToggle);
+      if (input instanceof HTMLInputElement) input.type = 'password';
+    }
+  }, true);
   for (const ta of document.querySelectorAll('textarea[data-counter]')) {
     const out = document.getElementById(ta.dataset.counter);
     if (!out) continue;
@@ -231,9 +284,6 @@ export const PAGES_JS = `// The pages' only script: the language choice shared w
 })();
 `;
 
-/** Google's "G" mark for the sign-in button, as Google's sign-in branding guidelines ask. */
-export const GOOGLE_G_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
-
 const ROBOTS = 'User-agent: *\nDisallow: /\n';
 
 /** The public files at /_auth/* and /robots.txt, or null. */
@@ -241,7 +291,6 @@ export function authAsset(path: string): Response | null {
   const cache = 'public, max-age=300';
   if (path === '/_auth/pages.css') return new Response(PAGES_CSS, { headers: { 'Content-Type': 'text/css; charset=utf-8', 'Cache-Control': cache } });
   if (path === '/_auth/pages.js') return new Response(PAGES_JS, { headers: { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': cache } });
-  if (path === '/_auth/google-g.svg') return new Response(GOOGLE_G_SVG, { headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=86400' } });
   if (path === '/robots.txt') return new Response(ROBOTS, { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=86400' } });
   return null;
 }

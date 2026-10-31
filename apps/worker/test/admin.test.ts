@@ -1,19 +1,11 @@
 // Admin rules (never demote or remove the last admin, never act on yourself, legal state changes only), the admin
-// page's forms and JSON API, revocation taking effect at once, the access request and its notifications, and the
-// ADMIN_EMAILS seed.
+// page's forms and JSON API, revocation taking effect at once, the approval mail, and the note a pending user can
+// update. (Sign-up, its notification to the admins and the ADMIN_EMAILS seed: test/auth.test.ts.)
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import worker from '../src/index.ts';
 import * as db from '../src/db.ts';
-import { ADMIN, makeCtx, makeEnv, req, signIn } from './helpers.ts';
+import { ADMIN, Browser, PASSWORD, call, makeEnv, makeUser, req, signIn, where } from './helpers.ts';
 import type { Env } from '../src/env.ts';
-
-async function call(env: Env, r: Request): Promise<Response> {
-  const ctx = makeCtx();
-  const res = await worker.fetch(r, env, ctx);
-  await ctx.flush();
-  return res;
-}
 
 /** The Cookie pair for the one-shot notice cookie a form action sets. */
 const flashOf = (res: Response): string => {
@@ -82,7 +74,9 @@ describe('admin actions', () => {
     assert.equal(res.headers.get('Location'), '/admin');
     assert.equal((await db.userById(env.DB, u.user.id))?.status, 'approved');
     assert.equal((await call(env, req('/', { cookie: u.cookie }))).status, 200, 'the same session works now');
-    assert.deepEqual(env.mails.map((m) => [m.to, m.subject]), [['new@example.com', 'You can now use Architecture Builder']]);
+    assert.deepEqual(env.mails.map((m) => [m.to, m.subject]), [['new@example.com', '[Architecture Builder] You have access']]);
+    assert.match(env.mails[0].text, /new, your access to Architecture Builder is approved\. Sign in with your email address and password to start\./);
+    assert.match(env.mails[0].text, /https:\/\/architect\.alikorea-demo\.com\/login/);
     const audit = await db.recentAudit(env.DB);
     assert.equal(audit[0].what, 'approve');
     assert.equal(audit[0].who, ADMIN);
@@ -132,7 +126,7 @@ describe('admin actions', () => {
     assert.match(page, /is the last admin/);
   });
 
-  test('the JSON list carries status, role and usage, never secrets', async () => {
+  test('the JSON list carries status, role and usage, never a password hash', async () => {
     const env = makeEnv();
     const a = await signIn(env, ADMIN);
     await signIn(env, 'p@example.com', { requested: true });
@@ -141,7 +135,7 @@ describe('admin actions', () => {
       [ADMIN, 'approved', 'admin'],
       ['p@example.com', 'pending', 'user'],
     ]);
-    assert.ok(!('google_sub' in body.users[0]));
+    for (const u of body.users) for (const k of Object.keys(u)) assert.doesNotMatch(k, /pw|hash|salt|picture/i, k);
   });
 });
 
@@ -201,73 +195,27 @@ describe('the acting admin is checked inside the UPDATE', () => {
   });
 });
 
-describe('access requests', () => {
+describe('the note on /pending', () => {
   const post = (env: Env, cookie: string, note: string) => call(env, req('/pending', { method: 'POST', cookie, type: 'application/x-www-form-urlencoded', body: new URLSearchParams({ note }).toString() }));
 
-  test('the first request notifies the admins; a note update does not', async () => {
+  test('a pending user can update the note the admins see; control characters are dropped; no mail', async () => {
     const env = makeEnv();
     await signIn(env, ADMIN);
     const u = await signIn(env, 'asker@example.com', { name: 'Asker' });
     const res = await post(env, u.cookie, 'SA team, Jakarta retail\u0007 demo');
-    assert.equal(res.headers.get('Location'), '/pending?n=sent');
-    const row = await db.userById(env.DB, u.user.id);
-    assert.equal(row?.note, 'SA team, Jakarta retail demo', 'control characters are dropped');
-    assert.ok(row?.requested_at);
-    assert.deepEqual(env.mails.map((m) => [m.to, m.subject]), [[ADMIN, 'Access request: Asker (asker@example.com)']]);
-    assert.match(env.mails[0].text, /https:\/\/architect\.alikorea-demo\.com\/admin/);
-    assert.equal((await post(env, u.cookie, 'updated')).headers.get('Location'), '/pending?n=updated');
-    assert.equal(env.mails.length, 1);
-    const page = await (await call(env, req('/pending', { cookie: u.cookie }))).text();
-    assert.match(page, /Waiting for approval/);
-    assert.match(page, />updated</);
-  });
-
-  test('a mail failure never blocks the request', async () => {
-    const env = makeEnv({
-      EMAIL: {
-        async send() {
-          throw Object.assign(new Error('boom'), { code: 'E_SENDER' });
-        },
-      },
-    });
-    await signIn(env, ADMIN);
-    const u = await signIn(env, 'asker@example.com');
-    const res = await post(env, u.cookie, '');
-    assert.equal(res.status, 303);
-    assert.ok((await db.userById(env.DB, u.user.id))?.requested_at);
-  });
-
-  test('a form body over 16 KB is refused with 413 and records nothing', async () => {
-    const env = makeEnv();
-    await signIn(env, ADMIN);
-    const u = await signIn(env, 'asker@example.com');
-    const res = await post(env, u.cookie, 'x'.repeat(20 * 1024));
-    assert.equal(res.status, 413);
-    assert.equal((await db.userById(env.DB, u.user.id))?.requested_at, null);
+    assert.equal(res.headers.get('Location'), '/pending?n=updated');
+    assert.equal((await db.userById(env.DB, u.user.id))?.note, 'SA team, Jakarta retail demo');
     assert.equal(env.mails.length, 0);
+    const page = await (await call(env, req('/pending?n=updated', { cookie: u.cookie }))).text();
+    assert.match(page, /Note updated\./);
+    assert.match(page, />SA team, Jakarta retail demo</);
   });
 
-  test('the admins are mailed for at most REQUEST_MAILS_PER_DAY new requests a day; the requests are still recorded', async () => {
-    const env = makeEnv({ REQUEST_MAILS_PER_DAY: '2' });
-    await signIn(env, ADMIN);
-    const ids: string[] = [];
-    for (const n of [1, 2, 3, 4]) {
-      const u = await signIn(env, `junk${n}@example.com`);
-      ids.push(u.user.id);
-      assert.equal((await post(env, u.cookie, '')).headers.get('Location'), '/pending?n=sent');
-    }
-    assert.equal(env.mails.length, 2, 'two mails, then silence');
-    for (const id of ids) assert.ok((await db.userById(env.DB, id))?.requested_at, 'every request is recorded');
-  });
-
-  test('the admin list puts real requests ahead of accounts that only signed in', async () => {
+  test('a form body over 16 KB is refused with 413 and changes nothing', async () => {
     const env = makeEnv();
-    await signIn(env, ADMIN);
-    const real = await signIn(env, 'real@example.com', { requested: true });
-    await new Promise((r) => setTimeout(r, 5));
-    for (const n of [1, 2, 3]) await signIn(env, `lurker${n}@example.com`);
-    const pending = (await db.listUsers(env.DB, Date.now())).filter((u) => u.status === 'pending');
-    assert.equal(pending[0].id, real.user.id);
+    const u = await signIn(env, 'asker@example.com');
+    assert.equal((await post(env, u.cookie, 'x'.repeat(20 * 1024))).status, 413);
+    assert.equal((await db.userById(env.DB, u.user.id))?.note, null);
   });
 
   test('a long note is cut to 500 characters', async () => {
@@ -277,31 +225,75 @@ describe('access requests', () => {
     assert.equal([...((await db.userById(env.DB, u.user.id))?.note ?? '')].length, 500);
   });
 
-  test('a declined user cannot request again and sees the status', async () => {
+  test('a declined user cannot change the note and sees the status', async () => {
     const env = makeEnv();
     const u = await signIn(env, 'no@example.com', { status: 'denied' });
     assert.equal((await post(env, u.cookie, 'please')).headers.get('Location'), '/pending');
-    assert.equal(env.mails.length, 0);
+    assert.equal((await db.userById(env.DB, u.user.id))?.note, null);
     assert.match(await (await call(env, req('/pending', { cookie: u.cookie }))).text(), /An administrator declined this request/);
   });
 });
 
-describe('ADMIN_EMAILS seed', () => {
-  const now = () => Date.now();
-  test('applied on first sign-in, and to a listed user still pending', async () => {
+describe('a person approved on /admin signs in with their password', () => {
+  test('sign up, wait, get approved, sign in, use the app', async () => {
     const env = makeEnv();
-    const first = await db.upsertOnSignIn(env.DB, { sub: 's1', email: ADMIN, name: 'D', picture: null }, { seedAdmin: true, lang: null, now: now() });
-    assert.deepEqual([first.user.status, first.user.role, first.seeded], ['approved', 'admin', true]);
-    await db.upsertOnSignIn(env.DB, { sub: 's2', email: 'later@example.com', name: 'L', picture: null }, { seedAdmin: false, lang: null, now: now() });
-    const listed = await db.upsertOnSignIn(env.DB, { sub: 's2', email: 'later@example.com', name: 'L', picture: null }, { seedAdmin: true, lang: null, now: now() });
-    assert.deepEqual([listed.user.status, listed.user.role, listed.seeded], ['approved', 'admin', true]);
+    const admin = await signIn(env, ADMIN);
+    const b = new Browser(env);
+    await b.post('/signup', { name: 'Mina Park', email: 'mina@example.com', password: PASSWORD, note: 'Retail demos' });
+    const code = /\b(\d{6})\b/.exec(env.mails.at(-1)!.subject)![1];
+    assert.equal(where(await b.post('/verify', { code })), '303 /pending?n=verified');
+    assert.equal(where(await b.fetch('/')), '302 /pending');
+    const u = (await db.userByEmail(env.DB, 'mina@example.com'))!;
+    const adminPage = await (await call(env, req('/admin', { cookie: admin.cookie }))).text();
+    assert.match(adminPage, /Retail demos/);
+    assert.equal((await call(env, req(`/admin/users/${u.id}/approve`, { method: 'POST', cookie: admin.cookie }))).status, 303);
+    assert.equal((await b.fetch('/')).status, 200, 'the same session is let in at once');
+    const fresh = new Browser(env);
+    assert.equal(where(await fresh.post('/login', { email: 'mina@example.com', password: PASSWORD })), '303 /');
+  });
+});
+
+describe('declining old requests in bulk', () => {
+  const DAY = 86_400_000;
+  const makeAged = async (env: ReturnType<typeof makeEnv>, email: string, daysAgo: number) => {
+    const u = await makeUser(env, email);
+    const at = Date.now() - daysAgo * DAY;
+    await env.DB.prepare('UPDATE users SET requested_at = ?, created_at = ? WHERE id = ?').bind(at, at, u.id).run();
+    return u;
+  };
+
+  test('declines pending requests older than 7 days, leaves newer ones, approved accounts and admins alone, and says how many', async () => {
+    const env = makeEnv();
+    const admin = await signIn(env, ADMIN);
+    const old1 = await makeAged(env, 'old1@example.com', 9);
+    const old2 = await makeAged(env, 'old2@example.com', 30);
+    const fresh = await makeAged(env, 'fresh@example.com', 2);
+    const approvedOld = await makeUser(env, 'ok@example.com', { status: 'approved' });
+    await env.DB.prepare('UPDATE users SET created_at = ?, requested_at = ? WHERE id = ?').bind(Date.now() - 40 * DAY, Date.now() - 40 * DAY, approvedOld.id).run();
+    assert.match(await (await call(env, req('/admin', { cookie: admin.cookie }))).text(), /Decline requests older than 7 days \(2\)/);
+
+    const res = await call(env, req('/admin/pending/deny-old', { method: 'POST', cookie: admin.cookie }));
+    assert.equal(where(res), '303 /admin#requests');
+    const status = async (id: string) => (await db.userById(env.DB, id))?.status;
+    assert.deepEqual([await status(old1.id), await status(old2.id), await status(fresh.id), await status(approvedOld.id), await status(admin.user.id)], ['denied', 'denied', 'pending', 'approved', 'approved']);
+    assert.equal((await db.userById(env.DB, old1.id))?.decided_by, ADMIN);
+    const page = await (await call(env, req('/admin', { cookie: `${admin.cookie}; ${flashOf(res)}` }))).text();
+    assert.match(page, /Declined 2 requests that had waited more than 7 days\./);
+    assert.doesNotMatch(page, /Decline requests older than 7 days \(/, 'no old request is left to clear');
+    assert.equal((await db.recentAudit(env.DB))[0].what, 'bulk-deny');
   });
 
-  test("never overrides an admin's decision", async () => {
+  test('only an admin can; a pending user, a signed-out visitor and a cross-site post cannot', async () => {
     const env = makeEnv();
-    await db.upsertOnSignIn(env.DB, { sub: 's3', email: 'x@example.com', name: 'X', picture: null }, { seedAdmin: false, lang: null, now: now() });
-    await env.DB.prepare(`UPDATE users SET status = 'revoked' WHERE email = 'x@example.com'`).run();
-    const r = await db.upsertOnSignIn(env.DB, { sub: 's3', email: 'x@example.com', name: 'X', picture: null }, { seedAdmin: true, lang: null, now: now() });
-    assert.deepEqual([r.user.status, r.user.role, r.seeded], ['revoked', 'user', false]);
+    await signIn(env, ADMIN);
+    const old = await makeAged(env, 'old@example.com', 20);
+    const user = await signIn(env, 'user@example.com', { status: 'approved' });
+    const pending = await signIn(env, 'pending@example.com');
+    assert.equal((await call(env, req('/admin/pending/deny-old', { method: 'POST', cookie: user.cookie }))).status, 403);
+    assert.equal((await call(env, req('/admin/pending/deny-old', { method: 'POST', cookie: pending.cookie }))).status, 403);
+    assert.equal((await call(env, req('/admin/pending/deny-old', { method: 'POST' }))).status, 401);
+    const admin = await signIn(env, ADMIN);
+    assert.equal((await call(env, req('/admin/pending/deny-old', { method: 'POST', cookie: admin.cookie, origin: 'https://evil.example' }))).status, 403);
+    assert.equal((await db.userById(env.DB, old.id))?.status, 'pending');
   });
 });

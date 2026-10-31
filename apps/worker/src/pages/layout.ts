@@ -66,10 +66,8 @@ export function signOutForm(c: PageCtx, label: StringKey = 'signOut', cls = 'btn
   return `<form class="inline" method="post" action="/auth/logout"><button class="${cls}" type="submit">${e(t(c.lang, label))}</button></form>`;
 }
 
-export function avatar(picture: string | null, name: string, email: string, size = 28): string {
-  if (picture && /^https:\/\/lh3\.googleusercontent\.com\//.test(picture)) {
-    return `<img class="avatar" src="${e(picture)}" alt="" width="${size}" height="${size}" referrerpolicy="no-referrer" loading="lazy">`;
-  }
+/** The account's initial in a square: the only avatar (accounts carry no picture). */
+export function avatar(name: string, email: string): string {
   const letter = [...(name || email).trim()][0]?.toUpperCase() ?? '?';
   return `<span class="avatar avatar--blank" aria-hidden="true">${e(letter)}</span>`;
 }

@@ -1,22 +1,34 @@
 // Test harness: a D1 stand-in over node:sqlite running the real migration, fake ASSETS and EMAIL bindings, an
-// ExecutionContext that collects waitUntil work, an RSA key pair that signs ID tokens, and a helper that signs a user
-// in by the same code the callback uses.
+// ExecutionContext that collects waitUntil work, a cookie-keeping Browser that drives the Worker's fetch handler, and
+// helpers that create accounts directly or through the real sign-up flow.
 import { DatabaseSync } from 'node:sqlite';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { D1Database, D1PreparedStatement, D1Result, Env, ExecutionContextLike } from '../src/env.ts';
-import { b64url, utf8 } from '../src/crypto.ts';
-import type { Jwk } from '../src/oidc.ts';
 import * as db from '../src/db.ts';
 import { issueSession } from '../src/session.ts';
+import { hashPassword } from '../src/password.ts';
+import type { StoredPassword } from '../src/password.ts';
+import { AUTH_TIMING } from '../src/auth.ts';
+import { randomHex } from '../src/crypto.ts';
+import worker from '../src/index.ts';
 
 export const ORIGIN = 'https://architect.alikorea-demo.com';
 export const ADMIN = 'dysung.alicloud@gmail.com';
-export const CLIENT_ID = 'test-client.apps.googleusercontent.com';
 export const SECRET = 'test-session-secret-0123456789abcdefghijklmnopqrstuvwxyz';
 export const API_KEY = 'sk-test-SECRET-0123456789abcdef';
+export const PASSWORD = 'correct horse battery';
 
-const MIGRATION = readFileSync(fileURLToPath(new URL('../migrations/0001_init.sql', import.meta.url)), 'utf8');
+// the response floor that hides account existence is tested on its own; everything else runs without it
+AUTH_TIMING.padMs = 0;
+AUTH_TIMING.jitterMs = 0;
+
+// every migration, in order, as `wrangler d1 migrations apply` runs them
+const MIGRATIONS_DIR = fileURLToPath(new URL('../migrations/', import.meta.url));
+const MIGRATIONS = readdirSync(MIGRATIONS_DIR)
+  .filter((f) => f.endsWith('.sql'))
+  .sort()
+  .map((f) => readFileSync(MIGRATIONS_DIR + f, 'utf8'));
 
 type Row = Record<string, unknown>;
 
@@ -44,20 +56,29 @@ class Stmt implements D1PreparedStatement {
     return { results: rows.map((r) => ({ ...r }) as T), success: true, meta: {} };
   }
   async run(): Promise<D1Result> {
-    const r = this.sqlite.prepare(this.sql).run(...this.args());
-    return { results: [], success: true, meta: { changes: Number(r.changes), last_row_id: Number(r.lastInsertRowid) } };
+    return this.runSync();
   }
+  /** As D1 does: rows for a statement that returns them (SELECT, RETURNING), and the change count. */
   runSync(): D1Result {
-    const r = this.sqlite.prepare(this.sql).run(...this.args());
+    const st = this.sqlite.prepare(this.sql);
+    if (/\bRETURNING\b|^\s*SELECT\b/i.test(this.sql)) {
+      const before = Number((this.sqlite.prepare('SELECT total_changes() AS n').get() as { n: number }).n);
+      const rows = st.all(...this.args()).map((r) => ({ ...r }));
+      const after = Number((this.sqlite.prepare('SELECT total_changes() AS n').get() as { n: number }).n);
+      return { results: rows, success: true, meta: { changes: after - before } };
+    }
+    const r = st.run(...this.args());
     return { results: [], success: true, meta: { changes: Number(r.changes), last_row_id: Number(r.lastInsertRowid) } };
   }
 }
 
+export type TestDB = D1Database & { sqlite: DatabaseSync };
+
 /** D1 over an in-memory SQLite database with the migration applied (foreign keys on, as in D1). */
-export function makeD1(): D1Database & { sqlite: DatabaseSync } {
+export function makeD1(): TestDB {
   const sqlite = new DatabaseSync(':memory:');
   sqlite.exec('PRAGMA foreign_keys = ON;');
-  sqlite.exec(MIGRATION);
+  for (const m of MIGRATIONS) sqlite.exec(m);
   return {
     sqlite,
     prepare: (sql: string) => new Stmt(sqlite, sql),
@@ -79,11 +100,14 @@ export interface Mail {
   to: string;
   subject: string;
   text: string;
+  html: string;
 }
 
 export const INDEX_HTML = '<!doctype html><title>Architecture Builder</title><div id="root"></div>';
 
-export function makeEnv(over: Partial<Env> = {}): Env & { DB: ReturnType<typeof makeD1>; mails: Mail[] } {
+export type TestEnv = Env & { DB: TestDB; mails: Mail[] };
+
+export function makeEnv(over: Partial<Env> = {}): TestEnv {
   const mails: Mail[] = [];
   const assets = {
     async fetch(req: Request): Promise<Response> {
@@ -99,15 +123,13 @@ export function makeEnv(over: Partial<Env> = {}): Env & { DB: ReturnType<typeof 
     DB: makeD1(),
     EMAIL: {
       async send(m) {
-        mails.push({ to: m.to, subject: m.subject, text: m.text });
+        mails.push({ to: m.to, subject: m.subject, text: m.text, html: m.html });
         return { messageId: `m${mails.length}` };
       },
     },
     ADMIN_EMAILS: ADMIN,
     TURNS_PER_DAY: '3',
     ALLOWED_ORIGIN: ORIGIN,
-    GOOGLE_CLIENT_ID: CLIENT_ID,
-    GOOGLE_CLIENT_SECRET: 'test-google-secret',
     SESSION_SECRET: SECRET,
     DASHSCOPE_API_KEY: API_KEY,
     MAIL_FROM: 'no-reply@alikorea-demo.com',
@@ -115,7 +137,7 @@ export function makeEnv(over: Partial<Env> = {}): Env & { DB: ReturnType<typeof 
     NOTIFY_ON_APPROVAL: '1',
     mails,
     ...over,
-  } as Env & { DB: ReturnType<typeof makeD1>; mails: Mail[] };
+  } as TestEnv;
 }
 
 export function makeCtx(): ExecutionContextLike & { flush(): Promise<void> } {
@@ -130,54 +152,127 @@ export function makeCtx(): ExecutionContextLike & { flush(): Promise<void> } {
   };
 }
 
-/** Signs a user in as the OIDC callback would (create or refresh, ADMIN_EMAILS seeding) and returns the Cookie header value. */
-export async function signIn(env: Env, email: string, o: { status?: db.Status; role?: db.Role; name?: string; requested?: boolean } = {}): Promise<{ cookie: string; user: db.UserRow }> {
+let testHash: Promise<StoredPassword> | null = null;
+/** PASSWORD's hash, computed once (PBKDF2 at full strength takes a while). */
+const passwordHash = (): Promise<StoredPassword> => (testHash ??= hashPassword(PASSWORD));
+
+/**
+ * Creates an account directly in D1 (as a confirmed sign-up would leave it): ADMIN is an approved admin, anyone else
+ * pending, unless status or role say otherwise. The password is PASSWORD unless given.
+ */
+export async function makeUser(env: Env, email: string, o: { status?: db.Status; role?: db.Role; name?: string; note?: string | null; password?: string; lang?: string | null } = {}): Promise<db.UserRow> {
   const now = Date.now();
-  const r = await db.upsertOnSignIn(env.DB, { sub: `sub-${email}`, email, name: o.name ?? email.split('@')[0], picture: null }, { seedAdmin: email === ADMIN, lang: null, now });
-  if (o.status || o.role || o.requested) {
-    await env.DB.prepare('UPDATE users SET status = COALESCE(?, status), role = COALESCE(?, role), requested_at = COALESCE(?, requested_at) WHERE id = ?')
-      .bind(o.status ?? null, o.role ?? null, o.requested ? now : null, r.user.id)
-      .run();
+  const seeded = email === ADMIN;
+  const p = o.password ? await hashPassword(o.password) : await passwordHash();
+  const id = `u_${randomHex(8)}`;
+  await env.DB.prepare(
+    `INSERT INTO users (id, email, name, pw_hash, pw_salt, pw_version, pw_changed_at, status, role, note, lang, created_at, requested_at, decided_at, decided_by, last_seen_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(id, email, o.name ?? email.split('@')[0], p.pw_hash, p.pw_salt, p.pw_version, now, o.status ?? (seeded ? 'approved' : 'pending'), o.role ?? (seeded ? 'admin' : 'user'), o.note ?? null, o.lang ?? null, now, seeded ? null : now, seeded ? now : null, seeded ? 'ADMIN_EMAILS' : null, now)
+    .run();
+  return (await db.userById(env.DB, id))!;
+}
+
+/** An account (made with makeUser when the address has none) with a fresh session; returns the Cookie header value. */
+export async function signIn(env: Env, email: string, o: { status?: db.Status; role?: db.Role; name?: string; requested?: boolean } = {}): Promise<{ cookie: string; user: db.UserRow }> {
+  let user = await db.userByEmail(env.DB, email);
+  if (!user) user = await makeUser(env, email, { status: o.status, role: o.role, name: o.name });
+  else if (o.status || o.role) {
+    await env.DB.prepare('UPDATE users SET status = COALESCE(?, status), role = COALESCE(?, role) WHERE id = ?').bind(o.status ?? null, o.role ?? null, user.id).run();
+    user = (await db.userById(env.DB, user.id))!;
   }
-  const set = await issueSession(env, r.user.id, now);
-  const user = (await db.userById(env.DB, r.user.id))!;
+  const set = await issueSession(env, user.id, Date.now());
   return { cookie: set.split(';')[0], user };
 }
 
 /** A request to the Worker from the app's own origin. */
-export function req(path: string, o: { method?: string; cookie?: string; body?: string; type?: string; origin?: string | null; headers?: Record<string, string> } = {}): Request {
+export function req(path: string, o: { method?: string; cookie?: string; body?: string; type?: string; origin?: string | null; headers?: Record<string, string>; ip?: string } = {}): Request {
   const h = new Headers(o.headers ?? {});
   if (o.cookie) h.set('Cookie', o.cookie);
   if (o.type) h.set('Content-Type', o.type);
+  h.set('CF-Connecting-IP', o.ip ?? '198.51.100.1');
   const method = o.method ?? 'GET';
   if (method !== 'GET' && method !== 'HEAD' && o.origin !== null) h.set('Origin', o.origin ?? ORIGIN);
   return new Request(`${ORIGIN}${path}`, { method, headers: h, body: o.body, redirect: 'manual' });
 }
 
-/* ---------- RS256 keys and ID tokens ---------- */
-
-export interface TestKey {
-  kid: string;
-  jwk: Jwk;
-  privateKey: CryptoKey;
+/** Runs one request through the Worker and waits for its background work (mails, session cleanup). */
+export async function call(env: Env, r: Request): Promise<Response> {
+  const ctx = makeCtx();
+  const res = await worker.fetch(r, env, ctx);
+  await ctx.flush();
+  return res;
 }
 
-export async function makeKey(kid: string): Promise<TestKey> {
-  const kp = (await crypto.subtle.generateKey({ name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' }, true, ['sign', 'verify'])) as CryptoKeyPair;
-  const pub = (await crypto.subtle.exportKey('jwk', kp.publicKey)) as JsonWebKey;
-  return { kid, jwk: { kty: 'RSA', n: pub.n, e: pub.e, alg: 'RS256', use: 'sig', kid }, privateKey: kp.privateKey };
+export const where = (res: Response): string => `${res.status}${res.headers.get('Location') ? ` ${res.headers.get('Location')}` : ''}`;
+
+/** A browser: keeps cookies across requests (dropping the ones a response deletes) and posts forms from this origin. */
+export class Browser {
+  env: TestEnv;
+  ip: string;
+  jar = new Map<string, string>();
+  constructor(env: TestEnv, ip = '198.51.100.1') {
+    this.env = env;
+    this.ip = ip;
+  }
+  get cookie(): string {
+    return [...this.jar].map(([k, v]) => `${k}=${v}`).join('; ');
+  }
+  async fetch(path: string, o: { method?: string; form?: Record<string, string>; headers?: Record<string, string> } = {}): Promise<Response> {
+    const method = o.method ?? (o.form ? 'POST' : 'GET');
+    const res = await call(
+      this.env,
+      req(path, { method, cookie: this.jar.size ? this.cookie : undefined, ip: this.ip, headers: o.headers, type: o.form ? 'application/x-www-form-urlencoded' : undefined, body: o.form ? new URLSearchParams(o.form).toString() : undefined }),
+    );
+    for (const c of res.headers.getSetCookie()) {
+      const pair = c.split(';')[0];
+      const i = pair.indexOf('=');
+      const [name, value] = [pair.slice(0, i), pair.slice(i + 1)];
+      if (/Max-Age=0\b/i.test(c)) this.jar.delete(name);
+      else this.jar.set(name, value);
+    }
+    return res;
+  }
+  post(path: string, form: Record<string, string> = {}): Promise<Response> {
+    return this.fetch(path, { form });
+  }
+  async text(path: string): Promise<string> {
+    return (await this.fetch(path)).text();
+  }
 }
 
-export async function signToken(key: TestKey, claims: Record<string, unknown>, header: Record<string, unknown> = {}): Promise<string> {
-  const h = b64url(utf8(JSON.stringify({ alg: 'RS256', kid: key.kid, typ: 'JWT', ...header })));
-  const p = b64url(utf8(JSON.stringify(claims)));
-  const s = b64url(await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key.privateKey, utf8(`${h}.${p}`)));
-  return `${h}.${p}.${s}`;
+/** The mails sent to an address, oldest first. */
+export const mailsTo = (env: TestEnv, to: string): Mail[] => env.mails.filter((m) => m.to === to);
+
+/** The 6-digit code in the latest mail to an address (it is in the subject, as on WonderClip). */
+export function lastCode(env: TestEnv, to: string): string {
+  const m = mailsTo(env, to).at(-1);
+  const code = /\b(\d{6})\b/.exec(m?.subject ?? '')?.[1];
+  if (!code) throw new Error(`no code mailed to ${to}`);
+  return code;
 }
 
-export function goodClaims(nonce: string, over: Record<string, unknown> = {}): Record<string, unknown> {
-  const iat = Math.floor(Date.now() / 1000);
-  return { iss: 'https://accounts.google.com', aud: CLIENT_ID, azp: CLIENT_ID, sub: '1234567890', email: 'Someone@Example.com', email_verified: true, name: 'Some One', picture: 'https://lh3.googleusercontent.com/a/abc=s96-c', nonce, iat, exp: iat + 3600, ...over };
+/** Signs up through the real pages and enters the mailed code. */
+export async function signUp(env: TestEnv, email: string, o: { name?: string; password?: string; note?: string; browser?: Browser } = {}): Promise<{ browser: Browser; res: Response }> {
+  const b = o.browser ?? new Browser(env);
+  const r1 = await b.post('/signup', { name: o.name ?? 'Mina Park', email, password: o.password ?? PASSWORD, note: o.note ?? '' });
+  if (r1.status !== 303) throw new Error(`sign-up answered ${r1.status}`);
+  const res = await b.post('/verify', { code: lastCode(env, email) });
+  return { browser: b, res };
+}
+
+/**
+ * Moves every stored time back by `ms`, as if that much time had passed: rate windows, lockouts, codes and the
+ * sign-ups waiting for them.
+ */
+export async function age(env: TestEnv, ms: number): Promise<void> {
+  env.DB.sqlite.exec(`
+    UPDATE rate SET window_start = window_start - ${ms};
+    UPDATE lockouts SET last_fail_at = last_fail_at - ${ms}, locked_until = CASE WHEN locked_until > 0 THEN locked_until - ${ms} ELSE 0 END;
+    UPDATE codes SET expires_at = expires_at - ${ms}, sent_at = sent_at - ${ms};
+    UPDATE signups SET created_at = created_at - ${ms};
+  `);
 }
 
 /** Reads a whole NDJSON response into parsed lines. */

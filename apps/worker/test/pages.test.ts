@@ -1,5 +1,5 @@
 // The server-rendered pages: three languages with the same keys and placeholders, the app's tokens copied in sync,
-// user text escaped, and no inline script or style (the CSP allows neither).
+// user text escaped, no inline script or style (the CSP allows neither), and forms that never echo a password.
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -9,7 +9,7 @@ import { TOKENS_CSS } from '../src/pages/tokens.ts';
 import { SOURCE, render } from '../scripts/sync-tokens.ts';
 import { PAGES_CSS } from '../src/pages/assets.ts';
 import worker from '../src/index.ts';
-import { ADMIN, makeCtx, makeEnv, req, signIn } from './helpers.ts';
+import { ADMIN, Browser, PASSWORD, makeCtx, makeEnv, req, signIn } from './helpers.ts';
 
 const ph = (s: string): string => (s.match(/\{\w+\}/g) ?? []).sort().join(',');
 
@@ -68,16 +68,71 @@ describe('rendered pages', () => {
     }
   });
 
-  test('pages use only external script and style (CSP-compatible), the official logo and the lockup', async () => {
-    const env = makeEnv();
+  /** Every page, as its visitor sees it. */
+  async function everyPage(env: ReturnType<typeof makeEnv>): Promise<Record<string, string>> {
     const admin = await signIn(env, ADMIN);
     const pending = await signIn(env, 'p@example.com');
-    for (const html of [await call(env, req('/login')), await call(env, req('/pending', { cookie: pending.cookie })), await call(env, req('/admin', { cookie: admin.cookie }))]) {
+    const signer = new Browser(env);
+    await signer.post('/signup', { name: 'N', email: 'n@example.com', password: PASSWORD });
+    const resetter = new Browser(env, '198.51.100.9');
+    await resetter.post('/forgot', { email: 'p@example.com' });
+    return {
+      login: await call(env, req('/login')),
+      signup: await call(env, req('/signup')),
+      verify: await signer.text('/verify'),
+      forgot: await call(env, req('/forgot')),
+      reset: await resetter.text('/reset'),
+      pending: await call(env, req('/pending', { cookie: pending.cookie })),
+      account: await call(env, req('/account', { cookie: admin.cookie })),
+      admin: await call(env, req('/admin', { cookie: admin.cookie })),
+    };
+  }
+
+  test('pages use only external script and style (CSP-compatible), the official logo and the lockup', async () => {
+    const env = makeEnv();
+    for (const [name, html] of Object.entries(await everyPage(env))) {
+      assert.match(html, /<title>[^<]+ · Architecture Builder<\/title>/, name);
       assert.doesNotMatch(html, /<script(?![^>]*\bsrc=)[^>]*>/, 'no inline script');
       assert.doesNotMatch(html, /<style\b|\sstyle="/, 'no inline style');
       assert.doesNotMatch(html, /\son[a-z]+="/, 'no inline handlers');
       assert.match(html, /\/brand\/alibaba-cloud-logo-(en|zh)\.svg/);
       assert.match(html, /Architecture Builder/);
+    }
+  });
+
+  test('forms post to this origin only, and no password ever comes back in a page', async () => {
+    const env = makeEnv();
+    for (const [name, html] of Object.entries(await everyPage(env))) {
+      for (const m of html.matchAll(/<form\b[^>]*action="([^"]*)"/g)) assert.match(m[1], /^\/[a-z]/, `${name}: ${m[1]}`);
+      for (const m of html.matchAll(/<input\b[^>]*type="password"[^>]*>/g)) assert.doesNotMatch(m[0], /\svalue=/, `${name}: ${m[0]}`);
+    }
+    const b = new Browser(env, '198.51.100.20');
+    const back = await (await b.post('/signup', { name: '', email: 'x@example.com', password: 'sekret-not-echoed' })).text();
+    assert.doesNotMatch(back, /sekret-not-echoed/);
+    const login = await (await b.post('/login', { email: 'x@example.com', password: 'sekret-not-echoed' })).text();
+    assert.doesNotMatch(login, /sekret-not-echoed/);
+  });
+
+  test('the fields carry the autocomplete hints password managers and phones use', async () => {
+    const env = makeEnv();
+    const p = await everyPage(env);
+    assert.match(p.login, /autocomplete="username"[^>]*type="email"/);
+    assert.match(p.login, /autocomplete="current-password"/);
+    assert.match(p.signup, /autocomplete="new-password"/);
+    assert.match(p.verify, /autocomplete="one-time-code"[^>]*inputmode="numeric"/);
+    assert.match(p.reset, /autocomplete="one-time-code"/);
+    assert.match(p.reset, /autocomplete="new-password"/);
+    assert.match(p.account, /autocomplete="current-password"/);
+  });
+
+  test('every page reads in Korean and Chinese too', async () => {
+    const env = makeEnv();
+    for (const [lang, word] of [['ko', /로그인|계정|비밀번호|이메일/], ['zh', /登录|账号|密码|邮箱/]] as const) {
+      for (const p of ['/login', '/signup', '/forgot']) {
+        const html = await call(env, req(p, { headers: { Cookie: `ab_lang=${lang}` } }));
+        assert.match(html, new RegExp(`<html lang="${lang}"`), p);
+        assert.match(html, word, `${lang} ${p}`);
+      }
     }
   });
 

@@ -85,7 +85,7 @@ export async function hmacVerify(secret: string, purpose: string, payload: strin
 
 /**
  * Signs a JSON value as `base64url(json).signature`. The purpose is part of the MAC input, so a token signed for one
- * use (the sign-in cookie, the session cookie, a fake-Google code) is rejected for every other.
+ * use (the session cookie, the code-flow cookie, the admin notice) is rejected for every other.
  */
 export async function signJson(secret: string, purpose: string, value: unknown): Promise<string> {
   const payload = b64url(utf8(JSON.stringify(value)));

@@ -2,16 +2,16 @@
 // at once cannot break the rules (for example, the last admin can never be demoted or removed).
 import type { D1Database, D1PreparedStatement } from './env.ts';
 import { randomHex } from './crypto.ts';
+import type { StoredPassword } from './password.ts';
 
 export type Status = 'pending' | 'approved' | 'denied' | 'revoked';
 export type Role = 'user' | 'admin';
 
+/** An account as the rest of the Worker sees it. The password columns are never read into it (see credentialsByEmail). */
 export interface UserRow {
   id: string;
   email: string;
-  google_sub: string | null;
   name: string;
-  picture: string | null;
   status: Status;
   role: Role;
   note: string | null;
@@ -20,26 +20,48 @@ export interface UserRow {
   requested_at: number | null;
   decided_at: number | null;
   decided_by: string | null;
+  last_login_at: number | null;
   last_seen_at: number | null;
 }
 
+/** The columns of UserRow, for SELECTs (never u.*, which would carry the password hash along). */
+const USER_COLS = 'id, email, name, status, role, note, lang, created_at, requested_at, decided_at, decided_by, last_login_at, last_seen_at';
+const U_COLS = USER_COLS.split(', ')
+  .map((c) => `u.${c}`)
+  .join(', ');
+
 export const NOTE_MAX = 500;
+export const NAME_MAX = 80;
 
 /** The UTC day (YYYY-MM-DD) of a time in ms. */
 export const utcDay = (ms: number): string => new Date(ms).toISOString().slice(0, 10);
 
 export async function userByEmail(db: D1Database, email: string): Promise<UserRow | null> {
-  return db.prepare('SELECT * FROM users WHERE email = ?').bind(email).first<UserRow>();
+  return db.prepare(`SELECT ${USER_COLS} FROM users WHERE email = ?`).bind(email).first<UserRow>();
 }
 
 export async function userById(db: D1Database, id: string): Promise<UserRow | null> {
-  return db.prepare('SELECT * FROM users WHERE id = ?').bind(id).first<UserRow>();
+  return db.prepare(`SELECT ${USER_COLS} FROM users WHERE id = ?`).bind(id).first<UserRow>();
+}
+
+export interface Credentials extends StoredPassword {
+  id: string;
+  email: string;
+}
+
+/** The password hash of an account, for sign-in and password changes only. */
+export async function credentialsByEmail(db: D1Database, email: string): Promise<Credentials | null> {
+  return db.prepare('SELECT id, email, pw_hash, pw_salt, pw_version FROM users WHERE email = ?').bind(email).first<Credentials>();
+}
+
+export async function credentialsById(db: D1Database, id: string): Promise<Credentials | null> {
+  return db.prepare('SELECT id, email, pw_hash, pw_salt, pw_version FROM users WHERE id = ?').bind(id).first<Credentials>();
 }
 
 /** The user behind a live session (not expired, not revoked), read fresh: status and role are always current. */
 export async function userBySession(db: D1Database, idHash: string, now: number): Promise<UserRow | null> {
   return db
-    .prepare('SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id_hash = ? AND s.expires_at > ? AND s.revoked_at IS NULL')
+    .prepare(`SELECT ${U_COLS} FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id_hash = ? AND s.expires_at > ? AND s.revoked_at IS NULL`)
     .bind(idHash, now)
     .first<UserRow>();
 }
@@ -51,65 +73,133 @@ export async function audit(db: D1Database, who: string, what: string, target: s
     .run();
 }
 
-export class AccountMismatch extends Error {}
+/* ---------- sign-ups ---------- */
 
-export interface SignInResult {
+export interface SignupInput {
+  email: string;
+  name: string;
+  note: string | null;
+  password: StoredPassword;
+  lang: string | null;
+  flowHash: string;
+}
+
+/** Sign-ups kept per address while they wait for their code (the newest; see codes.ts LIVE_CODES). */
+const LIVE_SIGNUPS = 5;
+
+/**
+ * The statements that store (or replace, for the same browser flow) a sign-up waiting for its code, and drop the
+ * address's expired or surplus ones. Another browser's sign-up for the same address is a row of its own: it can neither
+ * replace the owner's nor attach a password to the owner's code.
+ */
+export function putSignup(db: D1Database, s: SignupInput, now: number): D1PreparedStatement[] {
+  return [
+    db
+      .prepare(
+        `INSERT INTO signups (email, flow_hash, name, note, pw_hash, pw_salt, pw_version, lang, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT (email, flow_hash) DO UPDATE SET name = excluded.name, note = excluded.note, pw_hash = excluded.pw_hash, pw_salt = excluded.pw_salt,
+           pw_version = excluded.pw_version, lang = excluded.lang, created_at = excluded.created_at`,
+      )
+      .bind(s.email, s.flowHash, s.name, s.note, s.password.pw_hash, s.password.pw_salt, s.password.pw_version, s.lang, now),
+    db
+      .prepare(
+        `DELETE FROM signups WHERE email = ? AND (created_at < ? OR flow_hash NOT IN
+           (SELECT flow_hash FROM signups WHERE email = ? ORDER BY created_at DESC, rowid DESC LIMIT ${LIVE_SIGNUPS}))`,
+      )
+      .bind(s.email, now - 2 * 86_400_000, s.email),
+  ];
+}
+
+/** Updates the details of a sign-up, only when it belongs to the same browser flow (the person corrected the form). */
+export async function updateSignupInFlow(db: D1Database, s: SignupInput, now: number): Promise<boolean> {
+  const r = await db
+    .prepare('UPDATE signups SET name = ?, note = ?, pw_hash = ?, pw_salt = ?, pw_version = ?, lang = ?, created_at = ? WHERE email = ? AND flow_hash = ?')
+    .bind(s.name, s.note, s.password.pw_hash, s.password.pw_salt, s.password.pw_version, s.lang, now, s.email, s.flowHash)
+    .run();
+  return (r.meta.changes ?? 0) === 1;
+}
+
+/** Whether this browser flow has a sign-up waiting for this address. */
+export async function signupInFlow(db: D1Database, email: string, flowHash: string): Promise<boolean> {
+  return (await db.prepare('SELECT 1 AS x FROM signups WHERE email = ? AND flow_hash = ?').bind(email, flowHash).first()) !== null;
+}
+
+/**
+ * Scratch writes with the shape of a sign-up or code write (an upsert per statement, in one batch). The paths for an
+ * address that has an account run this where a new address stores a sign-up or a code, so both cost the same database
+ * work and a timing difference cannot tell them apart. The rows are never read.
+ */
+export async function decoyWrite(db: D1Database, statements: number, now: number): Promise<void> {
+  const stmts: D1PreparedStatement[] = [];
+  for (let i = 0; i < statements; i++) {
+    stmts.push(db.prepare('INSERT INTO decoy (k, at) VALUES (?, ?) ON CONFLICT (k) DO UPDATE SET at = excluded.at').bind(`d${i}`, now));
+  }
+  await db.batch(stmts);
+}
+
+export interface CreatedAccount {
   user: UserRow;
-  created: boolean;
-  /** Approved as an admin from ADMIN_EMAILS during this sign-in. */
+  /** Approved as an admin from ADMIN_EMAILS. */
   seeded: boolean;
 }
 
 /**
- * Creates or refreshes the user for a verified Google identity. An address in ADMIN_EMAILS is approved as an admin
- * when the account is created, or while it is still pending (never over an admin's deny or revoke). A known email
- * arriving with another Google subject is refused.
+ * Turns the confirmed sign-up of this browser flow into an account: pending, or an approved admin for an address in
+ * ADMIN_EMAILS. The address's other waiting sign-ups and codes (other browsers') are dropped. Returns null when there
+ * is no such sign-up or the address already has an account.
  */
-export async function upsertOnSignIn(
-  db: D1Database,
-  id: { sub: string; email: string; name: string; picture: string | null },
-  o: { seedAdmin: boolean; lang: string | null; now: number },
-): Promise<SignInResult> {
-  const { now } = o;
-  let u = await userByEmail(db, id.email);
-  if (!u) {
-    const uid = `u_${randomHex(8)}`;
-    const status: Status = o.seedAdmin ? 'approved' : 'pending';
-    const role: Role = o.seedAdmin ? 'admin' : 'user';
-    const r = await db
+export async function createAccountFromSignup(db: D1Database, email: string, flowHash: string, seedAdmin: boolean, now: number): Promise<CreatedAccount | null> {
+  const id = `u_${randomHex(8)}`;
+  const status: Status = seedAdmin ? 'approved' : 'pending';
+  const role: Role = seedAdmin ? 'admin' : 'user';
+  const [ins] = await db.batch([
+    db
       .prepare(
-        `INSERT INTO users (id, email, google_sub, name, picture, status, role, lang, created_at, decided_at, decided_by, last_seen_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (email) DO NOTHING`,
+        `INSERT INTO users (id, email, name, pw_hash, pw_salt, pw_version, pw_changed_at, status, role, note, lang, created_at, requested_at, decided_at, decided_by, last_login_at, last_seen_at)
+         SELECT ?, email, name, pw_hash, pw_salt, pw_version, ?, ?, ?, note, lang, ?, ?, ?, ?, ?, ? FROM signups WHERE email = ? AND flow_hash = ?
+         ON CONFLICT (email) DO NOTHING`,
       )
-      .bind(uid, id.email, id.sub, id.name, id.picture, status, role, o.lang, now, o.seedAdmin ? now : null, o.seedAdmin ? 'ADMIN_EMAILS' : null, now)
-      .run();
-    u = await userByEmail(db, id.email);
-    if (!u) throw new Error('user insert failed');
-    if ((r.meta.changes ?? 0) === 1) {
-      await audit(db, 'system', o.seedAdmin ? 'seed-admin' : 'sign-up', id.email, null, now);
-      return { user: u, created: true, seeded: o.seedAdmin };
-    }
-  }
-  if (u.google_sub && u.google_sub !== id.sub) {
-    await audit(db, 'system', 'account-mismatch', id.email, null, now);
-    throw new AccountMismatch();
-  }
-  let seeded = false;
-  if (o.seedAdmin && u.status === 'pending') {
-    const r = await db
-      .prepare(`UPDATE users SET status = 'approved', role = 'admin', decided_at = ?, decided_by = 'ADMIN_EMAILS' WHERE id = ? AND status = 'pending'`)
-      .bind(now, u.id)
-      .run();
-    if ((r.meta.changes ?? 0) === 1) {
-      seeded = true;
-      await audit(db, 'system', 'seed-admin', u.email, null, now);
-    }
-  }
-  await db
-    .prepare('UPDATE users SET google_sub = COALESCE(google_sub, ?), name = ?, picture = ?, lang = COALESCE(?, lang), last_seen_at = ? WHERE id = ?')
-    .bind(id.sub, id.name, id.picture, o.lang, now, u.id)
+      .bind(id, now, status, role, now, seedAdmin ? null : now, seedAdmin ? now : null, seedAdmin ? 'ADMIN_EMAILS' : null, now, now, email, flowHash),
+    db.prepare('DELETE FROM signups WHERE email = ?').bind(email),
+    db.prepare(`DELETE FROM codes WHERE email = ? AND purpose = 'verify'`).bind(email),
+  ]);
+  if ((ins.meta.changes ?? 0) !== 1) return null;
+  await audit(db, 'system', seedAdmin ? 'seed-admin' : 'sign-up', email, null, now);
+  return { user: (await userById(db, id))!, seeded: seedAdmin };
+}
+
+/**
+ * At sign-in: an address in ADMIN_EMAILS whose account is still pending becomes an approved admin. Never over an
+ * admin's decline or removal.
+ */
+export async function seedAdminIfPending(db: D1Database, user: UserRow, now: number): Promise<boolean> {
+  if (user.status !== 'pending') return false;
+  const r = await db
+    .prepare(`UPDATE users SET status = 'approved', role = 'admin', decided_at = ?, decided_by = 'ADMIN_EMAILS' WHERE id = ? AND status = 'pending'`)
+    .bind(now, user.id)
     .run();
-  return { user: (await userById(db, u.id))!, created: false, seeded };
+  if ((r.meta.changes ?? 0) !== 1) return false;
+  await audit(db, 'system', 'seed-admin', user.email, null, now);
+  return true;
+}
+
+export async function recordSignIn(db: D1Database, userId: string, lang: string | null, now: number): Promise<void> {
+  await db.prepare('UPDATE users SET last_login_at = ?, last_seen_at = ?, lang = COALESCE(?, lang) WHERE id = ?').bind(now, now, lang, userId).run();
+}
+
+/** Stores a new password hash. */
+export function setPasswordStatement(db: D1Database, userId: string, p: StoredPassword, now: number): D1PreparedStatement {
+  return db.prepare('UPDATE users SET pw_hash = ?, pw_salt = ?, pw_version = ?, pw_changed_at = ? WHERE id = ?').bind(p.pw_hash, p.pw_salt, p.pw_version, now, userId);
+}
+
+/** Replaces the password and revokes every session of the user except `keepSession` (a hash, or null for all). */
+export async function changePassword(db: D1Database, userId: string, p: StoredPassword, keepSession: string | null, now: number): Promise<void> {
+  await db.batch([
+    setPasswordStatement(db, userId, p, now),
+    keepSession
+      ? db.prepare('UPDATE sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL AND id_hash != ?').bind(now, userId, keepSession)
+      : db.prepare('UPDATE sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL').bind(now, userId),
+  ]);
 }
 
 export async function insertSession(db: D1Database, idHash: string, userId: string, now: number, expiresAt: number): Promise<void> {
@@ -131,15 +221,10 @@ export async function touchLastSeen(db: D1Database, userId: string, now: number)
   await db.prepare('UPDATE users SET last_seen_at = ? WHERE id = ?').bind(now, userId).run();
 }
 
-/**
- * Records the access request (first time: returns 'requested', and the admins are told) or updates the note of a
- * request already made ('updated'). Only a pending user can request.
- */
-export async function requestAccess(db: D1Database, userId: string, note: string | null, now: number): Promise<'requested' | 'updated' | 'not-pending'> {
-  const first = await db.prepare(`UPDATE users SET note = ?, requested_at = ? WHERE id = ? AND status = 'pending' AND requested_at IS NULL`).bind(note, now, userId).run();
-  if ((first.meta.changes ?? 0) === 1) return 'requested';
-  const upd = await db.prepare(`UPDATE users SET note = ? WHERE id = ? AND status = 'pending'`).bind(note, userId).run();
-  return (upd.meta.changes ?? 0) === 1 ? 'updated' : 'not-pending';
+/** Updates the note of a pending user's request. */
+export async function updateNote(db: D1Database, userId: string, note: string | null): Promise<boolean> {
+  const r = await db.prepare(`UPDATE users SET note = ? WHERE id = ? AND status = 'pending'`).bind(note, userId).run();
+  return (r.meta.changes ?? 0) === 1;
 }
 
 /** How many access requests were made since `since` (ms): the throttle for the admin notification mails. */
@@ -212,6 +297,28 @@ export async function applyAdminAction(db: D1Database, actor: UserRow, targetId:
   return { ok: true, user: (await userById(db, target.id))! };
 }
 
+/** Requests that have waited longer than this are "old" for the bulk decline on /admin. */
+export const STALE_REQUEST_MS = 7 * 86_400_000;
+
+/**
+ * Declines every pending request older than STALE_REQUEST_MS in one conditional UPDATE (open sign-up lets anyone with
+ * a mailbox leave junk in the queue). Only an approved admin's call changes anything; ADMIN_EMAILS-seeded and admin
+ * rows are never touched (role must be 'user'). Returns how many were declined.
+ */
+export async function denyStalePending(db: D1Database, actor: UserRow, now: number): Promise<number> {
+  const r = await db
+    .prepare(
+      `UPDATE users SET status = 'denied', decided_at = ?, decided_by = ?
+       WHERE status = 'pending' AND role = 'user' AND COALESCE(requested_at, created_at) < ?
+         AND EXISTS (SELECT 1 FROM users WHERE id = ? AND role = 'admin' AND status = 'approved')`,
+    )
+    .bind(now, actor.email, now - STALE_REQUEST_MS, actor.id)
+    .run();
+  const count = r.meta.changes ?? 0;
+  if (count > 0) await audit(db, actor.email, 'bulk-deny', null, { count, olderThanDays: STALE_REQUEST_MS / 86_400_000 }, now);
+  return count;
+}
+
 export interface AdminUserView extends UserRow {
   turns_today: number;
   cost_today: number;
@@ -221,7 +328,7 @@ export interface AdminUserView extends UserRow {
 export async function listUsers(db: D1Database, now: number): Promise<AdminUserView[]> {
   const r = await db
     .prepare(
-      `SELECT u.*,
+      `SELECT ${U_COLS},
          COALESCE((SELECT turns FROM usage WHERE user_id = u.id AND day = ?), 0) AS turns_today,
          COALESCE((SELECT est_cost_usd FROM usage WHERE user_id = u.id AND day = ?), 0) AS cost_today,
          COALESCE((SELECT SUM(turns) FROM usage WHERE user_id = u.id), 0) AS turns_total

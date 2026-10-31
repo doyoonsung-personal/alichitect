@@ -41,23 +41,30 @@ export interface Env {
   DB: D1Database;
   EMAIL?: EmailBinding;
 
-  /** Comma-separated addresses that become approved admins at their first sign-in. */
+  /** Comma-separated addresses that become approved admins when they confirm their email (or sign in while pending). */
   ADMIN_EMAILS?: string;
   /** Turns per UTC day for a non-admin user (default 60). */
   TURNS_PER_DAY?: string;
   /** The one origin the app is served from, e.g. https://architect.alikorea-demo.com. */
   ALLOWED_ORIGIN: string;
-  GOOGLE_CLIENT_ID: string;
   MAIL_FROM?: string;
   SITE_NAME?: string;
   /** New access requests that email the admins per rolling day (default 30); the rest are recorded without a mail. */
   REQUEST_MAILS_PER_DAY?: string;
   /** "1": email the user when an admin approves them (default on). */
   NOTIFY_ON_APPROVAL?: string;
-  /** "1" (local only): log mail subjects instead of sending. */
+  /** The sign-up pool: sign-up codes and "you already have an account" notes per rolling day, all addresses together
+   * (default 100). Past it the sign-up page says it is temporarily unavailable; resets and the ADMIN_EMAILS addresses
+   * have pools of their own. */
+  CODE_MAILS_PER_DAY?: string;
+  /** The reset pool: password-reset codes per rolling day, all addresses together (default 50). */
+  RESET_MAILS_PER_DAY?: string;
+  /** The reserve for ADMIN_EMAILS addresses (their sign-up and reset codes): per rolling day, never shared with the
+   * pools above, so a flood of sign-ups cannot keep an operator from getting a code (default 40). */
+  ADMIN_CODE_MAILS_PER_DAY?: string;
+  /** "1" (local only): log mails (recipient and subject, which carries any code) instead of sending. Ignored unless
+   * ALLOWED_ORIGIN is a plain-http loopback address, so it can never leak codes into production logs. */
   MAIL_LOG?: string;
-  /** "1" (local only): the fake Google sign-in for tests. Refused unless both the page and ALLOWED_ORIGIN are loopback. */
-  DEV_FAKE_GOOGLE?: string;
   QWEN_MODEL?: string;
   /** 'none' disables failover. */
   QWEN_FALLBACK_MODEL?: string;
@@ -66,7 +73,7 @@ export interface Env {
 
   // secrets
   DASHSCOPE_API_KEY?: string;
-  GOOGLE_CLIENT_SECRET?: string;
+  /** Signs the session, flow and notice cookies, and keys the email-code and throttle HMACs. 32+ characters. */
   SESSION_SECRET?: string;
 }
 
@@ -84,6 +91,15 @@ export function turnsPerDay(env: Env): number {
   const n = Number(env.TURNS_PER_DAY ?? '60');
   return Number.isInteger(n) && n >= 0 && n <= 100_000 ? n : 60;
 }
+
+const intVar = (v: string | undefined, dflt: number, max = 100_000): number => {
+  const n = Number(v ?? String(dflt));
+  return Number.isInteger(n) && n >= 0 && n <= max ? n : dflt;
+};
+
+export const codeMailsPerDay = (env: Env): number => intVar(env.CODE_MAILS_PER_DAY, 100);
+export const resetMailsPerDay = (env: Env): number => intVar(env.RESET_MAILS_PER_DAY, 50);
+export const adminCodeMailsPerDay = (env: Env): number => intVar(env.ADMIN_CODE_MAILS_PER_DAY, 40);
 
 export function requestMailsPerDay(env: Env): number {
   const n = Number(env.REQUEST_MAILS_PER_DAY ?? '30');
@@ -108,3 +124,14 @@ export function sessionSecret(env: Env): string | null {
 }
 
 export const isLoopbackHost = (h: string): boolean => h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h === '::1';
+
+/** MAIL_LOG is honoured only for local development: plain http on a loopback ALLOWED_ORIGIN. */
+export function mailLogAllowed(env: Env): boolean {
+  if (env.MAIL_LOG !== '1') return false;
+  try {
+    const u = new URL(env.ALLOWED_ORIGIN);
+    return u.protocol === 'http:' && isLoopbackHost(u.hostname);
+  } catch {
+    return false;
+  }
+}

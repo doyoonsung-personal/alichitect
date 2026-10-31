@@ -20,7 +20,7 @@ describe('signed values', () => {
     assert.equal(await verifyJson(SECRET, 'session-v1', `${otherPayload}.${s}`), null, 'payload swapped');
     assert.equal(await verifyJson(SECRET, 'session-v1', `${p}.${s.slice(0, -1)}${s.endsWith('A') ? 'B' : 'A'}`), null, 'signature changed');
     assert.equal(await verifyJson(`${SECRET}x`, 'session-v1', tok), null, 'another secret');
-    assert.equal(await verifyJson(SECRET, 'oidc-v1', tok), null, 'a session token is not a sign-in token');
+    assert.equal(await verifyJson(SECRET, 'flow-v1', tok), null, 'a session token is not a code-flow token');
   });
 
   test('malformed tokens are null, never an exception', async () => {

@@ -1,11 +1,12 @@
 // alichitect Worker: one Worker for https://architect.alikorea-demo.com. With run_worker_first, every request comes
 // here before the static assets, and this file decides who may see what:
 //
-//   public          GET /login, /auth/google, /auth/callback, POST /auth/logout, GET /api/health, /robots.txt,
-//                   /_auth/* (the sign-in pages' CSS, script and Google mark), the two Alibaba Cloud logo files
-//   signed in       GET and POST /pending (request access with a note, see the status, sign out)
+//   public          /login, /signup, /verify, /forgot, /reset (GET the page, POST the form; src/auth.ts), POST
+//                   /verify/resend, /reset/resend, /auth/logout, GET /api/health, /robots.txt, /_auth/* (the pages'
+//                   CSS and script), the two Alibaba Cloud logo files
+//   signed in       GET /pending (the status; POST updates the note), GET /account, POST /account/password
 //   approved        the SPA (apps/web/dist), POST /api/turn, GET /api/me
-//   admin           /admin, POST /admin/users/:id/:action, /admin/api/*
+//   admin           /admin, POST /admin/users/:id/:action, POST /admin/pending/deny-old, /admin/api/*
 //
 // Pages answer 302 (to /login or /pending); the API answers 401 or 403 JSON (POST /api/turn's body is a fatal
 // ServerEvent, so the SPA shows it). GET /api/health is public but anonymous callers only learn { ok: true }. State-changing requests must come from this origin (Origin check; Sec-Fetch-Site
@@ -13,23 +14,23 @@
 import type { Env, ExecutionContextLike } from './env.ts';
 import { allowedOrigin, sessionSecret, turnsPerDay } from './env.ts';
 import { cookie, html, json, redirect, safeNext, secure } from './http.ts';
-import { finishSignIn, providerFor, signOut, startSignIn } from './auth.ts';
-import type { LoginError } from './auth.ts';
-import { FAKE_PREFIX, fakeGoogleAllowed, handleFakeGoogle } from './fake-google.ts';
+import * as auth from './auth.ts';
 import { currentUser } from './session.ts';
 import type { Signed } from './session.ts';
 import * as db from './db.ts';
-import { FLASH_COOKIE, adminApi, adminFormAction, adminNotice, submitAccessRequest } from './admin.ts';
+import { FLASH_COOKIE, adminApi, adminDenyOld, adminFormAction, adminNotice, updatePendingNote } from './admin.ts';
 import { handleTurn, health, reject, sharedTurnState, workerFatalMessage } from './turn.ts';
 import { authAsset } from './pages/assets.ts';
 import { LANG_COOKIE, isLang, langOfRequest } from './pages/i18n.ts';
-import { adminPage, loginPage, pendingPage } from './pages/views.ts';
-import type { LoginNotice, PendingNotice } from './pages/views.ts';
+import { accountPage, adminPage, loginPage, pendingPage } from './pages/views.ts';
+import type { Note } from './pages/views.ts';
 import type { PageCtx } from './pages/layout.ts';
 
 const PUBLIC_ASSETS = new Set(['/brand/alibaba-cloud-logo-en.svg', '/brand/alibaba-cloud-logo-zh.svg']);
-const LANG_PAGES = new Set(['/login', '/pending', '/admin']);
-const LOGIN_ERRORS: ReadonlySet<string> = new Set<LoginError>(['cancelled', 'expired', 'failed', 'unverified', 'account', 'config']);
+const LANG_PAGES = new Set(['/login', '/signup', '/verify', '/forgot', '/reset', '/pending', '/account', '/admin']);
+/** The public sign-in pages: each answers GET with its page and POST with its form. */
+const AUTH_PAGES = new Set(['/login', '/signup', '/verify', '/forgot', '/reset']);
+const AUTH_POSTS = new Set(['/verify/resend', '/reset/resend']);
 const STATIC_RE = /\.(?:js|mjs|css|wasm|woff2?|ttf|otf|svg|png|jpe?g|gif|webp|ico|map|txt|json)$/i;
 const LAST_SEEN_EVERY_MS = 5 * 60_000;
 /** The SPA's module workers (Vite names them name.worker-hash.js): see csp() in http.ts. */
@@ -99,14 +100,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
   if (path.startsWith('/_auth/') || path === '/robots.txt') return (isGet(method) && authAsset(path)) || json(404, { error: 'not-found' });
   if (PUBLIC_ASSETS.has(path)) return isGet(method) ? env.ASSETS.fetch(request) : json(405, { error: 'method-not-allowed' });
   if (path === '/favicon.ico') return new Response(null, { status: 404 });
-  if (path.startsWith(`${FAKE_PREFIX}/`)) return fakeGoogleAllowed(env, url) && isGet(method) ? handleFakeGoogle(env, url) : json(404, { error: 'not-found' });
-  if (path.startsWith('/auth/')) {
-    if (!sessionSecret(env)) return redirect('/login?error=config');
-    if (path === '/auth/google' && isGet(method)) return startSignIn(env, url, providerFor(env, url));
-    if (path === '/auth/callback' && isGet(method)) return finishSignIn(request, env, url, providerFor(env, url), ctx);
-    if (path === '/auth/logout' && method === 'POST') return signOut(request, env);
-    return json(405, { error: 'method-not-allowed' });
-  }
+  if (path === '/auth/logout') return method === 'POST' ? auth.signOut(request, env) : json(405, { error: 'method-not-allowed' }, { Allow: 'POST' });
 
   // ?lang= on one of the server-rendered pages: remember the choice in a cookie and come back without it. Only these
   // exact paths, so the redirect can never point anywhere else (a path such as //evil.example would be off-site).
@@ -117,14 +111,30 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
     return redirect(clean.pathname + clean.search, 302, [['Set-Cookie', cookie(LANG_COOKIE, langParam, { maxAge: 365 * 86400, httpOnly: true, secure: url.protocol === 'https:' })]]);
   }
 
-  if (path === '/login') {
-    if (!isGet(method)) return json(405, { error: 'method-not-allowed' });
-    const s = sessionSecret(env) ? await currentUser(request, env, { fresh: true }) : null;
-    const next = safeNext(url.searchParams.get('next'));
-    if (s) return redirect(s.user.status === 'approved' ? next : '/pending');
-    const err = url.searchParams.get('error');
-    const n: LoginNotice = err && LOGIN_ERRORS.has(err) ? (err as LoginNotice) : url.searchParams.get('signed_out') ? 'signed-out' : !sessionSecret(env) ? 'config' : null;
-    return html(200, loginPage(pageCtx(request, url), { next, notice: n }));
+  if (AUTH_PAGES.has(path) || AUTH_POSTS.has(path)) {
+    if (AUTH_POSTS.has(path) ? method !== 'POST' : !isGet(method) && method !== 'POST') return json(405, { error: 'method-not-allowed' }, { Allow: AUTH_POSTS.has(path) ? 'POST' : 'GET, POST' });
+    const pc = pageCtx(request, url);
+    const a = auth.authCtx(request, env, ctx, pc);
+    // without SESSION_SECRET nothing can be signed: every sign-in path shows the setup notice
+    if (!a) return html(503, loginPage(pc, { next: '/', note: auth.loginNote(url, false) }));
+    if (path === '/login') {
+      if (method === 'POST') return auth.postLogin(a);
+      const s = await currentUser(request, env, { fresh: true });
+      const next = safeNext(url.searchParams.get('next'));
+      if (s) return redirect(s.user.status === 'approved' ? next : '/pending');
+      return html(200, loginPage(pc, { next, note: auth.loginNote(url, true) }));
+    }
+    if (path === '/signup') {
+      if (method === 'POST') return auth.postSignup(a);
+      const s = await currentUser(request, env, { fresh: true });
+      if (s) return redirect(s.user.status === 'approved' ? '/' : '/pending');
+      return auth.getSignup(a, url);
+    }
+    if (path === '/verify') return method === 'POST' ? auth.postVerify(a) : auth.getVerify(a, url);
+    if (path === '/verify/resend') return auth.postVerifyResend(a);
+    if (path === '/forgot') return method === 'POST' ? auth.postForgot(a) : auth.getForgot(a, url);
+    if (path === '/reset') return method === 'POST' ? auth.postReset(a) : auth.getReset(a, url);
+    return auth.postResetResend(a);
   }
 
   // ---------- signed in ----------
@@ -136,10 +146,22 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
 
   if (path === '/pending') {
     if (me.status === 'approved') return redirect('/');
-    if (method === 'POST') return submitAccessRequest(request, env, ctx, me);
+    if (method === 'POST') return updatePendingNote(request, env, me);
     if (!isGet(method)) return json(405, { error: 'method-not-allowed' });
     const n = url.searchParams.get('n');
-    return html(200, pendingPage(pageCtx(request, url), { user: me, notice: n === 'sent' || n === 'updated' ? (n as PendingNotice) : null }));
+    const note: Note | null = n === 'verified' ? { kind: 'ok', key: 'pending.verified' } : n === 'updated' ? { kind: 'ok', key: 'pending.updated' } : null;
+    return html(200, pendingPage(pageCtx(request, url), { user: me, note }));
+  }
+
+  if (path === '/account' || path === '/account/password') {
+    const pc = pageCtx(request, url);
+    if (path === '/account/password') {
+      if (method !== 'POST') return json(405, { error: 'method-not-allowed' }, { Allow: 'POST' });
+      return auth.postChangePassword(auth.authCtx(request, env, ctx, pc)!, me, signed.sessionHash);
+    }
+    if (!isGet(method)) return json(405, { error: 'method-not-allowed' }, { Allow: 'GET' });
+    const note: Note | null = url.searchParams.get('n') === 'changed' ? { kind: 'ok', key: 'account.changed' } : null;
+    return html(200, accountPage(pc, { me, note }));
   }
 
   if (me.status !== 'approved') {
@@ -155,12 +177,14 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
     return json(200, {
       email: me.email,
       name: me.name,
-      picture: me.picture,
       role: me.role,
       status: me.status,
+      lang: me.lang,
+      createdAt: me.created_at,
       turnsToday: await db.turnsToday(env.DB, me.id, now),
       turnsPerDay: isAdmin ? null : turnsPerDay(env),
-      links: { admin: isAdmin ? '/admin' : null, signOut: '/auth/logout' },
+      // signOut takes a same-origin POST (a form, or fetch with method POST); the others are pages
+      links: { account: '/account', admin: isAdmin ? '/admin' : null, signOut: '/auth/logout' },
     });
   }
   if (path === '/api/turn') return method === 'POST' ? handleTurn(request, env, ctx, me) : reject(405, 'method-not-allowed', 'use POST', { Allow: 'POST' });
@@ -172,6 +196,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
     if (path.startsWith('/admin/api/')) return adminApi(request, env, ctx, me, path, now);
     const m = /^\/admin\/users\/([A-Za-z0-9_-]{1,64})\/([a-z]{1,16})$/.exec(path);
     if (m && method === 'POST') return adminFormAction(env, ctx, me, m[1], m[2], now);
+    if (path === '/admin/pending/deny-old' && method === 'POST') return adminDenyOld(env, me, now);
     if ((path === '/admin' || path === '/admin/') && isGet(method)) {
       const c = pageCtx(request, url);
       const [users, audit, flash] = await Promise.all([db.listUsers(env.DB, now), db.recentAudit(env.DB, 30), adminNotice(env, request, now)]);

@@ -1,5 +1,5 @@
 # Production deploy of https://architect.alikorea-demo.com, in this order, stopping at the first failure:
-#   1. preflight: wrangler.jsonc has no placeholder left (D1 id, Google client id) and no local-only switch
+#   1. preflight: wrangler.jsonc has no placeholder left (the D1 id), no local-only switch, and the email binding
 #   2. build the web app (apps/web/dist, which the Worker serves as static assets)
 #   3. test the Worker
 #   4. apply the remote D1 migrations

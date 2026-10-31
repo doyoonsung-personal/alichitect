@@ -13,8 +13,8 @@
 #   CLOUDFLARE_EMAIL       the email of that Cloudflare login
 #   CLOUDFLARE_ACCOUNT_ID  cfd2a327acfb7d93dc045825f12dd38d
 # Define one set. Wrangler uses the key and email when both are present, and the token otherwise.
-# The Worker's own secrets (DASHSCOPE_API_KEY, GOOGLE_CLIENT_SECRET, SESSION_SECRET) are not here: they live on the
-# Worker, set once with apps/worker/scripts/set-secrets.ps1, and survive every deploy.
+# The Worker's own secrets (DASHSCOPE_API_KEY, SESSION_SECRET) are not here: they live on the Worker, set once with
+# apps/worker/scripts/set-secrets.ps1, and survive every deploy.
 name: Deploy
 
 on:
@@ -57,7 +57,7 @@ jobs:
       - name: Install (worker)
         working-directory: apps/worker
         run: npm ci --no-audit --no-fund
-      - name: Preflight (no placeholders left in wrangler.jsonc)
+      - name: Preflight (no placeholder or local-only switch left in wrangler.jsonc)
         working-directory: apps/worker
         run: npm run preflight
 

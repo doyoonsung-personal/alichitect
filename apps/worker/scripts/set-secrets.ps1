@@ -4,18 +4,21 @@
 #   powershell -ExecutionPolicy Bypass -File apps\worker\scripts\set-secrets.ps1 -Only DASHSCOPE_API_KEY
 #   powershell -ExecutionPolicy Bypass -File apps\worker\scripts\set-secrets.ps1 -Only SESSION_SECRET -RotateSession
 #
-#   DASHSCOPE_API_KEY     read from your environment (the same variable the local server uses)
-#   GOOGLE_CLIENT_SECRET  asked for with a hidden prompt (Google Cloud Console > Clients > the OAuth client)
-#   SESSION_SECRET        generated: 48 random bytes. Set once; skipped when it already exists, because a new one signs
-#                         everybody out. -RotateSession replaces it on purpose.
+#   DASHSCOPE_API_KEY  read from your environment (the same variable the local server uses)
+#   SESSION_SECRET     generated: 48 random bytes. It signs the session and code-flow cookies and keys the stored
+#                      email-code and throttle HMACs. Set once; skipped when it already exists, because a new one signs
+#                      everybody out and voids every code in flight. -RotateSession replaces it on purpose.
+#
+# There is nothing else: accounts are email and password (no identity provider, so no client secret), and the codes
+# go out through the Email Service binding, which needs no secret.
 #
 # Wrangler signs in with CLOUDFLARE_EMAIL and CLOUDFLARE_API_KEY from your environment. Each value reaches
 # `wrangler secret put` on standard input through scripts\put-secret.ts (never a command-line argument, never a file).
 # Needs `npm ci` in apps\worker first. If the Worker does not exist yet, wrangler creates it (with no route) to hold
 # the secrets; the first deploy then fills it in.
 param(
-  [ValidateSet('DASHSCOPE_API_KEY', 'GOOGLE_CLIENT_SECRET', 'SESSION_SECRET')]
-  [string[]]$Only = @('DASHSCOPE_API_KEY', 'GOOGLE_CLIENT_SECRET', 'SESSION_SECRET'),
+  [ValidateSet('DASHSCOPE_API_KEY', 'SESSION_SECRET')]
+  [string[]]$Only = @('DASHSCOPE_API_KEY', 'SESSION_SECRET'),
   [switch]$RotateSession
 )
 $ErrorActionPreference = 'Stop'
@@ -47,25 +50,17 @@ try {
     Invoke-Put 'DASHSCOPE_API_KEY'
   }
 
-  if ($Only -contains 'GOOGLE_CLIENT_SECRET') {
-    $secure = Read-Host -AsSecureString 'Google OAuth client secret (input hidden)'
-    $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
-    try {
-      # only for the next call, in this process; removed right after
-      $env:GOOGLE_CLIENT_SECRET = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
-      Invoke-Put 'GOOGLE_CLIENT_SECRET'
-    } finally {
-      [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
-      Remove-Item Env:GOOGLE_CLIENT_SECRET -ErrorAction SilentlyContinue
-    }
-  }
-
   if ($Only -contains 'SESSION_SECRET') {
     if (($existing -contains 'SESSION_SECRET') -and -not $RotateSession) {
       Write-Host 'SESSION_SECRET exists: kept (pass -RotateSession to replace it; that signs everybody out).'
     } else {
       Invoke-Put 'SESSION_SECRET' @('--generate')
     }
+  }
+
+  if ($existing -contains 'GOOGLE_CLIENT_SECRET') {
+    Write-Host 'GOOGLE_CLIENT_SECRET is still on the Worker from the Google sign-in, which is gone. Remove it with:'
+    Write-Host '  node node_modules\wrangler\bin\wrangler.js secret delete GOOGLE_CLIENT_SECRET --env='
   }
   Write-Host 'Done. `wrangler secret put` deploys each secret at once; no redeploy is needed.'
 } finally {

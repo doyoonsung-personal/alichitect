@@ -2,19 +2,23 @@
 // input byte for byte (Windows PowerShell's own pipe adds a UTF-8 byte-order mark, which would corrupt the secret).
 // Used by scripts/set-secrets.ps1; never prints the value.
 //   node scripts/put-secret.ts DASHSCOPE_API_KEY              value from the environment variable of the same name
-//   node scripts/put-secret.ts GOOGLE_CLIENT_SECRET           value from the environment (set-secrets.ps1 sets it briefly)
 //   node scripts/put-secret.ts SESSION_SECRET --generate      48 random bytes, base64url
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
-const NAMES = ['DASHSCOPE_API_KEY', 'GOOGLE_CLIENT_SECRET', 'SESSION_SECRET'] as const;
+const NAMES = ['DASHSCOPE_API_KEY', 'SESSION_SECRET'] as const;
 const name = process.argv[2] as (typeof NAMES)[number];
 if (!NAMES.includes(name)) {
   console.error(`usage: node scripts/put-secret.ts ${NAMES.join('|')} [--generate]`);
   process.exit(2);
 }
-const value = process.argv.includes('--generate') ? randomBytes(48).toString('base64url') : (process.env[name] ?? '').trim();
+const generate = process.argv.includes('--generate');
+if (name === 'SESSION_SECRET' && !generate) {
+  console.error('SESSION_SECRET is always generated here: pass --generate.');
+  process.exit(2);
+}
+const value = generate ? randomBytes(48).toString('base64url') : (process.env[name] ?? '').trim();
 if (!value) {
   console.error(`${name} is empty: nothing was set.`);
   process.exit(1);

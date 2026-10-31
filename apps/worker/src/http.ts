@@ -1,7 +1,7 @@
 // Response helpers, cookies and the security headers every response carries.
 
 /**
- * Content Security Policy: this origin only, plus Google's sign-in host for form posts and Google avatars.
+ * Content Security Policy: this origin only, for everything (forms post only to this origin).
  * workerScript: the SPA's module workers (/assets/*.worker-*.js). The diagram router runs libavoid there, whose
  * Emscripten embind glue builds its invokers with new Function, so that script alone also gets 'unsafe-eval'. A
  * dedicated worker takes its policy from its own script's response, so the pages keep the strict policy.
@@ -12,7 +12,7 @@ export function csp(https: boolean, workerScript = false): string {
     // the diagram router runs libavoid (WebAssembly) in a module worker
     workerScript ? "script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval'" : "script-src 'self' 'wasm-unsafe-eval'",
     "style-src 'self'",
-    "img-src 'self' data: blob: https://lh3.googleusercontent.com",
+    "img-src 'self' data: blob:",
     "font-src 'self' data:",
     "connect-src 'self'",
     "worker-src 'self' blob:",
@@ -20,7 +20,7 @@ export function csp(https: boolean, workerScript = false): string {
     "media-src 'self'",
     "object-src 'none'",
     "base-uri 'none'",
-    "form-action 'self' https://accounts.google.com",
+    "form-action 'self'",
     "frame-src 'none'",
     "frame-ancestors 'none'",
   ];
@@ -97,6 +97,9 @@ export function cookie(name: string, value: string, o: CookieOptions): string {
   return parts.join('; ');
 }
 
+/** The sign-in pages themselves: never a place to return to after signing in. */
+const NO_RETURN = new Set(['/login', '/signup', '/verify', '/verify/resend', '/forgot', '/reset', '/reset/resend']);
+
 /** A path on this site to return to after sign-in, or '/' when the value is anything else (open-redirect guard). */
 export function safeNext(v: string | null | undefined): string {
   if (!v || v.length > 1024) return '/';
@@ -104,7 +107,7 @@ export function safeNext(v: string | null | undefined): string {
   try {
     const u = new URL(v, 'https://x.invalid');
     if (u.origin !== 'https://x.invalid') return '/';
-    if (u.pathname.startsWith('/auth/') || u.pathname === '/login') return '/';
+    if (u.pathname.startsWith('/auth/') || NO_RETURN.has(u.pathname)) return '/';
     const out = u.pathname + u.search;
     // dot-segments collapse in new URL(): /..//evil.com becomes //evil.com, a protocol-relative (off-site) URL
     if (out.startsWith('//')) return '/';
@@ -139,6 +142,17 @@ export async function readBodyLimited(request: Request, limit: number): Promise<
     at += c.byteLength;
   }
   return out;
+}
+
+/**
+ * A posted HTML form (application/x-www-form-urlencoded) up to `limit` bytes, or null when the body is larger. Any other
+ * content type reads as an empty form.
+ */
+export async function readForm(request: Request, limit = 16 * 1024): Promise<URLSearchParams | null> {
+  const raw = await readBodyLimited(request, limit);
+  if (!raw) return null;
+  if (!/^application\/x-www-form-urlencoded\b/i.test(request.headers.get('content-type') ?? '')) return new URLSearchParams();
+  return new URLSearchParams(new TextDecoder().decode(raw));
 }
 
 export const escapeHtml = (s: unknown): string =>
