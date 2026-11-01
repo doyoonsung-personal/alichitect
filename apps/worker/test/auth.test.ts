@@ -489,6 +489,15 @@ describe('change password (signed in)', () => {
     assert.match(await (await b.post('/account/password', { current: PASSWORD, password: 'c@example.com' })).text(), /Do not use your email address/);
   });
 
+  test('the new password typed into both boxes reports a wrong current password, not "the same"', async () => {
+    const env = makeEnv();
+    const b = await signedIn(env, 'c@example.com');
+    const page = await (await b.post('/account/password', { current: 'another good password', password: 'another good password' })).text();
+    assert.doesNotMatch(page, /different from the current one/);
+    assert.match(page, /aria-invalid="true"/);
+    assert.equal(where(await new Browser(env).post('/login', { email: 'c@example.com', password: PASSWORD })), '303 /', 'the password is unchanged');
+  });
+
   test('wrong current passwords lock the form after 5', async () => {
     const env = makeEnv();
     const b = await signedIn(env, 'c@example.com');

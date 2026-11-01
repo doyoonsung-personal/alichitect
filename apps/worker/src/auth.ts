@@ -486,7 +486,6 @@ export async function postChangePassword(a: AuthCtx, me: UserRow, sessionHash: s
   const next = form.get('password') ?? '';
   const pp = passwordProblem(next, me.email, me.name);
   if (pp) return html(400, accountPage(a.page, { me, passwordError: PW_KEY[pp] }));
-  if (next === current) return html(400, accountPage(a.page, { me, passwordError: 'password.error.same' }));
   const r = await rate(a, [['passwordUser', me.id]]);
   if (!r.ok) return html(429, accountPage(a.page, { me, note: limitNote(r.retryAfterMs) }), retryAfter(r.retryAfterMs));
   const lockKey = await key(a, 'passwordUser', me.id);
@@ -498,6 +497,9 @@ export async function postChangePassword(a: AuthCtx, me: UserRow, sessionHash: s
     const lock = await fail(a.env.DB, [{ key: lockKey, rule: LOCK.passwordUser }], a.now);
     return lock ? html(429, accountPage(a.page, { me, note: lockNote(lock) }), retryAfter(lock)) : html(400, accountPage(a.page, { me, currentError: true }));
   }
+  // Compared only after the current password is proven: typing the new password into both boxes (or a browser
+  // autofilling both) must report a wrong current password, not "choose a different password".
+  if (next === current) return html(400, accountPage(a.page, { me, passwordError: 'password.error.same' }));
   await db.changePassword(a.env.DB, me.id, await hashPassword(next), sessionHash, a.now); // other sessions end
   forgetUser(me.id);
   await clear(a.env.DB, [lockKey]);
