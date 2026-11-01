@@ -1,0 +1,9 @@
+﻿2026-11-01T02-22-43-claude-rescue: mode rescue, 5 cases, 5 turns, claude claude-opus-5-5, budget USD 2, concurrency 1
+[1/5] pat-04-rag#1 FAIL 1/1 turns 17s $0.089 firstOp 2518ms cut@4 rescue continue ok=true failed: format
+[2/5] pat-02-k8s#1 FAIL 1/1 turns 14s $0.085 firstOp 2441ms cut@6 rescue continue ok=true failed: format
+[3/5] pat-01-web-ha#1 PASS 1/1 turns 16s $0.085 firstOp 2432ms cut@9 rescue continue ok=true
+[4/5] pat-05-data-platform#1 FAIL 1/1 turns 20s $0.088 firstOp 2689ms cut@14 rescue continue ok=true failed: format
+[5/5] pat-12-ecommerce-security#1 FAIL 1/1 turns 17s $0.077 firstOp 2165ms cut@20 rescue continue ok=true failed: format
+
+results: C:\Users\mendo\ali_catalog\eval\results\2026-11-01T02-22-43-claude-rescue
+Claude spend this run: USD 0.156

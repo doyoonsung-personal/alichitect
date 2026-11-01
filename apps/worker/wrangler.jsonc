@@ -3,7 +3,8 @@
 // against Model Studio (dashscope-intl). Account: Dysung.alicloud@gmail.com's Account (Workers Paid), which also owns
 // alikorea-demo.com for other demos, so the only route is the custom domain below. Deploy steps: docs/DEPLOY.md.
 //
-// Secrets (never in this file; set with scripts/set-secrets.ps1): DASHSCOPE_API_KEY, SESSION_SECRET.
+// Secrets (never in this file; set with scripts/set-secrets.ps1): DASHSCOPE_API_KEY, SESSION_SECRET, and optionally
+// ANTHROPIC_API_KEY (the Claude backup that finishes turns Model Studio's content filter stops; without it, no backup).
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "alichitect",
@@ -34,6 +35,14 @@
     "SITE_NAME": "Alibaba Cloud Architecture Builder",
     "NOTIFY_ON_APPROVAL": "1",
     "REQUEST_MAILS_PER_DAY": "30", // access-request mails to the admins per rolling day; later requests are kept but not mailed
+    "CLAUDE_BACKUP_MODEL": "claude-opus-5-5", // the Claude backup's model; used only when the ANTHROPIC_API_KEY secret is set
+    // Caps on the Claude backup (it spends the owner's Anthropic credit, and anyone can write text that trips the content filter).
+    // A rescue starts only while the user is under their daily count and the day's Claude cost, all users together, is under the
+    // budget (migration 0003, src/turn.ts). A rescued turn also counts as 2 of TURNS_PER_DAY. Past a cap a filtered turn ends
+    // with the "backup limit reached" message, as if there were no backup.
+    "CLAUDE_RESCUES_PER_USER_DAY": "10",
+    "CLAUDE_RESCUES_PER_ADMIN_DAY": "30",
+    "CLAUDE_BUDGET_USD_PER_DAY": "5",
     // Abuse caps on code mails per rolling day, all addresses together. Three separate pools, so a flood of one kind cannot
     // starve another: sign-ups, password resets, and a reserve for the ADMIN_EMAILS addresses. A spent pool is shown on the
     // page ("temporarily unavailable") and logged as mail-cap-reached.
@@ -68,12 +77,17 @@
         "SITE_NAME": "Alibaba Cloud Architecture Builder",
         "NOTIFY_ON_APPROVAL": "1",
         "REQUEST_MAILS_PER_DAY": "30",
+        "CLAUDE_BACKUP_MODEL": "claude-opus-5-5",
+        "CLAUDE_RESCUES_PER_USER_DAY": "10",
+        "CLAUDE_RESCUES_PER_ADMIN_DAY": "30",
+        "CLAUDE_BUDGET_USD_PER_DAY": "5",
         "CODE_MAILS_PER_DAY": "100",
         "RESET_MAILS_PER_DAY": "50",
         "ADMIN_CODE_MAILS_PER_DAY": "40",
         "MAIL_LOG": "1"
       },
       // Secrets come from .dev.vars (dummy values); with --env-file they may come from the process environment instead.
+      // ANTHROPIC_API_KEY is optional and not listed: without it the dev Worker runs without the Claude backup.
       "secrets": { "required": ["DASHSCOPE_API_KEY", "SESSION_SECRET"] },
       "routes": [],
       "workers_dev": false

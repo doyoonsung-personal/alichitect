@@ -13,7 +13,7 @@ import type { TurnStats } from '../packages/core/src/llm.ts';
 
 /** The part of TurnStats the assertions read; stored records carry exactly these fields, so they can be rescored offline. */
 export type StatsLike = Pick<TurnStats, 'error' | 'ops' | 'warningsBefore' | 'warningsAfter' | 'badLines' | 'doneSeen' | 'finishReason' | 'escapes'> &
-  Partial<Pick<TurnStats, 'truncated' | 'finalDone' | 'repair' | 'fixes'>>;
+  Partial<Pick<TurnStats, 'truncated' | 'finalDone' | 'repair' | 'fixes' | 'rescue'>>;
 
 export const EVAL_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const RESULTS_DIR = path.join(EVAL_DIR, 'results');
@@ -660,11 +660,16 @@ export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: Reg
   // A main stream cut off before its done line (watchdog, network, or the model stopping early) and completed by the
   // continuation turn passes here; summarize counts those rescued turns separately.
   const rescued = !v.stats.doneSeen && !!v.stats.truncated && !!v.stats.finalDone;
+  // A content-filter cut leaves the half-written line it interrupted, which counts as one unparseable line of the main
+  // stream. When the Claude backup continued that reply and finished it (rescue kind continue, ok), that fragment is the
+  // cut, not a format failure of the model: it is the one bad line the rescue is allowed, and the turn counts as rescued.
+  const filterRescued = rescued && v.stats.rescue?.kind === 'continue' && v.stats.rescue.ok === true && v.stats.rescue.reason === 'content-filtered';
+  const allowedBad = filterRescued ? 1 : 0;
   out.push({
     type: 'format',
     name: 'NDJSON only, ends with done',
-    pass: v.stats.badLines === 0 && (v.stats.doneSeen || rescued),
-    detail: `bad ${v.stats.badLines}, done ${v.stats.doneSeen}, finish ${v.stats.finishReason}${rescued ? ', cut off and rescued by the continuation turn' : ''}`,
+    pass: v.stats.badLines <= allowedBad && (v.stats.doneSeen || rescued),
+    detail: `bad ${v.stats.badLines}, done ${v.stats.doneSeen}, finish ${v.stats.finishReason}${rescued ? ', cut off and rescued by the continuation turn' : ''}${filterRescued && v.stats.badLines > 0 ? `, ${Math.min(v.stats.badLines, allowedBad)} of them the fragment line the content-filter cut left` : ''}`,
   });
   out.push({ type: 'escapes', name: 'no \\u escapes', pass: v.stats.escapes === 0, detail: v.stats.escapes ? `${v.stats.escapes} escapes` : undefined });
   if (e.noPrices !== false) {

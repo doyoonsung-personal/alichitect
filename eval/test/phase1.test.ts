@@ -440,6 +440,34 @@ describe('format and rescue', () => {
     assert.ok(r[0].detail!.includes('rescued by the continuation turn'));
   });
 
+  // The live check (eval/results/2026-11-01T02-22-43-claude-rescue): a content-filter cut leaves the fragment line it
+  // interrupted, one bad line; Claude then finished the reply. 4 of 5 turns failed 'format' for that line alone.
+  const rescueOf = (over: Record<string, unknown> = {}) => ({ kind: 'continue' as const, provider: 'claude' as const, model: 'claude-opus-5-5', reason: 'content-filtered', from: 'qwen3.8-max', ok: true, ops: 12, costUsd: 0.08, firstOpMs: 900, totalMs: 9000, ...over });
+  const filtered = (stats: Record<string, unknown>) => view({ stats: { ...baseStats, doneSeen: false, truncated: true, finalDone: true, ...stats } as never });
+
+  test('a content-filter cut that Claude rescued counts as rescued even though the cut left one fragment line', () => {
+    const r = pick(evaluateTurn(filtered({ badLines: 1, rescue: rescueOf() }), turn({}), 'en', names, catalog), 'format');
+    assert.equal(r[0].pass, true);
+    assert.match(r[0].detail!, /rescued by the continuation turn/);
+    assert.match(r[0].detail!, /fragment line the content-filter cut left/);
+  });
+
+  test('the allowance is one fragment line, only for a finished backup continuation of a content-filter cut', () => {
+    const f = (stats: Record<string, unknown>) => pick(evaluateTurn(filtered(stats), turn({}), 'en', names, catalog), 'format')[0].pass;
+    assert.equal(f({ badLines: 0, rescue: rescueOf() }), true, 'a clean cut still passes');
+    assert.equal(f({ badLines: 2, rescue: rescueOf() }), false, 'a second bad line is a real format failure');
+    assert.equal(f({ badLines: 1 }), false, 'a fragment with no backup rescue fails, as before');
+    assert.equal(f({ badLines: 1, rescue: rescueOf({ ok: false }) }), false, 'the backup did not finish');
+    assert.equal(f({ badLines: 1, rescue: rescueOf({ kind: 'turn' }) }), false, 'a whole-turn rescue has no Qwen fragment to forgive');
+    assert.equal(f({ badLines: 1, rescue: rescueOf({ reason: 'idle-timeout' }) }), false, 'only a content-filter cut');
+    assert.equal(f({ badLines: 1, finalDone: false, rescue: rescueOf() }), false, 'never finished');
+  });
+
+  test('a complete turn with a bad line still fails format', () => {
+    const v = view({ stats: { ...baseStats, badLines: 1, rescue: rescueOf() } as never });
+    assert.equal(pick(evaluateTurn(v, turn({}), 'en', names, catalog), 'format')[0].pass, false);
+  });
+
   test('truncated not rescued format fails', () => {
     const v = view({ stats: { ...baseStats, doneSeen: false, truncated: true, finalDone: false } });
     const res = evaluateTurn(v, turn({}), 'en', names, catalog);

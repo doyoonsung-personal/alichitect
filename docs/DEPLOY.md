@@ -1,6 +1,6 @@
 # Deploying the Architecture Builder
 
-The app runs as one Cloudflare Worker, `alichitect`, at **https://architect.alikorea-demo.com**. The Worker serves the web app (`apps/web/dist`) as static assets and runs `POST /api/turn` against Model Studio (dashscope-intl) with the key held as a Worker secret. Every request goes through the Worker's accounts, which work like the WonderClip platform's:
+The app runs as one Cloudflare Worker, `alichitect`, at **https://architect.alikorea-demo.com**. The Worker serves the web app (`apps/web/dist`) as static assets and runs `POST /api/turn` against Model Studio (dashscope-intl) with the key held as a Worker secret. When the optional `ANTHROPIC_API_KEY` secret is set, Claude finishes the turns that Model Studio's content filter stops (see [The Claude backup](#the-claude-backup)). Every request goes through the Worker's accounts, which work like the WonderClip platform's:
 
 1. A person creates an account with an email address, a password, a name and, if they like, a note on why they need access.
 2. They enter the 6-digit code the Worker emails them.
@@ -15,15 +15,18 @@ The code and its configuration are in `apps/worker` (`wrangler.jsonc`).
 | Address | the custom domain `architect.alikorea-demo.com`. It is the only route: the `alikorea-demo.com` zone also serves other demos |
 | Database | D1 `alichitect`: users, sign-ups, email codes, sessions, rate limits, usage, audit (`apps/worker/migrations`) |
 | Email | Cloudflare Email Service, from `no-reply@alikorea-demo.com` (already set up for the WonderClip platform). It sends the sign-up and reset codes, so accounts cannot work without it |
-| Secrets | `DASHSCOPE_API_KEY` and `SESSION_SECRET`, on the Worker only |
+| Secrets | `DASHSCOPE_API_KEY` and `SESSION_SECRET`, on the Worker only. Optional: `ANTHROPIC_API_KEY`, for the Claude backup |
 | First admin | `dysung.alicloud@gmail.com`, from the `ADMIN_EMAILS` var, as soon as it confirms its email |
 
 ## Before you start
 
 - Node 24 and npm.
 - `CLOUDFLARE_EMAIL` and `CLOUDFLARE_API_KEY` (the global API key) in your environment. The scripts sign wrangler in with them.
-- `DASHSCOPE_API_KEY` in your environment: the same key the local server uses.
+- `DASHSCOPE_API_KEY` saved as a Windows user variable: the same key the local server uses. `set-secrets.ps1` reads it from there and not from the shell.
+- Optional, for the Claude backup: your Anthropic API key saved as a Windows user variable. Run `powershell -ExecutionPolicy Bypass -File scripts\save-anthropic-key.ps1`, which asks for it at a hidden prompt and never shows it.
+- Neither key is in the environment of the deploy: `deploy.ps1` and `set-secrets.ps1` remove both from their own process environment before anything else runs, so `npm ci`, the web build, the tests and wrangler never inherit them. `set-secrets.ps1` reads each from the user scope only at the moment it puts it.
 - Install the tools once: `cd apps/worker` then `npm ci`.
+- Install the shared code's one dependency once, the Anthropic SDK that the Worker bundles: `cd packages/core` then `npm ci`. Preflight refuses to deploy without it.
 
 Every command below runs from `apps/worker` in PowerShell. `--env=` (an empty environment name) selects the production configuration; `--env dev` is local development only.
 
@@ -55,15 +58,20 @@ npm run d1:migrate:remote
 powershell -ExecutionPolicy Bypass -File scripts\set-secrets.ps1
 ```
 
-The script sets two secrets:
-- It reads `DASHSCOPE_API_KEY` from your environment.
+The script sets these secrets:
+- It reads `DASHSCOPE_API_KEY` from your Windows user variables.
+- It reads `ANTHROPIC_API_KEY` from your Windows user variables too, so a key saved after your terminal opened still counts. If it is not there, the script says so and skips it, and the Worker runs without the Claude backup.
+- Both keys are checked for shape before anything is sent (`put-secret.ts`): the Anthropic key must start with `sk-ant-`, and the Model Studio key must not, so a swapped pair is refused.
 - It generates `SESSION_SECRET`: 48 random bytes. It signs the session cookies and the cookie that carries a code flow from page to page, and it keys the stored code and rate-limit hashes.
 
-Each value reaches `wrangler secret put` on standard input and is never printed. If the Worker does not exist yet, wrangler creates an empty one to hold them.
+Each value reaches `wrangler secret put` on standard input and is never printed or put on a command line. If the Worker does not exist yet, wrangler creates an empty one to hold them.
 
 The script can also change one secret at a time:
 - Change the Model Studio key: `-Only DASHSCOPE_API_KEY`.
+- Add or change the Anthropic key: `-Only ANTHROPIC_API_KEY`.
 - Replace the session secret: `-Only SESSION_SECRET -RotateSession`. This signs everybody out and voids every code already mailed. Without `-RotateSession`, an existing session secret is kept.
+
+To turn the Claude backup off, delete its secret: `node node_modules\wrangler\bin\wrangler.js secret delete ANTHROPIC_API_KEY --env=`.
 
 If a `GOOGLE_CLIENT_SECRET` secret is still on the Worker from the earlier Google sign-in, the script says so and prints the command that removes it.
 
@@ -76,7 +84,7 @@ powershell -ExecutionPolicy Bypass -File scripts\deploy.ps1
 ```
 
 The script runs these steps in order and stops at the first failure:
-1. **Preflight** (`npm run preflight`): refuses to go on while `wrangler.jsonc` still has the D1 placeholder, sets the local-only `MAIL_LOG`, or lacks a sender address on `alikorea-demo.com` or the email binding.
+1. **Preflight** (`npm run preflight`): refuses to go on while `wrangler.jsonc` still has the D1 placeholder, sets the local-only `MAIL_LOG`, lacks a sender address on `alikorea-demo.com` or the email binding, or sets a `CLAUDE_BACKUP_MODEL` that is not a Claude model id. It also refuses when the Anthropic SDK is not installed in `packages/core`.
 2. Builds `apps/web`.
 3. Runs the Worker tests.
 4. Applies the remote D1 migrations. Confirm the prompt.
@@ -84,7 +92,7 @@ The script runs these steps in order and stops at the first failure:
 
 ### 5. Check it
 
-1. Open `https://architect.alikorea-demo.com/api/health`. Signed out it shows only `{"ok":true}`, which is all the Worker tells anonymous callers. After step 2 below, open it again: signed in, it also shows `"keyConfigured":true`.
+1. Open `https://architect.alikorea-demo.com/api/health`. Signed out it shows only `{"ok":true}`, which is all the Worker tells anonymous callers. After step 2 below, open it again: signed in, it also shows `"keyConfigured":true`, and `"backupConfigured":true` when the Anthropic key is set.
 2. Open `https://architect.alikorea-demo.com/signup` and create the account for `dysung.alicloud@gmail.com` with a strong password. Enter the 6-digit code from the email (subject `[Architecture Builder] Verification code ...`). The account becomes an approved admin and lands in the builder.
 3. Open `/admin`: you are listed as the only admin.
 4. From another address, create an account and enter its code. It lands on the waiting page, and the admin gets an email. Approve the request on `/admin`; the person gets an email and can sign in.
@@ -97,6 +105,8 @@ You can redeploy in either of these ways:
 - **From GitHub:** go to **Actions**, open **Deploy**, choose **Run workflow** and type `deploy`. It runs the same steps as the script, then a health check. It only ever runs by hand.
 
 Secrets survive deploys, and only migrations that have not been applied yet run.
+
+**Migration 0003 (the Claude backup caps) comes first.** It rebuilds the `usage` table with `rescues` and `claude_cost_usd` columns and a global `'*'` row, and the new Worker needs those columns. The old Worker keeps working on the new table (it only writes the old columns), so apply it before the deploy: `deploy.ps1` and the GitHub workflow already do, in that order. By hand, from `apps/worker`: `npm run d1:migrate:remote`, then check it with `npx wrangler d1 execute alichitect --remote --env= --command "SELECT name FROM d1_migrations ORDER BY id DESC LIMIT 1"` (it should name `0003_rescue_caps.sql`). Every existing usage row is kept. Run it when nobody is mid-turn: the table is dropped and renamed inside the migration, and a usage write in that instant would fail and be retried by nothing (the turn itself is unaffected).
 
 ### Deploy from GitHub: the production environment
 
@@ -135,10 +145,68 @@ npx wrangler rollback <version-id> --env= -m "why"
 ```
 
 A rollback restores the Worker's code and configuration. Each Worker version carries its own static assets, so the web app rolls back with it. It does not touch the following:
-- **D1:** migrations are never undone (a rollback leaves the tables as the latest migration made them; 0002 only replaced the tables for sign-ups and codes in flight, no account data).
+- **D1:** migrations are never undone (a rollback leaves the tables as the latest migration made them; 0002 only replaced the tables for sign-ups and codes in flight, no account data; 0003 only rebuilt `usage` with two more columns, which the earlier Worker ignores).
 - **The secrets.**
 
 To change only the model key or a secret, use `set-secrets.ps1`; no rollback is needed.
+
+## The Claude backup
+
+Model Studio inspects every reply, and sometimes its filter stops a harmless one partway (`DataInspectionFailed`, or `finish_reason` `content_filter`). It depends on the wording: on the live site it stopped 2 of 5 turns in one session, after the first ops had already been drawn, and 0 of about 630 eval conversations. Retrying, or switching to `qwen3.7-max`, meets the same filter. So, when `ANTHROPIC_API_KEY` is set, Claude finishes such a turn:
+
+- **Ops already drawn:** Claude continues from the diagram drawn so far, the same way a cut-off reply is continued. The chat shows "Qwen's content filter stopped this answer. Claude is finishing it…".
+- **Nothing drawn yet:** Claude answers the whole turn.
+- **Claude fails or declines too:** what was drawn is kept and committed with a warning that the reply is incomplete. If nothing was drawn, the turn fails with "The model provider's content filter stopped this request, and the Claude backup could not finish it" (`backup-failed`), and the diagram is unchanged.
+- **Without the key, or a cap reached (see [Caps](#caps-on-the-backup)):** the turn fails as before, with "The model provider's content filter declined this request" (no key) or "The Claude backup … has reached today's limit" (`backup-limit`). The diagram is unchanged.
+
+Nothing else goes to Claude: stalls, rate limits and server errors still retry on Model Studio and fail over to `qwen3.7-max`.
+
+### Caps on the backup
+
+Claude is paid from your Anthropic credit, and anyone with an account can write text that trips the content filter on purpose. So a rescue starts only while all of these hold, checked once, right before Claude would be called (`src/turn.ts`, counts in the `usage` table):
+
+| Cap | Default | Var in `wrangler.jsonc` |
+|---|---|---|
+| Rescues per person per UTC day | 10 | `CLAUDE_RESCUES_PER_USER_DAY` |
+| Rescues per admin per UTC day | 30 | `CLAUDE_RESCUES_PER_ADMIN_DAY` |
+| Claude's cost per UTC day, everybody together | $5 | `CLAUDE_BUDGET_USD_PER_DAY` |
+| Time left of the turn deadline | 60 s (fixed) | `TURN_DEADLINE_MS` sets the deadline (240 s) |
+
+- Past a cap the turn behaves as if there were no backup: Claude is not called and the chat never says it is coming. The person sees "The Claude backup … has reached today's limit" (`backup-limit`), in the language of their message. A cap check that fails (a database error) blocks the rescue too, and reads "the Claude backup could not finish it" (`backup-failed`), as does a turn with under 60 s of deadline left.
+- Each backup call is booked as it ends, on the person's row and on the `'*'` row that totals everybody, so a turn that dies later is still counted. A rescue that fails still counts toward the person's cap, and a stream that broke before its usage record is booked at an upper bound (the input tokens reported plus one output token per two characters streamed).
+- A rescued turn counts as **2** against `TURNS_PER_DAY`.
+- Two people's rescues can start in the same second, each seeing the total before the other's cost: the day's total can pass $5 by the cost of the rescues in flight (about a dollar at most each). The per-person cap is exact. A `0` for any var turns the backup off for that group.
+- One call is also bounded: `max_tokens` is 20000 (a full reply is about 2.5k tokens; the longest of 30 live conversations was 6.6k characters), and a call that streams more than 40000 characters is aborted. At $20 per million output tokens a call costs at most $0.40 of output, and a rescue is two calls at most.
+- `CLAUDE_BACKUP_MODEL` must be a Claude model that `packages/core/src/pricing.ts` has a price for (`claude-opus-5-5`, `claude-opus-5`, `claude-opus-4-8`); anything else falls back to `claude-opus-5-5`, and preflight refuses to deploy it.
+
+Today's use, in the database:
+
+```powershell
+npx wrangler d1 execute alichitect --remote --env= --command "SELECT COALESCE(u.email, 'EVERYBODY') AS who, s.day, s.rescues, round(s.claude_cost_usd, 4) AS claude_usd FROM usage s LEFT JOIN users u ON u.id = s.user_id WHERE s.rescues > 0 ORDER BY s.day DESC, s.claude_cost_usd DESC LIMIT 50"
+```
+
+What the browser is sent about Claude is only its drawing and the "Claude is finishing it" lines. Claude's token counts, error codes and stop reasons are in the log line (`backupLog`, `rescue`, `backupSkipped`), not in the stream.
+
+The request, built in `packages/core/src/claude.ts` with the official Anthropic SDK:
+
+| Setting | Value |
+|---|---|
+| Model | `claude-opus-5-5`. Change it with `CLAUDE_BACKUP_MODEL` in `wrangler.jsonc` (a Claude model id) and deploy |
+| Effort | `low`. Claude Opus 5.5 always thinks, and effort keeps that short for a live drawing |
+| Refusals | server-side fallback (`fallbacks: "default"`): if Claude Opus 5.5 declines, Anthropic retries on another Claude model in the same call. A decline that survives that is final, and its partial output is discarded |
+| Caching | the system prompt (about 24k tokens) is cached for 5 minutes: the first call in that window writes it, later ones read it at a twentieth of the input price |
+| Limits | no stream event in 20 s, 30 s of silence, or 150 s in all ends the call. A closed tab ends it at once. `max_tokens` 20000 and 40000 streamed characters per call |
+
+**Cost.** Claude Opus 5.5 lists at $4 per million input tokens, $20 per million output tokens and $0.20 per million cache reads (5-minute cache writes $5). Measured on 2026-11-01, a rescue cost about 3 to 4 cents with the system prompt in the cache, and about 14 cents for the first one in five minutes, which writes the prompt to the cache. Claude drew its first op 1.5 to 4 seconds after the switch and finished the turn in 8 to 15 seconds. The cost is booked with the turn, so it counts in the `usage` table and in `costUsd` in the logs, and the log line's `rescue` field shows its kind, model, outcome and cost. The Anthropic key draws on the Console organization it belongs to: set a spend limit there.
+
+**Logs.** A rescued turn has `"backupUsed":true` and `"rescue":{...}` in its `wrangler tail` line (`apps/server/logs/turns.jsonl` locally). Neither key is ever logged, and every line the Worker streams passes through a redactor that knows both keys.
+
+**The local server** (`npm run server`) reads `ANTHROPIC_API_KEY` and `CLAUDE_BACKUP_MODEL` from its environment, and prints `backup claude (claude-opus-5-5)` or `backup none` at start. A user variable saved after your terminal opened is not in that terminal's environment; open a new terminal, or copy it in first:
+
+```powershell
+$env:ANTHROPIC_API_KEY = [Environment]::GetEnvironmentVariable('ANTHROPIC_API_KEY', 'User')
+npm run server
+```
 
 ## Accounts and access
 
@@ -188,12 +256,12 @@ To change only the model key or a secret, use `set-secrets.ps1`; no rollback is 
     ```powershell
     npx wrangler d1 execute alichitect --remote --env= --command "UPDATE users SET status = 'approved', role = 'admin' WHERE email = 'someone@gmail.com'"
     ```
-- **Daily limit:** `TURNS_PER_DAY` (60) turns per person per UTC day. Admins have no limit. Change it in `wrangler.jsonc` and deploy. The usage so far:
+- **Daily limit:** `TURNS_PER_DAY` (60) turns per person per UTC day; a turn the Claude backup finished counts as 2. Admins have no limit. Change it in `wrangler.jsonc` and deploy. The usage so far (the `'*'` row of Claude totals has no user and is left out):
 
   ```powershell
   npx wrangler d1 execute alichitect --remote --env= --command "SELECT u.email, s.day, s.turns, round(s.est_cost_usd, 4) AS usd FROM usage s JOIN users u ON u.id = s.user_id ORDER BY s.day DESC LIMIT 50"
   ```
-- **Spend:** the daily limit is per person. Nothing caps the total across all approved users, so set a spend alert or a budget on the Model Studio side (the account that owns `DASHSCOPE_API_KEY`).
+- **Spend:** the daily limit is per person. Nothing caps the total of Model Studio across all approved users, so set a spend alert or a budget on the Model Studio side (the account that owns `DASHSCOPE_API_KEY`). The Claude backup has its own caps (see [Caps on the backup](#caps-on-the-backup)); also set a spend limit on the Anthropic Console organization that owns `ANTHROPIC_API_KEY`.
 - **Access-request mail:** anyone can sign up. The admins are emailed for at most `REQUEST_MAILS_PER_DAY` (30) new requests in any 24 hours; further requests are still recorded and show on `/admin`, with no email. Open sign-up lets anyone with a mailbox leave a request, so `/admin` shows **Decline requests older than 7 days** above the request list when there are any: one step declines every pending request that has waited more than a week (the audit log records the count).
 - **What a determined attacker can still do, and the fix when it matters:** with a pool of rotating IP addresses a stranger can still use up one address's hourly mail budget (8 mails; the `ADMIN_EMAILS` address has 24) or a daily pool, and can make the Worker mail a verification code to any third-party address (a few an hour per address, plus-tag and dot variants counted as one). Both end at a proof-of-human step this Worker does not have. If abuse shows up, put **Cloudflare Turnstile** in front of `/signup` and `/forgot`, or the Workers **Rate Limiting** binding, and move the sender to its own subdomain (for example `no-reply@auth.alikorea-demo.com`, onboarded in Email Sending, then `MAIL_FROM` here and in `wrangler.jsonc`) so a reputation problem stays off the domain WonderClip mails from. Until then `npm run d1:unlock:remote` is the operator's way back in.
 - **Logs:** run `npx wrangler tail --env=`, or open Workers Observability in the dashboard. They hold metadata only: user ids, outcomes, timings, tokens and cost, and which rate limit refused something. They never hold an email address from a sign-in form, a password, a code, the asks, the replies or any secret.
@@ -208,7 +276,7 @@ Use ports 8800 to 8810. The local server and Vite keep 8787 and 5174.
    npm run d1:migrate:local
    ```
 
-   Migrations run in order: `0001_init.sql`, then `0002_availability.sql` (the per-browser sign-up and code tables). A local database made before the switch from Google sign-in has the old tables, and the migration list says it is up to date. It holds only local test accounts: delete `apps/worker/.wrangler/state/v3/d1` and run the command again. A local database from the earlier email-and-password build upgrades by itself.
+   Migrations run in order: `0001_init.sql`, then `0002_availability.sql` (the per-browser sign-up and code tables), then `0003_rescue_caps.sql` (the Claude backup caps). A local database made before the switch from Google sign-in has the old tables, and the migration list says it is up to date. It holds only local test accounts: delete `apps/worker/.wrangler/state/v3/d1` and run the command again. A local database from the earlier email-and-password build upgrades by itself.
 
 2. Create `.dev.vars` in `apps/worker`. It is gitignored. Use dummy values only:
 
@@ -224,7 +292,7 @@ Local development uses `env.dev`:
 - **Email:** not sent. Each mail's recipient and subject are written to the wrangler dev output instead (`MAIL_LOG`), and a code mail's subject carries the code, so you read codes from the terminal. The Worker ignores `MAIL_LOG` unless `ALLOWED_ORIGIN` is plain http on a loopback address, so codes can never reach production logs.
 - **Database:** a local D1.
 
-To run real turns locally without writing the key anywhere, use an env file of dummy values in place of `.dev.vars`. Wrangler then takes `DASHSCOPE_API_KEY` from your environment and shows it only as `(hidden)`:
+To run real turns locally without writing the key anywhere, use an env file of dummy values in place of `.dev.vars`. Wrangler then takes `DASHSCOPE_API_KEY`, and `ANTHROPIC_API_KEY` if your environment has it, from your environment and shows them only as `(hidden)`:
 
 ```powershell
 npx wrangler dev --env dev --port 8800 --inspector-port 8809 --env-file C:\path\to\dummies.env
@@ -255,5 +323,9 @@ Checks without a server:
 | "Too many wrong attempts" or "reset your password" | A lockout after repeated failures at this address from this IP, or the address-wide guess counter. Wait, sign in from a browser that has signed in before, reset the password with the emailed code (it ends both), or run `npm run d1:unlock:remote` |
 | Turns fail with "No server key was set" | Set `DASHSCOPE_API_KEY` with `set-secrets.ps1 -Only DASHSCOPE_API_KEY` |
 | Turns fail with "The server key was rejected" | The key is wrong, or not an international (dashscope-intl) key |
+| Turns fail with "The model provider's content filter declined this request" | Model Studio's filter stopped the reply and the Claude backup is off (health shows `"backupConfigured":false`; set `ANTHROPIC_API_KEY`) |
+| Turns fail with "…the Claude backup could not finish it" (`backup-failed`) | The backup was not started (under 60 s of the turn deadline left: the log line's `backupSkipped.reason` is `deadline`; or the cap check failed: `unavailable`) or Claude was asked and failed too. The log line's `rescue.error` says why: `auth` (a wrong Anthropic key), `refusal`, `overloaded`, `rate-limited`, `output-budget` or `network` |
+| Turns fail with "The Claude backup … has reached today's limit" (`backup-limit`) | A cap on the backup is reached. The log line's `backupSkipped.detail` says `user-cap` (that person's rescues) or `global-cap` (the day's Claude budget). It resets at 00:00 UTC; raise the var in `wrangler.jsonc` and deploy to lift it sooner |
+| A turn ends with a warning that the reply is incomplete | The filter stopped the reply and the Claude backup could not finish it; the warning says why. What was drawn is kept |
 | No access-request email | Requests are recorded either way: check `/admin`. Then check the email sending domain, and `REQUEST_MAILS_PER_DAY` |
 | Deploy fails on the custom domain | A DNS record named `architect` already exists in the zone. Remove it, or ask which demo owns it |

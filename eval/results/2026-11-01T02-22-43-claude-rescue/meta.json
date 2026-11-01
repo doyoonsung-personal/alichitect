@@ -1,0 +1,22 @@
+{
+  "startedAt": "2026-11-01T02:22:43.119Z",
+  "mode": "rescue",
+  "claudeModel": "claude-opus-5-5",
+  "cases": [
+    "pat-04-rag",
+    "pat-02-k8s",
+    "pat-01-web-ha",
+    "pat-05-data-platform",
+    "pat-12-ecommerce-security"
+  ],
+  "cuts": [
+    4,
+    6,
+    9,
+    14,
+    20
+  ],
+  "budget": 2,
+  "concurrency": 1,
+  "systemPromptChars": 59711
+}

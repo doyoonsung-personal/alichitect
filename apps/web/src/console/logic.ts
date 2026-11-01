@@ -111,8 +111,37 @@ export function footerItems(r: Revision, hasRequirements: boolean, t: TFn): Foot
   else if (state === 'atRisk') out.push({ key: 'risk', text: t('req.risk'), tone: 'warn' });
   else if (state === 'fixed') out.push({ key: 'fixed', text: t('rec.footerFixed'), tone: 'warn' });
   else if (hasRequirements) out.push({ key: 'held', text: t('rec.reqHeld'), tone: 'ok', check: true });
-  if (r.truncated) out.push({ key: 'cut', text: t('rec.cut'), tone: 'warn' });
+  // after a rescue the attribution line says what happened to the answer; Qwen's cut-off note would describe a stale state
+  if (r.truncated && !r.rescue) out.push({ key: 'cut', text: t('rec.cut'), tone: 'warn' });
   return out;
+}
+
+// ---------- the Claude backup (a rescue after Model Studio's content filter stopped Qwen) ----------
+
+/** The small attribution under a rescued revision's footer; null when no rescue ended in a commit. */
+export interface RescueNote {
+  text: string;
+  tone: Tone;
+}
+
+/**
+ * Who finished the answer. 'finished': Claude completed it, in the footer's own voice. 'incomplete': Claude could not,
+ * and the diagram keeps what was drawn (the reply-incomplete warning). A running or failed rescue says nothing here: the
+ * status line and the error block carry those.
+ */
+export function rescueNote(r: Revision, t: TFn): RescueNote | null {
+  if (r.status !== 'done') return null;
+  if (r.rescue === 'finished') return { text: t('rec.rescued'), tone: 'plain' };
+  if (r.rescue === 'incomplete') return { text: t('rec.rescueIncomplete'), tone: 'warn' };
+  return null;
+}
+
+/** What the status line says: our own localized words for a Claude rescue status (the UI language, not the ask's), else the server's text. */
+export function statusText(s: NonNullable<Revision['statusLine']>, t: TFn): string {
+  if (s.provider === 'claude' && (s.code === 'fallback' || s.code === 'continue' || s.code === 'repair')) {
+    return t(s.code === 'fallback' ? 'rec.claude.fallback' : s.code === 'continue' ? 'rec.claude.continue' : 'rec.claude.repair');
+  }
+  return s.text;
 }
 
 /** The meta line of a collapsed row: "+3 −0 · 7.3 s", plus the state when it is not Held (7.9). */
@@ -125,6 +154,8 @@ export function rowMeta(r: Revision, t: TFn): string {
   if (state === 'broken') parts.push(t('req.notMet'));
   else if (state === 'atRisk') parts.push(t('req.risk'));
   else if (state === 'fixed') parts.push(t('rec.footerFixed'));
+  if (r.rescue === 'finished') parts.push(t('rec.rescuedShort'));
+  else if (r.rescue === 'incomplete') parts.push(t('rec.rescueIncompleteShort'));
   return parts.join(' · ');
 }
 

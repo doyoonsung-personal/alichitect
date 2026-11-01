@@ -16,6 +16,7 @@ Design truth: `PRODUCT.md`, `.impeccable/surfaces/app.md` (direction), `.impecca
 | `vite build --mode review` | the same app with the tools on, for the screenshot and check scripts (`flow.mjs` and `motion/*` build this way) |
 | `npm run replay:build` | rebuilds `src/replay/fixtures/*.json` from `eval/results` and `research/probes/streams.json` (read-only) |
 | `npm run replay:asks` | rewrites only the four `asks-*` fixtures and their manifest entries (no eval results needed) |
+| `npm run replay:rescue` | rewrites only the four `stub-rescue-*` fixtures (the Claude backup after a content-filter stop) and their manifest entries |
 | `npm run icons:ui` | regenerates `src/shell/ui-icons.generated.ts` from `.qwen/icons.json` |
 | `npm run shots` | headless-Chrome screenshots of every state to `screenshots/` (own Vite on a free port in 5185-5199) |
 | `node scripts/motion/strips.mjs` | frame strips of the motion grammar (see Motion below) |
@@ -48,7 +49,7 @@ Only `apps/worker` has these routes; the local turn server has none of them and 
 
 ## Replay fixtures
 
-`ecommerce` (F plus "oh i also want waf"), `ecommerce-k8s`, `ha`, `residency` (4 revisions, pinned region), `ai-agent` (solution map), `korean`, `chinese`, `chinese-fix` (repair turn), the synthetic `asks-shop` and `asks-vague` (each also as `-ko`: assume and ask ops, until the model emits them), and the synthetic `stub-fallback`, `stub-fatal`, `stub-filtered`, `stub-network`, `stub-summary`. `src/replay/fixtures/index.json` lists them with titles and notes.
+`ecommerce` (F plus "oh i also want waf"), `ecommerce-k8s`, `ha`, `residency` (4 revisions, pinned region), `ai-agent` (solution map), `korean`, `chinese`, `chinese-fix` (repair turn), the synthetic `asks-shop` and `asks-vague` (each also as `-ko`: assume and ask ops, until the model emits them), and the synthetic `stub-fallback`, `stub-fatal`, `stub-filtered`, `stub-network`, `stub-summary`, plus the Claude backup states `stub-rescue-continue` (Qwen drew half, Claude continues), `stub-rescue-whole` (nothing drawn, Claude answers), `stub-rescue-incomplete` (Claude declines, the partial diagram is kept) and `stub-rescue-failed` (Claude fails too: the content-filtered error). `node scripts/shots.mjs --only rescue --out screenshots/rescue` renders them at 1440x900 in en, ko and zh. `src/replay/fixtures/index.json` lists them with titles and notes.
 
 ## Sessions and refresh
 

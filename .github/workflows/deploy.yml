@@ -53,7 +53,11 @@ jobs:
           cache-dependency-path: |
             apps/web/package-lock.json
             apps/worker/package-lock.json
+            packages/core/package-lock.json
 
+      - name: Install (packages/core: the Anthropic SDK, bundled into the Worker)
+        working-directory: packages/core
+        run: npm ci --no-audit --no-fund
       - name: Install (worker)
         working-directory: apps/worker
         run: npm ci --no-audit --no-fund

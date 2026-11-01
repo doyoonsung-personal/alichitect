@@ -70,9 +70,19 @@ export interface Env {
   QWEN_FALLBACK_MODEL?: string;
   QWEN_BASE_URL?: string;
   TURN_DEADLINE_MS?: string;
+  /** The Claude backup's model (default claude-opus-5-5); used only when ANTHROPIC_API_KEY is set. Any other value, and any model not in the PRICES table, falls back to the default. */
+  CLAUDE_BACKUP_MODEL?: string;
+  /** Claude rescues per UTC day for a non-admin user (default 10). 0 turns the backup off for them. */
+  CLAUDE_RESCUES_PER_USER_DAY?: string;
+  /** Claude rescues per UTC day for an admin (default 30). */
+  CLAUDE_RESCUES_PER_ADMIN_DAY?: string;
+  /** The most Claude may cost per UTC day, all users together, in USD (default 5). Past it no rescue starts. */
+  CLAUDE_BUDGET_USD_PER_DAY?: string;
 
   // secrets
   DASHSCOPE_API_KEY?: string;
+  /** Optional: the Claude backup that finishes turns Model Studio's content filter stops. Unset: no backup. */
+  ANTHROPIC_API_KEY?: string;
   /** Signs the session, flow and notice cookies, and keys the email-code and throttle HMACs. 32+ characters. */
   SESSION_SECRET?: string;
 }
@@ -96,6 +106,22 @@ const intVar = (v: string | undefined, dflt: number, max = 100_000): number => {
   const n = Number(v ?? String(dflt));
   return Number.isInteger(n) && n >= 0 && n <= max ? n : dflt;
 };
+
+/** Claude rescues per day for one user (admins have their own, higher cap). */
+export function rescuesPerDay(env: Env, admin: boolean): number {
+  const raw = (admin ? env.CLAUDE_RESCUES_PER_ADMIN_DAY : env.CLAUDE_RESCUES_PER_USER_DAY)?.trim();
+  const dflt = admin ? 30 : 10;
+  // A whole number of digits only: an empty or garbled var must not read as 0 (which would switch the backup off) or as a huge cap.
+  return raw !== undefined && /^\d{1,6}$/.test(raw) ? Number(raw) : dflt;
+}
+
+/** The day's Claude budget in USD, all users together. */
+export function claudeBudgetUsdPerDay(env: Env): number {
+  const raw = env.CLAUDE_BUDGET_USD_PER_DAY?.trim();
+  if (raw === undefined || raw === '') return 5;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 && n <= 10_000 ? n : 5;
+}
 
 export const codeMailsPerDay = (env: Env): number => intVar(env.CODE_MAILS_PER_DAY, 100);
 export const resetMailsPerDay = (env: Env): number => intVar(env.RESET_MAILS_PER_DAY, 50);

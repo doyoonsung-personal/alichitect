@@ -132,6 +132,8 @@ button.tag:focus-visible { outline: var(--focus-outline); outline-offset: var(--
 .rev__foot-item[data-tone="warn"] { color: var(--warn); }
 .rev__foot-item[data-tone="danger"] { color: var(--danger); }
 .rev__foot-live { color: var(--ink-2); font-weight: var(--w-medium); }
+/* who finished a rescued revision: a second footer line, quieter than the time and the requirements, never a badge */
+.rev__foot--rescue { margin-top: var(--s-1); }
 .rev .rev__collapse { position: absolute; top: var(--s-4); right: var(--s-3); width: 24px; min-height: 24px; height: 24px; color: var(--ink-3); }
 
 /* the Cursor that leads a status line: the bar from the logo's centre, 8 px */
@@ -179,6 +181,9 @@ button.chg:active { background: var(--action-soft-2); }
 .fix__head--fixing { color: var(--warn); }
 .fix__head--fixed { gap: var(--s-2); font-size: var(--t-13); line-height: var(--lh-13); font-weight: var(--w-medium); color: var(--warn); }
 .fix__head--failed { font-size: var(--t-13); line-height: var(--lh-13); color: var(--danger); }
+/* Claude is fixing or has fixed it: the record's quiet voice, not the amber of a repair Qwen had to be asked for */
+.fix[data-rescue] .fix__head--fixing { color: var(--ink-3); }
+.fix[data-rescue] .fix__head--fixed { color: var(--ink-2); }
 .fix__sentence { margin-top: var(--s-2); font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink-2); }
 .fix__note { margin-top: var(--s-3); font-size: var(--t-14); line-height: var(--lh-14); color: var(--ink-2); }
 .fix .chgs { margin-top: var(--s-3); }
@@ -193,6 +198,7 @@ button.chg:active { background: var(--action-soft-2); }
 .err__title { display: flex; align-items: center; gap: var(--s-3); font-size: var(--t-14); line-height: var(--lh-14); font-weight: var(--w-medium); color: var(--ink); }
 .err__title .icon { color: var(--danger); }
 .err__msg { margin-top: var(--s-2); font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink-2); }
+.err__msg--aside { color: var(--ink-3); }
 .err__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-4); }
 
 /* ---------- open in place (7.9): height and opacity, 200 ms ---------- */

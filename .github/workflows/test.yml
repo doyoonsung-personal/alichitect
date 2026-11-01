@@ -24,6 +24,9 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+      - name: Install (packages/core: the Anthropic SDK of the Claude backup)
+        working-directory: packages/core
+        run: npm ci --no-audit --no-fund
       - name: Tests (packages/core, eval, apps/server)
         run: npm test
 
@@ -42,6 +45,10 @@ jobs:
           cache-dependency-path: |
             apps/web/package-lock.json
             apps/worker/package-lock.json
+            packages/core/package-lock.json
+      - name: Install (packages/core: the Anthropic SDK, bundled into the Worker)
+        working-directory: packages/core
+        run: npm ci --no-audit --no-fund
       - name: Install (web)
         working-directory: apps/web
         run: npm ci --no-audit --no-fund

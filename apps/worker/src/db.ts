@@ -361,12 +361,54 @@ export async function turnsToday(db: D1Database, userId: string, now: number): P
   return r?.turns ?? 0;
 }
 
-export async function recordUsage(db: D1Database, userId: string, day: string, costUsd: number): Promise<void> {
+/**
+ * Books one finished turn: `turns` toward the daily quota (2 for a turn the Claude backup finished, otherwise 1) and the
+ * turn's estimated cost, Claude's share included. Rescue counts and Claude's own cost are booked as they happen
+ * (bookRescue), not here.
+ */
+export async function recordUsage(db: D1Database, userId: string, day: string, costUsd: number, turns = 1): Promise<void> {
   const cost = Number.isFinite(costUsd) && costUsd > 0 ? costUsd : 0;
   await db
-    .prepare('INSERT INTO usage (user_id, day, turns, est_cost_usd) VALUES (?, ?, 1, ?) ON CONFLICT (user_id, day) DO UPDATE SET turns = turns + 1, est_cost_usd = est_cost_usd + excluded.est_cost_usd')
-    .bind(userId, day, cost)
+    .prepare('INSERT INTO usage (user_id, day, turns, est_cost_usd) VALUES (?, ?, ?, ?) ON CONFLICT (user_id, day) DO UPDATE SET turns = turns + excluded.turns, est_cost_usd = est_cost_usd + excluded.est_cost_usd')
+    .bind(userId, day, turns, cost)
     .run();
+}
+
+/** The row of `usage` that totals every user (rescues and claude_cost_usd only). Not a users.id: those start with 'u_'. */
+export const GLOBAL_USAGE = '*';
+
+export interface RescueUsage {
+  /** Rescues this user has had today. */
+  userRescues: number;
+  /** Claude's cost today, all users together. */
+  globalCostUsd: number;
+}
+
+/** What the Claude backup has been used for today: the user's rescues and everybody's Claude cost. */
+export async function rescueUsage(db: D1Database, userId: string, day: string): Promise<RescueUsage> {
+  const r = await db
+    .prepare('SELECT user_id, rescues, claude_cost_usd FROM usage WHERE day = ? AND user_id IN (?, ?)')
+    .bind(day, userId, GLOBAL_USAGE)
+    .all<{ user_id: string; rescues: number; claude_cost_usd: number }>();
+  let userRescues = 0;
+  let globalCostUsd = 0;
+  for (const row of r.results) {
+    if (row.user_id === GLOBAL_USAGE) globalCostUsd = Number(row.claude_cost_usd) || 0;
+    else userRescues = Number(row.rescues) || 0;
+  }
+  return { userRescues, globalCostUsd };
+}
+
+/**
+ * Books one backup call on the user's row and on the global row, in one batch: its cost, and the rescue itself when it is
+ * the first call of the turn (`newRescue`). Called after each backup call, so a turn that dies later is still counted.
+ */
+export async function bookRescue(db: D1Database, userId: string, day: string, costUsd: number, newRescue: boolean): Promise<void> {
+  const cost = Number.isFinite(costUsd) && costUsd > 0 ? costUsd : 0;
+  const sql =
+    'INSERT INTO usage (user_id, day, turns, est_cost_usd, rescues, claude_cost_usd) VALUES (?, ?, 0, 0, ?, ?) ON CONFLICT (user_id, day) DO UPDATE SET rescues = rescues + excluded.rescues, claude_cost_usd = claude_cost_usd + excluded.claude_cost_usd';
+  const n = newRescue ? 1 : 0;
+  await db.batch([db.prepare(sql).bind(userId, day, n, cost), db.prepare(sql).bind(GLOBAL_USAGE, day, n, cost)]);
 }
 
 /** Takes the user's in-flight slot. A slot older than staleMs belongs to a turn that died and is taken over. */

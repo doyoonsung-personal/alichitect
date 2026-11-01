@@ -144,7 +144,9 @@ export type WarningCode =
   | 'attach-invalid' // attachTo on a product the catalog does not let attach to that host; repaired into an edge
   | 'constraint-region' // a group, node or say line puts data or workloads outside a pinned regions constraint
   | 'constraint-avoid' // a product the user ruled out was added
-  | 'constraint-replaced'; // info: a pinned constraint was replaced, lifted or dropped (a newer requirement, or the cap of twelve)
+  | 'constraint-replaced' // info: a pinned constraint was replaced, lifted or dropped (a newer requirement, or the cap of twelve)
+  // Backup model (llm.ts runTurn with a BackupProvider):
+  | 'reply-incomplete'; // warn: the reply was stopped (Model Studio's content filter) and the backup could not finish it; the diagram keeps what was drawn
 
 export interface Warning {
   code: WarningCode;
@@ -206,8 +208,13 @@ export interface TurnRequest {
  * done, error, each with phase 'main' or 'repair') plus these server events. It ends with 'commit' or 'fatal';
  * a 'summary' may follow 'commit' when older turns were folded into the rolling summary.
  */
+/** Who served a call: Model Studio (Qwen, the primary) or the Claude backup that finishes a turn Model Studio's filter stopped. */
+export type Provider = 'qwen' | 'claude';
+
 export type ServerEvent =
-  | { type: 'status'; code: 'fallback' | 'retry' | 'continue' | 'repair' | 'summary'; text: string }
+  // provider: set to 'claude' on the statuses of a backup rescue (a 'fallback' first, then 'continue' or 'repair' when the
+  // backup continues a cut-off reply); absent on every Qwen status.
+  | { type: 'status'; code: 'fallback' | 'retry' | 'continue' | 'repair' | 'summary'; text: string; provider?: Provider }
   | { type: 'commit'; memory: SessionMemory; changes: string; warnings: Warning[] } // final repaired state; the browser replaces its memory with it
   | { type: 'summary'; summary: string } // rolling summary after the commit; the browser stores it in memory.summary
   | { type: 'fatal'; code: string; message: string; retryable: boolean }; // the turn failed and memory is unchanged

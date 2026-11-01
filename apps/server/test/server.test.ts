@@ -662,7 +662,10 @@ describe('redactor: a key cut off by the 300-character error truncation, or mask
     const { makeRedactor } = await import('../src/log.ts');
     const redact = makeRedactor(KEY);
     assert.equal(redact(`Invalid API-key provided: ${KEY}`), 'Invalid API-key provided: [redacted]');
-    for (const cut of [8, 10, 14, 20, KEY.length - 1]) assert.ok(!redact(`bad key ${KEY.slice(0, cut)}`).includes(KEY.slice(3, 8)), `prefix of ${cut} characters`);
+    for (const cut of [12, 14, 20, KEY.length - 1]) assert.ok(!redact(`bad key ${KEY.slice(0, cut)}`).includes(KEY.slice(3, 8)), `prefix of ${cut} characters`);
+    // a start shorter than twelve characters is an ordinary word (sk-ant, sk-tes), not worth blanking out of a message
+    for (const cut of [3, 6, 8, 10]) assert.equal(redact(`bad key ${KEY.slice(0, cut)} end`), `bad key ${KEY.slice(0, cut)} end`, `prefix of ${cut} characters is left alone`);
+    assert.equal(redact('the sk-ant docs say sk-test is a prefix'), 'the sk-ant docs say sk-test is a prefix');
     assert.ok(!/sk-test-S/.test(redact('x'.repeat(280) + KEY.slice(0, 12))), 'cut at the end of the message');
     assert.equal(redact('provider says sk-AbCd1234EfGh5678 is wrong'), 'provider says [redacted] is wrong', 'any sk- token of eight characters or more');
     assert.equal(redact('the task-force sk is fine, ask-me anything, risk-free'), 'the task-force sk is fine, ask-me anything, risk-free');

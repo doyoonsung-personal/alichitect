@@ -155,6 +155,36 @@ async function main() {
       await shot(p, 'panel-open-1440x900');
       await p.close();
     },
+    // the Claude backup after a content-filter stop: the status line while Claude works (4x, caught on the status), the
+    // closed revision with its attribution, the both-failed case, and the existing error when no backup is configured
+    async rescue() {
+      const live = async (id, name, lang = 'en') => {
+        const p = await page(1440, 900, lang);
+        await p.goto(`${server.url}/?replay=${id}&speed=4x&lang=${lang}`, { waitUntil: 'domcontentloaded' });
+        await p.waitForSelector('.rev__status', { timeout: 15000 });
+        await sleep(120);
+        await shot(p, name);
+        await p.close();
+      };
+      const done = async (id, name, lang = 'en') => {
+        const p = await page(1440, 900, lang);
+        await p.goto(`${server.url}/?replay=${id}&speed=instant&lang=${lang}`, { waitUntil: 'networkidle0' });
+        await sleep(700);
+        await shot(p, name);
+        await p.close();
+      };
+      await live('stub-rescue-continue', 'rescue-status-continue-1440x900');
+      await live('stub-rescue-whole', 'rescue-status-whole-1440x900');
+      await live('stub-rescue-continue', 'rescue-status-continue-ko-1440x900', 'ko');
+      await live('stub-rescue-continue', 'rescue-status-continue-zh-1440x900', 'zh');
+      await done('stub-rescue-continue', 'rescue-done-continue-1440x900');
+      await done('stub-rescue-whole', 'rescue-done-whole-1440x900');
+      await done('stub-rescue-incomplete', 'rescue-incomplete-1440x900');
+      await done('stub-rescue-incomplete', 'rescue-incomplete-ko-1440x900', 'ko');
+      await done('stub-rescue-continue', 'rescue-done-continue-zh-1440x900', 'zh');
+      await done('stub-rescue-failed', 'rescue-failed-1440x900');
+      await done('stub-filtered', 'rescue-none-filtered-1440x900');
+    },
     async states() {
       for (const [id, name] of [['stub-fatal', 'fatal'], ['stub-fallback', 'fallback'], ['ai-agent', 'solution-map'], ['chinese-fix', 'repair'], ['korean', 'korean'], ['residency', 'residency']]) {
         const p = await page(1440, 900, id === 'korean' ? 'ko' : id === 'chinese-fix' ? 'zh' : 'en');

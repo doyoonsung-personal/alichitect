@@ -8,13 +8,14 @@ import path from 'node:path';
 export type Redactor = (s: string) => string;
 
 /** The shortest start of a secret that is redacted on its own (an error message cut at a length limit keeps only a start). */
-const PREFIX_MIN = 6;
+const PREFIX_MIN = 12;
 
 /**
  * Replaces every occurrence of the secret (and of any other given secrets) with [redacted]. Short or empty secrets are
- * ignored. Also redacted: a start of a secret of at least six characters (the provider's error text is cut to 300
- * characters before it reaches the redactor, so a key echoed across the cut would otherwise leak its first characters),
- * and any "sk-" token of eight or more characters (a masked or different key in a provider error).
+ * ignored. Also redacted: a start of a secret of at least twelve characters (the provider's error text is cut to 300
+ * characters before it reaches the redactor, so a key echoed across the cut would otherwise leak its first characters;
+ * shorter starts, such as "sk-ant" or "sk-tes", are ordinary words and are left alone), and any "sk-" token of eight or
+ * more characters (a masked or different key in a provider error).
  */
 export function makeRedactor(...secrets: Array<string | undefined>): Redactor {
   const list = secrets.filter((s): s is string => typeof s === 'string' && s.length >= 8);
@@ -24,6 +25,7 @@ export function makeRedactor(...secrets: Array<string | undefined>): Redactor {
     let out = s;
     for (const k of list) {
       if (out.includes(k)) out = out.split(k).join(MARK);
+      if (k.length < PREFIX_MIN) continue;
       const head = k.slice(0, PREFIX_MIN);
       for (let at = out.indexOf(head); at >= 0; at = out.indexOf(head, at + MARK.length)) {
         let n = PREFIX_MIN;

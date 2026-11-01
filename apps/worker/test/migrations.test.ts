@@ -40,3 +40,55 @@ describe('migration 0002', () => {
     assert.ok(['audit', 'codes', 'decoy', 'inflight', 'lockouts', 'rate', 'sessions', 'signups', 'usage', 'users'].every((t) => tables.includes(t)));
   });
 });
+
+// 0003_rescue_caps.sql rebuilds `usage` (its foreign key to users would refuse the global '*' row) and adds the rescue columns.
+describe('migration 0003', () => {
+  const upTo = (n: 1 | 2): DatabaseSync => {
+    const d = new DatabaseSync(':memory:');
+    d.exec('PRAGMA foreign_keys = ON;');
+    d.exec(sql('0001_init.sql'));
+    if (n === 2) d.exec(sql('0002_availability.sql'));
+    return d;
+  };
+  const count = (d: DatabaseSync, table: string): number => (d.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n;
+
+  test('keeps every usage row, starts the new columns at 0, and accepts the global * row', () => {
+    const d = upTo(2);
+    d.exec(`INSERT INTO users (id, email, name, pw_hash, pw_salt, pw_version, pw_changed_at, created_at) VALUES ('u_1', 'a@example.com', 'A', 'h', 's', 1, 1, 1), ('u_2', 'b@example.com', 'B', 'h', 's', 1, 1, 1)`);
+    d.exec(`INSERT INTO usage (user_id, day, turns, est_cost_usd) VALUES ('u_1', '2026-10-30', 5, 0.25), ('u_1', '2026-10-31', 2, 0.5), ('u_2', '2026-10-31', 9, 1.5)`);
+    assert.throws(() => d.exec(`INSERT INTO usage (user_id, day) VALUES ('*', '2026-10-31')`), /FOREIGN KEY/, 'before 0003 the global row is refused');
+
+    d.exec(sql('0003_rescue_caps.sql'));
+
+    const rows = d.prepare('SELECT user_id, day, turns, est_cost_usd, rescues, claude_cost_usd FROM usage ORDER BY user_id, day').all() as Array<Record<string, unknown>>;
+    assert.deepEqual(rows.map((r) => ({ ...r })), [
+      { user_id: 'u_1', day: '2026-10-30', turns: 5, est_cost_usd: 0.25, rescues: 0, claude_cost_usd: 0 },
+      { user_id: 'u_1', day: '2026-10-31', turns: 2, est_cost_usd: 0.5, rescues: 0, claude_cost_usd: 0 },
+      { user_id: 'u_2', day: '2026-10-31', turns: 9, est_cost_usd: 1.5, rescues: 0, claude_cost_usd: 0 },
+    ]);
+    d.exec(`INSERT INTO usage (user_id, day, rescues, claude_cost_usd) VALUES ('*', '2026-10-31', 3, 1.25)`);
+    assert.deepEqual({ ...(d.prepare(`SELECT turns, est_cost_usd, rescues, claude_cost_usd FROM usage WHERE user_id = '*'`).get() as object) }, { turns: 0, est_cost_usd: 0, rescues: 3, claude_cost_usd: 1.25 });
+    assert.throws(() => d.exec(`INSERT INTO usage (user_id, day) VALUES ('*', '2026-10-31')`), /UNIQUE|PRIMARY/, 'still one row per user and day');
+    assert.equal(count(d, 'users'), 2);
+  });
+
+  test('removing a user still removes their usage (a trigger replaces the cascade), and leaves the global row', () => {
+    const d = upTo(2);
+    d.exec(`INSERT INTO users (id, email, name, pw_hash, pw_salt, pw_version, pw_changed_at, created_at) VALUES ('u_1', 'a@example.com', 'A', 'h', 's', 1, 1, 1), ('u_2', 'b@example.com', 'B', 'h', 's', 1, 1, 1)`);
+    d.exec(sql('0003_rescue_caps.sql'));
+    d.exec(`INSERT INTO usage (user_id, day, turns) VALUES ('u_1', '2026-10-31', 1), ('u_2', '2026-10-31', 1), ('*', '2026-10-31', 0)`);
+    d.exec(`DELETE FROM users WHERE id = 'u_1'`);
+    assert.deepEqual((d.prepare('SELECT user_id FROM usage ORDER BY user_id').all() as Array<{ user_id: string }>).map((r) => r.user_id), ['*', 'u_2']);
+  });
+
+  test('runs on an empty database right after 0001 and 0002, and nothing else is touched', () => {
+    const d = upTo(2);
+    const before = (d.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name != 'usage' ORDER BY name`).all() as Array<{ name: string }>).map((r) => r.name);
+    d.exec(sql('0003_rescue_caps.sql'));
+    const after = (d.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT IN ('usage', 'usage_new') ORDER BY name`).all() as Array<{ name: string }>).map((r) => r.name);
+    assert.deepEqual(after, before);
+    assert.equal(count(d, 'usage'), 0);
+    assert.equal((d.prepare(`SELECT COUNT(*) AS n FROM sqlite_master WHERE name = 'usage_new'`).get() as { n: number }).n, 0, 'no leftover table');
+    assert.equal(count(d, 'inflight'), 0);
+  });
+});

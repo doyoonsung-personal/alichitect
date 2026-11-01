@@ -5,12 +5,20 @@
 // packages/core's runTurn, unchanged; its events go out as NDJSON through a TransformStream, one line per event.
 // The upstream request is aborted when the browser disconnects (request.signal, or a failed write) or the turn
 // deadline passes. Usage is recorded after every turn that started. The log holds metadata only, never the ask or the
-// reply, and every outgoing line passes through the key redactor.
+// reply, and every outgoing line passes through the key redactor (both keys). With the optional ANTHROPIC_API_KEY secret,
+// a turn Model Studio's content filter stops is finished by the Claude backup (packages/core/src/claude.ts). That backup
+// spends the owner's Anthropic credit and anyone can write text that trips the filter, so it is capped: a rescue starts
+// only while the user is under CLAUDE_RESCUES_PER_USER_DAY (admins: CLAUDE_RESCUES_PER_ADMIN_DAY) and the day's Claude
+// cost, all users together, is under CLAUDE_BUDGET_USD_PER_DAY (checked lazily, right before the backup would run;
+// db.rescueUsage). Each backup call is booked as it ends (db.bookRescue), and a rescued turn counts 2 against TURNS_PER_DAY.
+// A cap that blocks a rescue behaves as no backup configured, with its own message (fatal backup-limit).
 import type { Env, ExecutionContextLike } from './env.ts';
-import { turnsPerDay } from './env.ts';
+import { claudeBudgetUsdPerDay, rescuesPerDay, turnsPerDay } from './env.ts';
 import type { Catalog, ServerEvent } from '../../../packages/core/src/types.ts';
 import { DEFAULT_BASE_URL, DEFAULT_MODEL, FALLBACK_MODEL, createCacheTracker } from '../../../packages/core/src/llm.ts';
-import type { CacheTracker, RunTurnOptions } from '../../../packages/core/src/llm.ts';
+import type { BackupCall, BackupGateResult, CacheTracker, RunTurnOptions } from '../../../packages/core/src/llm.ts';
+import { claudeBackupConfig, createClaudeBackup } from '../../../packages/core/src/claude.ts';
+import type { ClaudeBackupOptions } from '../../../packages/core/src/claude.ts';
 import { buildSystemPrompt } from '../../../packages/core/src/prompt.ts';
 import { createCatalog } from '../../../packages/core/src/catalog.ts';
 import type { CatalogFile } from '../../../packages/core/src/catalog.ts';
@@ -61,7 +69,7 @@ export function turnConfig(env: Env): TurnConfig {
   };
 }
 
-/** GET /api/health: the SPA's Health shape. No secrets: whether a key is set, never the key. */
+/** GET /api/health: the SPA's Health shape. No secrets: whether a key (and the Claude backup) is set, never a key. */
 export function health(env: Env): Response {
   const cfg = turnConfig(env);
   const { catalog } = sharedTurnState();
@@ -72,6 +80,7 @@ export function health(env: Env): Response {
     endpoint: new URL(cfg.baseUrl).host,
     catalog: { version: catalog.version, entries: catalog.entries.length },
     keyConfigured: !!env.DASHSCOPE_API_KEY,
+    backupConfigured: !!claudeBackupConfig(env),
     inFlight: 0,
     maxInFlight: 1, // per user
     limits: { askChars: LIMITS.askChars, turns: LIMITS.turns, nodes: LIMITS.nodes, requirements: LIMITS.requirements, bodyBytes: MAX_BODY_BYTES },
@@ -96,16 +105,28 @@ export function reject(status: number, code: string, message: string, extra: Rec
 
 /* ---------- the key redactor (the same rules as apps/server/src/log.ts makeRedactor, which needs node:crypto) ---------- */
 
-export function makeRedactor(secret: string | undefined): (s: string) => string {
-  if (!secret || secret.length < 8) return (s) => s.replace(/\bsk-[A-Za-z0-9_-]{8,}/g, '[redacted]');
+/** The shortest start of a secret that is redacted on its own. Shorter starts ("sk-ant", "sk-tes") are ordinary text. */
+const PREFIX_MIN = 12;
+
+/**
+ * Redacts every given secret (the Model Studio key and the Anthropic key), a start of one of at least PREFIX_MIN
+ * characters (an error text cut at a length limit keeps only a start), and any sk- token.
+ */
+export function makeRedactor(...secrets: Array<string | undefined>): (s: string) => string {
+  const list = secrets.filter((k): k is string => typeof k === 'string' && k.length >= 8);
   const MARK = '[redacted]';
-  const head = secret.slice(0, 6);
+  if (!list.length) return (s) => s.replace(/\bsk-[A-Za-z0-9_-]{8,}/g, MARK);
   return (s) => {
-    let out = s.includes(secret) ? s.split(secret).join(MARK) : s;
-    for (let at = out.indexOf(head); at >= 0; at = out.indexOf(head, at + MARK.length)) {
-      let n = 6;
-      while (n < secret.length && out[at + n] === secret[n]) n++;
-      out = out.slice(0, at) + MARK + out.slice(at + n);
+    let out = s;
+    for (const secret of list) {
+      if (out.includes(secret)) out = out.split(secret).join(MARK);
+      if (secret.length < PREFIX_MIN) continue;
+      const head = secret.slice(0, PREFIX_MIN);
+      for (let at = out.indexOf(head); at >= 0; at = out.indexOf(head, at + MARK.length)) {
+        let n = PREFIX_MIN;
+        while (n < secret.length && out[at + n] === secret[n]) n++;
+        out = out.slice(0, at) + MARK + out.slice(at + n);
+      }
     }
     return out.replace(/\bsk-[A-Za-z0-9_-]{8,}/g, MARK);
   };
@@ -115,6 +136,10 @@ export function makeRedactor(secret: string | undefined): (s: string) => string 
 
 export interface TurnHandlerDeps {
   fetchImpl?: typeof fetch;
+  /** The Claude backup's fetch (tests); default fetchImpl, then the global fetch. */
+  backupFetchImpl?: typeof fetch;
+  /** Extra Claude backup options (tests shorten its watchdogs here). */
+  backupOptions?: Partial<ClaudeBackupOptions>;
   turnOptions?: Partial<RunTurnOptions>;
   now?: () => number;
   log?: (line: string) => void;
@@ -176,7 +201,11 @@ export async function handleTurn(request: Request, env: Env, ctx: ExecutionConte
   }
 
   const day = db.utcDay(t0);
-  const redact = makeRedactor(apiKey);
+  const backupCfg = claudeBackupConfig(env);
+  const redact = makeRedactor(apiKey, backupCfg?.apiKey);
+  const backup = backupCfg
+    ? createClaudeBackup({ ...deps.backupOptions, apiKey: backupCfg.apiKey, model: backupCfg.model, fetchImpl: deps.backupFetchImpl ?? deps.fetchImpl ?? ((u, i) => fetch(u, i)) })
+    : undefined;
   const { catalog, system, tracker } = sharedTurnState();
   const enc = new TextEncoder();
   const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
@@ -204,8 +233,27 @@ export async function handleTurn(request: Request, env: Env, ctx: ExecutionConte
     });
   };
 
+  // The Claude backup's spending caps. The gate runs lazily, once, when the content filter has stopped the reply and a
+  // rescue is about to start; it reads the user's rescues and the day's Claude cost. The cost of each backup call is
+  // booked as the call ends. Two users' rescues can start at once, each seeing the cost before the other's, so the
+  // daily budget can be passed by the cost of the rescues in flight (a few cents to about a dollar each); the per-user
+  // cap is exact, since a user has one turn in flight.
+  const userCap = rescuesPerDay(env, isAdmin);
+  const budgetUsd = claudeBudgetUsdPerDay(env);
+  let rescueRan = false;
+  const backupGate = async (): Promise<BackupGateResult> => {
+    const u = await db.rescueUsage(env.DB, user.id, day);
+    if (u.userRescues >= userCap) return { ok: false, reason: 'limit', detail: 'user-cap' };
+    if (u.globalCostUsd >= budgetUsd) return { ok: false, reason: 'limit', detail: 'global-cap' };
+    return { ok: true };
+  };
+  const onBackupCall = async (c: BackupCall): Promise<void> => {
+    if (c.first) rescueRan = true;
+    await db.bookRescue(env.DB, user.id, day, c.costUsd, c.first);
+  };
+
   const run = async (): Promise<void> => {
-    let outcome: TurnOutcome = { outcome: 'aborted', lang, statuses: [], summaryCostUsd: 0 };
+    let outcome: TurnOutcome = { outcome: 'aborted', lang, statuses: [], summaryCostUsd: 0, backupLog: [] };
     let internal = false;
     try {
       outcome = await executeTurn(
@@ -218,6 +266,8 @@ export async function handleTurn(request: Request, env: Env, ctx: ExecutionConte
           fallbackModel: cfg.fallbackModel,
           baseUrl: cfg.baseUrl,
           tracker,
+          backup,
+          ...(backup ? { backupGate, onBackupCall, msLeft: () => cfg.deadlineMs - (now() - t0) } : {}),
           fetchImpl: deps.fetchImpl ?? ((u, i) => fetch(u, i)),
           turnOptions: deps.turnOptions,
         },
@@ -250,7 +300,7 @@ export async function handleTurn(request: Request, env: Env, ctx: ExecutionConte
     const cost = (s?.costUsd ?? 0) + outcome.summaryCostUsd;
     // In this order, one after the other: while the slot is held the same user's next turn is refused (409), so by the
     // time the slot is free the count it reads includes this turn. A failure of one must not skip the other.
-    await db.recordUsage(env.DB, user.id, day, cost).catch(() => undefined);
+    await db.recordUsage(env.DB, user.id, day, cost, rescueRan ? 2 : 1).catch(() => undefined);
     await db.releaseTurnSlot(env.DB, user.id, requestId).catch(() => undefined);
     log(
       JSON.stringify({
@@ -266,6 +316,10 @@ export async function handleTurn(request: Request, env: Env, ctx: ExecutionConte
         serverMs: now() - t0,
         model: s?.model ?? null,
         fallbackUsed: s?.fallbackUsed ?? null,
+        backupUsed: s?.backupUsed ?? null,
+        backupSkipped: s?.backupSkipped ?? null,
+        backupLog: outcome.backupLog,
+        rescue: s?.rescue ? { kind: s.rescue.kind, model: s.rescue.servedModel ?? s.rescue.model, ok: s.rescue.ok, error: s.rescue.error?.code ?? null, ops: s.rescue.ops, ms: s.rescue.totalMs, costUsd: Number(s.rescue.costUsd.toFixed(6)) } : null,
         statuses: outcome.statuses.map((x) => x.code),
         timings: s ? { firstByteMs: s.firstByteMs, firstOpMs: s.firstOpMs, turnMs: s.turnMs } : null,
         tokens: s ? { prompt: s.promptTokens, cached: s.cachedTokens, completion: s.completionTokens } : null,

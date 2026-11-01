@@ -185,5 +185,49 @@
   "ask": "회사에 클라우드가 필요합니다.",
   "durationMs": 20128,
   "note": "Synthetic. A request too vague to pick any pattern: two ask ops and no nodes. Turn 2 answers with an option and draws a web store with two assumptions and one question."
+ },
+ {
+  "id": "stub-rescue-continue",
+  "title": "Stub: the content filter stops Qwen halfway and Claude finishes",
+  "lang": "en",
+  "recordedAt": "2026-11-01",
+  "synthetic": true,
+  "turns": 1,
+  "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
+  "durationMs": 21409,
+  "note": "Qwen draws the edge, ALB, WAF and ECS; the filter stops it. Claude continues from the partial diagram and commits."
+ },
+ {
+  "id": "stub-rescue-whole",
+  "title": "Stub: the content filter stops Qwen before it draws, and Claude answers",
+  "lang": "en",
+  "recordedAt": "2026-11-01",
+  "synthetic": true,
+  "turns": 1,
+  "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
+  "durationMs": 21040,
+  "note": "Nothing was drawn when the filter stopped Qwen, so Claude runs the whole turn."
+ },
+ {
+  "id": "stub-rescue-incomplete",
+  "title": "Stub: the filter stops Qwen and Claude declines to finish",
+  "lang": "en",
+  "recordedAt": "2026-11-01",
+  "synthetic": true,
+  "turns": 1,
+  "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
+  "durationMs": 13808,
+  "note": "Claude refuses; the partial diagram is committed with a reply-incomplete warning."
+ },
+ {
+  "id": "stub-rescue-failed",
+  "title": "Stub: the filter stops Qwen before it draws and Claude fails too",
+  "lang": "en",
+  "recordedAt": "2026-11-01",
+  "synthetic": true,
+  "turns": 1,
+  "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
+  "durationMs": 4130,
+  "note": "Nothing was drawn and Claude could not answer either: the revision ends as content-filtered, memory unchanged."
  }
 ]

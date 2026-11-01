@@ -15,6 +15,7 @@
     "icons:ui": "node scripts/ui-icons/build.ts",
     "replay:build": "node --import ./scripts/alias.mjs scripts/replay/build-fixtures.ts",
     "replay:asks": "node --import ./scripts/alias.mjs scripts/replay/ask-fixtures.ts",
+    "replay:rescue": "node --import ./scripts/alias.mjs scripts/replay/rescue-fixtures.ts",
     "export:samples": "node --import ./scripts/alias.mjs scripts/export/make-pdfs.ts"
   },
   "dependencies": {

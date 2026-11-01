@@ -1,18 +1,21 @@
 // The local turn server: node:http, no framework, bound to 127.0.0.1.
-//   GET  /api/health  status, catalog version, whether a key is configured (never the key)
+//   GET  /api/health  status, catalog version, whether a key and the Claude backup are configured (never a key)
 //   POST /api/turn    TurnRequest JSON in, NDJSON out (application/x-ndjson, one event per line, flushed per line)
 // Request checks, in order: Host header (DNS rebinding), Origin allowlist (a request without Origin is a local
 // non-browser client), route and method, JSON content type, 512 KB body limit, JSON parse, TurnRequest shape and
 // limits, key configured, one in-flight turn per session (409), at most maxInFlight turns overall (429). A rejection
 // before streaming is an HTTP error whose JSON body is a ServerEvent fatal. Once streaming has started, every outcome
 // is a line: commit or fatal. The upstream request is aborted when the client disconnects or the turn deadline
-// passes. Errors never carry stack traces, and every outgoing line and log line passes through the key redactor.
+// passes. Errors never carry stack traces, and every outgoing line and log line passes through the key redactor, which
+// knows both keys (Model Studio and, when the backup is configured, Anthropic).
 import http from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Catalog, ServerEvent } from '../../../packages/core/src/types.ts';
 import { buildSystemPrompt } from '../../../packages/core/src/prompt.ts';
 import { createCacheTracker } from '../../../packages/core/src/llm.ts';
 import type { CacheTracker, ConstraintChecker, RunTurnOptions } from '../../../packages/core/src/llm.ts';
+import { createClaudeBackup } from '../../../packages/core/src/claude.ts';
+import type { ClaudeBackupOptions } from '../../../packages/core/src/claude.ts';
 import type { ServerConfig } from './config.ts';
 import { createTurnLog, makeRedactor, sessionTag } from './log.ts';
 import type { TurnLog } from './log.ts';
@@ -26,6 +29,11 @@ export interface ServerDeps {
   catalog: Catalog;
   /** From the environment only (main.ts). Undefined: the server runs, and turns answer 503 no-key. */
   apiKey: string | undefined;
+  /**
+   * The optional Claude backup (main.ts: ANTHROPIC_API_KEY and CLAUDE_BACKUP_MODEL). Undefined: no backup, and a turn
+   * Model Studio's content filter stops ends as content-filtered, as before. fetchImpl defaults to the one below.
+   */
+  backup?: { apiKey: string; model?: string; fetchImpl?: typeof fetch; options?: Partial<ClaudeBackupOptions> };
   fetchImpl?: typeof fetch;
   checkConstraints?: ConstraintChecker;
   /** Extra runTurn options (watchdogs, retries, backoff). */
@@ -96,7 +104,9 @@ function readBody(req: IncomingMessage, limit: number): Promise<Buffer> {
 
 export function createTurnServer(deps: ServerDeps): TurnServer {
   const { config, catalog } = deps;
-  const redact = makeRedactor(deps.apiKey);
+  const redact = makeRedactor(deps.apiKey, deps.backup?.apiKey);
+  const fetchBackup = deps.backup?.fetchImpl ?? deps.fetchImpl;
+  const backup = deps.backup ? createClaudeBackup({ ...deps.backup.options, apiKey: deps.backup.apiKey, model: deps.backup.model, ...(fetchBackup ? { fetchImpl: fetchBackup } : {}) }) : undefined;
   const log = deps.log ?? createTurnLog(config.logFile, redact);
   const system = buildSystemPrompt(catalog); // byte-stable; built once
   const tracker = deps.tracker ?? createCacheTracker();
@@ -149,6 +159,7 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
           endpoint: new URL(config.baseUrl).host,
           catalog: { version: catalog.version, entries: catalog.entries.length },
           keyConfigured: !!deps.apiKey,
+          backupConfigured: !!backup,
           inFlight: turns,
           maxInFlight: config.maxInFlight,
           limits: { askChars: LIMITS.askChars, turns: LIMITS.turns, nodes: LIMITS.nodes, requirements: LIMITS.requirements, bodyBytes: config.maxBodyBytes },
@@ -203,14 +214,14 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
       if (e.type === 'commit') committed = true;
       res.write(redact(JSON.stringify(e)) + '\n');
     };
-    let outcome: TurnOutcome = { outcome: 'aborted', lang, statuses: [], summaryCostUsd: 0 };
+    let outcome: TurnOutcome = { outcome: 'aborted', lang, statuses: [], summaryCostUsd: 0, backupLog: [] };
     let internal = false;
     try {
       res.writeHead(200, { ...BASE_HEADERS, ...cors, 'Content-Type': 'application/x-ndjson; charset=utf-8', 'X-Accel-Buffering': 'no' });
       res.flushHeaders();
       outcome = await executeTurn(
         turnReq,
-        { apiKey: deps.apiKey, catalog, system, model: config.model, fallbackModel: config.fallbackModel, baseUrl: config.baseUrl, tracker, fetchImpl: deps.fetchImpl, checkConstraints: deps.checkConstraints, turnOptions: deps.turnOptions },
+        { apiKey: deps.apiKey, catalog, system, model: config.model, fallbackModel: config.fallbackModel, baseUrl: config.baseUrl, tracker, backup, msLeft: () => config.turnDeadlineMs - (Date.now() - t0), fetchImpl: deps.fetchImpl, checkConstraints: deps.checkConstraints, turnOptions: deps.turnOptions },
         emit,
         ac.signal,
       );
@@ -291,9 +302,13 @@ export function turnLogEntry(sessionId: string, ask: string, o: TurnOutcome, x: 
   if (s) {
     Object.assign(entry, {
       model: s.model,
-      attempts: s.attempts.map((a) => ({ model: a.model, warm: a.warm, error: a.error?.code ?? null, ops: a.ops, ms: a.totalMs, hedged: a.hedged })),
+      attempts: s.attempts.map((a) => ({ model: a.model, provider: a.provider, ...(a.servedModel ? { servedModel: a.servedModel } : {}), warm: a.warm, error: a.error?.code ?? null, ops: a.ops, ms: a.totalMs, hedged: a.hedged, costUsd: Number(a.costUsd.toFixed(6)) })),
       fallbackUsed: s.fallbackUsed,
-      repair: s.repair ? { kind: s.repair.kind, model: s.repair.model, findings: s.repair.findings.map((w) => w.code), ops: s.repair.ops.length, ms: s.repair.totalMs, error: s.repair.error?.code ?? null } : null,
+      backupUsed: s.backupUsed,
+      repair: s.repair ? { kind: s.repair.kind, model: s.repair.model, provider: s.repair.provider, findings: s.repair.findings.map((w) => w.code), ops: s.repair.ops.length, ms: s.repair.totalMs, error: s.repair.error?.code ?? null } : null,
+      backupSkipped: s.backupSkipped ?? null,
+      backupLog: o.backupLog,
+      rescue: s.rescue ? { kind: s.rescue.kind, provider: s.rescue.provider, model: s.rescue.model, servedModel: s.rescue.servedModel ?? null, from: s.rescue.from, reason: s.rescue.reason, ok: s.rescue.ok, error: s.rescue.error?.code ?? null, ops: s.rescue.ops, firstOpMs: s.rescue.firstOpMs, ms: s.rescue.totalMs, costUsd: Number(s.rescue.costUsd.toFixed(6)) } : null,
       timings: { headersMs: s.headersMs, firstByteMs: s.firstByteMs, firstSayMs: s.firstSayMs, firstOpMs: s.firstOpMs, firstNodeMs: s.firstNodeMs, mainMs: s.totalMs, turnMs: s.turnMs, maxGapMs: s.maxGapMs },
       tokens: { prompt: s.promptTokens, cached: s.cachedTokens, created: s.cacheCreationTokens, completion: s.completionTokens },
       costUsd: Number(s.costUsd.toFixed(6)),

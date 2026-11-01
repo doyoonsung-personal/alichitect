@@ -672,7 +672,7 @@ function Stage(p: CanvasProps): ReactElement {
         />
         {empty && p.reading ? (
           <p className="cv-reading">
-            {t('canvas.reading')}
+            {t(p.readingBy === 'claude' ? 'canvas.readingClaude' : 'canvas.reading')}
             <i className="cv-cursor" aria-hidden="true" />
           </p>
         ) : null}

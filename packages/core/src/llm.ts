@@ -12,11 +12,19 @@
 //   model (qwen3.7-max, enable_thinking:false);
 //   10 s of silence after the first token aborts the stream; each stream is capped at 120 s;
 //   any stream that ends without a done op is truncated and gets one continuation turn;
-//   a provider content-filter rejection (DataInspectionFailed) is never retried and ends the turn as content-filtered.
+//   a provider content-filter rejection (DataInspectionFailed) is never retried on Model Studio (qwen3.7-max sits behind
+//   the same filter). Without a backup it ends the turn as content-filtered. With a backup (RunTurnOptions.backup, the
+//   Claude provider of claude.ts) the backup finishes the turn: a continuation from the partial diagram when ops were
+//   already applied, otherwise the whole turn; if the backup fails or refuses, what was drawn is committed with a
+//   reply-incomplete warning (a turn with nothing drawn still ends as content-filtered). The rescue is gated: it starts
+//   only with 60 s of the turn deadline left (msLeft) and when backupGate allows it (the caller's spending caps); a
+//   blocked rescue behaves as no backup (stats.backupSkipped says why). The browser sees the backup's drawing events
+//   only: its usage and error events go to onBackupDetail (logs), and onBackupCall books each call's cost as it ends.
 // Every value is overridable through RunTurnOptions. onStatus tells callers when a fallback, retry, continuation,
 // repair or summary starts.
-// Browser-safe (fetch, TextDecoder, AbortController only). The API key is only ever put in the Authorization header.
-import type { ApplyResult, Catalog, Constraint, Graph, Op, ServerEvent, SessionMemory, Warning, WarningCode } from './types.ts';
+// Browser-safe (fetch, TextDecoder, AbortController only); the Anthropic SDK is imported by claude.ts alone. The API key
+// is only ever put in the Authorization header.
+import type { ApplyResult, Catalog, Constraint, Graph, Op, Provider, ServerEvent, SessionMemory, Warning, WarningCode } from './types.ts';
 import { createLineParser, completeLines } from './ndjson.ts';
 import { checkLifecycle } from './catalog.ts';
 import { cachedTokens, creationTokens, costOf, estimateCost, priceOf } from './pricing.ts';
@@ -185,7 +193,7 @@ export function createSseParser(onMessage: (m: SseMessage) => void): { push(text
 // ---------- events ----------
 
 export interface TurnError {
-  code: string; // http-<status>, rate-limited, server-error, content-filtered, auth, network, first-byte-timeout, idle-timeout, total-timeout, unexpected-reasoning, aborted, stream-error
+  code: string; // http-<status>, rate-limited, server-error, content-filtered, auth, network, first-byte-timeout, idle-timeout, total-timeout, unexpected-reasoning, aborted, stream-error; Claude backup also: refusal, overloaded
   message: string;
   retryable: boolean;
   status?: number;
@@ -249,6 +257,10 @@ export interface StreamTurnOptions {
 
 export interface StreamResult {
   model: string;
+  /** Who served the call: 'qwen' (streamTurn) or 'claude' (the claude.ts backup). */
+  provider: Provider;
+  /** The model that actually answered, when the provider reported a different one (a Claude server-side refusal fallback). */
+  servedModel?: string;
   graph: Graph; // after the streamed ops, before graph repair
   ctx: ApplyCtx;
   ops: Op[];
@@ -316,19 +328,29 @@ function requestBody(o: { model: string; messages: ChatMessage[]; maxTokens?: nu
   return JSON.stringify({ ...body, ...(o.extraBody ?? {}) });
 }
 
-interface RawStreamHandlers {
+/** What a token source reports while it streams (rawStream for Model Studio, claude.ts for the Claude backup). */
+export interface RawStreamHandlers {
   onContent(delta: string, atMs: number): void;
   onReasoning?(delta: string): void;
   onUsage(u: Usage): void;
   onFinish(reason: string): void;
 }
 
-interface RawStreamOutcome {
+export interface RawStreamOutcome {
   timings: Pick<StreamTimings, 'headersMs' | 'firstByteMs' | 'totalMs' | 'maxGapMs' | 'hedgeAtMs'>;
   hedged: boolean;
   hedgeWon: boolean;
   error?: TurnError;
+  /** The source priced the call itself (claude.ts prices each attempt of a server-side fallback at its own model); replaces costOf(model, usage). */
+  costUsd?: number;
+  /** costUsd is an upper bound, not a billed figure (claude.ts: the stream broke before its final usage record). */
+  costEstimated?: boolean;
+  /** The model that served the stream, when the provider reports one that differs from the requested model. */
+  servedModel?: string;
 }
+
+/** One streamed model call: feeds the handlers as text arrives, applies its own watchdogs, resolves when the stream ends. */
+export type RawSource = (h: RawStreamHandlers) => Promise<RawStreamOutcome>;
 
 interface RawStreamOptions {
   apiKey: string;
@@ -544,6 +566,46 @@ const charsOf = (messages: ChatMessage[]): number =>
  */
 export async function streamTurn(o: StreamTurnOptions): Promise<StreamResult> {
   const model = o.model ?? DEFAULT_MODEL;
+  const dog = watchdogsFor(!!o.warm, o.watchdogs);
+  return streamOps({ model, provider: 'qwen', messages: o.messages, catalog: o.catalog, graph: o.graph, ctx: o.ctx, onEvent: o.onEvent, prices: o.prices }, (h) =>
+    rawStream(
+      {
+        apiKey: o.apiKey,
+        baseUrl: o.baseUrl,
+        signal: o.signal,
+        fetchImpl: o.fetchImpl,
+        body: requestBody({ model, messages: o.messages, maxTokens: o.maxTokens, temperature: o.temperature, extraBody: o.extraBody }),
+        firstByteTimeoutMs: o.firstByteTimeoutMs ?? dog.firstByteTimeoutMs,
+        hedgeAfterMs: o.hedgeAfterMs ?? dog.hedgeAfterMs,
+        idleTimeoutMs: o.idleTimeoutMs ?? dog.idleTimeoutMs,
+        totalTimeoutMs: o.totalTimeoutMs ?? dog.totalTimeoutMs,
+        abortOnReasoning: o.abortOnReasoning !== false,
+      },
+      h,
+    ),
+  );
+}
+
+/** What streamOps needs besides its token source. */
+export interface OpStreamOptions {
+  model: string;
+  provider: Provider;
+  /** The request's messages; only their size is used here (the cost estimate when no usage record arrived). */
+  messages: ChatMessage[];
+  catalog: Catalog;
+  graph?: Graph;
+  ctx?: ApplyCtx;
+  onEvent?: (e: TurnEvent) => void;
+  prices?: Record<string, Price>;
+}
+
+/**
+ * The provider-neutral half of a streamed turn: content deltas from `source` -> NDJSON line parser -> validateOp ->
+ * applyOp, with say (partial and final), op, warn, usage, error and done events. streamTurn runs it over Model Studio's
+ * SSE stream; claude.ts runs it over the Anthropic SDK's stream, so both providers draw through the same path.
+ */
+export async function streamOps(o: OpStreamOptions, source: RawSource): Promise<StreamResult> {
+  const model = o.model;
   const emit = (e: TurnEvent): void => {
     if (!o.onEvent) return;
     try {
@@ -553,9 +615,9 @@ export async function streamTurn(o: StreamTurnOptions): Promise<StreamResult> {
     }
   };
   const ctx = o.ctx ?? createCtx();
-  const dog = watchdogsFor(!!o.warm, o.watchdogs);
   const r: StreamResult = {
     model,
+    provider: o.provider,
     graph: o.graph ?? { groups: {}, nodes: {}, edges: {}, recs: [] },
     ctx,
     ops: [],
@@ -648,51 +710,39 @@ export async function streamTurn(o: StreamTurnOptions): Promise<StreamResult> {
     },
   });
 
-  const outcome = await rawStream(
-    {
-      apiKey: o.apiKey,
-      baseUrl: o.baseUrl,
-      signal: o.signal,
-      fetchImpl: o.fetchImpl,
-      body: requestBody({ model, messages: o.messages, maxTokens: o.maxTokens, temperature: o.temperature, extraBody: o.extraBody }),
-      firstByteTimeoutMs: o.firstByteTimeoutMs ?? dog.firstByteTimeoutMs,
-      hedgeAfterMs: o.hedgeAfterMs ?? dog.hedgeAfterMs,
-      idleTimeoutMs: o.idleTimeoutMs ?? dog.idleTimeoutMs,
-      totalTimeoutMs: o.totalTimeoutMs ?? dog.totalTimeoutMs,
-      abortOnReasoning: o.abortOnReasoning !== false,
+  const outcome = await source({
+    onContent(delta: string, ms: number) {
+      if (r.timings.firstContentMs === null) r.timings.firstContentMs = ms;
+      r.content += delta;
+      parser.push(delta);
+      const p = parser.partialSay();
+      if (p !== null && p !== lastPartial && p.length) {
+        lastPartial = p;
+        if (r.timings.firstSayMs === null) r.timings.firstSayMs = at();
+        emit({ type: 'say', id: sayId, text: p, final: false });
+      }
     },
-    {
-      onContent(delta: string, ms: number) {
-        if (r.timings.firstContentMs === null) r.timings.firstContentMs = ms;
-        r.content += delta;
-        parser.push(delta);
-        const p = parser.partialSay();
-        if (p !== null && p !== lastPartial && p.length) {
-          lastPartial = p;
-          if (r.timings.firstSayMs === null) r.timings.firstSayMs = at();
-          emit({ type: 'say', id: sayId, text: p, final: false });
-        }
-      },
-      onReasoning(delta: string) {
-        r.reasoningChars += delta.length;
-      },
-      onUsage(u: Usage) {
-        r.usage = u;
-      },
-      onFinish(reason: string) {
-        r.finishReason = reason;
-      },
+    onReasoning(delta: string) {
+      r.reasoningChars += delta.length;
     },
-  );
+    onUsage(u: Usage) {
+      r.usage = u;
+    },
+    onFinish(reason: string) {
+      r.finishReason = reason;
+    },
+  });
   parser.end();
   if (!r.doneSeen) warn(endTurn(r.graph, ctx).warnings);
   Object.assign(r.timings, outcome.timings);
   r.hedged = outcome.hedged;
   r.hedgeWon = outcome.hedgeWon;
   r.truncated = !r.doneSeen;
+  if (outcome.servedModel) r.servedModel = outcome.servedModel;
   const promptChars = charsOf(o.messages);
   if (r.usage) {
-    r.costUsd = costOf(model, r.usage, o.prices);
+    r.costUsd = outcome.costUsd ?? costOf(model, r.usage, o.prices);
+    r.costEstimated = !!outcome.costEstimated;
     emit({ type: 'usage', usage: r.usage, costUsd: r.costUsd });
   } else if ((outcome.timings.headersMs !== null || r.content) && !(outcome.error && outcome.error.status !== undefined && !r.content)) {
     // Billed tokens are unknown (the stream broke before the usage record): book an upper bound. A request the provider
@@ -797,6 +847,8 @@ export interface RunStatus {
   phase: 'main' | 'repair' | 'summary';
   /** The model the next call goes to. */
   model?: string;
+  /** Set to 'claude' on the statuses of a backup rescue (the next call goes to the Claude backup); absent for Qwen calls. */
+  provider?: Provider;
   /** The error code that caused a fallback or a retry. */
   reason?: string;
   /** Wait before the next call (retry backoff), in ms. */
@@ -829,10 +881,79 @@ export function defaultConstraintChecker(input: Parameters<ConstraintChecker>[0]
   return constraintChecker(input).filter((w) => !(w.code === 'constraint-region' && w.ids.length > 0 && w.ids.every(client)));
 }
 
+/** What a backup provider's stream call takes: the same messages and graph a Model Studio call would get. */
+export interface BackupStreamOptions {
+  messages: ChatMessage[];
+  catalog: Catalog;
+  graph?: Graph;
+  ctx?: ApplyCtx;
+  signal?: AbortSignal;
+  onEvent?: (e: TurnEvent) => void;
+  prices?: Record<string, Price>;
+}
+
+/**
+ * A second provider that finishes a turn Model Studio's content filter stopped (claude.ts createClaudeBackup). Its
+ * stream goes through streamOps, so it draws through the same parser, validator and reducer as a Qwen stream. It holds
+ * its own key; runTurn never sees it.
+ */
+export interface BackupProvider {
+  provider: Provider;
+  model: string;
+  stream(o: BackupStreamOptions): Promise<StreamResult>;
+}
+
+/**
+ * The answer of a backup gate (RunTurnOptions.backupGate), asked once per turn, just before the backup would run:
+ * ok, or blocked because a spending cap is reached ('limit') or the gate could not decide ('unavailable', which fails closed).
+ * `detail` is for the log only (which cap).
+ */
+export type BackupGateResult = { ok: true } | { ok: false; reason: 'limit' | 'unavailable'; detail?: string };
+
+/** Why a rescue the content filter called for did not start: a cap, the gate failing, or too little of the turn deadline left. */
+export interface BackupSkipped {
+  reason: 'limit' | 'unavailable' | 'deadline';
+  detail?: string;
+}
+
+/** The bookkeeping record of one finished backup call (RunTurnOptions.onBackupCall). */
+export interface BackupCall {
+  model: string;
+  costUsd: number;
+  /** costUsd is an upper bound (the stream broke before its final usage record). */
+  estimated: boolean;
+  usage: Usage | null;
+  error?: string;
+  /** The first backup call of this turn: the rescue itself, as opposed to its second call on its own reply. */
+  first: boolean;
+}
+
+/** Least time left of the turn deadline for which a rescue still starts; a Claude call needs about 20 to 60 s. */
+export const BACKUP_MIN_MS_LEFT = 60_000;
+
 export interface RunTurnOptions {
   apiKey: string;
   baseUrl?: string;
   model?: string;
+  /** Finishes a turn that Model Studio's content filter stopped (claude.ts). Default none: a filtered turn ends as content-filtered. */
+  backup?: BackupProvider | null;
+  /**
+   * Asked once per turn, lazily, right before the backup would run (after the content filter stopped the reply and
+   * the deadline check). Blocked, it behaves exactly as if no backup were configured; the turn ends as content-filtered
+   * and stats.backupSkipped says why. A gate that throws blocks too (fail closed). Default none: always allowed.
+   */
+  backupGate?: () => Promise<BackupGateResult> | BackupGateResult;
+  /** Milliseconds left of the caller's turn deadline. With it, no rescue starts when less than backupMinMsLeft remain. */
+  msLeft?: () => number;
+  /** Default BACKUP_MIN_MS_LEFT (60 s). */
+  backupMinMsLeft?: number;
+  /** Awaited after each backup call finishes, with its cost: the caller books spending as it happens, not at the end of the turn. Errors are ignored. */
+  onBackupCall?: (c: BackupCall) => Promise<void> | void;
+  /**
+   * The backup's usage and error events, which onEvent never receives (a browser must not see Claude's token counts,
+   * error codes or fallback detail). For logs. The backup's say, op and warn events go to onEvent as usual.
+   */
+  onBackupDetail?: (e: TurnEvent & { phase: 'main' | 'repair' }) => void;
   /** Model for the next attempt after a stall (no first token, idle, unexpected reasoning, total). Default FALLBACK_MODEL (qwen3.7-max, thinking off); null or '' disables failover. */
   fallbackModel?: string | null;
   /** Wait before the fallback attempt. Default 0: fail over at once. */
@@ -871,11 +992,15 @@ export interface RunTurnOptions {
   prices?: Record<string, Price>;
   fetchImpl?: typeof fetch;
   /** Called with each API call's cost as soon as it is known (budget ledgers). */
-  onCost?: (c: { model: string; phase: 'main' | 'repair' | 'summary'; costUsd: number; usage: Usage | null; estimated: boolean }) => void;
+  onCost?: (c: { model: string; provider?: Provider; phase: 'main' | 'repair' | 'summary'; costUsd: number; usage: Usage | null; estimated: boolean }) => void;
 }
 
 export interface AttemptInfo {
   model: string;
+  /** Who served the call; runTurn always sets it (optional only for records written before the Claude backup existed). */
+  provider?: Provider;
+  /** The model that actually answered, when the provider reported a different one (a Claude server-side refusal fallback). */
+  servedModel?: string;
   warm: boolean;
   error?: TurnError;
   ops: number;
@@ -888,6 +1013,8 @@ export interface RepairInfo {
   /** repair: error-level findings; continue: the main stream ended without done; both: either. */
   kind: 'repair' | 'continue' | 'both';
   model: string;
+  /** Who served the follow-up; runTurn always sets it (optional only for records written before the Claude backup existed). */
+  provider?: Provider;
   findings: Warning[];
   ops: Op[];
   content: string;
@@ -897,6 +1024,27 @@ export interface RepairInfo {
   totalMs: number;
   doneSeen: boolean;
   error?: TurnError;
+}
+
+/** A turn Model Studio's content filter stopped, handed to the backup provider. */
+export interface RescueInfo {
+  /** turn: nothing was drawn, so the whole turn ran on the backup; continue: the backup continued the partial reply as the follow-up turn. */
+  kind: 'turn' | 'continue';
+  provider: Provider;
+  model: string;
+  servedModel?: string;
+  /** The error that started the rescue (content-filtered) and the model it stopped. */
+  reason: string;
+  from: string;
+  /** The backup finished the reply with a done op (in its call, or in the follow-up it ran on its own reply). */
+  ok: boolean;
+  /** The error of the backup's call (the first one, for kind 'turn'). */
+  error?: TurnError;
+  ops: number;
+  /** Every backup call of the rescue. */
+  costUsd: number;
+  firstOpMs: number | null;
+  totalMs: number;
 }
 
 export interface TurnStats {
@@ -931,6 +1079,12 @@ export interface TurnStats {
   hedgeWon: boolean;
   /** The fallback model ran a call in this turn (main attempt or follow-up). */
   fallbackUsed: boolean;
+  /** The backup provider (Claude) ran a call in this turn. */
+  backupUsed: boolean;
+  /** Set when Model Studio's content filter stopped the turn and the backup was asked to finish it. */
+  rescue?: RescueInfo;
+  /** Set when the content filter stopped the turn, a backup is configured, and the rescue did not start (a cap, the gate, or too little time left). */
+  backupSkipped?: BackupSkipped;
   /** Stream warnings (validate, apply, end of turn) plus checkGraph of the streamed graph, before any repair. */
   warningsBefore: Warning[];
   /** What is left at the end: unrepaired stream warnings, checkGraph after repair, lifecycle of the final graph. */
@@ -1021,16 +1175,23 @@ function stallText(model: string, e: TurnError, fallback: string): string {
   return `Model is slow: ${what}; switching to ${fallback}.`;
 }
 
-/** A content-filter rejection ends the turn; nothing is retried or continued. */
+/** A content-filter rejection ends the turn on Model Studio; nothing is retried or continued there (a backup may finish it). */
 const isFiltered = (e: TurnError | undefined): boolean => !!e && e.code === 'content-filtered';
+
+/** The backup declined (Claude stop_reason refusal, after its own server-side fallback chain): final, never continued. */
+const isRefusal = (e: TurnError | undefined): boolean => !!e && e.code === 'refusal';
 
 /**
  * Runs one user turn against chat memory and returns the updated memory and the turn's stats. Memory is never
  * mutated. Failures that produced no op are retried: a stall (no first token in 8 s warm or 12 s cold, idle, unexpected
  * reasoning) fails over at once to the fallback model, other retryable failures back off exponentially. A stream that
- * breaks after some ops keeps them. A content-filter rejection is never retried and leaves memory unchanged. After
- * deterministic repair and the pinned-constraint check, a stream that ended without done and/or error-level findings
- * get at most one follow-up turn, which is asked to fix the diagram and correct its narration.
+ * breaks after some ops keeps them. A content-filter rejection is never retried on Model Studio. Without a backup it
+ * leaves memory unchanged. With opts.backup (claude.ts) the backup finishes the turn after a 'fallback' status: it
+ * continues from the partial diagram as the follow-up turn when ops were applied, or runs the whole turn when none
+ * were; if it fails or refuses, the ops drawn so far are committed with a reply-incomplete warning, and a turn with
+ * nothing drawn stays content-filtered. After deterministic repair and the pinned-constraint check, a stream that ended
+ * without done and/or error-level findings get at most one follow-up turn, which is asked to fix the diagram and
+ * correct its narration.
  */
 export async function runTurn(memory: SessionMemory, ask: string, catalog: Catalog, opts: RunTurnOptions): Promise<RunTurnResult> {
   const started = now();
@@ -1071,7 +1232,7 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
   let usageSum = { prompt: 0, cached: 0, created: 0, completion: 0 };
   let cost = 0;
   let estimated = false;
-  const book = (s: { model: string; usage: Usage | null; costUsd: number; costEstimated: boolean }, phase: 'main' | 'repair'): void => {
+  const book = (s: { model: string; provider: Provider; usage: Usage | null; costUsd: number; costEstimated: boolean }, phase: 'main' | 'repair'): void => {
     cost += s.costUsd;
     estimated = estimated || s.costEstimated;
     if (s.usage) {
@@ -1082,11 +1243,87 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
         completion: usageSum.completion + (s.usage.completion_tokens ?? 0),
       };
     }
-    if (opts.onCost) opts.onCost({ model: s.model, phase, costUsd: s.costUsd, usage: s.usage, estimated: s.costEstimated });
+    if (opts.onCost) opts.onCost({ model: s.model, provider: s.provider, phase, costUsd: s.costUsd, usage: s.usage, estimated: s.costEstimated });
   };
   const isWarm = (m: string): boolean => opts.warm ?? tracker.warm(prefixKey(m, system));
   const touch = (m: string): void => tracker.touch(prefixKey(m, system));
   let fallbackUsed = false;
+  const backup = opts.backup ?? undefined;
+  let backupUsed = false;
+  let rescue: RescueInfo | undefined;
+  // What the browser may see of a backup call: its say, op and warn events (the drawing), and a done event without the
+  // finish reason (Claude's stop reason is an operational detail). Its usage and error events (token counts, error codes) go to onBackupDetail, for logs.
+  const backupEventsFor = (phase: 'main' | 'repair'): ((e: TurnEvent) => void) => (e) => {
+    if (e.type === 'usage' || e.type === 'error') {
+      if (opts.onBackupDetail) {
+        try {
+          opts.onBackupDetail({ ...e, phase });
+        } catch {
+          /* a listener error must not break the turn */
+        }
+      }
+      return;
+    }
+    if (!opts.onEvent) return;
+    opts.onEvent({ ...(e.type === 'done' ? { ...e, finishReason: null } : e), phase });
+  };
+  let backupCalls = 0;
+  const onBackupStream = async (msgs: ChatMessage[], graph: Graph, phase: 'main' | 'repair'): Promise<StreamResult> => {
+    backupUsed = true;
+    const s = await backup!.stream({ messages: msgs, catalog, graph, ctx: createCtx(), signal: opts.signal, onEvent: backupEventsFor(phase), prices: opts.prices });
+    backupCalls++;
+    if (opts.onBackupCall) {
+      try {
+        await opts.onBackupCall({ model: s.servedModel ?? s.model, costUsd: s.costUsd, estimated: s.costEstimated, usage: s.usage, ...(s.error ? { error: s.error.code } : {}), first: backupCalls === 1 });
+      } catch {
+        /* bookkeeping must not break the turn */
+      }
+    }
+    return s;
+  };
+  // The rescue starts only with enough of the turn deadline left, and only when the gate (spending caps) allows it. The
+  // deadline is checked first: it is free, and a rescue that cannot finish must not use up a cap.
+  const minLeft = opts.backupMinMsLeft ?? BACKUP_MIN_MS_LEFT;
+  const timeLeft = (): boolean => {
+    if (!opts.msLeft) return true;
+    try {
+      return opts.msLeft() >= minLeft;
+    } catch {
+      return true;
+    }
+  };
+  let backupSkipped: BackupSkipped | undefined;
+  const admitBackup = async (): Promise<boolean> => {
+    if (!timeLeft()) {
+      backupSkipped = { reason: 'deadline' };
+      return false;
+    }
+    if (!opts.backupGate) return true;
+    let g: BackupGateResult;
+    try {
+      g = await opts.backupGate();
+    } catch {
+      g = { ok: false, reason: 'unavailable', detail: 'gate-error' };
+    }
+    if (g.ok) return true;
+    backupSkipped = { reason: g.reason, ...(g.detail ? { detail: g.detail } : {}) };
+    return false;
+  };
+  const rescueOf = (kind: RescueInfo['kind'], from: StreamResult, s: StreamResult): RescueInfo => ({
+    kind,
+    provider: s.provider,
+    model: s.model,
+    ...(s.servedModel ? { servedModel: s.servedModel } : {}),
+    reason: from.error?.code ?? 'content-filtered',
+    from: from.model,
+    ok: s.doneSeen,
+    ...(s.error ? { error: s.error } : {}),
+    ops: s.ops.length,
+    costUsd: s.costUsd,
+    firstOpMs: s.timings.firstOpMs,
+    totalMs: s.timings.totalMs,
+  });
+  const rescueText = (from: string): string => `${from}'s reply was stopped by Model Studio's content filter; Claude (${backup ? backup.model : ''}) is finishing the answer.`;
 
   let main: StreamResult | undefined;
   let useModel = model;
@@ -1094,7 +1331,7 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     const warm = isWarm(useModel);
     const s = await streamTurn({ ...common, model: useModel, warm, messages, graph: memory.graph, ctx: createCtx(), onEvent: onEventFor('main') });
     book(s, 'main');
-    attempts.push({ model: useModel, warm, error: s.error, ops: s.ops.length, costUsd: s.costUsd, totalMs: s.timings.totalMs, hedged: s.hedged });
+    attempts.push({ model: useModel, provider: s.provider, warm, error: s.error, ops: s.ops.length, costUsd: s.costUsd, totalMs: s.timings.totalMs, hedged: s.hedged });
     if (s.timings.firstByteMs !== null) touch(useModel);
     main = s;
     if (!s.error || !s.error.retryable || s.ops.length > 0 || attempt >= retries || aborted()) break;
@@ -1119,11 +1356,27 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     }
     if (aborted()) break;
   }
-  const m = main!;
+  let m = main!;
+  // Model Studio's content filter stopped the reply. A retry or qwen3.7-max meets the same filter, so a configured backup
+  // finishes the turn: with ops already applied it continues from the partial diagram (the follow-up turn below); with
+  // none it runs the whole turn here, and its reply becomes the turn's reply when it drew anything.
+  const wantsRescue = !!backup && isFiltered(m.error) && m.provider !== backup.provider && !aborted();
+  const rescuable = wantsRescue && (await admitBackup());
+  if (rescuable && m.ops.length === 0) {
+    status({ code: 'fallback', phase: 'main', provider: backup!.provider, model: backup!.model, reason: m.error!.code, attempt: attempts.length + 1, text: rescueText(m.model) });
+    const s = await onBackupStream(messages, memory.graph, 'main');
+    book(s, 'main');
+    attempts.push({ model: s.model, provider: s.provider, ...(s.servedModel ? { servedModel: s.servedModel } : {}), warm: false, error: s.error, ops: s.ops.length, costUsd: s.costUsd, totalMs: s.timings.totalMs, hedged: false });
+    rescue = rescueOf('turn', m, s);
+    // The backup's reply becomes the turn's reply unless it drew nothing (auth, network) or it refused: refused output is
+    // discarded, never committed. Then the turn stays content-filtered and memory unchanged.
+    if (!s.error || (s.ops.length > 0 && !isRefusal(s.error))) m = s;
+  }
+  const rescueContinue = rescuable && m.ops.length > 0 && isFiltered(m.error);
   // A reply with no operation at all, not even a say line, is a failed turn: nothing to continue from, nothing to commit.
   // (A question is a say line and done, so it is a normal turn.) The user sees a retryable error and the diagram is unchanged.
   if (!m.error && m.ops.length === 0 && !aborted()) m.error = { code: 'empty-reply', message: 'the model returned no operations', retryable: true };
-  const filtered = isFiltered(m.error);
+  const filtered = isFiltered(m.error) && !rescueContinue;
   const hardFail = (!!m.error && m.ops.length === 0) || filtered;
   const checker = opts.checkConstraints === undefined ? defaultConstraintChecker : opts.checkConstraints;
   const checkC = (g: Graph, says: readonly string[], pinned: readonly Constraint[]): Warning[] => {
@@ -1165,30 +1418,41 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
   let repairInfo: RepairInfo | undefined;
   let finalDone = m.doneSeen;
   const errors = warningsAfter.filter((w) => w.severity === 'error');
-  if (opts.repair !== false && !hardFail && !aborted() && (errors.length || m.truncated)) {
+  // The rescue continuation runs even with repair off, since it is the only way to finish the reply.
+  // The backup's second call, on its own reply (cut off or with findings), starts only with time left too.
+  const backupOwnReply = !!backup && m.provider === backup.provider;
+  if (!hardFail && !aborted() && (errors.length || m.truncated) && (rescueContinue || opts.repair !== false) && !(backupOwnReply && !timeLeft())) {
     const kind: RepairInfo['kind'] = errors.length && m.truncated ? 'both' : m.truncated ? 'continue' : 'repair';
     // A half-written last line is an artifact of the cut-off, and the model's own message below no longer contains it.
     const tail = m.truncated ? m.content.slice(m.content.lastIndexOf('\n') + 1).trim().slice(0, 60) : '';
     const findings = warningsAfter.filter((w) => w.severity !== 'info' && !(tail && w.code === 'bad-json' && w.msg.includes(tail)));
     const rmsgs = buildRepairMessages(messages, completeLines(m.content), finalGraph, findings, { truncated: m.truncated });
-    // The follow-up stays on the model that answered; after a stall it goes straight to the fallback.
-    let followModel = fallback && m.error && STALL_CODES.has(m.error.code) ? fallback : m.model;
+    // The follow-up stays on the provider and model that answered; after a stall it goes straight to the fallback. A reply
+    // Model Studio's filter stopped is continued on the backup, and a backup reply stays there (Model Studio filtered it).
+    const onBackup = !!backup && (rescueContinue || m.provider === backup.provider);
+    let followModel = onBackup ? backup!.model : fallback && m.error && STALL_CODES.has(m.error.code) ? fallback : m.model;
     const nErr = findings.filter((w) => w.severity === 'error').length;
     const nConstraint = findings.filter((w) => CONSTRAINT_CODES.has(w.code)).length;
     const fixText = `${nErr} validator finding${nErr === 1 ? '' : 's'}${nConstraint ? ` (${nConstraint} against pinned requirements)` : ''}`;
+    if (rescueContinue) status({ code: 'fallback', phase: 'repair', provider: backup!.provider, model: backup!.model, reason: m.error!.code, attempt: 1, text: rescueText(m.model) });
+    const who = onBackup ? 'Claude: ' : '';
     status({
       code: kind === 'continue' ? 'continue' : 'repair',
       phase: 'repair',
       model: followModel,
+      ...(onBackup ? { provider: backup!.provider } : {}),
       findings: findings.length,
       attempt: 1,
-      text: kind === 'continue' ? 'The reply was cut off; continuing from the diagram drawn so far.' : kind === 'both' ? `The reply was cut off; continuing and fixing ${fixText}.` : `Fixing ${fixText}.`,
+      text: who + (kind === 'continue' ? 'The reply was cut off; continuing from the diagram drawn so far.' : kind === 'both' ? `The reply was cut off; continuing and fixing ${fixText}.` : `Fixing ${fixText}.`),
     });
     if (followModel === fallback) fallbackUsed = true;
-    let s = await streamTurn({ ...common, model: followModel, warm: isWarm(followModel), messages: rmsgs, graph: finalGraph, ctx: createCtx(), onEvent: onEventFor('repair') });
+    let s = onBackup
+      ? await onBackupStream(rmsgs, finalGraph, 'repair')
+      : await streamTurn({ ...common, model: followModel, warm: isWarm(followModel), messages: rmsgs, graph: finalGraph, ctx: createCtx(), onEvent: onEventFor('repair') });
     book(s, 'repair');
-    if (s.timings.firstByteMs !== null) touch(followModel);
-    if (s.error && s.error.retryable && s.ops.length === 0 && fallback && followModel !== fallback && !aborted()) {
+    if (!onBackup && s.timings.firstByteMs !== null) touch(followModel);
+    // A backup follow-up never falls back to qwen3.7-max: Model Studio filtered this reply.
+    if (!onBackup && s.error && s.error.retryable && s.ops.length === 0 && fallback && followModel !== fallback && !aborted()) {
       status({ code: 'fallback', phase: 'repair', model: fallback, reason: s.error.code, attempt: 2, text: STALL_CODES.has(s.error.code) ? stallText(followModel, s.error, fallback) : `${followModel} failed (${s.error.code}); switching to ${fallback}.` });
       followModel = fallback;
       fallbackUsed = true;
@@ -1197,9 +1461,11 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
       if (s.timings.firstByteMs !== null) touch(followModel);
     }
     finalDone = finalDone || s.doneSeen;
-    repairInfo = { kind, model: followModel, findings, ops: s.ops, content: s.content, usage: s.usage, costUsd: s.costUsd, firstOpMs: s.timings.firstOpMs, totalMs: s.timings.totalMs, doneSeen: s.doneSeen, error: s.error };
-    if (!isFiltered(s.error)) {
-      // A filtered follow-up is dropped whole: the main result stands.
+    repairInfo = { kind, model: followModel, provider: s.provider, findings, ops: s.ops, content: s.content, usage: s.usage, costUsd: s.costUsd, firstOpMs: s.timings.firstOpMs, totalMs: s.timings.totalMs, doneSeen: s.doneSeen, error: s.error };
+    if (rescueContinue) rescue = rescueOf('continue', m, s);
+    else if (rescue && onBackup) rescue = { ...rescue, ok: rescue.ok || s.doneSeen, costUsd: rescue.costUsd + s.costUsd }; // the backup continuing its own reply
+    if (!isFiltered(s.error) && !isRefusal(s.error)) {
+      // A filtered or refused follow-up is dropped whole: the main result stands.
       pinned = pin(pinned, withImplied(pinned, s.reqs, s.constraints));
       const rep2 = repairGraph(s.graph, catalog, { constraints: pinned });
       finalGraph = rep2.graph;
@@ -1219,6 +1485,13 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
   }
 
   if (pinNotes.length) warningsAfter = [...warningsAfter, ...pinNotes];
+  if (rescue && !finalDone && !hardFail) {
+    // The backup could not finish a reply Model Studio's filter stopped: what was drawn is committed, and the user is told.
+    warningsAfter = [
+      ...warningsAfter,
+      { code: 'reply-incomplete', ids: [], severity: 'warn', repaired: false, msg: `The reply is incomplete: Model Studio's content filter stopped ${rescue.from} and the Claude backup could not finish it. The diagram keeps what was drawn.` },
+    ];
+  }
   const diff = diffGraphs(memory.graph, finalGraph);
   const changes = compactChanges([diff]);
   const clippedAsk = Array.from(ask.trim()).slice(0, opts.maxAskChars ?? DEFAULT_MAX_ASK_CHARS).join('');
@@ -1267,6 +1540,9 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     hedged: attempts.some((a) => a.hedged),
     hedgeWon: m.hedgeWon,
     fallbackUsed,
+    backupUsed,
+    ...(rescue ? { rescue } : {}),
+    ...(backupSkipped ? { backupSkipped } : {}),
     warningsBefore,
     warningsAfter,
     fixes,

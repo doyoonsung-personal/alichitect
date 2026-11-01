@@ -24,7 +24,9 @@ import {
   requirementMeta,
   revisionCards,
   revisionState,
+  rescueNote,
   rowMeta,
+  statusText,
   showJumpChip,
   stateView,
   visibleLines,
@@ -356,4 +358,42 @@ test('the repair fixture words its fix block', () => {
   const sentences = fixSentences(r!.fix.constraint, { regions: ['ap-southeast-1'], catalog, t });
   assert.ok(sentences.length >= 1);
   for (const s of sentences) assert.doesNotMatch(s, /\{\w+\}|labelled|'n\d/, s);
+});
+
+// ---------- the Claude backup: status words, footer attribution, row meta ----------
+
+test('a Claude rescue status is worded in the UI language; every other status keeps the server text', () => {
+  const claude = { code: 'fallback' as const, text: 'server text', provider: 'claude' as const };
+  assert.equal(statusText(claude, t), "Qwen's answer was stopped by a content filter. Claude is taking over…");
+  assert.equal(statusText({ ...claude, code: 'continue' }, t), 'Claude is finishing the answer…');
+  assert.equal(statusText({ ...claude, code: 'repair' }, t), 'Claude is fixing the diagram…');
+  assert.equal(statusText({ ...claude, code: 'continue' }, ko), 'Claude가 답변을 마무리하는 중…');
+  assert.equal(statusText({ code: 'fallback', text: 'Switching to a backup model…' }, t), 'Switching to a backup model…', "a Qwen fallback is the server's own line");
+  assert.equal(statusText({ code: 'retry', text: 'Trying again…', provider: 'claude' }, t), 'Trying again…', 'only the three rescue codes are reworded');
+});
+
+test('the status line owns the Cursor during a rescue, like any other status', () => {
+  const r = rev({ status: 'streaming', rescue: 'running', note: 'x', statusLine: { code: 'continue', text: 'Claude: ...', provider: 'claude' } });
+  assert.equal(cursorSlot(r, turn('repairing')), 'status');
+});
+
+test('the attribution names who finished the answer, and replaces the cut-off note', () => {
+  assert.equal(rescueNote(rev(), t), null, 'no rescue, no attribution');
+  assert.deepEqual(rescueNote(rev({ rescue: 'finished' }), t), { text: 'Finished by Claude after a content-filter stop', tone: 'plain' });
+  assert.equal(rescueNote(rev({ rescue: 'finished' }), makeT('zh'))?.text, '内容过滤中断后由 Claude 完成');
+  assert.equal(rescueNote(rev({ rescue: 'finished' }), ko)?.text, '콘텐츠 필터로 중단된 뒤 Claude가 마무리함');
+  const inc = rescueNote(rev({ rescue: 'incomplete' }), t)!;
+  assert.equal(inc.tone, 'warn');
+  assert.match(inc.text, /Claude could not finish the answer\. The diagram shows what was drawn\./);
+  assert.equal(rescueNote(rev({ rescue: 'running', status: 'streaming' }), t), null, 'the status line speaks while it runs');
+  assert.equal(rescueNote(rev({ rescue: 'failed', status: 'failed' }), t), null, 'the error block speaks when it failed');
+  // the footer's own items are unchanged, and the stale cut-off note never sits beside the attribution
+  assert.deepEqual(footerItems(rev({ rescue: 'incomplete', truncated: true }), true, t).map((i) => i.key), ['done', 'held']);
+  assert.deepEqual(footerItems(rev({ truncated: true }), true, t).map((i) => i.key), ['done', 'held', 'cut']);
+});
+
+test('the collapsed row says it was finished by Claude, or left unfinished', () => {
+  assert.equal(rowMeta(rev({ rescue: 'finished' }), t), '+3 −1 · 9.5 s · via Claude');
+  assert.equal(rowMeta(rev({ rescue: 'incomplete' }), t), '+3 −1 · 9.5 s · Unfinished');
+  assert.equal(rowMeta(rev(), t), '+3 −1 · 9.5 s');
 });

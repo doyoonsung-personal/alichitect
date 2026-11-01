@@ -1,11 +1,12 @@
 // Bundles the Worker exactly as `wrangler deploy` would (--dry-run, nothing is uploaded) and checks that no module in
-// it imports a Node built-in: the Worker runs without nodejs_compat, so packages/core and apps/server code it pulls in
-// must stay browser-safe (fetch, Web Crypto, streams). Prints every repo module in the bundle and the bundle size.
+// it imports a Node built-in (any module of node:module builtinModules, see node-builtins.ts): the Worker runs without
+// nodejs_compat, so packages/core and apps/server code it pulls in must stay browser-safe (fetch, Web Crypto, streams). Prints every repo module in the bundle and the bundle size.
 //   node scripts/check-bundle.ts            (npm run check:bundle; needs apps/web/dist, which wrangler uploads as assets)
 import { execFileSync } from 'node:child_process';
 import { readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { isNodeBuiltin } from './node-builtins.ts';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const OUT = path.join(ROOT, '.wrangler', 'check');
@@ -16,12 +17,11 @@ const bin = path.join(ROOT, 'node_modules', 'wrangler', 'bin', 'wrangler.js');
 execFileSync(process.execPath, [bin, 'deploy', '--dry-run', '--env=', '--outdir', OUT, '--metafile', path.join(OUT, 'meta.json')], { cwd: ROOT, env, stdio: ['ignore', 'ignore', 'inherit'] });
 
 const meta = JSON.parse(readFileSync(path.join(OUT, 'meta.json'), 'utf8')) as { inputs: Record<string, { imports?: Array<{ path: string; external?: boolean }> }> };
-const NODE = /^node:|^(fs|path|os|crypto|http|https|net|tls|url|child_process|stream|buffer|util|zlib)(\/|$)/;
 const bad: string[] = [];
 const repo: string[] = [];
 for (const [file, info] of Object.entries(meta.inputs)) {
   if (!file.includes('node_modules')) repo.push(file.split(path.sep).join('/'));
-  for (const im of info.imports ?? []) if (NODE.test(im.path)) bad.push(`${file} imports ${im.path}`);
+  for (const im of info.imports ?? []) if (isNodeBuiltin(im.path)) bad.push(`${file} imports ${im.path}`);
 }
 const shared = repo.filter((f) => !f.startsWith('src/'));
 console.log(`modules from packages/core and apps/server in the Worker (${shared.length}):\n  ${shared.join('\n  ')}`);

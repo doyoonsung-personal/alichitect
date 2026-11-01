@@ -1,5 +1,6 @@
-// One price table for every Model Studio call the project books: the app (llm.ts), the eval ledger, the latency spike
-// and the Qwen offload helper (tools/qwen/ask.ts). USD per 1M tokens. Browser-safe: no Node APIs.
+// One price table for every model call the project books: the app (llm.ts, and claude.ts for the Claude backup), the
+// eval ledger, the latency spike and the Qwen offload helper (tools/qwen/ask.ts). USD per 1M tokens. Browser-safe: no
+// Node APIs.
 
 /** USD per 1M tokens (Singapore list prices, 2026-10-31). */
 export interface Price {
@@ -28,11 +29,28 @@ export const PRICES: Record<string, Price> = {
   'qwen3.7-max': { in: 2.5, out: 7.5, implicitHit: 2.5, explicitHit: 2.5, explicitCreate: 3.125 },
   // ask.ts row (input, output, implicit hit). Explicit caching is not used with it: explicit hit = implicit hit, creation 125% of input.
   'qwen3.7-plus': { in: 0.4, out: 1.6, implicitHit: 0.08, explicitHit: 0.08, explicitCreate: 0.5 },
+  // Claude backup (claude.ts), Anthropic first-party list prices from the claude-api skill (cached 2026-10-06). Mapped onto
+  // these fields: implicitHit and explicitHit are the cache-read price, explicitCreate the 5-minute cache-write price.
+  // claude-opus-5-5: $4 in, $20 out, cache reads $0.20, 5-minute writes $5.
+  'claude-opus-5-5': { in: 4, out: 20, implicitHit: 0.2, explicitHit: 0.2, explicitCreate: 5 },
+  // Targets of its server-side refusal fallback ("default" routes by refusal category; expect these two). Base prices
+  // $5 / $25 from the same table; the cache rows use the standard multipliers (reads 0.1x, 5-minute writes 1.25x).
+  'claude-opus-5': { in: 5, out: 25, implicitHit: 0.5, explicitHit: 0.5, explicitCreate: 6.25 },
+  'claude-opus-4-8': { in: 5, out: 25, implicitHit: 0.5, explicitHit: 0.5, explicitCreate: 6.25 },
   // Eval judges (other model families), booked at UNKNOWN_PRICE in eval/results/ledger.jsonl.
   'kimi-k3': { in: 3, out: 15, implicitHit: 3, explicitHit: 3, explicitCreate: 3.75 },
   'deepseek-v4-pro': { in: 3, out: 15, implicitHit: 3, explicitHit: 3, explicitCreate: 3.75 },
   'glm-5.3': { in: 3, out: 15, implicitHit: 3, explicitHit: 3, explicitCreate: 3.75 },
 };
+
+/**
+ * A Claude model the project can book: its id starts with claude- and is in the PRICES table. The Claude backup runs only
+ * these (claude.ts claudeModelOf, scripts/preflight.ts): a model without a price would be booked at UNKNOWN_PRICE, below an
+ * Opus-class call's real cost, and the daily Claude budget would not hold.
+ */
+export function isClaudeModelId(id: unknown): id is string {
+  return typeof id === 'string' && id.startsWith('claude-') && Object.prototype.hasOwnProperty.call(PRICES, id);
+}
 
 /** Conservative price for models without a known price: no cache discount. */
 export const UNKNOWN_PRICE: Price = { in: 3, out: 15, implicitHit: 3, explicitHit: 3, explicitCreate: 3.75 };

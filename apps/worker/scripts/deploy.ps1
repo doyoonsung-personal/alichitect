@@ -11,6 +11,11 @@
 # scripts\set-secrets.ps1 (once; they survive deploys). Roll back with: npx wrangler rollback (docs/DEPLOY.md).
 param([switch]$SkipTests)
 $ErrorActionPreference = 'Stop'
+# No step below needs the Model Studio or Anthropic key: they live on the Worker (scripts\set-secrets.ps1 puts them there).
+# `npm ci` runs the install scripts of every dependency and the build runs more third-party code, and a child process
+# inherits this process's environment, so the keys are removed from it before anything runs. (Removing them here does not
+# touch the Windows user variables; set-secrets.ps1 reads those at the moment it needs them.)
+foreach ($name in 'ANTHROPIC_API_KEY', 'DASHSCOPE_API_KEY') { Remove-Item "Env:$name" -ErrorAction SilentlyContinue }
 $worker = Split-Path -Parent $PSScriptRoot
 $web = Join-Path (Split-Path -Parent $worker) 'web'
 if (-not $env:CLOUDFLARE_EMAIL -or -not $env:CLOUDFLARE_API_KEY) { throw 'Set CLOUDFLARE_EMAIL and CLOUDFLARE_API_KEY in your environment first.' }
@@ -29,6 +34,7 @@ function Invoke-Step([string]$Title, [string]$Dir, [scriptblock]$Block) {
   }
 }
 
+Invoke-Step 'Install the shared code (the Anthropic SDK the Worker bundles)' (Join-Path (Split-Path -Parent (Split-Path -Parent $worker)) 'packages\core') { npm ci --no-audit --no-fund }
 Invoke-Step 'Install the Worker tools' $worker { npm ci --no-audit --no-fund }
 Invoke-Step 'Preflight' $worker { node scripts/preflight.ts }
 Invoke-Step 'Build the web app' $web { npm ci --no-audit --no-fund; if ($LASTEXITCODE -eq 0) { npm run build } }

@@ -2,12 +2,17 @@
 // input byte for byte (Windows PowerShell's own pipe adds a UTF-8 byte-order mark, which would corrupt the secret).
 // Used by scripts/set-secrets.ps1; never prints the value.
 //   node scripts/put-secret.ts DASHSCOPE_API_KEY              value from the environment variable of the same name
+//   node scripts/put-secret.ts ANTHROPIC_API_KEY              the same (set-secrets.ps1 copies it from the Windows user
+//                                                             environment into this process's environment first)
 //   node scripts/put-secret.ts SESSION_SECRET --generate      48 random bytes, base64url
+// The two API keys are shape-checked first (secret-format.ts): ANTHROPIC_API_KEY must start with sk-ant-, and
+// DASHSCOPE_API_KEY must not, so a swapped pair is refused before anything leaves this machine.
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { secretProblem } from './secret-format.ts';
 
-const NAMES = ['DASHSCOPE_API_KEY', 'SESSION_SECRET'] as const;
+const NAMES = ['DASHSCOPE_API_KEY', 'ANTHROPIC_API_KEY', 'SESSION_SECRET'] as const;
 const name = process.argv[2] as (typeof NAMES)[number];
 if (!NAMES.includes(name)) {
   console.error(`usage: node scripts/put-secret.ts ${NAMES.join('|')} [--generate]`);
@@ -21,6 +26,11 @@ if (name === 'SESSION_SECRET' && !generate) {
 const value = generate ? randomBytes(48).toString('base64url') : (process.env[name] ?? '').trim();
 if (!value) {
   console.error(`${name} is empty: nothing was set.`);
+  process.exit(1);
+}
+const problem = generate ? null : secretProblem(name, value);
+if (problem) {
+  console.error(problem);
   process.exit(1);
 }
 if (!/^[\x21-\x7e]+$/.test(value)) {

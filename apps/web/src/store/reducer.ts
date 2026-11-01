@@ -2,7 +2,7 @@
 // clock in them, so replays and tests are exact. One reducer owns the turn: the working raw graph (core applyOp on each
 // streamed op), the display graph (displayGraph over repairGraph), the layout (layoutGraph with the previous layout, for
 // stability), the record model of the revision in progress, and the commit that replaces memory with the server's.
-import type { Catalog, Graph, Op, SessionMemory, Warning } from '@ali/core/types.ts';
+import type { Catalog, Graph, Op, Provider, SessionMemory, Warning } from '@ali/core/types.ts';
 import { applyOp, createCtx, emptyGraph } from '@ali/core/reducer.ts';
 import { repairGraph } from '@ali/core/validate.ts';
 import { defaultConstraintChecker } from '@ali/core/llm.ts';
@@ -407,7 +407,7 @@ function onEvent(state: AppState, ev: WireEvent, now: number, deps: StoreDeps): 
       return patchLast(state, (r) => ({ ...r, truncated: ev.truncated }));
     }
     case 'status':
-      return onStatus(state, work, ev.code, ev.text, deps);
+      return onStatus(state, work, ev.code, ev.text, deps, ev.provider);
     case 'commit':
       return onCommit(state, work, ev, now, deps);
     case 'fatal':
@@ -518,8 +518,12 @@ function onWarn(state: AppState, work: TurnWork, w: Warning, deps: StoreDeps): A
   return next;
 }
 
-function onStatus(state: AppState, work: TurnWork, code: Extract<WireEvent, { type: 'status' }>['code'], text: string, deps: StoreDeps): AppState {
-  let next = patchLast(state, (r) => ({ ...r, statusLine: { code, text } }));
+function onStatus(state: AppState, work: TurnWork, code: Extract<WireEvent, { type: 'status' }>['code'], text: string, deps: StoreDeps, provider?: Provider): AppState {
+  // A status with provider 'claude' is the backup taking over a turn Model Studio's content filter stopped. The revision
+  // remembers it (the footer names who finished it), and the cut-off Qwen reported no longer describes the answer.
+  const claude = provider === 'claude';
+  let next = patchLast(state, (r) => ({ ...r, statusLine: claude ? { code, text, provider } : { code, text }, ...(claude ? { rescue: 'running' as const, truncated: false } : {}) }));
+  if (claude && code === 'fallback') next = live(next, t(next.lang, 'live.rescue', { n: work.n }));
   if (code === 'repair' || code === 'continue') {
     // The server's follow-up turn starts from the repaired graph with a fresh reducer context: mirror that, so its ops
     // (which name ids of the repaired graph) apply to the same graph here.
@@ -581,6 +585,7 @@ function onCommit(state: AppState, work: TurnWork, ev: Extract<WireEvent, { type
     const changes = reconcileChanges(r.changes, work.base.graph, committed, deps.catalog, 'main', true);
     const fixChanges = reconcileChanges(r.fix.changes, work.base.graph, committed, deps.catalog, 'repair', false);
     const stillBroken = ev.warnings.some((w) => CONSTRAINT_CODES.has(w.code));
+    const incomplete = ev.warnings.some((w) => w.code === 'reply-incomplete');
     let fixState = r.fix.state;
     if (work.follow === 'repair') fixState = r.fix.constraint.length && stillBroken ? 'failed' : 'fixed';
     else if (r.fix.constraint.length && stillBroken) fixState = 'failed';
@@ -590,6 +595,8 @@ function onCommit(state: AppState, work: TurnWork, ev: Extract<WireEvent, { type
       ...r,
       status: 'done',
       statusLine: null,
+      // a rescue ends finished, or incomplete when the server says Claude could not finish (the diagram keeps what was drawn)
+      ...(r.rescue || incomplete ? { rescue: incomplete ? ('incomplete' as const) : ('finished' as const), truncated: false } : {}),
       changes,
       commitWarnings: ev.warnings,
       durationMs: Math.max(0, now - r.startedAt),
@@ -633,13 +640,33 @@ function onCommit(state: AppState, work: TurnWork, ev: Extract<WireEvent, { type
 
 // ---------- fatal and stop ----------
 
+/** A revision that ended with no commit: its streamed work is dropped. A rescue that was still running reads failed (Claude was asked and could not answer either); a stopped one leaves no trace. */
+function failedRevision(r: Revision, status: 'failed' | 'stopped', error: RevisionError | null, now: number): Revision {
+  const { rescue, ...rest } = r;
+  return {
+    ...rest,
+    ...(status === 'failed' && rescue === 'running' ? { rescue: 'failed' as const } : {}),
+    status,
+    error,
+    statusLine: null,
+    changes: [],
+    reqs: [],
+    lifecycle: [],
+    assumes: [],
+    asks: [],
+    truncated: false,
+    durationMs: Math.max(0, now - r.startedAt),
+    fix: { autoFixes: [], constraint: [], state: 'none', note: '', changes: [] },
+  };
+}
+
 function endWithoutCommit(state: AppState, deps: StoreDeps, status: 'failed' | 'stopped', error: RevisionError | null, now: number): AppState {
   const work = state.work;
   if (!work) return state;
   let next = patchLast(state, (r) =>
     r.status === 'done' || r.status === 'failed' || r.status === 'stopped'
       ? r
-      : { ...r, status, error, statusLine: null, changes: [], reqs: [], lifecycle: [], assumes: [], asks: [], truncated: false, durationMs: Math.max(0, now - r.startedAt), fix: { autoFixes: [], constraint: [], state: 'none', note: '', changes: [] } },
+      : failedRevision(r, status, error, now),
   );
   // memory is unchanged, so the pinned requirements are too: drop the ones this revision announced mid-turn
   const reqPinnedIn = { ...next.session.reqPinnedIn };

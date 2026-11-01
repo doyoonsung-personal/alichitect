@@ -1,6 +1,6 @@
 // The session store's data model. One source of truth for the console, the canvas and the products panel.
 // Everything here is plain data (no classes, no functions), so it can be persisted, replayed and tested.
-import type { Constraint, Graph, SessionMemory, Warning } from '@ali/core/types.ts';
+import type { Constraint, Graph, Provider, SessionMemory, Warning } from '@ali/core/types.ts';
 import type { ApplyCtx } from '@ali/core/reducer.ts';
 import type { LayoutState } from '@ali/core/layout.ts';
 import type { Lang } from '../i18n/t.ts';
@@ -86,6 +86,8 @@ export interface FixBlock {
   changes: ChangeLine[];
 }
 
+export type RescueState = 'running' | 'finished' | 'incomplete' | 'failed';
+
 export type RevisionStatus = 'waiting' | 'streaming' | 'done' | 'failed' | 'stopped';
 
 export interface RevisionError {
@@ -112,8 +114,8 @@ export interface Revision {
   reqs: string[];
   lifecycle: LifecycleNote[];
   fix: FixBlock;
-  /** The latest status line (fallback, retry, continue, repair); cleared when the next say or op arrives. */
-  statusLine: { code: StatusCode; text: string } | null;
+  /** The latest status line (fallback, retry, continue, repair); cleared when the next say or op arrives. `provider` is 'claude' on the statuses of a backup rescue. */
+  statusLine: { code: StatusCode; text: string; provider?: Provider } | null;
   /** The answer was cut off and no continuation followed. */
   truncated: boolean;
   /** Elapsed ms from the ask to commit. */
@@ -121,6 +123,13 @@ export interface Revision {
   error: RevisionError | null;
   /** commit.warnings: what the server still found after repair. */
   commitWarnings: Warning[];
+  /**
+   * Claude took over after Model Studio's content filter stopped Qwen (a status with provider 'claude' arrived):
+   * running while it works; finished when the commit carries no reply-incomplete warning; incomplete when Claude could not
+   * finish and the diagram keeps what was drawn; failed when the revision ended with no commit. Absent when no rescue
+   * happened, and in sessions saved before it existed.
+   */
+  rescue?: RescueState;
   /** Counts for the collapsed row: "+{added} -{removed}". Cards only. */
   added: number;
   removed: number;
