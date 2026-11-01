@@ -41,8 +41,6 @@ export interface Health {
   endpoint: string;
   catalog: { version: string; entries: number };
   keyConfigured: boolean;
-  /** The Claude backup for turns Model Studio's content filter stops is configured. Nothing else about it is exposed. */
-  backupConfigured?: boolean;
   inFlight: number;
   maxInFlight: number;
   limits: { askChars: number; turns: number; nodes: number; requirements: number; bodyBytes: number };

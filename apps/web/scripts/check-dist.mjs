@@ -1,7 +1,10 @@
 // Checks the production build (npm run build -> dist/) before it is deployed as the Worker's static assets:
 //  1. none of the test and demo tools is in it (src/app/tools.ts): no window.__ab handle, no routing log, none of the
 //     synthetic replay sessions (stub-*, asks-*, chinese-fix), and no ?replay= / ?speed= switch;
-//  2. it fits Workers static-asset limits: at most 20,000 files (the Free plan; Paid allows 100,000) and 25 MiB a file.
+//  2. it fits Workers static-asset limits: at most 20,000 files (the Free plan; Paid allows 100,000) and 25 MiB a file;
+//  3. it never reveals the backup that finishes a turn Model Studio's content filter stops (the owner's decision: nothing a
+//     browser can download may show that another vendor is involved): no file name and no byte of any file, text or
+//     binary, spells the vendor or its model family, case-insensitively, and no source map ships.
 // Prints the file count, the total size and the largest files. Exits 1 on a finding.
 //   node scripts/check-dist.mjs [dist-dir]
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -21,8 +24,21 @@ const files = [];
   }
 })(DIST);
 
+// The words are assembled here so that this file, which is not part of the build, does not itself contain them.
+const WORDS = ['cl' + 'aude', 'anth' + 'ropic'];
+const HIDDEN = new RegExp(WORDS.join('|'), 'i');
+// the same words as UTF-16 text (NUL between the letters), as an icon font or a wasm string table might hold them
+const HIDDEN_WIDE = new RegExp(WORDS.map((w) => [...w].join('\0')).join('|'), 'i');
+
 const findings = [];
 for (const f of files) {
+  if (/\.map$/i.test(f.rel)) findings.push(`${f.rel}: a source map ships`);
+  if (HIDDEN.test(f.rel)) findings.push(`${f.rel}: the file name spells a hidden word`);
+  const bytes = readFileSync(f.p).toString('latin1');
+  const hit = HIDDEN.exec(bytes);
+  if (hit) findings.push(`${f.rel}: contains "${hit[0]}" near "${bytes.slice(Math.max(0, hit.index - 30), hit.index + 40).replace(/\s+/g, ' ')}"`);
+  if (HIDDEN_WIDE.test(bytes)) findings.push(`${f.rel}: contains a hidden word as UTF-16`);
+  if (/\.(js|mjs|css)$/.test(f.rel) && /sourceMappingURL\s*=/.test(bytes)) findings.push(`${f.rel}: points at a source map`);
   if (/(^|\/)(stub-|asks-|chinese-fix)[\w-]*\.js$/.test(f.rel)) findings.push(`${f.rel}: a synthetic replay session is in the build`);
   if (f.size > MAX_FILE) findings.push(`${f.rel}: ${(f.size / 1048576).toFixed(1)} MiB is over the 25 MiB file limit`);
   if (/\.(js|mjs|html)$/.test(f.rel)) {
@@ -40,4 +56,4 @@ if (findings.length) {
   process.stdout.write(findings.map((x) => `FAIL ${x}\n`).join(''));
   process.exit(1);
 }
-process.stdout.write('dist: no test or demo tools in the build\n');
+process.stdout.write('dist: no test or demo tools, no source maps, and no hidden word in the build\n');

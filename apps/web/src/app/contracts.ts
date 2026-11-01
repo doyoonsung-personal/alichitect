@@ -124,8 +124,8 @@ export interface CanvasProps {
   tagged: { n: number; cards: string[] } | null;
   /** First turn, nothing drawn yet and a turn in flight: show `canvas.reading` and the Cursor. */
   reading: boolean;
-  /** Who is reading the brief while `reading`: Claude after it took over from a Qwen the content filter stopped. */
-  readingBy: 'qwen' | 'claude';
+  /** A second pass is completing the first answer while `reading`: show the calm `rec.finishing` line instead of `canvas.reading`. */
+  finishing: boolean;
   /** The first revision failed or was stopped and nothing was drawn: show `canvas.blank`. */
   blank: boolean;
   /** A turn is in flight. */

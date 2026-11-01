@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { loadCatalog } from '../src/catalog-node.ts';
 import { runTurn } from '../src/llm.ts';
 import type { BackupGateResult, RunStatus, TurnEvent } from '../src/llm.ts';
-import { CLAUDE_BACKUP_MODEL, CLAUDE_FALLBACK_BETA, CLAUDE_MAX_OUTPUT_CHARS, CLAUDE_MAX_TOKENS, claudeBackupConfig, claudeCost, claudeError, claudeModelOf, claudeRequest, createClaudeBackup, toClaudeMessages } from '../src/claude.ts';
+import { CLAUDE_BACKUP_MODEL, CLAUDE_FALLBACK_BETA, CLAUDE_MAX_OUTPUT_CHARS, CLAUDE_MAX_TOKENS, claudeBackupConfig, claudeCost, claudeError, claudeModelOf, claudeRequest, createClaudeBackup, toClaudeMessages, BACKUP_VOICE_NOTE } from '../src/claude.ts';
 import type { ClaudeBackupOptions } from '../src/claude.ts';
 import { createMemory } from '../src/prompt.ts';
 import Anthropic from '@anthropic-ai/sdk';
@@ -162,7 +162,10 @@ describe('Claude backup: the request', () => {
     assert.deepEqual(req.betas, [CLAUDE_FALLBACK_BETA]);
     assert.equal(CLAUDE_FALLBACK_BETA, 'server-side-fallback-2026-07-01');
     assert.deepEqual(req.cache_control, { type: 'ephemeral' });
-    assert.deepEqual(req.system, [{ type: 'text', text: 'SYSTEM PROMPT', cache_control: { type: 'ephemeral' } }]);
+    assert.deepEqual(req.system, [{ type: 'text', text: `SYSTEM PROMPT
+
+${BACKUP_VOICE_NOTE}`, cache_control: { type: 'ephemeral' } }]);
+    assert.match(BACKUP_VOICE_NOTE, /never name an AI model/);
     assert.deepEqual(req.messages, [
       { role: 'user', content: 'first' },
       { role: 'assistant', content: '{"t":"done","summary":""}' },
@@ -228,7 +231,7 @@ describe('runTurn with a backup: Model Studio filtered the reply', () => {
       const mem = createMemory();
       const r = await runTurn(mem, 'Web tier with a database in Singapore', CAT, { ...TURN, fetchImpl, backup: backupWith(fetchImpl), onStatus: (s) => statuses.push(s), onEvent: (e) => events.push(e) });
       assert.deepEqual(statuses.map(key), ['fallback:repair:claude', 'continue:repair:claude'], 'a fallback status first, then the continuation the web app mirrors');
-      assert.match(statuses[0].text, /content filter.*Claude .*finishing the answer/);
+      assert.equal(statuses[0].text, 'Finishing the answer.', 'the status text is neutral too: it names neither a model nor the filter');
       assert.equal(statuses[0].reason, 'content-filtered');
       assert.deepEqual(calls.map((c) => c.host), ['dashscope-intl.aliyuncs.com', 'api.anthropic.com'], 'no Qwen retry and no qwen3.7-max');
       assert.notEqual(r.memory, mem, 'the turn commits');
@@ -311,8 +314,8 @@ describe('runTurn with a backup: Model Studio filtered the reply', () => {
       const w = r.stats.warningsAfter.find((x) => x.code === 'reply-incomplete');
       assert.ok(w, `${code}: a clear warning`);
       assert.equal(w.severity, 'warn');
-      assert.match(w.msg, /content filter stopped qwen3\.8-max and the Claude backup could not finish it/);
-      assert.ok(!w.msg.includes(code) && !w.msg.includes('claude-opus'), `${code}: the warning goes to the browser and names neither the error nor the model`);
+      assert.equal(w.msg, 'The reply is incomplete. The diagram keeps what was drawn.');
+      assert.doesNotMatch(w.msg, /claude|anthropic|backup|filter|qwen|model|opus/i, `${code}: the warning goes to the browser and names no vendor, model or filter`);
       assert.ok(!w.msg.includes(KEY) && !JSON.stringify(r.stats).includes(KEY), 'the upstream echoed the key; it never reaches stats');
     }
   });
@@ -357,7 +360,7 @@ describe('Claude refusals', () => {
     assert.deepEqual(r.stats.repair?.ops, []);
     assert.equal(r.stats.rescue?.error?.code, 'refusal');
     const w = r.stats.warningsAfter.find((x) => x.code === 'reply-incomplete');
-    assert.ok(w && /could not finish it/.test(w.msg) && !/declin|refus/i.test(w.msg), 'the browser is not told that Claude refused; the log is (rescue.error)');
+    assert.ok(w && w.msg === 'The reply is incomplete. The diagram keeps what was drawn.' && !/declin|refus/i.test(w.msg), 'the browser is not told that the backup refused; the log is (rescue.error)');
   });
 
   test('a server-side fallback hop mid-stream: the text continues, the served model is recorded, each attempt priced at its own model', async () => {

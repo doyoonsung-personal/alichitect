@@ -112,6 +112,12 @@ export function toClaudeMessages(messages: readonly ChatMessage[]): { system: st
   return { system, messages: out };
 }
 
+/**
+ * Appended to the system prompt of every backup call. The product speaks in one voice: a reply never says which model or
+ * company wrote it, or that another model began it. (The wire carries no provider or model field either.)
+ */
+export const BACKUP_VOICE_NOTE = 'Write as the same assistant that began this answer. In say lines and summaries never name an AI model, a model family or a company behind it, and never mention that another model started or stopped the answer.';
+
 /** The request body of one backup call. */
 export function claudeRequest(model: string, messages: readonly ChatMessage[], o: { effort?: ClaudeEffort; maxTokens?: number } = {}): ClaudeRequest {
   const c = toClaudeMessages(messages);
@@ -120,7 +126,9 @@ export function claudeRequest(model: string, messages: readonly ChatMessage[], o
     max_tokens: o.maxTokens ?? CLAUDE_MAX_TOKENS,
     stream: true,
     // The system prompt is the same for every session: an explicit breakpoint on it gives every turn a cache read point.
-    system: [{ type: 'text', text: c.system, cache_control: { type: 'ephemeral' } }],
+    system: [{ type: 'text', text: `${c.system}
+
+${BACKUP_VOICE_NOTE}`, cache_control: { type: 'ephemeral' } }],
     messages: c.messages,
     // Top-level automatic caching: a breakpoint on the last block, so the follow-up call of the same turn hits the cache.
     cache_control: { type: 'ephemeral' },

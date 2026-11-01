@@ -102,7 +102,7 @@ export function useCanvasProps(): CanvasProps {
       building,
       tagged,
       reading: streaming && !display.layout && session.revisions.length === 1 && turn.phase !== 'error',
-      readingBy: session.revisions.at(-1)?.rescue === 'running' ? 'claude' : 'qwen',
+      finishing: session.revisions.at(-1)?.finishing === true,
       blank: !streaming && !display.layout && (session.revisions.at(-1)?.status === 'failed' || session.revisions.at(-1)?.status === 'stopped'),
       streaming,
       highlight: ui.highlight,

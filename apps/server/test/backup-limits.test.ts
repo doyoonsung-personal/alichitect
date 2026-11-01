@@ -101,20 +101,20 @@ async function run(ask: string, fetchImpl: typeof fetch, over: Partial<TurnDeps>
   return { out, events, fatal: events.find((e) => e.type === 'fatal') as Extract<WireEvent, { type: 'fatal' }> | undefined };
 }
 
-describe('the fatal when the Claude backup cannot be used', () => {
+describe('the fatal when the second pass cannot be used', () => {
   test('both new codes have English, Korean and Chinese copy, distinct from content-filtered and from each other', () => {
     const script: Record<Lang, RegExp> = { en: /[A-Za-z]/, ko: /[가-힣]/, zh: /[一-鿿]/ };
-    for (const code of ['backup-limit', 'backup-failed']) {
+    for (const code of ['request-limit', 'not-completed']) {
       for (const lang of ['en', 'ko', 'zh'] as Lang[]) {
         const m = fatalMessage(code, lang);
         assert.notEqual(m, fatalMessage('unknown', lang), `${code}/${lang} is its own message`);
         assert.notEqual(m, fatalMessage('content-filtered', lang));
         assert.match(m, script[lang]);
-        assert.match(m, /Claude/);
+        assert.doesNotMatch(m, /claude|anthropic|backup|model|filter|qwen/i, 'the words name nobody and say nothing about a second pass');
       }
     }
-    for (const lang of ['en', 'ko', 'zh'] as Lang[]) assert.notEqual(FATAL_COPY['backup-limit'][lang], FATAL_COPY['backup-failed'][lang]);
-    assert.match(FATAL_COPY['backup-limit'].en, /limit/i);
+    for (const lang of ['en', 'ko', 'zh'] as Lang[]) assert.notEqual(FATAL_COPY['request-limit'][lang], FATAL_COPY['not-completed'][lang]);
+    assert.match(FATAL_COPY['request-limit'].en, /tomorrow/i, 'the daily limit keeps its meaning');
   });
 
   test('a cap that blocks the rescue: fatal backup-limit in the language of the ask, Claude never called, no status line', async () => {
@@ -123,9 +123,9 @@ describe('the fatal when the Claude backup cannot be used', () => {
         const calls: Call[] = [];
         const { out, events, fatal } = await run(ASKS[lang], router([qwen], [claudeOk], calls), { backupGate: () => ({ ok: false, reason: 'limit', detail: 'user-cap' }) });
         assert.equal(out.outcome, 'fatal');
-        assert.deepEqual([fatal?.code, fatal?.retryable], ['backup-limit', false]);
-        assert.equal(fatal?.message, fatalMessage('backup-limit', lang));
-        assert.equal(out.fatalCode, 'backup-limit');
+        assert.deepEqual([fatal?.code, fatal?.retryable], ['request-limit', false]);
+        assert.equal(fatal?.message, fatalMessage('request-limit', lang));
+        assert.equal(out.fatalCode, 'backup-limit', 'the log keeps the real code');
         assert.deepEqual(calls.map((c) => c.host), ['dashscope-intl.aliyuncs.com']);
         assert.deepEqual(events.filter((e) => e.type === 'status'), []);
         assert.equal(out.stats?.error?.code, 'content-filtered', 'the stats keep the real error for the log');
@@ -140,8 +140,9 @@ describe('the fatal when the Claude backup cannot be used', () => {
     for (const over of cases) {
       const calls: Call[] = [];
       const { fatal, out } = await run(ASKS.ko, router([qwenFilteredHttp], [claudeOk], calls), over);
-      assert.deepEqual([fatal?.code, fatal?.retryable], ['backup-failed', true]);
-      assert.equal(fatal?.message, fatalMessage('backup-failed', 'ko'));
+      assert.deepEqual([fatal?.code, fatal?.retryable], ['not-completed', true]);
+      assert.equal(fatal?.message, fatalMessage('not-completed', 'ko'));
+      assert.equal(out.fatalCode, 'backup-failed', 'the log keeps the real code');
       assert.equal(calls.length, 1);
       assert.equal(out.stats?.backupSkipped !== undefined, true);
     }
@@ -152,10 +153,10 @@ describe('the fatal when the Claude backup cannot be used', () => {
     for (const [claude, retryable] of cases) {
       const calls: Call[] = [];
       const { fatal, events } = await run(ASKS.en, router([qwenFilteredHttp], [claude], calls));
-      assert.equal(fatal?.code, 'backup-failed');
+      assert.equal(fatal?.code, 'not-completed');
       assert.equal(fatal?.retryable, retryable);
-      assert.equal(fatal?.message, fatalMessage('backup-failed', 'en'));
-      assert.deepEqual(events.filter((e) => e.type === 'status').map((e) => (e as { provider?: string }).provider), ['claude'], 'Claude was asked, so the status line says so');
+      assert.equal(fatal?.message, fatalMessage('not-completed', 'en'));
+      assert.deepEqual(events.filter((e) => e.type === 'status').map((e) => (e as { code?: string }).code), ['finish'], 'the second pass was asked, so the neutral status line says so');
       assert.equal(calls.length, 2);
     }
   });

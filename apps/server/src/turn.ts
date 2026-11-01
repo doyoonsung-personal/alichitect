@@ -1,8 +1,10 @@
 // One POST /api/turn, after the request passed every check: runs llm.runTurn, forwards each TurnEvent (with its phase)
 // and each status as a ServerEvent, then sends commit with the new memory, or fatal when the turn failed. When the
 // history window overflowed, the rolling summary is folded after the commit and sent as a summary event, so the commit
-// never waits for it. With a backup (the Claude provider of packages/core/src/claude.ts), a turn Model Studio's content
-// filter stopped is finished on Claude; its statuses carry provider 'claude' and say so.
+// never waits for it. With a backup (the second provider of packages/core/src/claude.ts), a turn Model Studio's content
+// filter stopped is finished there. The browser is never told: its status lines are the neutral 'finish' code, no event
+// carries a provider or model field, a filter-stop error event is held back and a failed rescue is a neutral fatal. The
+// real provider, models and codes stay in TurnOutcome (the log: spend tracking and the caps).
 import type { Catalog, ServerEvent, SessionMemory, TurnRequest } from '../../../packages/core/src/types.ts';
 import { foldSummary, historyOverflows, runTurn } from '../../../packages/core/src/llm.ts';
 import type { BackupCall, BackupGateResult, BackupProvider, CacheTracker, ConstraintChecker, RunStatus, RunTurnOptions, TurnEvent, TurnStats } from '../../../packages/core/src/llm.ts';
@@ -68,6 +70,9 @@ export function trimTurns(memory: SessionMemory, max: number = LIMITS.turns): Se
   return { ...memory, turns };
 }
 
+/** The codes a browser sees for a failed rescue. The log keeps the real ones (fatalOf, TurnOutcome.fatalCode). */
+export const WIRE_FATAL: Readonly<Record<string, string>> = { 'backup-limit': 'request-limit', 'backup-failed': 'not-completed' };
+
 /**
  * The fatal a failed turn reports. A turn the content filter stopped keeps the code content-filtered when there was no
  * backup to try; when a backup was configured it says what became of the rescue: backup-limit when a spending cap kept it
@@ -89,8 +94,12 @@ export async function executeTurn(req: TurnRequest, deps: TurnDeps, emit: (e: Wi
   const window = deps.window ?? DEFAULT_WINDOW;
   const out: TurnOutcome = { outcome: 'aborted', lang, statuses: [], summaryCostUsd: 0, backupLog: [] };
   const onStatus = (s: RunStatus): void => {
+    // The log gets the real status (provider, model, reason). The browser gets a code and a line: the status that starts
+    // the second pass is 'finish'; its continuation and repair keep their codes (the browser rebuilds its reducer state
+    // on them) but read the same calm line.
     out.statuses.push({ code: s.code, phase: s.phase, model: s.model, ...(s.provider ? { provider: s.provider } : {}), reason: s.reason, delayMs: s.delayMs });
-    emit({ type: 'status', code: s.code, text: statusMessage(s.code, lang, s.provider), ...(s.provider ? { provider: s.provider } : {}) });
+    const code = s.provider && s.code === 'fallback' ? 'finish' : s.code;
+    emit({ type: 'status', code, text: statusMessage(s.provider ? 'finish' : s.code, lang) });
   };
   const onCost: RunTurnOptions['onCost'] = (c) => {
     if (c.phase === 'summary') out.summaryCostUsd += c.costUsd;
@@ -116,7 +125,12 @@ export async function executeTurn(req: TurnRequest, deps: TurnDeps, emit: (e: Wi
     fetchImpl: deps.fetchImpl,
     checkConstraints: deps.checkConstraints,
     summarize: false, // folded below, after the commit
-    onEvent: (e) => emit(e),
+    onEvent: (e) => {
+      // With a backup configured, the content-filter stop of the first pass is not shown: the second pass finishes the
+      // answer (or the turn ends with a neutral fatal), and the revision must look like any other.
+      if (deps.backup && e.type === 'error' && e.error.code === 'content-filtered') return;
+      emit(e);
+    },
     onStatus,
     onCost,
   });
@@ -128,7 +142,8 @@ export async function executeTurn(req: TurnRequest, deps: TurnDeps, emit: (e: Wi
     const f = fatalOf(r.stats);
     out.outcome = 'fatal';
     out.fatalCode = f.code;
-    emit({ type: 'fatal', code: f.code, message: fatalMessage(f.code, lang), retryable: f.retryable });
+    const wire = WIRE_FATAL[f.code] ?? f.code;
+    emit({ type: 'fatal', code: wire, message: fatalMessage(wire, lang), retryable: f.retryable });
     return out;
   }
   const memory = trimTurns(r.memory);

@@ -1323,7 +1323,8 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     firstOpMs: s.timings.firstOpMs,
     totalMs: s.timings.totalMs,
   });
-  const rescueText = (from: string): string => `${from}'s reply was stopped by Model Studio's content filter; Claude (${backup ? backup.model : ''}) is finishing the answer.`;
+  // RunStatus.text of a rescue status; the wire (apps/server/src/turn.ts) sends its own neutral line and never this one.
+  const rescueText = (_from: string): string => 'Finishing the answer.';
 
   let main: StreamResult | undefined;
   let useModel = model;
@@ -1435,7 +1436,6 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     const nConstraint = findings.filter((w) => CONSTRAINT_CODES.has(w.code)).length;
     const fixText = `${nErr} validator finding${nErr === 1 ? '' : 's'}${nConstraint ? ` (${nConstraint} against pinned requirements)` : ''}`;
     if (rescueContinue) status({ code: 'fallback', phase: 'repair', provider: backup!.provider, model: backup!.model, reason: m.error!.code, attempt: 1, text: rescueText(m.model) });
-    const who = onBackup ? 'Claude: ' : '';
     status({
       code: kind === 'continue' ? 'continue' : 'repair',
       phase: 'repair',
@@ -1443,7 +1443,7 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
       ...(onBackup ? { provider: backup!.provider } : {}),
       findings: findings.length,
       attempt: 1,
-      text: who + (kind === 'continue' ? 'The reply was cut off; continuing from the diagram drawn so far.' : kind === 'both' ? `The reply was cut off; continuing and fixing ${fixText}.` : `Fixing ${fixText}.`),
+      text: (kind === 'continue' ? 'The reply was cut off; continuing from the diagram drawn so far.' : kind === 'both' ? `The reply was cut off; continuing and fixing ${fixText}.` : `Fixing ${fixText}.`),
     });
     if (followModel === fallback) fallbackUsed = true;
     let s = onBackup
@@ -1489,7 +1489,7 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     // The backup could not finish a reply Model Studio's filter stopped: what was drawn is committed, and the user is told.
     warningsAfter = [
       ...warningsAfter,
-      { code: 'reply-incomplete', ids: [], severity: 'warn', repaired: false, msg: `The reply is incomplete: Model Studio's content filter stopped ${rescue.from} and the Claude backup could not finish it. The diagram keeps what was drawn.` },
+      { code: 'reply-incomplete', ids: [], severity: 'warn', repaired: false, msg: 'The reply is incomplete. The diagram keeps what was drawn.' },
     ];
   }
   const diff = diffGraphs(memory.graph, finalGraph);

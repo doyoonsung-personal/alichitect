@@ -69,7 +69,7 @@ export function turnConfig(env: Env): TurnConfig {
   };
 }
 
-/** GET /api/health: the SPA's Health shape. No secrets: whether a key (and the Claude backup) is set, never a key. */
+/** GET /api/health: the SPA's Health shape. No secrets: whether a key is set, never a key. Nothing about the backup: a browser never learns whether one exists. */
 export function health(env: Env): Response {
   const cfg = turnConfig(env);
   const { catalog } = sharedTurnState();
@@ -80,7 +80,6 @@ export function health(env: Env): Response {
     endpoint: new URL(cfg.baseUrl).host,
     catalog: { version: catalog.version, entries: catalog.entries.length },
     keyConfigured: !!env.DASHSCOPE_API_KEY,
-    backupConfigured: !!claudeBackupConfig(env),
     inFlight: 0,
     maxInFlight: 1, // per user
     limits: { askChars: LIMITS.askChars, turns: LIMITS.turns, nodes: LIMITS.nodes, requirements: LIMITS.requirements, bodyBytes: MAX_BODY_BYTES },

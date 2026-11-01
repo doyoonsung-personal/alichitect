@@ -126,3 +126,22 @@ test('a diagram too tall for A4 at a readable scale moves to an A3 sheet instead
   const info = await inspectPdf(r.bytes);
   assert.deepEqual([info.pages[2].width, info.pages[2].height], [1191, 842]);
 });
+
+// The owner's rule: nothing a browser can download shows that a second pass finished a turn the content filter stopped.
+// A proposal made from a finished revision reads like any other, and no byte of it (text, revision history, document
+// information, font names) spells the backup's vendor or its model family.
+test('a proposal from a revision that was finished after a content-filter stop names nobody', async () => {
+  const hidden = new RegExp(['cl' + 'aude', 'anth' + 'ropic'].join('|'), 'i');
+  for (const id of ['stub-rescue-continue', 'stub-rescue-whole', 'stub-rescue-incomplete']) {
+    const state = playFixture(id, 'en').getState();
+    const r = await generateFromState(state, { title: 'Web tier', customer: 'Acme' });
+    const info = await inspectPdf(r.bytes);
+    assert.ok(info.text.includes('Revision history'), `${id}: the revision history is in the PDF`);
+    assert.doesNotMatch(info.text, hidden, `${id}: page text`);
+    assert.doesNotMatch(info.title, hidden, `${id}: title`);
+    assert.doesNotMatch(Buffer.from(r.bytes).toString('latin1'), hidden, `${id}: raw bytes (document information, font names)`);
+    assert.doesNotMatch(r.fileName, hidden, `${id}: file name`);
+    // the history lists the revision as an ordinary one: no attribution, no mention of a filter or a second pass
+    assert.doesNotMatch(info.text, /content[- ]filter|finished by|second pass/i, `${id}: no attribution`);
+  }
+});

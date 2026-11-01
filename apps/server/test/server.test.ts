@@ -262,7 +262,7 @@ describe('POST /api/turn streaming', () => {
     try {
       const evs = await events(await post(base, turnBody({ ask: '싱가포르에 작은 API를 그려 주세요' })));
       const st = evs.filter((e) => e.type === 'status');
-      assert.deepEqual(st, [{ type: 'status', code: 'fallback', text: '백업 모델로 전환하는 중…' }]);
+      assert.deepEqual(st, [{ type: 'status', code: 'fallback', text: '평소보다 오래 걸려 다른 방법으로 시도하는 중…' }]);
       assert.deepEqual(up.calls.map((c) => c.model), ['qwen3.8-max', 'qwen3.7-max']);
       assert.equal(evs.at(-1)!.type, 'commit');
       const iStatus = evs.findIndex((e) => e.type === 'status');

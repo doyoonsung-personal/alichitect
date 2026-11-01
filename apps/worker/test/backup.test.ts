@@ -1,15 +1,20 @@
-// The Worker with the optional ANTHROPIC_API_KEY secret: health reports only a boolean, a turn Model Studio's content
-// filter stopped is finished by the Claude backup (statuses with provider 'claude', commit, the rescue in the log and its
-// cost in the usage row), the Anthropic key never reaches a line or the log, and a missing secret changes nothing.
+// The Worker with the optional ANTHROPIC_API_KEY secret: health says nothing about it, a turn Model Studio's content
+// filter stopped is finished by the backup (a neutral 'finish' status, commit, the rescue in the log and its cost in the
+// usage row), the key never reaches a line or the log, a missing secret changes nothing, and nothing a browser can fetch
+// from the Worker (the turn stream, /api/me, /api/health, every HTML page, the response headers) names the backup's
+// vendor or carries a provider or model field.
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { handleTurn, health, makeRedactor } from '../src/turn.ts';
 import { createMemory } from '../../../packages/core/src/prompt.ts';
 import type { UserRow } from '../src/db.ts';
 import type { Env } from '../src/env.ts';
-import { API_KEY, makeCtx, makeEnv, ndjson, signIn } from './helpers.ts';
+import { API_KEY, call, makeCtx, makeEnv, ndjson, req, signIn } from './helpers.ts';
 
 const CLAUDE_KEY = 'sk-ant-api03-WORKER-SECRET-0123456789abcdef';
+// the words no browser may receive (assembled so this file stays greppable for the real thing)
+const HIDDEN = new RegExp(['cl' + 'aude', 'anth' + 'ropic'].join('|'), 'i');
+const headerText = (res: Response): string => [...res.headers].map(([k, v]) => k + ': ' + v).join(String.fromCharCode(10));
 const enc = new TextEncoder();
 const line = (o: unknown): string => JSON.stringify(o);
 const abortError = (): Error => Object.assign(new Error('aborted'), { name: 'AbortError' });
@@ -76,17 +81,19 @@ async function approved(env: Env): Promise<UserRow> {
   return (await signIn(env, 'user@example.com', { status: 'approved' })).user;
 }
 
-describe('Worker: the Claude backup', () => {
-  test('health: backupConfigured is a boolean and no key is shown', async () => {
+describe('Worker: the backup', () => {
+  test('health says nothing about the backup and shows no key', async () => {
     for (const env of [makeEnv(), makeEnv({ ANTHROPIC_API_KEY: CLAUDE_KEY, CLAUDE_BACKUP_MODEL: 'claude-opus-5-5' })]) {
       const text = await health(env).text();
       const h = JSON.parse(text) as Record<string, unknown>;
-      assert.equal(h.backupConfigured, !!env.ANTHROPIC_API_KEY);
+      assert.equal('backupConfigured' in h, false);
       assert.ok(!text.includes(CLAUDE_KEY) && !text.includes(API_KEY));
+      assert.doesNotMatch(text, HIDDEN);
+      assert.doesNotMatch(text, /backup/i);
     }
   });
 
-  test('a filtered turn is finished on Claude: statuses with provider claude, commit, rescue logged, no key anywhere', async () => {
+  test('a filtered turn is finished by the backup: a neutral status, commit, rescue logged, no key and no vendor anywhere a browser can see', async () => {
     const env = makeEnv({ ANTHROPIC_API_KEY: CLAUDE_KEY });
     const user = await approved(env);
     const calls: Call[] = [];
@@ -96,8 +103,12 @@ describe('Worker: the Claude backup', () => {
     const text = await res.clone().text();
     const events = await ndjson(res);
     await ctx.flush();
-    assert.deepEqual(events.filter((e) => e.type === 'status').map((e) => `${e.code}:${e.provider}`), ['fallback:claude', 'continue:claude']);
-    assert.match(String(events.find((e) => e.type === 'status')!.text), /Claude/);
+    assert.deepEqual(events.filter((e) => e.type === 'status').map((e) => e.code), ['finish', 'continue']);
+    assert.deepEqual(events.filter((e) => e.type === 'status').map((e) => e.text), ['Finishing the diagram…', 'Finishing the diagram…']);
+    for (const e of events) for (const k of ['provider', 'model', 'servedModel', 'reason', 'rescue']) assert.equal(k in e, false, `${String(e.type)} event has no ${k}`);
+    assert.equal(events.some((e) => e.type === 'error'), false, 'the filter stop of the first pass is not shown');
+    assert.doesNotMatch(text, HIDDEN, 'no line of the stream names the backup vendor');
+    assert.doesNotMatch(headerText(res), HIDDEN, 'nor does a response header');
     const commit = events.at(-1) as { type: string; memory: { graph: { nodes: Record<string, unknown> } } };
     assert.equal(commit.type, 'commit');
     assert.deepEqual(Object.keys(commit.memory.graph.nodes).sort(), ['app', 'db']);
@@ -129,5 +140,41 @@ describe('Worker: the Claude backup', () => {
     const out = r(`a ${API_KEY} b ${CLAUDE_KEY} c ${CLAUDE_KEY.slice(0, 12)}`);
     assert.ok(!out.includes(API_KEY) && !out.includes(CLAUDE_KEY) && !out.includes(CLAUDE_KEY.slice(0, 12)));
     assert.equal(makeRedactor(API_KEY)(`x ${API_KEY}`), 'x [redacted]', 'one key, as before');
+  });
+});
+
+describe('Worker: nothing a browser can fetch names the backup vendor', () => {
+  const PAGES = ['/', '/login', '/signup', '/verify', '/forgot', '/reset', '/pending', '/account', '/admin', '/api/me', '/api/health', '/robots.txt', '/does-not-exist', '/api/nope'];
+
+  test('every page, API answer and header, signed out, pending, approved and admin, in en, ko and zh, with the backup configured', async () => {
+    const env = makeEnv({ ANTHROPIC_API_KEY: CLAUDE_KEY, CLAUDE_BACKUP_MODEL: 'claude-opus-5-5' });
+    const admin = (await signIn(env, 'dysung.alicloud@gmail.com', { status: 'approved', role: 'admin' })).cookie;
+    const member = (await signIn(env, 'member@example.com', { status: 'approved' })).cookie;
+    const pending = (await signIn(env, 'pending@example.com', { status: 'pending' })).cookie;
+    let seen = 0;
+    for (const lang of ['en', 'ko', 'zh']) {
+      for (const [who, cookie] of [['signed out', undefined], ['pending', pending], ['member', member], ['admin', admin]] as const) {
+        for (const path of PAGES) {
+          const res = await call(env, req(path, { cookie: [cookie, `ab_lang=${lang}`].filter(Boolean).join('; ') }));
+          const where = `${who} ${lang} ${path} (${res.status})`;
+          assert.doesNotMatch(await res.text(), HIDDEN, where);
+          assert.doesNotMatch(headerText(res), HIDDEN, `${where} headers`);
+          seen++;
+        }
+      }
+    }
+    assert.ok(seen >= 150);
+  });
+
+  test('the SPA shell and its static assets pass through the same headers, and a refused turn says nothing either', async () => {
+    const env = makeEnv({ ANTHROPIC_API_KEY: CLAUDE_KEY });
+    const { cookie } = await signIn(env, 'member@example.com', { status: 'approved' });
+    for (const path of ['/', '/index.html', '/assets/app.js']) {
+      const res = await call(env, req(path, { cookie }));
+      assert.doesNotMatch(headerText(res), HIDDEN, path);
+    }
+    const bad = await call(env, req('/api/turn', { method: 'POST', cookie, type: 'application/json', body: '{"nope":1}' }));
+    assert.doesNotMatch(await bad.text(), HIDDEN);
+    assert.doesNotMatch(headerText(bad), HIDDEN);
   });
 });

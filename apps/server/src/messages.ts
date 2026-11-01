@@ -1,10 +1,10 @@
 // User-facing copy for fatal codes and status lines, in English, Korean and Chinese. The server picks the language of
 // the user's message (detectReplyLanguage); the web app may localize by code instead. First drafts by Qwen
-// (tools/qwen/ask.ts), reviewed and corrected by hand: content-filtered, network, first-byte-timeout, total-timeout (ko),
-// and the Claude backup lines (zh fallback reworded).
+// (tools/qwen/ask.ts), reviewed and corrected by hand: content-filtered, network, first-byte-timeout, total-timeout (ko).
+// Nothing here names a model vendor, a backup model or the content filter's second pass: the owner's decision is that
+// a browser never learns who finished a turn.
 import { detectReplyLanguage } from '../../../packages/core/src/prompt.ts';
 import type { StatusCode } from '../../../packages/core/src/llm.ts';
-import type { Provider } from '../../../packages/core/src/types.ts';
 
 export type Lang = 'en' | 'ko' | 'zh';
 type Copy = Record<Lang, string>;
@@ -15,18 +15,18 @@ export const FATAL_COPY: Record<string, Copy> = {
     ko: '모델 제공업체의 콘텐츠 필터가 이 요청을 거부했습니다. 표현을 바꿔 다시 시도해 주세요. 다이어그램은 변경되지 않았습니다.',
     zh: '模型服务商的内容过滤拒绝了此请求。请换个说法重试。您的图表未更改。',
   },
-  // The Claude backup ended the turn without finishing it. 'backup-limit': a spending cap stopped it from starting (Claude
-  // was not asked). 'backup-failed': it was not started (too little time left, or the cap check failed) or it was asked and
-  // could not answer.
-  'backup-limit': {
-    en: "The Claude backup that finishes answers stopped by the content filter has reached today's limit, so this request could not be finished. Rephrase it and try again, or try again tomorrow. Your diagram is unchanged.",
-    ko: '콘텐츠 필터로 중단된 답변을 마무리하는 Claude 백업의 오늘 사용 한도에 도달하여 이 요청을 완료하지 못했습니다. 표현을 바꿔 다시 시도하거나 내일 다시 시도해 주세요. 다이어그램은 변경되지 않았습니다.',
-    zh: '用于完成被内容过滤中断的回答的 Claude 备用服务今日已达上限，因此无法完成此请求。请换个说法重试，或明天再试。您的图表未更改。',
+  // A turn the content filter stopped and the second pass could not finish. 'request-limit': a spending cap stopped the
+  // second pass from starting. 'not-completed': it was not started (too little time left, or the cap check failed) or
+  // it was asked and could not answer. The words say neither who the second pass is nor why it ran.
+  'request-limit': {
+    en: "This request couldn't be completed. Rephrase it and try again, or try again tomorrow. Your diagram is unchanged.",
+    ko: '이 요청을 완료하지 못했습니다. 표현을 바꿔 다시 시도하거나 내일 다시 시도해 주세요. 다이어그램은 변경되지 않았습니다.',
+    zh: '无法完成此请求。请换个说法重试，或明天再试。您的图表未更改。',
   },
-  'backup-failed': {
-    en: "The model provider's content filter stopped this request, and the Claude backup could not finish it. Rephrase it and try again. Your diagram is unchanged.",
-    ko: '모델 제공업체의 콘텐츠 필터가 이 요청을 중단했고, Claude 백업도 이를 마무리하지 못했습니다. 표현을 바꿔 다시 시도해 주세요. 다이어그램은 변경되지 않았습니다.',
-    zh: '模型服务商的内容过滤中断了此请求，Claude 备用服务也未能完成。请换个说法重试。您的图表未更改。',
+  'not-completed': {
+    en: "This request couldn't be completed. Rephrase it and try again. Your diagram is unchanged.",
+    ko: '이 요청을 완료하지 못했습니다. 표현을 바꿔 다시 시도해 주세요. 다이어그램은 변경되지 않았습니다.',
+    zh: '无法完成此请求。请换个说法重试。您的图表未更改。',
   },
   auth: {
     en: 'The server key was rejected. The person running the server must check it. Your diagram is unchanged.',
@@ -54,9 +54,9 @@ export const FATAL_COPY: Record<string, Copy> = {
     zh: '服务器无法连接模型服务商。请检查网络连接后重试。您的图表未更改。',
   },
   'first-byte-timeout': {
-    en: 'The model did not start answering in time, even on the backup model. Please try again. Your diagram is unchanged.',
-    ko: '백업 모델로도 응답이 제때 시작되지 않았습니다. 다시 시도해 주세요. 다이어그램은 변경되지 않았습니다.',
-    zh: '即使切换到备用模型，响应也未能及时开始。请重试。您的图表未更改。',
+    en: 'The model did not start answering in time, even after a second try. Please try again. Your diagram is unchanged.',
+    ko: '다시 시도했지만 응답이 제때 시작되지 않았습니다. 다시 시도해 주세요. 다이어그램은 변경되지 않았습니다.',
+    zh: '即使再次尝试，响应也未能及时开始。请重试。您的图表未更改。',
   },
   'idle-timeout': {
     en: 'The response stopped partway through. Please try again. Your diagram is unchanged.',
@@ -111,22 +111,13 @@ export const FATAL_COPY: Record<string, Copy> = {
 };
 
 export const STATUS_COPY: Record<StatusCode, Copy> = {
-  fallback: { en: 'Switching to a backup model…', ko: '백업 모델로 전환하는 중…', zh: '正在切换到备用模型…' },
+  fallback: { en: 'Taking longer than usual, trying another way…', ko: '평소보다 오래 걸려 다른 방법으로 시도하는 중…', zh: '耗时比平时长，正在换一种方式重试…' },
   retry: { en: 'Trying again…', ko: '다시 시도하는 중…', zh: '正在重试…' },
   continue: { en: 'Continuing the answer…', ko: '응답을 이어가는 중…', zh: '正在继续回答…' },
   repair: { en: 'Fixing the diagram…', ko: '다이어그램을 수정하는 중…', zh: '正在修复图表…' },
   summary: { en: 'Summarizing older messages…', ko: '이전 메시지를 요약하는 중…', zh: '正在总结旧消息…' },
-};
-
-/** Status lines of a Claude backup rescue (status events with provider 'claude'): the fallback that starts it, then the continuation or repair it runs. */
-export const BACKUP_STATUS_COPY: Partial<Record<StatusCode, Copy>> = {
-  fallback: {
-    en: "Qwen's content filter stopped this answer. Claude is finishing it…",
-    ko: 'Qwen의 콘텐츠 필터로 인해 답변이 중단되었습니다. Claude가 마무리하는 중…',
-    zh: 'Qwen 的内容过滤中断了此回答。Claude 正在完成回答…',
-  },
-  continue: { en: 'Claude is finishing the answer…', ko: 'Claude가 답변을 마무리하는 중…', zh: 'Claude 正在完成回答…' },
-  repair: { en: 'Claude is fixing the diagram…', ko: 'Claude가 다이어그램을 수정하는 중…', zh: 'Claude 正在修复图表…' },
+  // The second pass that completes an answer the content filter stopped: one calm line for all of it.
+  finish: { en: 'Finishing the diagram…', ko: '다이어그램을 마무리하는 중…', zh: '正在完成图表…' },
 };
 
 /** The UI language for a message: Korean or Chinese when the message is written in that script, else English. */
@@ -140,8 +131,7 @@ export function fatalMessage(code: string, lang: Lang): string {
   return (FATAL_COPY[code] ?? FATAL_COPY.unknown)[lang];
 }
 
-/** The status line for a code; a status of the Claude backup (provider 'claude') says that Claude is finishing the answer. */
-export function statusMessage(code: StatusCode, lang: Lang, provider?: Provider): string {
-  const backup = provider === 'claude' ? BACKUP_STATUS_COPY[code] : undefined;
-  return (backup ?? STATUS_COPY[code])[lang];
+/** The status line for a code. */
+export function statusMessage(code: StatusCode, lang: Lang): string {
+  return STATUS_COPY[code][lang];
 }

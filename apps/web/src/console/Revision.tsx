@@ -6,7 +6,7 @@ import { Icon } from '../shell/Icon.tsx';
 import { ChangeList } from './ChangeList.tsx';
 import { Questions } from './Questions.tsx';
 import { Cursor, useNow } from './Cursor.tsx';
-import { autoFixLines, cursorSlot, drawProgress, errorText, fixSentences, fmtSeconds, footerItems, revisionCards, rescueNote, statusText, waitingLine } from './logic.ts';
+import { autoFixLines, cursorSlot, drawProgress, errorText, fixSentences, fmtSeconds, footerItems, revisionCards, statusText, waitingLine } from './logic.ts';
 import type { Revision } from '../app/contracts.ts';
 import type { ConsoleCtx } from './ctx.ts';
 
@@ -124,31 +124,19 @@ function Footer({ ctx, r }: { ctx: ConsoleCtx; r: Revision }): ReactElement | nu
     );
   }
   const items = footerItems(r, requirements.length > 0, t);
-  const rescued = rescueNote(r, t);
-  if (!items.length && !rescued) return null;
+  if (!items.length) return null;
   return (
-    <>
-      {items.length ? (
-        <p className="rev__foot num" data-enter={sawLive.current || undefined}>
-          {items.map((it, i) => (
-            <Fragment key={it.key}>
-              {i > 0 ? <span aria-hidden="true"> {'·'} </span> : null}
-              <span className="rev__foot-item" data-tone={it.tone}>
-                {it.check ? <Icon name="check" size={12} /> : null}
-                {it.text}
-              </span>
-            </Fragment>
-          ))}
-        </p>
-      ) : null}
-      {rescued ? (
-        <p className="rev__foot rev__foot--rescue" data-enter={sawLive.current || undefined}>
-          <span className="rev__foot-item" data-tone={rescued.tone}>
-            {rescued.text}
+    <p className="rev__foot num" data-enter={sawLive.current || undefined}>
+      {items.map((it, i) => (
+        <Fragment key={it.key}>
+          {i > 0 ? <span aria-hidden="true"> {'·'} </span> : null}
+          <span className="rev__foot-item" data-tone={it.tone}>
+            {it.check ? <Icon name="check" size={12} /> : null}
+            {it.text}
           </span>
-        </p>
-      ) : null}
-    </>
+        </Fragment>
+      ))}
+    </p>
   );
 }
 
@@ -162,9 +150,9 @@ function FixBlock({ ctx, r, slot }: { ctx: ConsoleCtx; r: Revision; slot: Return
   const regions = [...new Set(requirements.flatMap((q) => q.regions))];
   const sentences = fixSentences(fix.constraint, { regions, catalog, t });
   const lines = autoFixLines(fix.autoFixes, t);
-  const statusLabel = r.statusLine?.code === 'repair' ? statusText(r.statusLine, t) : t('rec.fixing');
-  // Claude finished this revision: the sentences below name Qwen as the fixer, so they stay out of a rescued record
-  const rescued = r.rescue !== undefined;
+  const statusLabel = r.statusLine?.code === 'repair' ? statusText(r.statusLine, r, t) : t('rec.fixing');
+  // a second pass finished this revision: the sentences below name Qwen as the fixer, so they stay out of its record
+  const rescued = r.finishing === true;
   return (
     <div className="fix" data-state={fix.state} data-rescue={rescued || undefined}>
       {hasTurn ? (
@@ -231,7 +219,6 @@ function ErrorBlock({ ctx, r }: { ctx: ConsoleCtx; r: Revision }): ReactElement 
         <span>{t('rec.failedTitle')}</span>
       </p>
       <p className="err__msg prose">{errorText(e, t)}</p>
-      {r.rescue === 'failed' && e.code === 'content-filtered' ? <p className="err__msg err__msg--aside prose">{t('rec.rescueFailed')}</p> : null}
       {last ? (
         <div className="err__actions">
           {e.retryable ? (
@@ -266,7 +253,7 @@ export function RevisionBlock({ ctx, r, onCollapse }: { ctx: ConsoleCtx; r: Revi
       <RevTag ctx={ctx} r={r} />
       <div className="rev__body">
         <Ask ctx={ctx} r={r} />
-        {waiting && r.rescue === 'running' ? null : waiting ? (
+        {waiting && r.finishing ? null : waiting ? (
           <p className="rev__note rev__note--waiting">
             {waitingLine(now - r.startedAt, t)}
             {slot === 'waiting' ? <Cursor lastTextAt={turn.lastTextAt} /> : null}
@@ -277,7 +264,7 @@ export function RevisionBlock({ ctx, r, onCollapse }: { ctx: ConsoleCtx; r: Revi
           </p>
         ) : r.note && !ended ? (
           <p className="rev__note prose" lang={r.askLang}>
-            <span className="visually-hidden">{t(r.rescue ? 'rec.noteLabelPlain' : 'rec.noteLabel')}: </span>
+            <span className="visually-hidden">{t(r.finishing ? 'rec.noteLabelPlain' : 'rec.noteLabel')}: </span>
             <NoteText text={r.note} live={r.status === 'streaming'} />
             {slot === 'note' ? <Cursor lastTextAt={turn.lastTextAt} /> : null}
           </p>
@@ -291,7 +278,7 @@ export function RevisionBlock({ ctx, r, onCollapse }: { ctx: ConsoleCtx; r: Revi
         {r.statusLine && slot === 'status' ? (
           <p className="rev__status">
             <Cursor lastTextAt={turn.lastTextAt} lead />
-            <span>{statusText(r.statusLine, t)}</span>
+            <span>{statusText(r.statusLine, r, t)}</span>
           </p>
         ) : null}
         <ChangeList ctx={ctx} lines={r.changes} live={live} />

@@ -119,8 +119,8 @@ describe('Worker: the per-user rescue cap', () => {
     const { user } = await signIn(env, 'u@example.com', { status: 'approved' });
     await seedUsage(env, user.id, { rescues: 10, turns: 7 });
     const r = await turn(env, 'u@example.com', ASKS.en, [qwenFilteredHttp], [claudeOk]);
-    assert.deepEqual([r.fatal?.code, r.fatal?.retryable], ['backup-limit', false]);
-    assert.equal(r.fatal?.message, fatalMessage('backup-limit', 'en'));
+    assert.deepEqual([r.fatal?.code, r.fatal?.retryable], ['request-limit', false]);
+    assert.equal(r.fatal?.message, fatalMessage('request-limit', 'en'));
     assert.equal(claudeCalls(r), 0);
     assert.deepEqual(r.events.filter((e) => e.type === 'status'), [], 'the user is not told Claude is coming');
     assert.equal(r.events.some((e) => e.type === 'commit'), false);
@@ -136,7 +136,7 @@ describe('Worker: the per-user rescue cap', () => {
     const { user } = await signIn(env, 'u@example.com', { status: 'approved' });
     await seedUsage(env, user.id, { rescues: 10 });
     const r = await turn(env, 'u@example.com', ASKS.ko, [qwenFilteredHttp], []);
-    assert.equal(r.fatal?.message, fatalMessage('backup-limit', 'ko'));
+    assert.equal(r.fatal?.message, fatalMessage('request-limit', 'ko'));
     assert.match(String(r.fatal?.message), /[가-힣]/);
   });
 
@@ -145,7 +145,7 @@ describe('Worker: the per-user rescue cap', () => {
     const { user } = await signIn(env, 'u@example.com', { status: 'approved' });
     await seedUsage(env, user.id, { rescues: 10 });
     const r = await turn(env, 'u@example.com', ASKS.en, [qwenFilteredMid], [claudeOk]);
-    assert.equal(r.fatal?.code, 'backup-limit');
+    assert.equal(r.fatal?.code, 'request-limit');
     assert.equal(claudeCalls(r), 0);
     assert.equal(r.events.some((e) => e.type === 'commit'), false);
   });
@@ -159,7 +159,7 @@ describe('Worker: the per-user rescue cap', () => {
     assert.equal(claudeCalls(r), 1);
     assert.equal((await usageRow(env, user.id))?.rescues, 10);
     const again = await turn(env, 'u@example.com', ASKS.en, [qwenFilteredHttp], [claudeOk]);
-    assert.equal(again.fatal?.code, 'backup-limit');
+    assert.equal(again.fatal?.code, 'request-limit');
   });
 
   test('yesterday does not count', async () => {
@@ -179,7 +179,7 @@ describe('Worker: the per-user rescue cap', () => {
     assert.equal(ok.events.at(-1)?.type, 'commit');
     await env.DB.prepare('UPDATE usage SET rescues = 30 WHERE user_id = ?').bind(user.id).run();
     const blocked = await turn(env, ADMIN, ASKS.en, [qwenFilteredHttp], [claudeOk], { admin: true });
-    assert.equal(blocked.fatal?.code, 'backup-limit');
+    assert.equal(blocked.fatal?.code, 'request-limit');
     assert.equal(claudeCalls(blocked), 0);
   });
 
@@ -188,8 +188,8 @@ describe('Worker: the per-user rescue cap', () => {
     const { user } = await signIn(env, 'u@example.com', { status: 'approved' });
     await seedUsage(env, user.id, { rescues: 1 });
     assert.equal((await turn(env, 'u@example.com', ASKS.en, [qwenFilteredHttp], [claudeOk])).events.at(-1)?.type, 'commit');
-    assert.equal((await turn(env, 'u@example.com', ASKS.en, [qwenFilteredHttp], [claudeOk])).fatal?.code, 'backup-limit');
-    assert.equal((await turn(env, ADMIN, ASKS.en, [qwenFilteredHttp], [claudeOk], { admin: true })).fatal?.code, 'backup-limit');
+    assert.equal((await turn(env, 'u@example.com', ASKS.en, [qwenFilteredHttp], [claudeOk])).fatal?.code, 'request-limit');
+    assert.equal((await turn(env, ADMIN, ASKS.en, [qwenFilteredHttp], [claudeOk], { admin: true })).fatal?.code, 'request-limit');
   });
 
   test('rescuesPerDay and claudeBudgetUsdPerDay: defaults 10 / 30 / $5, and a bad value falls back to the default', () => {
@@ -208,7 +208,7 @@ describe('Worker: the global daily budget', () => {
     const env = withKey();
     await seedUsage(env, '*', { rescues: 40, cost: 5 });
     const r = await turn(env, 'fresh@example.com', ASKS.en, [qwenFilteredHttp], [claudeOk]);
-    assert.deepEqual([r.fatal?.code, claudeCalls(r)], ['backup-limit', 0]);
+    assert.deepEqual([r.fatal?.code, claudeCalls(r)], ['request-limit', 0]);
     const log = r.logs.find((l) => l.evt === 'turn') as { backupSkipped: { detail: string } };
     assert.equal(log.backupSkipped.detail, 'global-cap');
   });
@@ -222,7 +222,7 @@ describe('Worker: the global daily budget', () => {
     assert.equal(g?.rescues, 41);
     assert.ok(Math.abs((g?.claude_cost_usd ?? 0) - (4.99 + ONE_CALL)) < 1e-9);
     const next = await turn(env, 'other@example.com', ASKS.en, [qwenFilteredHttp], [claudeOk]);
-    assert.equal(next.fatal?.code, 'backup-limit', 'the total is now past $5');
+    assert.equal(next.fatal?.code, 'request-limit', 'the total is now past $5');
   });
 
   test('the budget is a var, in dollars; yesterday does not count', async () => {
@@ -230,13 +230,13 @@ describe('Worker: the global daily budget', () => {
     await seedUsage(env, '*', { cost: 3, day: db.utcDay(Date.now() - 86_400_000) });
     await seedUsage(env, '*', { cost: 0.99 });
     assert.equal((await turn(env, 'a@example.com', ASKS.en, [qwenFilteredHttp], [claudeOk])).events.at(-1)?.type, 'commit');
-    assert.equal((await turn(env, 'b@example.com', ASKS.en, [qwenFilteredHttp], [claudeOk])).fatal?.code, 'backup-limit');
+    assert.equal((await turn(env, 'b@example.com', ASKS.en, [qwenFilteredHttp], [claudeOk])).fatal?.code, 'request-limit');
   });
 
   test('a budget of 0 turns the backup off for everyone', async () => {
     const env = withKey({ CLAUDE_BUDGET_USD_PER_DAY: '0' });
     const r = await turn(env, 'a@example.com', ASKS.en, [qwenFilteredHttp], [claudeOk]);
-    assert.deepEqual([r.fatal?.code, claudeCalls(r)], ['backup-limit', 0]);
+    assert.deepEqual([r.fatal?.code, claudeCalls(r)], ['request-limit', 0]);
   });
 });
 
@@ -286,7 +286,7 @@ describe('Worker: booking a rescue', () => {
   test('a rescue that fails is still counted (it was asked), at no cost', async () => {
     const env = withKey();
     const r = await turn(env, 'u@example.com', ASKS.en, [qwenFilteredHttp], [claudeHttp(529, 'overloaded_error')]);
-    assert.equal(r.fatal?.code, 'backup-failed');
+    assert.equal(r.fatal?.code, 'not-completed');
     const u = await usageRow(env, await userIdOf(env, 'u@example.com'));
     assert.deepEqual([u?.rescues, u?.turns, u?.claude_cost_usd], [1, 2, 0]);
   });
@@ -350,8 +350,8 @@ describe('Worker: a rescue that cannot start', () => {
   test('less than a minute of the turn deadline left: no rescue (TURN_DEADLINE_MS 10 s), a "backup failed" fatal, and no cap used', async () => {
     const env = withKey({ TURN_DEADLINE_MS: '10000' });
     const r = await turn(env, 'u@example.com', ASKS.ko, [qwenFilteredHttp], [claudeOk]);
-    assert.deepEqual([r.fatal?.code, r.fatal?.retryable], ['backup-failed', true]);
-    assert.equal(r.fatal?.message, fatalMessage('backup-failed', 'ko'));
+    assert.deepEqual([r.fatal?.code, r.fatal?.retryable], ['not-completed', true]);
+    assert.equal(r.fatal?.message, fatalMessage('not-completed', 'ko'));
     assert.equal(claudeCalls(r), 0);
     const u = await usageRow(env, await userIdOf(env, 'u@example.com'));
     assert.deepEqual([u?.turns, u?.rescues], [1, 0]);
@@ -374,7 +374,7 @@ describe('Worker: a rescue that cannot start', () => {
     };
     const r = await turn(env, 'u@example.com', ASKS.en, [qwenFilteredHttp], [claudeOk]);
     env.DB.prepare = real;
-    assert.deepEqual([r.fatal?.code, claudeCalls(r)], ['backup-failed', 0]);
+    assert.deepEqual([r.fatal?.code, claudeCalls(r)], ['not-completed', 0]);
   });
 });
 

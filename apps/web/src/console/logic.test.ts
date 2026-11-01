@@ -24,7 +24,6 @@ import {
   requirementMeta,
   revisionCards,
   revisionState,
-  rescueNote,
   rowMeta,
   statusText,
   showJumpChip,
@@ -360,40 +359,29 @@ test('the repair fixture words its fix block', () => {
   for (const s of sentences) assert.doesNotMatch(s, /\{\w+\}|labelled|'n\d/, s);
 });
 
-// ---------- the Claude backup: status words, footer attribution, row meta ----------
+// ---------- the finishing pass: status words, no attribution, row meta ----------
 
-test('a Claude rescue status is worded in the UI language; every other status keeps the server text', () => {
-  const claude = { code: 'fallback' as const, text: 'server text', provider: 'claude' as const };
-  assert.equal(statusText(claude, t), "Qwen's answer was stopped by a content filter. Claude is taking over…");
-  assert.equal(statusText({ ...claude, code: 'continue' }, t), 'Claude is finishing the answer…');
-  assert.equal(statusText({ ...claude, code: 'repair' }, t), 'Claude is fixing the diagram…');
-  assert.equal(statusText({ ...claude, code: 'continue' }, ko), 'Claude가 답변을 마무리하는 중…');
-  assert.equal(statusText({ code: 'fallback', text: 'Switching to a backup model…' }, t), 'Switching to a backup model…', "a Qwen fallback is the server's own line");
-  assert.equal(statusText({ code: 'retry', text: 'Trying again…', provider: 'claude' }, t), 'Trying again…', 'only the three rescue codes are reworded');
+test('the finishing statuses read one calm line in the UI language; every other status keeps the server text', () => {
+  const fin = { code: 'finish' as const, text: 'server text' };
+  const r = { finishing: true };
+  assert.equal(statusText(fin, {}, t), 'Finishing the diagram…');
+  assert.equal(statusText({ code: 'continue', text: 'server text' }, r, t), 'Finishing the diagram…');
+  assert.equal(statusText({ code: 'repair', text: 'server text' }, r, t), 'Finishing the diagram…');
+  assert.equal(statusText(fin, {}, ko), '다이어그램을 마무리하는 중…');
+  assert.equal(statusText(fin, {}, makeT('zh')), '正在完成图表…');
+  assert.equal(statusText({ code: 'continue', text: 'Continuing the answer…' }, {}, t), 'Continuing the answer…', "a continuation Qwen runs is the server's own line");
+  assert.equal(statusText({ code: 'fallback', text: 'Trying another way…' }, r, t), 'Trying another way…');
+  assert.equal(statusText({ code: 'retry', text: 'Trying again…' }, r, t), 'Trying again…');
 });
 
-test('the status line owns the Cursor during a rescue, like any other status', () => {
-  const r = rev({ status: 'streaming', rescue: 'running', note: 'x', statusLine: { code: 'continue', text: 'Claude: ...', provider: 'claude' } });
+test('the status line owns the Cursor while the answer is finished, like any other status', () => {
+  const r = rev({ status: 'streaming', finishing: true, note: 'x', statusLine: { code: 'continue', text: 'Finishing the diagram…' } });
   assert.equal(cursorSlot(r, turn('repairing')), 'status');
 });
 
-test('the attribution names who finished the answer, and replaces the cut-off note', () => {
-  assert.equal(rescueNote(rev(), t), null, 'no rescue, no attribution');
-  assert.deepEqual(rescueNote(rev({ rescue: 'finished' }), t), { text: 'Finished by Claude after a content-filter stop', tone: 'plain' });
-  assert.equal(rescueNote(rev({ rescue: 'finished' }), makeT('zh'))?.text, '内容过滤中断后由 Claude 完成');
-  assert.equal(rescueNote(rev({ rescue: 'finished' }), ko)?.text, '콘텐츠 필터로 중단된 뒤 Claude가 마무리함');
-  const inc = rescueNote(rev({ rescue: 'incomplete' }), t)!;
-  assert.equal(inc.tone, 'warn');
-  assert.match(inc.text, /Claude could not finish the answer\. The diagram shows what was drawn\./);
-  assert.equal(rescueNote(rev({ rescue: 'running', status: 'streaming' }), t), null, 'the status line speaks while it runs');
-  assert.equal(rescueNote(rev({ rescue: 'failed', status: 'failed' }), t), null, 'the error block speaks when it failed');
-  // the footer's own items are unchanged, and the stale cut-off note never sits beside the attribution
-  assert.deepEqual(footerItems(rev({ rescue: 'incomplete', truncated: true }), true, t).map((i) => i.key), ['done', 'held']);
-  assert.deepEqual(footerItems(rev({ truncated: true }), true, t).map((i) => i.key), ['done', 'held', 'cut']);
-});
-
-test('the collapsed row says it was finished by Claude, or left unfinished', () => {
-  assert.equal(rowMeta(rev({ rescue: 'finished' }), t), '+3 −1 · 9.5 s · via Claude');
-  assert.equal(rowMeta(rev({ rescue: 'incomplete' }), t), '+3 −1 · 9.5 s · Unfinished');
-  assert.equal(rowMeta(rev(), t), '+3 −1 · 9.5 s');
+test('a finished answer looks like any other: the footer and the row carry no attribution', () => {
+  assert.deepEqual(footerItems(rev({ finishing: true }), true, t).map((i) => i.key), ['done', 'held']);
+  assert.deepEqual(footerItems(rev({ finishing: true, truncated: true }), true, t).map((i) => i.key), ['done', 'held', 'cut'], 'an incomplete answer keeps the plain cut-off note');
+  assert.equal(rowMeta(rev({ finishing: true }), t), rowMeta(rev(), t));
+  assert.equal(rowMeta(rev({ finishing: true }), t), '+3 −1 · 9.5 s');
 });

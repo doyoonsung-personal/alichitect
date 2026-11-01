@@ -188,46 +188,46 @@
  },
  {
   "id": "stub-rescue-continue",
-  "title": "Stub: the content filter stops Qwen halfway and Claude finishes",
+  "title": "Stub: the answer stops halfway and is finished",
   "lang": "en",
   "recordedAt": "2026-11-01",
   "synthetic": true,
   "turns": 1,
   "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
   "durationMs": 21409,
-  "note": "Qwen draws the edge, ALB, WAF and ECS; the filter stops it. Claude continues from the partial diagram and commits."
+  "note": "Qwen draws the edge, ALB, WAF and ECS; the filter stops it. A second pass continues from the partial diagram and commits."
  },
  {
   "id": "stub-rescue-whole",
-  "title": "Stub: the content filter stops Qwen before it draws, and Claude answers",
+  "title": "Stub: the answer stops before it draws and is finished",
   "lang": "en",
   "recordedAt": "2026-11-01",
   "synthetic": true,
   "turns": 1,
   "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
   "durationMs": 21040,
-  "note": "Nothing was drawn when the filter stopped Qwen, so Claude runs the whole turn."
+  "note": "Nothing was drawn when the filter stopped Qwen, so the second pass runs the whole turn."
  },
  {
   "id": "stub-rescue-incomplete",
-  "title": "Stub: the filter stops Qwen and Claude declines to finish",
+  "title": "Stub: the answer stops and cannot be finished",
   "lang": "en",
   "recordedAt": "2026-11-01",
   "synthetic": true,
   "turns": 1,
   "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
   "durationMs": 13808,
-  "note": "Claude refuses; the partial diagram is committed with a reply-incomplete warning."
+  "note": "The second pass declines; the partial diagram is committed with a reply-incomplete warning."
  },
  {
   "id": "stub-rescue-failed",
-  "title": "Stub: the filter stops Qwen before it draws and Claude fails too",
+  "title": "Stub: the answer stops before it draws and cannot be finished",
   "lang": "en",
   "recordedAt": "2026-11-01",
   "synthetic": true,
   "turns": 1,
   "ask": "We run an online store in Southeast Asia with about 30,000 daily users and big sales peaks. Design a highly available web architecture.",
   "durationMs": 4130,
-  "note": "Nothing was drawn and Claude could not answer either: the revision ends as content-filtered, memory unchanged."
+  "note": "Nothing was drawn and the second pass could not answer either: the revision ends as not-completed, memory unchanged."
  }
 ]

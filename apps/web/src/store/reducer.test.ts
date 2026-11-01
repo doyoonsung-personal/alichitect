@@ -370,42 +370,42 @@ test('a draft stays until the composer takes it, then it is gone; the account su
   assert.deepEqual(store.getState().account, account);
 });
 
-// ---------- the Claude backup after a content-filter stop ----------
+// ---------- a turn the content filter stopped and a second pass finishes ----------
 
-test('rescue, Claude continues: the statuses name Claude, the commit is finished, and the cut-off Qwen reported is gone', () => {
+test('finishing, a second pass continues: the statuses are neutral, the commit reads like any other, and the cut-off Qwen reported is gone', () => {
   const store = newStore();
   const fx = loadFixture('stub-rescue-continue');
   const events = fx.turns[0].ev;
   store.dispatch({ type: 'turn/start', ask: fx.turns[0].ask, now: 0 });
-  let sawClaudeStatus = 0;
+  let sawStatus = 0;
   for (const [t, event] of events) {
     store.dispatch({ type: 'turn/event', event, now: t });
     if (event.type === 'op') store.dispatch({ type: 'turn/flush', now: t });
     const r = last(store.getState().session.revisions);
     if (event.type === 'status') {
-      sawClaudeStatus++;
-      assert.equal(r.statusLine?.provider, 'claude');
-      assert.equal(r.rescue, 'running');
-      assert.equal(r.truncated, false, 'Claude has taken over: the cut-off is not the answer any more');
+      sawStatus++;
+      assert.equal(r.statusLine?.text, 'Finishing the diagram…');
+      assert.deepEqual(Object.keys(r.statusLine!).sort(), ['code', 'text'], 'a status line holds a code and a line, nothing about who runs it');
+      assert.equal(r.finishing, true);
+      assert.equal(r.truncated, false, 'the answer is being finished: the cut-off is not the answer any more');
     }
-    if (event.type === 'done' && event.phase === 'main') assert.equal(r.truncated, true, "before Claude starts, Qwen's done says it was cut off");
+    if (event.type === 'done' && event.phase === 'main') assert.equal(r.truncated, true, "before the finishing pass starts, Qwen's done says it was cut off");
   }
-  assert.equal(sawClaudeStatus, 2, 'fallback, then continue');
+  assert.equal(sawStatus, 2, 'finish, then continue');
   const s = store.getState();
   const rev = last(s.session.revisions);
   assert.equal(rev.status, 'done');
-  assert.equal(rev.rescue, 'finished');
   assert.equal(rev.truncated, false);
   assert.equal(rev.statusLine, null);
   assert.equal(rev.fix.state, 'none', 'a continuation is not a repair turn');
-  assert.ok(rev.note.includes('Sessions go to Tair'), "Claude's say joins Qwen's note");
+  assert.ok(rev.note.includes('Sessions go to Tair'), "the second pass's say joins Qwen's note");
   assert.ok(rev.changes.some((l) => l.kind === 'added' && l.name.includes('ECS')), "Qwen's lines are kept");
-  assert.ok(rev.changes.some((l) => l.kind === 'added' && l.name.includes('Tair')), "Claude's lines join them in one list");
+  assert.ok(rev.changes.some((l) => l.kind === 'added' && l.name.includes('Tair')), "the second pass's lines join them in one list");
   assert.equal(s.display.graph, s.session.memory.graph);
   assert.match(s.ui.live?.text ?? '', /^Revision 1 drawn/);
 });
 
-test('rescue, nothing was drawn: one fallback status, then Claude answers the whole turn', () => {
+test('finishing, nothing was drawn: one finish status, then the second pass answers the whole turn', () => {
   const store = newStore();
   const fx = loadFixture('stub-rescue-whole');
   const turn = fx.turns[0];
@@ -414,48 +414,47 @@ test('rescue, nothing was drawn: one fallback status, then Claude answers the wh
   for (const [i, [t, event]] of turn.ev.entries()) {
     store.dispatch({ type: 'turn/event', event, now: t });
     if (i === statusAt) {
-      assert.equal(last(store.getState().session.revisions).rescue, 'running');
+      assert.equal(last(store.getState().session.revisions).finishing, true);
       assert.equal(store.getState().turn.phase, 'fallback');
-      assert.match(store.getState().ui.live!.text, /Claude is finishing revision 1/);
+      assert.equal(store.getState().ui.live!.text, 'Finishing revision 1.');
     }
   }
   const rev = last(store.getState().session.revisions);
   assert.equal(rev.status, 'done');
-  assert.equal(rev.rescue, 'finished');
   assert.equal(rev.truncated, false);
   assert.ok(rev.note.startsWith("I'll design"));
 });
 
-test('rescue, Claude could not finish: the partial diagram is committed and the revision says so', () => {
+test('finishing, the second pass could not finish: the partial diagram is committed and the revision keeps the plain cut-off note', () => {
   const store = newStore();
   play(store, loadFixture('stub-rescue-incomplete'), { flushEvery: 6 });
   const s = store.getState();
   const rev = last(s.session.revisions);
   assert.equal(rev.status, 'done');
-  assert.equal(rev.rescue, 'incomplete');
-  assert.equal(rev.truncated, false, 'the attribution line says it, not the cut-off note');
+  assert.equal(rev.truncated, true, 'incomplete reads as the ordinary cut-off');
   assert.ok(rev.commitWarnings.some((w) => w.code === 'reply-incomplete'));
   assert.equal(s.display.graph, s.session.memory.graph);
   const nodes = Object.keys(s.session.memory.graph.nodes).length;
   assert.ok(nodes >= 5 && nodes < 11, 'what was drawn is kept');
 });
 
-test('rescue, Claude failed too with nothing drawn: the revision fails as content-filtered and remembers Claude was asked', () => {
+test('finishing, the second pass failed too with nothing drawn: the revision fails with the neutral not-completed error', () => {
   const store = newStore();
   play(store, loadFixture('stub-rescue-failed'));
   const s = store.getState();
   const rev = last(s.session.revisions);
   assert.equal(rev.status, 'failed');
-  assert.equal(rev.error?.code, 'content-filtered');
-  assert.equal(rev.error?.retryable, false);
-  assert.equal(rev.rescue, 'failed');
+  assert.equal(rev.error?.code, 'not-completed');
+  assert.match(rev.error?.message ?? '', /couldn't be completed/);
+  assert.equal(rev.error?.retryable, true);
+  assert.equal('finishing' in rev, false, 'a failed revision carries nothing about the pass');
   assert.equal(Object.keys(s.session.memory.graph.nodes).length, 0, 'memory is unchanged');
 });
 
-test('without a backup nothing changes: a filtered fatal has no rescue, and Stop during a rescue leaves no trace', () => {
+test('without a second pass nothing changes: a filtered fatal is not finishing, and Stop during the pass leaves no trace', () => {
   const store = newStore();
   play(store, loadFixture('stub-filtered'));
-  assert.equal('rescue' in last(store.getState().session.revisions), false);
+  assert.equal('finishing' in last(store.getState().session.revisions), false);
 
   const s2 = newStore();
   const fx = loadFixture('stub-rescue-whole');
@@ -464,13 +463,13 @@ test('without a backup nothing changes: a filtered fatal has no rescue, and Stop
     s2.dispatch({ type: 'turn/event', event, now: t });
     if (event.type === 'status') break;
   }
-  assert.equal(last(s2.getState().session.revisions).rescue, 'running');
+  assert.equal(last(s2.getState().session.revisions).finishing, true);
   s2.dispatch({ type: 'turn/stop', now: 9000 });
   assert.equal(last(s2.getState().session.revisions).status, 'stopped');
-  assert.equal('rescue' in last(s2.getState().session.revisions), false, 'a stopped revision is not attributed to Claude');
+  assert.equal('finishing' in last(s2.getState().session.revisions), false, 'a stopped revision keeps no trace of the pass');
 });
 
-test('the rescue fixtures play to their endings', () => {
+test('the finishing fixtures play to their endings', () => {
   for (const id of ['stub-rescue-continue', 'stub-rescue-whole', 'stub-rescue-incomplete', 'stub-rescue-failed']) {
     const store = newStore();
     play(store, loadFixtureFile(id), { flushEvery: 4 });

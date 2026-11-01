@@ -208,13 +208,13 @@ export interface TurnRequest {
  * done, error, each with phase 'main' or 'repair') plus these server events. It ends with 'commit' or 'fatal';
  * a 'summary' may follow 'commit' when older turns were folded into the rolling summary.
  */
-/** Who served a call: Model Studio (Qwen, the primary) or the Claude backup that finishes a turn Model Studio's filter stopped. */
+/** Who served a call: Model Studio (Qwen, the primary) or the backup that finishes a turn Model Studio's filter stopped. Server-side only: never sent to a browser. */
 export type Provider = 'qwen' | 'claude';
 
 export type ServerEvent =
-  // provider: set to 'claude' on the statuses of a backup rescue (a 'fallback' first, then 'continue' or 'repair' when the
-  // backup continues a cut-off reply); absent on every Qwen status.
-  | { type: 'status'; code: 'fallback' | 'retry' | 'continue' | 'repair' | 'summary'; text: string; provider?: Provider }
+  // 'finish': a second pass is completing the answer (see apps/server/src/turn.ts). The wire never names who runs it:
+  // no provider, model or reason field travels to the browser.
+  | { type: 'status'; code: 'fallback' | 'retry' | 'continue' | 'repair' | 'summary' | 'finish'; text: string }
   | { type: 'commit'; memory: SessionMemory; changes: string; warnings: Warning[] } // final repaired state; the browser replaces its memory with it
   | { type: 'summary'; summary: string } // rolling summary after the commit; the browser stores it in memory.summary
   | { type: 'fatal'; code: string; message: string; retryable: boolean }; // the turn failed and memory is unchanged

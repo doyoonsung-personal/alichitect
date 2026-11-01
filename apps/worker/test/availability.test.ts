@@ -200,14 +200,19 @@ describe('the all-addresses mail cap is split and visible', () => {
 
 describe('known and unknown addresses cost the same database work', () => {
   /**
-   * Records, in order, whether each statement prepared is a read (R) or a write (W), and the size of each batch of more
-   * than one, while `f` runs: the database work an observer could time. (A write is a write whether INSERT, UPDATE or
-   * DELETE, and a batch of one costs what a lone statement does.)
+   * Records whether each statement prepared is a read (R) or a write (W), and the size of each batch of more than one,
+   * while `f` runs: the database work an observer could time. (A write is a write whether INSERT, UPDATE or DELETE, and
+   * a batch of one costs what a lone statement does.) The result is sorted: background mail work runs concurrently with
+   * the response's timing floor, so the interleaving order varies from run to run, while the total work is what matters.
    */
   async function trace(env: TestEnv, f: () => Promise<unknown>): Promise<string[]> {
     const log: string[] = [];
     const prepare = env.DB.prepare;
     const batch = env.DB.batch;
+    // auth.ts sweeps old throttle rows on a random 2% of requests; that housekeeping is unrelated to the address and
+    // would make one side of a comparison do extra work at random, so it is held off while tracing.
+    const random = Math.random;
+    Math.random = () => 0.5;
     env.DB.prepare = (sql: string) => {
       log.push(/^\s*select\b/i.test(sql) ? 'R' : 'W');
       return prepare(sql);
@@ -221,8 +226,9 @@ describe('known and unknown addresses cost the same database work', () => {
     } finally {
       env.DB.prepare = prepare;
       env.DB.batch = batch;
+      Math.random = random;
     }
-    return log;
+    return log.sort();
   }
 
   test('sign-up: a registered address and a new one run the same statements', async () => {

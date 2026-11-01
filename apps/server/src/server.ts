@@ -1,5 +1,5 @@
 // The local turn server: node:http, no framework, bound to 127.0.0.1.
-//   GET  /api/health  status, catalog version, whether a key and the Claude backup are configured (never a key)
+//   GET  /api/health  status, catalog version, whether a key is configured (never a key; nothing about the backup)
 //   POST /api/turn    TurnRequest JSON in, NDJSON out (application/x-ndjson, one event per line, flushed per line)
 // Request checks, in order: Host header (DNS rebinding), Origin allowlist (a request without Origin is a local
 // non-browser client), route and method, JSON content type, 512 KB body limit, JSON parse, TurnRequest shape and
@@ -159,7 +159,6 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
           endpoint: new URL(config.baseUrl).host,
           catalog: { version: catalog.version, entries: catalog.entries.length },
           keyConfigured: !!deps.apiKey,
-          backupConfigured: !!backup,
           inFlight: turns,
           maxInFlight: config.maxInFlight,
           limits: { askChars: LIMITS.askChars, turns: LIMITS.turns, nodes: LIMITS.nodes, requirements: LIMITS.requirements, bodyBytes: config.maxBodyBytes },

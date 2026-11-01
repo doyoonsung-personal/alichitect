@@ -92,7 +92,7 @@ The script runs these steps in order and stops at the first failure:
 
 ### 5. Check it
 
-1. Open `https://architect.alikorea-demo.com/api/health`. Signed out it shows only `{"ok":true}`, which is all the Worker tells anonymous callers. After step 2 below, open it again: signed in, it also shows `"keyConfigured":true`, and `"backupConfigured":true` when the Anthropic key is set.
+1. Open `https://architect.alikorea-demo.com/api/health`. Signed out it shows only `{"ok":true}`, which is all the Worker tells anonymous callers. After step 2 below, open it again: signed in, it also shows `"keyConfigured":true`. It says nothing about the backup below: a browser never learns whether one exists. Check that with `wrangler secret list --env=""` (is `ANTHROPIC_API_KEY` there?), or read the `turn` log lines (`backupUsed`, `rescue`).
 2. Open `https://architect.alikorea-demo.com/signup` and create the account for `dysung.alicloud@gmail.com` with a strong password. Enter the 6-digit code from the email (subject `[Architecture Builder] Verification code ...`). The account becomes an approved admin and lands in the builder.
 3. Open `/admin`: you are listed as the only admin.
 4. From another address, create an account and enter its code. It lands on the waiting page, and the admin gets an email. Approve the request on `/admin`; the person gets an email and can sign in.
@@ -152,12 +152,14 @@ To change only the model key or a secret, use `set-secrets.ps1`; no rollback is 
 
 ## The Claude backup
 
+**Owner's decision: users never see it.** Nothing a browser can see or download names Claude or Anthropic: not the UI in any language, not the stream (statuses carry only a code and a line; no event has a provider or model field, and the first pass's filter-stop `error` event is held back), not `/api/me`, `/api/health`, the HTML pages, the response headers, the JS and CSS bundle (no source maps) or the exported PDF. A finished answer looks like any other: no footer attribution. While the backup works, the revision shows "Finishing the diagram…" (also in Korean and Chinese). Provider, model, cost and error codes stay in the server logs, which only you see. `apps/web` `npm run build` runs `check:dist`, which fails if the bundle ever holds either word.
+
 Model Studio inspects every reply, and sometimes its filter stops a harmless one partway (`DataInspectionFailed`, or `finish_reason` `content_filter`). It depends on the wording: on the live site it stopped 2 of 5 turns in one session, after the first ops had already been drawn, and 0 of about 630 eval conversations. Retrying, or switching to `qwen3.7-max`, meets the same filter. So, when `ANTHROPIC_API_KEY` is set, Claude finishes such a turn:
 
-- **Ops already drawn:** Claude continues from the diagram drawn so far, the same way a cut-off reply is continued. The chat shows "Qwen's content filter stopped this answer. Claude is finishing it…".
+- **Ops already drawn:** Claude continues from the diagram drawn so far, the same way a cut-off reply is continued. The chat shows "Finishing the diagram…".
 - **Nothing drawn yet:** Claude answers the whole turn.
-- **Claude fails or declines too:** what was drawn is kept and committed with a warning that the reply is incomplete. If nothing was drawn, the turn fails with "The model provider's content filter stopped this request, and the Claude backup could not finish it" (`backup-failed`), and the diagram is unchanged.
-- **Without the key, or a cap reached (see [Caps](#caps-on-the-backup)):** the turn fails as before, with "The model provider's content filter declined this request" (no key) or "The Claude backup … has reached today's limit" (`backup-limit`). The diagram is unchanged.
+- **Claude fails or declines too:** what was drawn is kept and committed with a warning that the reply is incomplete. If nothing was drawn, the turn fails with "This request couldn't be completed. Rephrase it and try again." (wire code `not-completed`; `backup-failed` in the log), and the diagram is unchanged.
+- **Without the key, or a cap reached (see [Caps](#caps-on-the-backup)):** the turn fails as before, with "The model provider's content filter declined this request" (no key) or "This request couldn't be completed. Rephrase it and try again, or try again tomorrow." (wire code `request-limit`; `backup-limit` in the log). The diagram is unchanged.
 
 Nothing else goes to Claude: stalls, rate limits and server errors still retry on Model Studio and fail over to `qwen3.7-max`.
 
@@ -172,7 +174,7 @@ Claude is paid from your Anthropic credit, and anyone with an account can write 
 | Claude's cost per UTC day, everybody together | $5 | `CLAUDE_BUDGET_USD_PER_DAY` |
 | Time left of the turn deadline | 60 s (fixed) | `TURN_DEADLINE_MS` sets the deadline (240 s) |
 
-- Past a cap the turn behaves as if there were no backup: Claude is not called and the chat never says it is coming. The person sees "The Claude backup … has reached today's limit" (`backup-limit`), in the language of their message. A cap check that fails (a database error) blocks the rescue too, and reads "the Claude backup could not finish it" (`backup-failed`), as does a turn with under 60 s of deadline left.
+- Past a cap the turn behaves as if there were no backup: Claude is not called and the chat never says it is coming. The person sees "This request couldn't be completed. Rephrase it and try again, or try again tomorrow." (log: `backup-limit`), in the language of their message. A cap check that fails (a database error) blocks the rescue too, and reads "This request couldn't be completed. Rephrase it and try again." (log: `backup-failed`), as does a turn with under 60 s of deadline left.
 - Each backup call is booked as it ends, on the person's row and on the `'*'` row that totals everybody, so a turn that dies later is still counted. A rescue that fails still counts toward the person's cap, and a stream that broke before its usage record is booked at an upper bound (the input tokens reported plus one output token per two characters streamed).
 - A rescued turn counts as **2** against `TURNS_PER_DAY`.
 - Two people's rescues can start in the same second, each seeing the total before the other's cost: the day's total can pass $5 by the cost of the rescues in flight (about a dollar at most each). The per-person cap is exact. A `0` for any var turns the backup off for that group.
@@ -323,9 +325,9 @@ Checks without a server:
 | "Too many wrong attempts" or "reset your password" | A lockout after repeated failures at this address from this IP, or the address-wide guess counter. Wait, sign in from a browser that has signed in before, reset the password with the emailed code (it ends both), or run `npm run d1:unlock:remote` |
 | Turns fail with "No server key was set" | Set `DASHSCOPE_API_KEY` with `set-secrets.ps1 -Only DASHSCOPE_API_KEY` |
 | Turns fail with "The server key was rejected" | The key is wrong, or not an international (dashscope-intl) key |
-| Turns fail with "The model provider's content filter declined this request" | Model Studio's filter stopped the reply and the Claude backup is off (health shows `"backupConfigured":false`; set `ANTHROPIC_API_KEY`) |
-| Turns fail with "…the Claude backup could not finish it" (`backup-failed`) | The backup was not started (under 60 s of the turn deadline left: the log line's `backupSkipped.reason` is `deadline`; or the cap check failed: `unavailable`) or Claude was asked and failed too. The log line's `rescue.error` says why: `auth` (a wrong Anthropic key), `refusal`, `overloaded`, `rate-limited`, `output-budget` or `network` |
-| Turns fail with "The Claude backup … has reached today's limit" (`backup-limit`) | A cap on the backup is reached. The log line's `backupSkipped.detail` says `user-cap` (that person's rescues) or `global-cap` (the day's Claude budget). It resets at 00:00 UTC; raise the var in `wrangler.jsonc` and deploy to lift it sooner |
+| Turns fail with "The model provider's content filter declined this request" | Model Studio's filter stopped the reply and the backup is off (`ANTHROPIC_API_KEY` is not in `wrangler secret list`; set it) |
+| Turns fail with "This request couldn't be completed. Rephrase it and try again." (log: `backup-failed`) | The backup was not started (under 60 s of the turn deadline left: the log line's `backupSkipped.reason` is `deadline`; or the cap check failed: `unavailable`) or Claude was asked and failed too. The log line's `rescue.error` says why: `auth` (a wrong Anthropic key), `refusal`, `overloaded`, `rate-limited`, `output-budget` or `network` |
+| Turns fail with "…or try again tomorrow." (log: `backup-limit`) | A cap on the backup is reached. The log line's `backupSkipped.detail` says `user-cap` (that person's rescues) or `global-cap` (the day's Claude budget). It resets at 00:00 UTC; raise the var in `wrangler.jsonc` and deploy to lift it sooner |
 | A turn ends with a warning that the reply is incomplete | The filter stopped the reply and the Claude backup could not finish it; the warning says why. What was drawn is kept |
 | No access-request email | Requests are recorded either way: check `/admin`. Then check the email sending domain, and `REQUEST_MAILS_PER_DAY` |
 | Deploy fails on the custom domain | A DNS record named `architect` already exists in the zone. Remove it, or ask which demo owns it |

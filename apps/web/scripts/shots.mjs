@@ -155,8 +155,8 @@ async function main() {
       await shot(p, 'panel-open-1440x900');
       await p.close();
     },
-    // the Claude backup after a content-filter stop: the status line while Claude works (4x, caught on the status), the
-    // closed revision with its attribution, the both-failed case, and the existing error when no backup is configured
+    // a turn the filter stopped and a second pass finishes: the status line while it works (4x, caught on the status), the
+    // closed revision (which looks like any other), the both-failed case, and the existing error when no backup is configured
     async rescue() {
       const live = async (id, name, lang = 'en') => {
         const p = await page(1440, 900, lang);
