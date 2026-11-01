@@ -165,7 +165,8 @@ describe('system prompt', () => {
   // Budget: 15k estimated tokens (4 chars/token). Phase 0 had 12k; Phase 1 added the structured req teaching (~550 chars),
   // then the catalog grew by 9 entries and 37 changes (+1.0k, mostly the avoid-when section), and the protocol track added the
   // assume and ask ops, rules R19-R23 (AI designs, draw first then ask, partial scope) and the affiliation wording (+1.4k).
-  // Measured 2026-11-01: 59,133 chars, about 14.78k tokens (HEAD before Phase 1c: 49,687 chars, 12.42k).
+  // Measured 2026-11-01: 59,133 chars, about 14.78k tokens (HEAD before Phase 1c: 49,687 chars, 12.42k). The assumption-correction rule
+  // (R22: "About the assumption ..." replaces the old "Change: X instead of Y") took it to 59,977 chars, about 14.99k.
   test('holds the rules, the row legend and every prompt row, within the 15k-token budget', (t) => {
     assert.ok(SYSTEM.includes(PROMPT_ROW_FORMAT));
     assert.ok(SYSTEM.endsWith(CAT.promptRows() + '\n'));

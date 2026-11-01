@@ -35,7 +35,7 @@ FIRST VIEWPORT:
   - Under the box, "Start from a customer brief" heads five real briefs in one ruled list, each row a tag and a one-line brief.
   - The AI and catalog-date line sits on the bottom edge.
 - Working view, 1440x900:
-  - A 48 px white header holds the logo (18 px tall), the product name, the session title, the Live state, Focus diagram, Sessions and New session.
+  - A 48 px white header holds the logo (18 px tall), the product name, the session title, the Live state, Hide console, Sessions and New session.
   - The console is 400 px wide on #F4F5F7. Requirements are pinned at the top. The revision record lists older revisions as one-line rows and the newest one expanded. The composer, the primary action, is fixed at the bottom.
   - The canvas is a 1040x800 white sheet, fitted at a zoom of 0.857 or more so card titles render at 12 px or more. The zoom tools sit at the top right and the legend at the bottom left.
   - Under the canvas only is the 52 px products bar, with the ^ handle tab centred on its top edge.
@@ -102,7 +102,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 **One change to light.** Frame borders now meet 3:1 in light too: Pantone 8C `#808285`, 3.85:1 on white and 3.7:1 on the region fill, where Pantone 3C and 5C used to fall short. The VPC and zone frames are the only thing that says which cards sit inside them. They stay 1 px hairlines, and the edges stay heavier.
 
 **Finish review (2026-11-01): what measuring in a real browser changed.** `apps/web/scripts/theme-audit.mjs` reads every text colour against the ground it really sits on, every Tab stop's focus ring, every border, icon and canvas edge, in both themes (pixels cross-check the computed styles). It found, and these now hold:
-- **A chosen segment or pressed toggle** (the language and theme segments, the replay speed, the Focus diagram button, the Worker's current-page link) was told apart only by a soft fill, 1.1:1 against its neighbour. It now carries a 2 px inset rule in the action blue (`box-shadow: inset 0 -2px 0 var(--action)`), 5.9:1 in light and 5.5 to 6.5 in dark.
+- **A chosen segment or pressed toggle** (the language and theme segments, the replay speed, the Hide console button, the Worker's current-page link) was told apart only by a soft fill, 1.1:1 against its neighbour. It now carries a 2 px inset rule in the action blue (`box-shadow: inset 0 -2px 0 var(--action)`), 5.9:1 in light and 5.5 to 6.5 in dark.
 - **The React Flow attribution** was 10 px in `--ink-disabled` (2.6:1 light, 3.1:1 dark). It is a link, so it is 12 px in `--ink-3`. A test now fails if `--ink-disabled` colours anything that is not disabled.
 - **Small chips** (a canvas badge such as Auto Scaling, the Worker's role and count chips) draw their shape with the border, so it is `--line-control` (3:1). The empty-state frame in the solution map uses `--frame-line` like the other frames. Custom scrollbar thumbs are `--line-control` too.
 - **Left as decorative, by the rule that a border only has to reach 3:1 where nothing else identifies the component:** canvas card borders (`--card-line`, 1.9:1 light, 1.5:1 dark) and hairlines (`--line-1`). A card is named by its icon and title, and takes `--ink-3` plus a focus ring (5.9:1 and 5.5:1 or better) on hover and focus. If the owner wants card outlines at 3:1, point `--card-line` at `--frame-line`; the cards then outline as heavily as their frames.

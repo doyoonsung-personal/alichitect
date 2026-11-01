@@ -2,11 +2,12 @@
 // Pure derivations over the session record, never stored, so a reload, a replay and a test all agree.
 //
 //  - Assumption chips: memory.assumptions as the server kept them, plus the assume ops of the revision in flight,
-//    minus every assumption a pinned requirement settles. "Change" sends a follow-up; the requirement that follows
-//    settles the assumption and the chip goes.
+//    minus every assumption a pinned requirement settles. A chip opens an inline editor; the answer is sent as a follow-up
+//    that quotes the assumption, and that follow-up retires the chip (by id) while it streams and when it commits.
 //  - Questions live in the revision that asked them. They are open while that revision is the newest one; the next
 //    revision closes them: an option clicked (or typed word for word) is the answer to its question, anything else
 //    typed is a reply that clears the rest.
+import { correctedBy } from '@ali/core/asks.ts';
 import type { AskNote, AssumeNote, Revision, SessionRecord, TurnWork } from './types.ts';
 
 const key = (s: string): string => s.normalize('NFKC').toLowerCase().replace(/[\s\p{P}\p{S}]+/gu, '');
@@ -51,11 +52,14 @@ export function assumptionViews(session: SessionRecord, work: TurnWork | null): 
   const inFlight = !!work && !!last && (last.status === 'waiting' || last.status === 'streaming');
   let list: readonly AssumeNote[] = mem.assumptions ?? [];
   const reqs: string[] = [...mem.requirements];
+  // the turn in flight is the user's answer to an assumption ("About the assumption “X”: ..."): that one is retired at once,
+  // by id, so a re-guess the model streams for it never shows (the server does the same when it commits, core asks.ts)
+  const answered = new Set(inFlight && last ? list.filter((a) => correctedBy(last.ask, a)).map((a) => a.id) : []);
   if (inFlight && last) {
     for (const a of last.assumes ?? []) list = upsert(list, a);
     reqs.push(...last.reqs);
   }
-  return list.filter((a) => !reqs.some((r) => settles(r, a))).map((a) => (a.alt ? { id: a.id, text: a.text, alt: a.alt } : { id: a.id, text: a.text }));
+  return list.filter((a) => !answered.has(a.id) && !reqs.some((r) => settles(r, a))).map((a) => (a.alt ? { id: a.id, text: a.text, alt: a.alt } : { id: a.id, text: a.text }));
 }
 
 /** open: waiting for an answer. answered: one of its options was the next ask. replied: something else was typed instead. */

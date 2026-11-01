@@ -5,7 +5,7 @@
 // can be re-recorded.
 //
 //   asks-shop   a web shop: assume ops (public-facing, Singapore) and two ask ops after the drawing; an option answers
-//               the scale question; the Change on the public-facing chip settles it (a requirement pins, the chip goes).
+//               the scale question; the answer to the public-facing chip (its suggested alternative) settles it (a requirement pins, the chip goes).
 //   asks-vague  "We need cloud for our company": two ask ops and no nodes; an option then draws a web store.
 //
 // The drawing steps come from the recorded "ha" fixture (a real two-zone web store), so the canvas is a real stream.
@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url';
 import type { Graph, Op, SessionMemory, Turn } from '@ali/core/types.ts';
 import { applyOp, createCtx, emptyGraph } from '@ali/core/reducer.ts';
 import type { Fixture, FixtureTurn } from './build-fixtures.ts';
+import { makeT } from '../../src/i18n/t.ts';
 
 type Lang = 'en' | 'ko';
 type Wire = FixtureTurn['ev'][number][1];
@@ -169,8 +170,8 @@ const KO: Copy = {
 
 const COPY: Record<Lang, Copy> = { en: EN, ko: KO };
 
-/** The "Change" follow-up the console sends for an assumption chip: the same template as asm.changeAsk in strings.json. */
-const changeAsk = (lang: Lang, c: Copy): string => (lang === 'ko' ? `변경: ${c.exposure} 대신 ${c.exposureAlt}` : `Change: ${c.exposureAlt} instead of ${c.exposure}`);
+/** The follow-up the console's assumption editor sends when the model's suggestion is picked: the same template as asm.suggestAsk in strings.json. */
+const changeAsk = (lang: Lang, c: Copy): string => makeT(lang)('asm.suggestAsk', { text: c.exposure, answer: c.exposureAlt });
 
 // ---------- composing a turn ----------
 
@@ -349,12 +350,12 @@ function shopFixture(ha: Fixture, lang: Lang): Fixture {
   const id = lang === 'en' ? 'asks-shop' : 'asks-shop-ko';
   return {
     id,
-    title: lang === 'en' ? 'Web shop: assumes public-facing, asks about scale, then a Change' : '웹 쇼핑몰: 외부 공개를 가정하고 규모를 묻고, 가정을 변경',
+    title: lang === 'en' ? 'Web shop: assumes public-facing, asks about scale, then the answer to an assumption' : '웹 쇼핑몰: 외부 공개를 가정하고 규모를 묻고, 가정에 답함',
     lang,
     recordedAt: '2026-10-31',
     source: 'composed by apps/web/scripts/replay/ask-fixtures.ts from the recorded "ha" turn; the assume and ask ops are hand-written',
     model: 'qwen3.8-max',
-    note: 'Synthetic. Draw first, then ask: two assume ops (public-facing, Singapore) and two ask ops after the drawing. Turn 2 answers the scale question with its option. Turn 3 is the Change on the public-facing chip: the requirement pins and the chip goes.',
+    note: 'Synthetic. Draw first, then ask: two assume ops (public-facing, Singapore) and two ask ops after the drawing. Turn 2 answers the scale question with its option. Turn 3 is the answer to the public-facing chip (the suggestion, in the words of the editor): the requirement pins and the chip goes.',
     synthetic: true,
     turns: [t1.turn, t2.turn, t3.turn],
   };

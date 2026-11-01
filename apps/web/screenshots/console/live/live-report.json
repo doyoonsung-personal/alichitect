@@ -1,0 +1,395 @@
+[
+  {
+    "run": 1,
+    "brief": "A web shop for our online store, with a database.",
+    "rev1": {
+      "status": "done",
+      "assumes": [
+        {
+          "id": "exposure",
+          "text": "Public-facing shop",
+          "alt": "Internal only"
+        },
+        {
+          "id": "scale",
+          "text": "About 10k shoppers",
+          "alt": "Over 100k shoppers"
+        }
+      ],
+      "reqs": [],
+      "nodes": [
+        "users",
+        "dns",
+        "esa",
+        "alb",
+        "waf",
+        "ecs",
+        "ess",
+        "tair",
+        "rds",
+        "oss",
+        "sls"
+      ],
+      "edges": 8,
+      "memAssumptions": [
+        {
+          "id": "exposure",
+          "text": "Public-facing shop",
+          "alt": "Internal only"
+        },
+        {
+          "id": "scale",
+          "text": "About 10k shoppers",
+          "alt": "Over 100k shoppers"
+        }
+      ],
+      "requirements": [],
+      "secs": 18.5
+    },
+    "chips": [
+      "Public-facing shop",
+      "About 10k shoppers"
+    ],
+    "errors": [],
+    "corrected": {
+      "id": "exposure",
+      "text": "Public-facing shop",
+      "alt": "Internal only"
+    },
+    "rev2": {
+      "status": "done",
+      "ask": "About the assumption “Public-facing shop”: No, internal only: our staff reach it over a VPN and nothing is public",
+      "note": "I'll make the shop internal only: removing ESA and public DNS, adding a VPN Gateway for staff access.",
+      "assumes": [],
+      "reqs": [
+        "Internal only, staff reach it over a VPN"
+      ],
+      "added": 1,
+      "removed": 2,
+      "changes": [
+        "removed ESA",
+        "removed Cloud DNS",
+        "added VPN Gateway",
+        "connections ",
+        "moved OSS"
+      ],
+      "nodes": [
+        "users",
+        "alb",
+        "waf",
+        "ecs",
+        "ess",
+        "tair",
+        "rds",
+        "oss",
+        "sls",
+        "vpn-gateway"
+      ],
+      "edges": 7,
+      "groups": [
+        "Internet",
+        "Edge",
+        "Singapore (ap-southeast-1)",
+        "Shop VPC"
+      ],
+      "fix": "none",
+      "warnings": [],
+      "memAssumptions": [
+        {
+          "id": "scale",
+          "text": "About 10k shoppers",
+          "alt": "Over 100k shoppers"
+        }
+      ],
+      "requirements": [
+        "Internal only, staff reach it over a VPN"
+      ],
+      "asks": [],
+      "secs": 8.1
+    },
+    "chipsAfter": [
+      "About 10k shoppers"
+    ],
+    "checks": {
+      "editorFocusedAtOnce": true,
+      "askNamesTheAssumption": true,
+      "revision2Done": true,
+      "answerPinnedAsRequirement": true,
+      "noAssumeWithSameId": true,
+      "noNewAssumeOnTheTopic": true,
+      "correctedChipGone": true,
+      "diagramChanged": true
+    },
+    "pass": true
+  },
+  {
+    "run": 2,
+    "brief": "A web shop for our online store, with a database.",
+    "rev1": {
+      "status": "done",
+      "assumes": [
+        {
+          "id": "exposure",
+          "text": "Public-facing shop",
+          "alt": "Internal only"
+        },
+        {
+          "id": "scale",
+          "text": "About 10k shoppers",
+          "alt": "Over 100k shoppers"
+        }
+      ],
+      "reqs": [],
+      "nodes": [
+        "users",
+        "dns",
+        "esa",
+        "alb",
+        "waf",
+        "ecs",
+        "ess",
+        "tair",
+        "rds",
+        "oss",
+        "sls"
+      ],
+      "edges": 8,
+      "memAssumptions": [
+        {
+          "id": "exposure",
+          "text": "Public-facing shop",
+          "alt": "Internal only"
+        },
+        {
+          "id": "scale",
+          "text": "About 10k shoppers",
+          "alt": "Over 100k shoppers"
+        }
+      ],
+      "requirements": [],
+      "secs": 17.6
+    },
+    "chips": [
+      "Public-facing shop",
+      "About 10k shoppers"
+    ],
+    "errors": [],
+    "corrected": {
+      "id": "scale",
+      "text": "About 10k shoppers",
+      "alt": "Over 100k shoppers"
+    },
+    "rev2": {
+      "status": "done",
+      "ask": "About the assumption “About 10k shoppers”: Around 300,000 shoppers on a busy day",
+      "note": "I'll scale the design for 300k daily shoppers by adding a second ECS tier and read replicas.",
+      "assumes": [],
+      "reqs": [
+        "Around 300,000 shoppers on a busy day"
+      ],
+      "added": 4,
+      "removed": 0,
+      "changes": [
+        "changed ECS",
+        "added ECS",
+        "connections ",
+        "connectionsRemoved ",
+        "added RDS",
+        "added RocketMQ",
+        "added ARMS"
+      ],
+      "nodes": [
+        "users",
+        "dns",
+        "esa",
+        "alb",
+        "waf",
+        "ecs",
+        "ess",
+        "tair",
+        "rds",
+        "oss",
+        "sls",
+        "ecs",
+        "rds",
+        "rocketmq",
+        "arms"
+      ],
+      "edges": 15,
+      "groups": [
+        "Internet",
+        "Edge",
+        "Singapore (ap-southeast-1)",
+        "Shop VPC"
+      ],
+      "fix": "none",
+      "warnings": [],
+      "memAssumptions": [
+        {
+          "id": "exposure",
+          "text": "Public-facing shop",
+          "alt": "Internal only"
+        }
+      ],
+      "requirements": [
+        "Around 300,000 shoppers on a busy day"
+      ],
+      "asks": [],
+      "secs": 15.1
+    },
+    "chipsAfter": [
+      "Public-facing shop"
+    ],
+    "checks": {
+      "editorFocusedAtOnce": true,
+      "askNamesTheAssumption": true,
+      "revision2Done": true,
+      "answerPinnedAsRequirement": true,
+      "noAssumeWithSameId": true,
+      "noNewAssumeOnTheTopic": true,
+      "correctedChipGone": true,
+      "diagramChanged": true
+    },
+    "pass": true
+  },
+  {
+    "run": 3,
+    "brief": "A booking website for a chain of dental clinics.",
+    "rev1": {
+      "status": "done",
+      "assumes": [
+        {
+          "id": "exposure",
+          "text": "Public-facing booking site",
+          "alt": "Internal staff portal only"
+        },
+        {
+          "id": "scale",
+          "text": "About 10k patients",
+          "alt": "Over 100k patients"
+        }
+      ],
+      "reqs": [],
+      "nodes": [
+        "users",
+        "dns",
+        "esa",
+        "alb",
+        "waf",
+        "ecs",
+        "ess",
+        "tair",
+        "rds",
+        "oss",
+        "sls"
+      ],
+      "edges": 8,
+      "memAssumptions": [
+        {
+          "id": "exposure",
+          "text": "Public-facing booking site",
+          "alt": "Internal staff portal only"
+        },
+        {
+          "id": "scale",
+          "text": "About 10k patients",
+          "alt": "Over 100k patients"
+        }
+      ],
+      "requirements": [],
+      "secs": 19.6
+    },
+    "chips": [
+      "Public-facing booking site",
+      "About 10k patients"
+    ],
+    "errors": [],
+    "corrected": {
+      "id": "scale",
+      "text": "About 10k patients",
+      "alt": "Over 100k patients"
+    },
+    "rev2": {
+      "status": "done",
+      "ask": "About the assumption “About 10k patients”: About 40,000 patients across 25 clinics",
+      "note": "I've updated the scale assumption to 40,000 patients across 25 clinics. The two-zone ECS with Auto Scaling still fits well.",
+      "assumes": [],
+      "reqs": [
+        "About 40,000 patients across 25 clinics"
+      ],
+      "added": 0,
+      "removed": 0,
+      "changes": [
+        "changed ECS"
+      ],
+      "nodes": [
+        "users",
+        "dns",
+        "esa",
+        "alb",
+        "waf",
+        "ecs",
+        "ess",
+        "tair",
+        "rds",
+        "oss",
+        "sls"
+      ],
+      "edges": 8,
+      "groups": [
+        "Internet",
+        "Edge",
+        "Singapore (ap-southeast-1)",
+        "Clinic VPC"
+      ],
+      "fix": "none",
+      "warnings": [],
+      "memAssumptions": [
+        {
+          "id": "exposure",
+          "text": "Public-facing booking site",
+          "alt": "Internal staff portal only"
+        }
+      ],
+      "requirements": [
+        "About 40,000 patients across 25 clinics"
+      ],
+      "asks": [
+        {
+          "id": "patient-region",
+          "text": "Where are most of your patients located?",
+          "options": [
+            "Singapore",
+            "Southeast Asia",
+            "Worldwide"
+          ]
+        },
+        {
+          "id": "notifications",
+          "text": "Do you need SMS or email appointment reminders?",
+          "options": [
+            "SMS reminders",
+            "Email reminders",
+            "Both",
+            "None yet"
+          ]
+        }
+      ],
+      "secs": 6.6
+    },
+    "chipsAfter": [
+      "Public-facing booking site"
+    ],
+    "checks": {
+      "editorFocusedAtOnce": true,
+      "askNamesTheAssumption": true,
+      "revision2Done": true,
+      "answerPinnedAsRequirement": true,
+      "noAssumeWithSameId": true,
+      "noNewAssumeOnTheTopic": true,
+      "correctedChipGone": true,
+      "diagramChanged": true
+    },
+    "pass": true
+  }
+]

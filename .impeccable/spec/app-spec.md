@@ -117,7 +117,7 @@ Sizes are the browser's inner viewport. The working view is a grid: a header row
 | 1920x1080 | 440 | 1480 x 980 | 52 | 600 | 1671 x 1087 (the max zoom of 1.25 caps it first) |
 
 - **Console width** is `clamp(360px, 25vw + 40px, 440px)`.
-- **Focus diagram** hides the console and the canvas takes the full width. The header's Focus diagram button becomes Show console. The toggle is instant with reduced motion; otherwise the width animates over 280 ms with `--ease-in-out` and the canvas refits once at the end.
+- **Hide console** hides the console and the canvas takes the full width. The header's Hide console button becomes Show console. The toggle is instant with reduced motion; otherwise the width animates over 280 ms with `--ease-in-out` and the canvas refits once at the end.
 - **The canvas** is the stage minus the bar: `stage height - 52`. Capacity is `(canvas - 48) / 0.857`, with 24 px of padding on each side.
 - **Panel open height** is `min(600px, 64%)` of the stage, measured from the bottom of the stage and including the bar.
 - **Short viewports.** Below 600 px of inner height, the working view keeps a minimum height of 600 and the page scrolls. Below 1180 px of inner width, the console keeps 360 px and the canvas shrinks; that is unsupported but must not break.
@@ -126,7 +126,7 @@ Sizes are the browser's inner viewport. The working view is a grid: a header row
   - the lockup: logo 18 px tall, a 12 px gap, a 1 px x 16 px `--line-1` rule, a 12 px gap, then `app.name` at 14/20 weight 500 ink;
   - 24 px gap;
   - the session title: the first ask, single line, ellipsis, 13 px ink-3, flexing to fill;
-  - right group with 8 px gaps: the mode state, Focus diagram, Sessions, New session and the language menu;
+  - right group with 8 px gaps: the mode state, Hide console, Sessions, New session and the language menu;
   - 16 px inset.
 - **Landing:** no header. The utility row is pinned 16 px from the top-right corner. The stack is centred horizontally at `--landing-box-w`, and its top is `max(64px, (100vh - stack height) / 2 - 24px)`. The footer line is pinned 20 px above the bottom and centred.
 
@@ -484,7 +484,7 @@ Each state lists what shows in the console, canvas, panel and header. "Rev n" is
 | W13 | Product-need answer | `rec` ops, no nodes | change lines are recommendations; the note may ask a question | solution map (7.28) | solution-map columns with prices | Live |
 | W14 | Long session, rolling summary | `summary` status, then `summary` event after `commit` | SummaryNote at the top of the record; older revisions are rows | unchanged | — | — |
 | W15 | Restored session | open from Sessions | the record rebuilt from memory: rows plus the latest revision expanded; toast `session.restored` | the committed graph, fitted, with no entrance animation | — | Live or Offline |
-| W16 | Focus diagram | header toggle | hidden | full width; refit | full width | the toggle reads Show console |
+| W16 | Hide console | header toggle | hidden | full width; refit | full width | the toggle reads Show console |
 
 ## 9. Stream events to UI
 
@@ -603,7 +603,7 @@ From [examples.json](examples.json), in this order. Each passed 3 of 3 runs in `
 - **Working view, tab order:**
   1. skip links;
   2. lockup;
-  3. Focus diagram, Sessions, New session, language;
+  3. Hide console, Sessions, New session, language;
   4. requirements (each row's Unpin);
   5. record (revision rows and tags; change lines are focusable buttons, with arrow keys moving within a revision's list);
   6. composer, then send or Stop;

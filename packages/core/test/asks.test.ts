@@ -5,7 +5,7 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Op, SessionMemory } from '../src/types.ts';
 import { loadCatalog } from '../src/catalog-node.ts';
-import { ASK_LIMITS, mergeAssumptions, settles } from '../src/asks.ts';
+import { ASK_LIMITS, correctedBy, mergeAssumptions, settles } from '../src/asks.ts';
 import { applyOp, createCtx, emptyGraph } from '../src/reducer.ts';
 import { validateOp } from '../src/validate.ts';
 import { buildMessages, buildSystemPrompt, createMemory, finalUserContent, formatAssumptions, formatQuestions } from '../src/prompt.ts';
@@ -141,6 +141,33 @@ describe('settles and mergeAssumptions', () => {
   });
 });
 
+describe("correctedBy: the user answers an assumption in the console's editor", () => {
+  const a = { id: 'exposure', text: 'Public-facing', alt: 'Internal only' };
+  test("the follow-up quotes the assumption's exact text, in the quotation marks of all three languages", () => {
+    assert.ok(correctedBy('About the assumption “Public-facing”: it should be internal only.', a));
+    assert.ok(correctedBy('가정 “Public-facing”에 대해: 실제로는 “내부 전용”입니다.', a));
+    assert.ok(correctedBy('关于假设“Public-facing”：应为仅限内部。', a));
+    assert.ok(correctedBy("About the assumption 'Public-facing': staff only", a));
+    assert.ok(correctedBy('About  the assumption “Public-facing” :   staff only', a), 'spacing is ignored');
+  });
+  test('a message that only mentions the words, or quotes a longer text, corrects nothing', () => {
+    assert.ok(!correctedBy('Add a public-facing API', a));
+    assert.ok(!correctedBy('About the assumption “Public-facing shop”: internal', a), 'the quote must close right after the text');
+    assert.ok(!correctedBy('Internal only instead of Public-facing', a));
+    assert.ok(!correctedBy('', a));
+    assert.ok(!correctedBy('About the assumption “”: x', { text: '' }));
+  });
+  test("mergeAssumptions retires the corrected one and drops the model's re-guess with the same id, whatever the requirement says", () => {
+    const prior = [a, { id: 'scale', text: 'About 10k users' }];
+    const ask = 'About the assumption “Public-facing”: only our staff on the VPN';
+    // the pinned requirement shares no words with the assumption or its alternative, so settles() alone would keep the chip
+    assert.deepEqual(mergeAssumptions(prior, [], ['Only staff reach the app over the VPN']).map((x) => x.id), ['exposure', 'scale']);
+    assert.deepEqual(mergeAssumptions(prior, [], ['Only staff reach the app over the VPN'], undefined, ask).map((x) => x.id), ['scale']);
+    assert.deepEqual(mergeAssumptions(prior, [{ id: 'exposure', text: 'Internal only', alt: 'Public-facing' }], [], undefined, ask).map((x) => x.id), ['scale'], 'a re-guess of the same id does not come back');
+    assert.deepEqual(mergeAssumptions(prior, [{ id: 'region', text: 'Singapore' }], [], undefined, ask).map((x) => x.id), ['scale', 'region'], 'other assumptions are untouched');
+  });
+});
+
 // ---------- streamTurn and runTurn ----------
 
 describe('streamTurn: assume and ask ops', () => {
@@ -199,11 +226,23 @@ describe('runTurn: memory.assumptions and memory.questions', () => {
     assert.deepEqual(r2.memory.assumptions, [{ id: 'exposure', text: 'Public-facing', alt: 'Internal only' }, { id: 'scale', text: 'About 50k users' }]);
     assert.equal(r1.memory.assumptions!.length, 2, 'the input memory is never mutated');
 
-    // Turn 3: the user flips the exposure assumption; the requirement settles it and the server drops it.
+    // Turn 3: the user corrects the exposure assumption in the inline editor's words; the requirement settles it and the server drops it.
     const third = reply({ t: 'say', text: 'Internal only; the public path goes.' }, { t: 'req', text: 'Internal only, no public access' }, { t: 'done', summary: 'internal' });
-    const r3 = await runTurn(r2.memory, 'Change: Internal only instead of Public-facing', CAT, { apiKey: 'k', retries: 0, fetchImpl: queue([sse(third)]) });
+    const r3 = await runTurn(r2.memory, 'About the assumption “Public-facing”: it should be internal only.', CAT, { apiKey: 'k', retries: 0, fetchImpl: queue([sse(third)]) });
     assert.deepEqual(r3.memory.requirements, ['Internal only, no public access']);
     assert.deepEqual(r3.memory.assumptions, [{ id: 'scale', text: 'About 50k users' }]);
+  });
+
+  test('a correction retires its assumption even when the model re-guesses the same id and the requirement shares no words with it', async () => {
+    const first = reply({ t: 'say', text: 'A portal.' }, { t: 'assume', id: 'exposure', text: 'Public-facing', alt: 'Internal only' }, { t: 'node', id: 'app', product: 'ecs', label: 'App' }, { t: 'done', summary: 'portal' });
+    const r1 = await runTurn(createMemory(), 'a customer portal', CAT, { apiKey: 'k', retries: 0, fetchImpl: queue([sse(first)]) });
+    assert.equal(r1.memory.assumptions!.length, 1);
+    const seen: string[] = [];
+    const fix = reply({ t: 'say', text: 'Only your staff on the VPN reach it now.' }, { t: 'req', text: 'Only staff on the VPN reach the portal' }, { t: 'assume', id: 'exposure', text: 'Staff VPN only', alt: 'Public-facing' }, { t: 'done', summary: 'vpn' });
+    const r2 = await runTurn(r1.memory, 'About the assumption “Public-facing”: only our staff on the VPN', CAT, { apiKey: 'k', retries: 0, fetchImpl: queue([sse(fix)], seen) });
+    assert.deepEqual(r2.memory.requirements, ['Only staff on the VPN reach the portal']);
+    assert.equal(r2.memory.assumptions, undefined, 'the answer replaces the assumption; the re-guess is not kept');
+    assert.match(seen[0], /one the user corrects is replaced by their answer, never re-guessed/, 'the block tells the model so');
   });
 
   test('a question-first turn draws nothing and leaves questions with options; a failed turn leaves memory untouched', async () => {
@@ -275,7 +314,7 @@ describe('prompt: assumptions and questions in the final user message only', () 
 
 describe('system prompt rules for questions, scope, affiliation and AI designs', () => {
   test('draw first then ask (R22): defaults, the caps, question-first only when too vague, no re-asking', () => {
-    for (const needle of ['R22 Draw first, then ask.', 'at most 3', 'at most 2 ask ops', '2 to 4 options', 'we need cloud for our company', 'do not ask it again', 'Never assume or ask what the user stated']) assert.ok(SYSTEM.includes(needle), needle);
+    for (const needle of ['A message that starts "About the assumption “X”" (or 가정 “X”, 关于假设“X”)', 'The answer replaces that assumption: never emit an assume op with its id or another assume on the same topic', 'pin a lasting answer with a req op', 'R22 Draw first, then ask.', 'at most 3', 'at most 2 ask ops', '2 to 4 options', 'we need cloud for our company', 'do not ask it again', 'Never assume or ask what the user stated']) assert.ok(SYSTEM.includes(needle), needle);
     assert.ok(SYSTEM.includes('{"t":"assume","id":'));
     assert.ok(SYSTEM.includes('{"t":"ask","id":'));
     assert.ok(SYSTEM.includes('"Developers" and "Everyone in the company"'), 'the ambiguous-team case uses an ask op');

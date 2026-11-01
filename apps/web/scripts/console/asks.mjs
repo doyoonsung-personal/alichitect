@@ -112,9 +112,13 @@ async function shop(lang, size) {
     await shot(p, `shop-1-drawn-${tag}`);
 
     // keyboard: Tab reaches Change and the options, with a visible ring
-    const change = await tabTo(p, '.asm__change');
-    check(`shop ${tag}: Tab reaches Change`, !!change, change && `${change.presses} presses, "${change.text}"`);
-    check(`shop ${tag}: Change has a visible focus ring`, !!change && change.ring, change?.outline);
+    const change = await tabTo(p, '.asm__btn');
+    check(`shop ${tag}: Tab reaches the chip`, !!change, change && `${change.presses} presses, "${change.text}"`);
+    check(`shop ${tag}: the chip has a visible focus ring`, !!change && change.ring, change?.outline);
+    const stops = await p.$$eval('.asm__chip button, .asm__chip [tabindex]', (e) => e.length);
+    check(`shop ${tag}: a closed chip is a single tab stop`, stops === 2, `${stops} stops for 2 chips`);
+    const exp0 = await p.$eval('.asm__btn', (e) => e.getAttribute('aria-expanded'));
+    check(`shop ${tag}: the chip is a collapsed button`, exp0 === 'false', exp0);
     await shot(p, `shop-focus-change-${tag}`);
     const opt = await tabTo(p, '.ask__opt');
     check(`shop ${tag}: Tab reaches an option`, !!opt, opt && `${opt.presses} presses, "${opt.text}"`);
@@ -140,13 +144,83 @@ async function shop(lang, size) {
     check(`shop ${tag}: an answered question keeps no buttons`, noOpts === 0);
     await shot(p, `shop-2-answered-${tag}`);
 
-    // Enter on Change: "Change: Internal only instead of Public-facing"; the requirement settles it and the chip goes
-    await p.focus('.asm__chip:first-child .asm__change');
+    // Enter on the chip opens the editor: assumption label, the model's one suggestion, a focused field, Keep this
+    await p.focus('.asm__chip:first-child .asm__btn');
+    await p.keyboard.press('Enter');
+    await sleep(500);
+    const ed = await p.evaluate(() => {
+      const g = document.querySelector('.asm__chip[data-open] .asme');
+      const f = document.activeElement;
+      return g
+        ? {
+            group: g.getAttribute('aria-label'),
+            label: g.querySelector('.asme__label')?.textContent.trim(),
+            alt: [...g.querySelectorAll('.asme__alt')].map((b) => b.textContent.trim()),
+            keep: g.querySelector('.asme__keep')?.textContent.trim(),
+            focusInField: f === g.querySelector('.asme__field'),
+            expanded: document.querySelector('.asm__chip[data-open] .asm__btn')?.getAttribute('aria-expanded'),
+            controls: document.querySelector('.asm__chip[data-open] .asm__btn')?.getAttribute('aria-controls') === g.id,
+            modal: !!document.querySelector('[role="dialog"], [aria-modal="true"]'),
+          }
+        : null;
+    });
+    const wantLabel = lang === 'en' ? "What's actually the case?" : '실제로는 어떤가요?';
+    const wantAlt = lang === 'en' ? 'Internal only' : '내부 전용';
+    const wantKeep = lang === 'en' ? 'Keep this' : '그대로 두기';
+    check(`shop ${tag}: the chip opens an inline editor, not a dialog`, !!ed && !ed.modal, JSON.stringify(ed));
+    check(`shop ${tag}: the editor asks the question, offers the one suggestion and Keep this`, !!ed && ed.label === wantLabel && ed.alt.length === 1 && ed.alt[0] === wantAlt && ed.keep === wantKeep, JSON.stringify(ed));
+    check(`shop ${tag}: the field has focus at once and the chip reports it open`, !!ed && ed.focusInField && ed.expanded === 'true' && ed.controls);
+    await shot(p, `editor-open-${tag}`);
+
+    // a half-typed answer is cancelled by Escape: nothing is sent, focus returns to the chip, the draft is dropped
+    await p.type('.asme__field', lang === 'en' ? 'staff on the VPN' : '직원만 VPN');
+    await p.keyboard.press('Escape');
+    await sleep(300);
+    const after1 = await p.evaluate(() => ({ open: !!document.querySelector('.asm__chip[data-open]'), focusChip: document.activeElement?.classList.contains('asm__btn'), revs: window.__ab.store.getState().session.revisions.length }));
+    check(`shop ${tag}: Escape closes the editor, sends nothing and returns focus to the chip`, !after1.open && after1.focusChip && after1.revs === 2, JSON.stringify(after1));
+    await p.keyboard.press('Space');
+    await sleep(300);
+    const draft = await p.$eval('.asme__field', (e) => e.value);
+    check(`shop ${tag}: Space reopens it with an empty field`, draft === '');
+
+    // IME: Enter and Escape inside a composition belong to the composition (synthetic composition events)
+    await p.evaluate(() => {
+      const f = document.querySelector('.asme__field');
+      f.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }));
+      const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+      set.call(f, 'ㅈㅓㅈ');
+      f.dispatchEvent(new Event('input', { bubbles: true }));
+      for (const key of ['Enter', 'Escape']) f.dispatchEvent(new KeyboardEvent('keydown', { key, keyCode: 229, isComposing: true, bubbles: true, cancelable: true }));
+    });
+    await sleep(300);
+    const ime = await p.evaluate(() => ({ open: !!document.querySelector('.asm__chip[data-open]'), revs: window.__ab.store.getState().session.revisions.length, hint: document.querySelector('.asme__hint')?.textContent }));
+    check(`shop ${tag}: Enter and Escape during a composition neither send nor close`, ime.open && ime.revs === 2, JSON.stringify(ime));
+    check(`shop ${tag}: the hint says to finish composing`, /composing|입력을 마친/.test(ime.hint), ime.hint);
+    await p.evaluate(() => {
+      const f = document.querySelector('.asme__field');
+      f.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true }));
+      const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+      set.call(f, '');
+      f.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    // Enter with an empty field sends nothing
+    await p.focus('.asme__field');
+    await p.keyboard.press('Enter');
+    await sleep(200);
+    const empty = await p.evaluate(() => ({ open: !!document.querySelector('.asm__chip[data-open]'), revs: window.__ab.store.getState().session.revisions.length, sendDisabled: document.querySelector('.asme__send').disabled }));
+    check(`shop ${tag}: Enter on an empty field sends nothing and Send is disabled`, empty.open && empty.revs === 2 && empty.sendDisabled, JSON.stringify(empty));
+
+    // the suggestion is one press: it sends "About the assumption ...: it should be ..." and the chip goes
+    await p.focus('.asme__alt');
     await p.keyboard.press('Enter');
     await revisionsDone(p, 3);
     await sleep(1000);
     const sent3 = await p.evaluate(() => window.__ab.store.getState().session.revisions[2].ask);
-    check(`shop ${tag}: Enter on Change sends the localized follow-up`, sent3 === fx.turns[2].ask, sent3);
+    check(`shop ${tag}: the suggestion sends the localized correction`, sent3 === fx.turns[2].ask, sent3);
+    check(`shop ${tag}: the correction names the assumption and says it is corrected`, sent3.includes(lang === 'en' ? '“Public-facing”' : '“외부 공개”') && /About the assumption|가정/.test(sent3), sent3);
+    const focusAfter = await p.evaluate(() => document.activeElement?.classList.contains('cmp__field'));
+    check(`shop ${tag}: focus moves to the composer after sending`, focusAfter);
     const chips3 = await p.$$eval('.asm__chip', (els) => els.map((e) => e.textContent.replace(/\s*·\s*/g, ' · ').replace(/\s+/g, ' ').trim()));
     check(`shop ${tag}: the settled chip is gone`, chips3.length === 1 && !/Public|외부 공개/.test(chips3[0]), chips3.join(' | '));
     const reqs = await p.$$eval('.req__text', (els) => els.map((e) => e.textContent.trim()));

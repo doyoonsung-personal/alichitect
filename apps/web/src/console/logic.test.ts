@@ -8,9 +8,11 @@ import { requirementViews } from '../store/requirements.ts';
 import {
   askLength,
   autoFixLines,
+  correctionAsk,
   cursorSlot,
   distanceFromBottom,
   drawProgress,
+  editorKeyAction,
   enterAction,
   errorText,
   fixSentences,
@@ -35,6 +37,7 @@ import {
 
 const t = makeT('en');
 const ko = makeT('ko');
+const zh = makeT('zh');
 
 const line = (p: Partial<ChangeLine> & Pick<ChangeLine, 'kind' | 'name'>): ChangeLine => ({ key: p.kind + p.name, phase: 'main', cards: [], ghosts: [], ...p });
 
@@ -94,6 +97,69 @@ test('Enter while a turn streams, or with nothing to send, is swallowed: no send
   assert.equal(preventsDefault('blocked'), true);
   assert.equal(preventsDefault('send'), true);
   assert.equal(preventsDefault('newline'), false);
+});
+
+// ---------- the assumption editor (Assumptions.tsx) ----------
+
+const expo = { id: 'exposure', text: 'Public-facing', alt: 'Internal only' };
+const key = (k: string, o: Partial<{ shiftKey: boolean; isComposing: boolean; keyCode: number }> = {}) => ({ key: k, shiftKey: false, ...o });
+const ready = { composing: false, canSend: true };
+
+test('the editor sends one sentence that names the assumption and the answer, in English, Korean and Chinese', () => {
+  assert.equal(correctionAsk(expo, 'Internal only', true, t), 'About the assumption “Public-facing”: it should be Internal only.');
+  assert.equal(correctionAsk(expo, 'only our staff, over the VPN', false, t), 'About the assumption “Public-facing”: only our staff, over the VPN');
+  assert.equal(correctionAsk({ text: '외부 공개' }, '내부 전용', true, ko), '가정 “외부 공개”에 대해: 실제로는 “내부 전용”입니다.');
+  assert.equal(correctionAsk({ text: '외부 공개' }, '직원만 VPN으로 접속', false, ko), '가정 “외부 공개”에 대해: 직원만 VPN으로 접속');
+  assert.equal(correctionAsk({ text: '对外公开' }, '仅限内部', true, zh), '关于假设“对外公开”：应为仅限内部。');
+  assert.equal(correctionAsk({ text: '对外公开' }, '仅限内部员工', false, zh), '关于假设“对外公开”：仅限内部员工');
+});
+
+test('the sentence is never the old "Change: X instead of Y", and it quotes the assumption text verbatim so the server can retire it', () => {
+  for (const [a, lang] of [[expo, t], [{ text: '외부 공개' }, ko], [{ text: '对外公开' }, zh]] as const) {
+    for (const suggested of [true, false]) {
+      const ask = correctionAsk(a, 'x', suggested, lang)!;
+      assert.ok(ask.includes(`“${a.text}”`), ask);
+      assert.ok(!/^(Change|변경|更改)[:：]/.test(ask), ask);
+    }
+  }
+});
+
+test('the typed answer is trimmed and used as written; an empty answer sends nothing; a placeholder in the answer stays literal', () => {
+  assert.equal(correctionAsk(expo, '  staff only  ', false, t), 'About the assumption “Public-facing”: staff only');
+  assert.equal(correctionAsk(expo, '   ', false, t), null);
+  assert.equal(correctionAsk(expo, '', true, t), null);
+  assert.equal(correctionAsk(expo, 'use {text} here', false, t), 'About the assumption “Public-facing”: use {text} here');
+});
+
+test('the suggestion and a typed answer differ only in wording: the suggestion states what it should be', () => {
+  const sug = correctionAsk(expo, expo.alt, true, t)!;
+  const typed = correctionAsk(expo, expo.alt, false, t)!;
+  assert.notEqual(sug, typed);
+  assert.ok(sug.endsWith('it should be Internal only.'));
+  assert.ok(typed.endsWith(': Internal only'));
+});
+
+test('editor keys: Enter sends a ready answer, Escape cancels, other keys are left alone', () => {
+  assert.equal(editorKeyAction(key('Enter'), ready), 'send');
+  assert.equal(editorKeyAction(key('Escape'), ready), 'cancel');
+  assert.equal(editorKeyAction(key('a'), ready), 'default');
+  assert.equal(editorKeyAction(key('Tab'), ready), 'default');
+  assert.equal(editorKeyAction(key('Enter', { shiftKey: true }), ready), 'send', 'a one-line field: Shift does not add a line');
+});
+
+test('editor keys: Enter with nothing to send (or too long) is swallowed; Escape still cancels', () => {
+  assert.equal(editorKeyAction(key('Enter'), { composing: false, canSend: false }), 'blocked');
+  assert.equal(editorKeyAction(key('Escape'), { composing: false, canSend: false }), 'cancel');
+});
+
+test('editor keys: IME composition owns Enter and Escape (Korean, Chinese): flag, isComposing and keyCode 229', () => {
+  for (const k of ['Enter', 'Escape']) {
+    assert.equal(editorKeyAction(key(k), { composing: true, canSend: true }), 'ime', `${k} with the composing flag`);
+    assert.equal(editorKeyAction(key(k, { isComposing: true }), ready), 'ime', `${k} with isComposing`);
+    assert.equal(editorKeyAction(key(k, { keyCode: 229 }), ready), 'ime', `${k} with keyCode 229`);
+  }
+  assert.equal(editorKeyAction(key('Enter', { isComposing: true }), { composing: false, canSend: false }), 'ime', 'composition wins over an empty field');
+  assert.equal(editorKeyAction(key('a', { isComposing: true }), ready), 'default', 'ordinary keys in a composition are not for the editor');
 });
 
 test('ask length counts characters the way the server does', () => {

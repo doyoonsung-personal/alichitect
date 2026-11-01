@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { makeT } from '../i18n/t.ts';
-import { changeAsk, canAnswer, visibleAssumptions, ASM_COLLAPSED } from '../console/logic.ts';
+import { correctionAsk, canAnswer, visibleAssumptions, ASM_COLLAPSED } from '../console/logic.ts';
 import { catalog, loadFixtureFile, newStore, play } from '../test/fixtures.ts';
 import { createInitialState } from './reducer.ts';
 import { createStore } from './store.ts';
@@ -72,14 +72,27 @@ test('the chips carry the one-click alternative', () => {
   ]);
 });
 
-test('Change sends "Change: <alt> instead of <text>", in the session language, and it is what the fixture sends', () => {
+test('the editor sends a sentence that quotes the assumption and says it is corrected, in the session language, and it is what the fixture sends', () => {
   const chip = (id: string): AssumptionView => assumptionViews(after(loadFixtureFile('asks-shop'), 1).session, null).find((a) => a.id === id)!;
-  assert.equal(changeAsk(chip('exposure'), en), 'Change: Internal only instead of Public-facing');
-  assert.equal(changeAsk(chip('exposure'), en), loadFixtureFile('asks-shop').turns[2].ask);
+  assert.equal(correctionAsk(chip('exposure'), 'Internal only', true, en), 'About the assumption “Public-facing”: it should be Internal only.');
+  assert.equal(correctionAsk(chip('exposure'), 'Internal only', true, en), loadFixtureFile('asks-shop').turns[2].ask);
   const kchip = assumptionViews(after(loadFixtureFile('asks-shop-ko'), 1).session, null).find((a) => a.id === 'exposure')!;
-  assert.equal(changeAsk(kchip, ko), '변경: 외부 공개 대신 내부 전용');
-  assert.equal(changeAsk(kchip, ko), loadFixtureFile('asks-shop-ko').turns[2].ask);
-  assert.equal(changeAsk({ id: 'x', text: 'Single region' }, en), null, 'no alternative, no Change');
+  assert.equal(correctionAsk(kchip, '내부 전용', true, ko), '가정 “외부 공개”에 대해: 실제로는 “내부 전용”입니다.');
+  assert.equal(correctionAsk(kchip, '내부 전용', true, ko), loadFixtureFile('asks-shop-ko').turns[2].ask);
+});
+
+test('the turn in flight retires the assumption it corrects by id, even when the model streams a new guess for it', () => {
+  const fx = loadFixtureFile('asks-shop');
+  const store = newStore();
+  play(store, fx, { flushEvery: 6, count: 2 });
+  assert.deepEqual(texts(store.getState()), ['Public-facing', 'Singapore region']);
+  const ask = 'About the assumption “Public-facing”: only our staff on the VPN';
+  store.dispatch({ type: 'turn/start', ask, now: 900_000 });
+  const s0 = store.getState();
+  assert.ok(s0.work, 'streaming');
+  assert.deepEqual(texts(s0), ['Singapore region'], 'gone at once, before any op arrives');
+  store.dispatch({ type: 'turn/event', event: { type: 'op', op: { t: 'assume', id: 'exposure', text: 'Staff VPN only', alt: 'Public-facing' } } as never, now: 900_100 });
+  assert.deepEqual(texts(store.getState()), ['Singapore region'], 'a re-guess with the same id never shows');
 });
 
 test('answering a question does not touch the assumptions; the requirement that settles one removes only its chip', () => {

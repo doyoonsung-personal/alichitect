@@ -1505,7 +1505,7 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     };
     if (pinned.length) next.constraints = pinned;
     // Assumptions persist by id until a pinned requirement settles them; questions are replaced every assistant turn.
-    const assumptions = mergeAssumptions(memory.assumptions ?? [], m.assumptions, next.requirements);
+    const assumptions = mergeAssumptions(memory.assumptions ?? [], m.assumptions, next.requirements, undefined, clippedAsk);
     if (assumptions.length) next.assumptions = assumptions;
     if (m.questions.length) next.questions = m.questions;
     if (memory.summary) next.summary = memory.summary;

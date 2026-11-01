@@ -310,9 +310,43 @@ export function visibleAssumptions(list: readonly AssumptionView[], expanded: bo
   return visibleLines(list, expanded, ASM_COLLAPSED);
 }
 
-/** The follow-up a chip's Change sends: "Change: Internal only instead of Public-facing". Null when the assumption has no alternative. */
-export function changeAsk(a: AssumptionView, t: TFn): string | null {
-  return a.alt ? t('asm.changeAsk', { alt: a.alt, text: a.text }) : null;
+/**
+ * The follow-up the assumption editor sends: a natural sentence in the session language that names the assumption and
+ * says it is being corrected ("About the assumption “Public-facing”: it should be internal only."). The assumption's text
+ * stays quoted verbatim, because the server retires the assumption that the message quotes (core asks.ts correctedBy)
+ * and the model reads the quote to find which entry is meant. `suggested`: the answer is the model's own alternative,
+ * which reads as a statement ("it should be ..."); a typed answer is the user's own words and goes in as written.
+ * Null when there is no answer.
+ */
+export function correctionAsk(a: Pick<AssumptionView, 'text'>, answer: string, suggested: boolean, t: TFn): string | null {
+  const text = answer.trim();
+  if (!text) return null;
+  return t(suggested ? 'asm.suggestAsk' : 'asm.answerAsk', { text: a.text, answer: text });
+}
+
+export type EditorKeyAction =
+  /** Not a key the editor owns: the browser does its normal thing. */
+  | 'default'
+  /** Enter with an answer ready: send it (the caller prevents the default). */
+  | 'send'
+  /** Enter with nothing to send, or too long: swallow it. */
+  | 'blocked'
+  /** Escape outside a composition: close the editor and keep the assumption. */
+  | 'cancel'
+  /** Enter or Escape inside an IME composition: they belong to the composition (commit it, or cancel it), never to the editor. */
+  | 'ime';
+
+/**
+ * What a key does in the editor's answer field. IME-safe for Korean and Chinese: while a composition is open, Enter
+ * commits the candidate and Escape cancels it, so neither sends the answer nor closes the editor (a Korean user who
+ * presses Enter to finish a syllable would otherwise send half a word). Detection matches enterAction: the component's
+ * own flag, KeyboardEvent.isComposing, and the legacy keyCode 229.
+ */
+export function editorKeyAction(e: EnterEvent, s: { composing: boolean; canSend: boolean }): EditorKeyAction {
+  if (e.key !== 'Enter' && e.key !== 'Escape') return 'default';
+  if (s.composing || e.isComposing === true || e.keyCode === 229) return 'ime';
+  if (e.key === 'Escape') return 'cancel';
+  return s.canSend ? 'send' : 'blocked';
 }
 
 /** Chips and quick replies work when no turn is in flight and the session is not a read-only replay. */

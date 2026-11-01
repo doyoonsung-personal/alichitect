@@ -27,13 +27,14 @@ export function Questions({ ctx, r, fresh = false }: { ctx: ConsoleCtx; r: Revis
             {q.text}
           </p>
           {q.state === 'open' && q.options.length ? (
-            <ul className="ask__opts" aria-label={t('ask.optionsLabel')}>
+            <ul className="ask__opts" aria-label={t('ask.replyTo', { question: q.text })}>
               {q.options.map((o, i) => (
                 <li key={o} style={{ '--i': i } as CSSProperties}>
                   <button
                     type="button"
                     className="btn btn--secondary ask__opt"
                     lang={r.askLang}
+                    aria-label={t('ask.replyLabel', { option: o })}
                     disabled={!live}
                     title={replay ? t('composer.replayReadOnly') : undefined}
                     onClick={() => {

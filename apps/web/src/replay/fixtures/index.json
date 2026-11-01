@@ -144,14 +144,14 @@
  },
  {
   "id": "asks-shop",
-  "title": "Web shop: assumes public-facing, asks about scale, then a Change",
+  "title": "Web shop: assumes public-facing, asks about scale, then the answer to an assumption",
   "lang": "en",
   "recordedAt": "2026-10-31",
   "synthetic": true,
   "turns": 3,
   "ask": "Build a web app for our online store.",
   "durationMs": 29230,
-  "note": "Synthetic. Draw first, then ask: two assume ops (public-facing, Singapore) and two ask ops after the drawing. Turn 2 answers the scale question with its option. Turn 3 is the Change on the public-facing chip: the requirement pins and the chip goes."
+  "note": "Synthetic. Draw first, then ask: two assume ops (public-facing, Singapore) and two ask ops after the drawing. Turn 2 answers the scale question with its option. Turn 3 is the answer to the public-facing chip (the suggestion, in the words of the editor): the requirement pins and the chip goes."
  },
  {
   "id": "asks-vague",
@@ -166,14 +166,14 @@
  },
  {
   "id": "asks-shop-ko",
-  "title": "웹 쇼핑몰: 외부 공개를 가정하고 규모를 묻고, 가정을 변경",
+  "title": "웹 쇼핑몰: 외부 공개를 가정하고 규모를 묻고, 가정에 답함",
   "lang": "ko",
   "recordedAt": "2026-10-31",
   "synthetic": true,
   "turns": 3,
   "ask": "온라인 스토어용 웹 앱을 만들어 주세요.",
   "durationMs": 29230,
-  "note": "Synthetic. Draw first, then ask: two assume ops (public-facing, Singapore) and two ask ops after the drawing. Turn 2 answers the scale question with its option. Turn 3 is the Change on the public-facing chip: the requirement pins and the chip goes."
+  "note": "Synthetic. Draw first, then ask: two assume ops (public-facing, Singapore) and two ask ops after the drawing. Turn 2 answers the scale question with its option. Turn 3 is the answer to the public-facing chip (the suggestion, in the words of the editor): the requirement pins and the chip goes."
  },
  {
   "id": "asks-vague-ko",
