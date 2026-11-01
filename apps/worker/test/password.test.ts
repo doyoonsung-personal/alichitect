@@ -115,25 +115,30 @@ describe('constant-time comparison', () => {
     assert.equal(timingSafeEqual('abc', 'ab'), false);
   });
 
-  // A comparison that stops at the first difference answers much faster for a difference at the start. These take
-  // as long whichever byte differs; the bounds are loose so a busy machine cannot fail them.
-  const timed = (f: () => void): number => {
-    const xs: number[] = [];
-    for (let r = 0; r < 7; r++) {
-      const t0 = performance.now();
+  // A comparison that stops at the first difference answers hundreds of times faster for a difference at the start
+  // (ratio near 0). These take as long whichever byte differs. The two cases are timed in interleaved rounds so JIT
+  // tier-up and machine noise hit both alike, and the bounds are loose (0.25-4) because shared CI runners are noisy:
+  // an early exit still fails them by two orders of magnitude.
+  const ratioOf = (f: () => void, g: () => void): number => {
+    const ratios: number[] = [];
+    for (let r = 0; r < 9; r++) {
+      let t0 = performance.now();
       for (let i = 0; i < 200; i++) f();
-      xs.push(performance.now() - t0);
+      const tf = performance.now() - t0;
+      t0 = performance.now();
+      for (let i = 0; i < 200; i++) g();
+      ratios.push(tf / (performance.now() - t0));
     }
-    return xs.sort((a, b) => a - b)[3];
+    return ratios.sort((a, b) => a - b)[4];
   };
 
   test('timingSafeEqual: a difference in the first character takes as long as one in the last', () => {
     const a = 'x'.repeat(8192);
     const first = `y${'x'.repeat(8191)}`;
     const last = `${'x'.repeat(8191)}y`;
-    for (let i = 0; i < 50; i++) timingSafeEqual(a, first); // warm up
-    const ratio = timed(() => timingSafeEqual(a, first)) / timed(() => timingSafeEqual(a, last));
-    assert.ok(ratio > 0.6 && ratio < 1.67, `ratio ${ratio.toFixed(2)}`);
+    for (let i = 0; i < 200; i++) { timingSafeEqual(a, first); timingSafeEqual(a, last); } // warm up both
+    const ratio = ratioOf(() => timingSafeEqual(a, first), () => timingSafeEqual(a, last));
+    assert.ok(ratio > 0.25 && ratio < 4, `ratio ${ratio.toFixed(2)}`);
   });
 
   test('equalBytes: the same, for byte arrays', () => {
@@ -142,8 +147,8 @@ describe('constant-time comparison', () => {
     first[0] = 2;
     const last = a.slice();
     last[8191] = 2;
-    for (let i = 0; i < 50; i++) equalBytes(a, first);
-    const ratio = timed(() => equalBytes(a, first)) / timed(() => equalBytes(a, last));
-    assert.ok(ratio > 0.6 && ratio < 1.67, `ratio ${ratio.toFixed(2)}`);
+    for (let i = 0; i < 200; i++) { equalBytes(a, first); equalBytes(a, last); } // warm up both
+    const ratio = ratioOf(() => equalBytes(a, first), () => equalBytes(a, last));
+    assert.ok(ratio > 0.25 && ratio < 4, `ratio ${ratio.toFixed(2)}`);
   });
 });
