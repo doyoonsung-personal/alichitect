@@ -1,5 +1,6 @@
 // A small menu button: a trigger and a list of items in a popover. Closes on Escape, outside click and selection;
-// arrow keys move between items; focus returns to the trigger. Used for Sessions and the language menu.
+// arrow keys move between items; focus returns to the trigger. Used for Sessions, the language menu, the theme menu
+// (a choice of one: its items are menuitemradio with a check on the one in force) and the account menu.
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactElement, ReactNode } from 'react';
 
@@ -10,6 +11,8 @@ export interface MenuItem {
   text?: string;
   meta?: ReactNode;
   current?: boolean;
+  /** Set on every item of a choice-of-one menu: the item is a menuitemradio, checked when true. */
+  checked?: boolean;
   lang?: string;
   /** A link to another page of the site: rendered as an anchor, so it opens like any link. */
   href?: string;
@@ -19,6 +22,10 @@ export interface MenuItem {
 export interface MenuProps {
   trigger: ReactNode;
   triggerLabel: string;
+  /** A tooltip for an icon-only trigger. */
+  triggerTitle?: string;
+  /** The open menu's name, when the trigger's label also carries the current value ("Theme: Dark" opens "Theme"). */
+  menuLabel?: string;
   triggerClassName?: string;
   items: MenuItem[];
   /** Shown when there are no items. */
@@ -53,8 +60,9 @@ export function Menu(p: MenuProps): ReactElement {
     return () => document.removeEventListener('mousedown', onDown);
   }, [open, close]);
 
+  // focus lands on the choice in force in a choice-of-one menu, else on the first item
   useEffect(() => {
-    if (open) root.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+    if (open) (root.current?.querySelector<HTMLElement>('[aria-checked="true"]') ?? root.current?.querySelector<HTMLElement>('[role^="menuitem"]'))?.focus();
   }, [open]);
 
   const onKey = (e: KeyboardEvent<HTMLDivElement>): void => {
@@ -64,7 +72,7 @@ export function Menu(p: MenuProps): ReactElement {
       return;
     }
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') return;
-    const items = [...(root.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
+    const items = [...(root.current?.querySelectorAll<HTMLElement>('[role^="menuitem"]') ?? [])];
     if (!items.length) return;
     e.preventDefault();
     const i = items.indexOf(document.activeElement as HTMLElement);
@@ -82,9 +90,10 @@ export function Menu(p: MenuProps): ReactElement {
     <button
       key={it.key}
       type="button"
-      role="menuitem"
+      role={it.checked === undefined ? 'menuitem' : 'menuitemradio'}
       className="menu__item"
       aria-current={it.current ? 'true' : undefined}
+      aria-checked={it.checked}
       lang={it.lang}
       onClick={() => {
         close(true);
@@ -106,14 +115,14 @@ export function Menu(p: MenuProps): ReactElement {
         aria-expanded={open}
         aria-controls={open ? id : undefined}
         aria-label={p.triggerLabel}
-        title={p.disabled ? p.disabledTitle : undefined}
+        title={p.disabled ? p.disabledTitle : p.triggerTitle}
         disabled={p.disabled}
         onClick={() => setOpen((o) => !o)}
       >
         {p.trigger}
       </button>
       {open ? (
-        <div id={id} role="menu" aria-label={p.triggerLabel} className={`menu__list menu__list--${p.align ?? 'end'}`}>
+        <div id={id} role="menu" aria-label={p.menuLabel ?? p.triggerLabel} className={`menu__list menu__list--${p.align ?? 'end'}`}>
           {p.head ? (
             <>
               <div className="menu__head" role="group" aria-label={p.triggerLabel}>

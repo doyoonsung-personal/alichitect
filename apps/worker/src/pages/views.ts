@@ -1,14 +1,15 @@
 // The server-rendered pages: sign-in (/login), sign-up (/signup), the email code (/verify), forgotten password
 // (/forgot, /reset), the waiting page (/pending), account settings (/account) and the admin page (/admin). Plain HTML
 // forms do every action (POST, same origin), so the pages work without their script; the script only adds the
-// password show/hide button, confirmations, local times, the note counter and the language sync.
+// password show/hide button, confirmations, local times, the note counter, the language sync and the account page's
+// theme choice (without script every page follows the device's light or dark setting).
 import { escapeHtml as e } from '../http.ts';
 import type { AdminUserView, AuditRow, UserRow } from '../db.ts';
 import { NAME_MAX, NOTE_MAX, STALE_REQUEST_MS } from '../db.ts';
 import { PASSWORD_MAX, PASSWORD_MIN } from '../password.ts';
 import { t } from './i18n.ts';
 import type { StringKey } from './i18n.ts';
-import { ICON_CHECK, ICON_CROSS, avatar, footer, langSwitch, lockup, notice, shell, signOutForm, time } from './layout.ts';
+import { ICON_CHECK, ICON_CROSS, avatar, footer, langSwitch, lockup, notice, shell, signOutForm, themeSwitch, time } from './layout.ts';
 import type { PageCtx } from './layout.ts';
 
 /** A message at the top of a page. */
@@ -273,6 +274,11 @@ export function accountPage(c: PageCtx, o: { me: UserRow; note?: Note | null; pa
       <div><dt>${L('account.role')}</dt><dd>${roleTag}</dd></div>
       <div><dt>${L('account.since')}</dt><dd>${time(c, me.created_at)}</dd></div>
     </dl>
+  </section>
+  <section class="section" aria-labelledby="h-theme" data-theme-control hidden>
+    <h2 class="section__title" id="h-theme">${L('theme.title')}</h2>
+    <p class="intro intro--left">${L('theme.intro')}</p>
+    ${themeSwitch(c, 'h-theme')}
   </section>
   <section class="section" aria-labelledby="h-password">
     <h2 class="section__title" id="h-password">${L('account.passwordTitle')}</h2>

@@ -222,5 +222,5 @@ async function spaAsset(request: Request, env: Env, path: string): Promise<Respo
 }
 
 const notFoundPage = (): string =>
-  '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Not found</title><link rel="stylesheet" href="/_auth/pages.css"></head><body class="page page--centre"><main class="centre"><h1 class="title">Not found</h1><p class="lead"><a href="/">Architecture Builder</a></p></main></body></html>';
+  '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Not found</title><script src="/_auth/theme.js"></script><link rel="stylesheet" href="/_auth/pages.css"></head><body class="page page--centre"><main class="centre"><h1 class="title">Not found</h1><p class="lead"><a href="/">Architecture Builder</a></p></main></body></html>';
 

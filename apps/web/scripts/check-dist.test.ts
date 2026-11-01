@@ -46,6 +46,36 @@ test('the vendor name fails the build in a script, a stylesheet, a page, a data 
   }
 });
 
+test('the coding tool\'s product name passes; model ids and the vendor fail, even right beside it', () => {
+  // the product the catalog lists compatibility with: allowed in text, in any case, as UTF-16, and in a data file
+  const PRODUCT = `${W1} Code`;
+  for (const [rel, body] of [
+    ['assets/index-abc.js', `const s = "Works with ${PRODUCT} and Qoder"`],
+    ['assets/catalog-abc.js', `{"note":"${PRODUCT.toLowerCase()} and ${W1}-Code both read the rules file"}`],
+    ['index.html', `<p>${PRODUCT.toUpperCase()}</p>`],
+  ] as const) {
+    const r = run({ 'index.html': '<!doctype html>', [rel]: body });
+    assert.equal(r.code, 0, `${rel}: ${r.out}`);
+  }
+  assert.equal(run({ 'assets/x.woff2': Buffer.from(`compatible with ${PRODUCT}`, 'utf16le') }).code, 0, 'UTF-16 product name');
+  // what would reveal the backend: a model id, a model family name, the vendor (alone, in a provider id, or crediting the product)
+  const lower = W1.toLowerCase();
+  for (const body of [
+    `${lower}-sonnet-4-5`,
+    `${lower}-opus-4-1-20250805`,
+    `${lower}-3-5-haiku-20241022`,
+    `us.${W2}.${lower}-sonnet-4-20250514-v1:0`,
+    `${W1} Opus`,
+    `${W1}, the model`,
+    `${PRODUCT} by ${W2.toUpperCase()}`,
+    `model: "${lower}"`,
+  ]) {
+    const r = run({ 'index.html': '<!doctype html>', 'assets/index-abc.js': `const m = ${JSON.stringify(body)}` });
+    assert.equal(r.code, 1, `should fail: ${body}`);
+  }
+  assert.equal(run({ 'assets/x.wasm': Buffer.from(`${lower}-sonnet-4`, 'utf16le') }).code, 1, 'UTF-16 model id');
+});
+
 test('a binary asset and a file name are scanned too, as UTF-16 text as well', () => {
   assert.equal(run({ 'assets/x.wasm': Buffer.concat([Buffer.from([0, 1, 2]), Buffer.from(W1, 'latin1'), Buffer.from([3])]) }).code, 1);
   assert.equal(run({ 'assets/x.woff2': Buffer.from(W2, 'utf16le') }).code, 1);

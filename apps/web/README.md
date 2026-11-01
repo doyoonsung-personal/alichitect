@@ -19,6 +19,9 @@ Design truth: `PRODUCT.md`, `.impeccable/surfaces/app.md` (direction), `.impecca
 | `npm run replay:rescue` | rewrites only the four `stub-rescue-*` fixtures (a turn the content filter stops and a second pass finishes) and their manifest entries |
 | `npm run icons:ui` | regenerates `src/shell/ui-icons.generated.ts` from `.qwen/icons.json` |
 | `npm run shots` | headless-Chrome screenshots of every state to `screenshots/` (own Vite on a free port in 5185-5199) |
+| `node scripts/theme-shots.mjs` | the main states in light and dark (and System on a dark and a light device) at 1440x900 and 1280x720, to `screenshots/theme/`; every `/api` call is answered in the browser |
+| `node scripts/theme-audit.mjs` | contrast audit in both themes from computed styles and rendered pixels: text, focus rings, borders, icons, canvas edges (`--themes`, `--only`, `--out`); lists every pair below AA and the decorative hairlines apart |
+| `node --import ./scripts/alias.mjs scripts/theme-qa.mjs` | against `dist/` (run `npm run build` first): first painted frame, persistence, a second tab, System following the device live, reduced motion, orange discipline, and a PDF exported from the dark app having white paper |
 | `node scripts/motion/strips.mjs` | frame strips of the motion grammar (see Motion below) |
 | `node scripts/motion/perf.mjs` | frame rate while a 25-card diagram streams |
 | `node scripts/motion/reduced.mjs` | the reduced-motion check |

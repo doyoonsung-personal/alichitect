@@ -29,7 +29,7 @@
 .rb__speed { display: inline-flex; border: 1px solid var(--line-control); background: var(--sheet); height: 24px; margin-right: auto; }
 .rb__speed-btn { padding: 0 var(--s-3); font-size: var(--t-12); line-height: var(--lh-12); color: var(--ink-2); transition: background-color var(--d-hover) linear; }
 .rb__speed-btn:hover { background: var(--surface-2); }
-.rb__speed-btn[aria-pressed="true"] { background: var(--action-soft-2); color: var(--ink); font-weight: var(--w-medium); }
+.rb__speed-btn[aria-pressed="true"] { background: var(--action-soft-2); color: var(--ink); font-weight: var(--w-medium); box-shadow: inset 0 -2px 0 var(--action); }
 .rb .rb__btn { min-height: 24px; height: 24px; }
 .rb .btn--icon.rb__btn { width: 24px; }
 .rb .rb__exit { padding: 0 var(--s-3); font-size: var(--t-12); line-height: var(--lh-12); }
@@ -79,7 +79,7 @@
 .rec__jump {
   position: absolute; left: 50%; bottom: var(--s-4); transform: translateX(-50%);
   display: inline-flex; align-items: center; gap: var(--s-2); height: 28px; padding: 0 var(--s-4);
-  background: var(--sheet); color: var(--ink); border: 1px solid var(--line-2); box-shadow: var(--shadow-raise);
+  background: var(--surface-pop); color: var(--ink); border: 1px solid var(--line-2); box-shadow: var(--shadow-raise);
   font-size: var(--t-12); line-height: var(--lh-12); font-weight: var(--w-medium);
   transition: background-color var(--d-hover) linear;
 }
@@ -101,7 +101,7 @@
   transition: border-color var(--d-hover) linear, background-color var(--d-hover) linear, color var(--d-hover) linear;
 }
 .tag--live { border-color: var(--ink); color: var(--ink); }
-.tag--latest { background: var(--rev-tag); border-color: var(--rev-tag); color: var(--on-action); }
+.tag--latest { background: var(--rev-tag); border-color: var(--rev-tag); color: var(--on-ink); }
 button.tag:hover:not(.tag--latest) { border-color: var(--ink); color: var(--ink); background: var(--sheet); }
 button.tag[aria-pressed="true"] { outline: 2px solid var(--action); outline-offset: 1px; }
 button.tag:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
@@ -231,7 +231,7 @@ button.chg:active { background: var(--action-soft-2); }
 .toast {
   position: absolute; left: var(--s-5); bottom: calc(100% + var(--s-4)); z-index: 5; max-width: calc(100% - 2 * var(--s-5));
   display: flex; align-items: center; gap: var(--s-5); padding: var(--s-3) var(--s-3) var(--s-3) var(--s-4);
-  background: var(--sheet); border: 1px solid var(--line-2); border-radius: 0; box-shadow: var(--shadow-raise);
+  background: var(--surface-pop); border: 1px solid var(--line-2); border-radius: 0; box-shadow: var(--shadow-raise);
   font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink);
 }
 .toast__action { min-height: 24px; padding: 0 var(--s-3); font-size: var(--t-13); line-height: var(--lh-13); font-weight: var(--w-medium); color: var(--action); transition: background-color var(--d-hover) linear; }

@@ -116,7 +116,7 @@
   position: absolute;
   top: calc(100% + 4px);
   min-width: 240px;
-  background: var(--sheet);
+  background: var(--surface-pop);
   border: 1px solid var(--line-2);
   border-radius: var(--r-pop);
   box-shadow: var(--shadow-raise);
@@ -233,6 +233,38 @@ a.menu__item {
 
 .menu__item[aria-current="true"] {
   font-weight: var(--w-medium);
+}
+
+/* a choice of one (the theme): icon, name, and a check on the one in force */
+.menu__item[role="menuitemradio"] .menu__label {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.menu__item[role="menuitemradio"] .menu__label > .icon:first-child {
+  color: var(--ink-2);
+}
+
+.menu__item[role="menuitemradio"] .menu__meta {
+  padding-left: calc(16px + var(--s-3));
+}
+
+.menu__check {
+  margin-left: auto;
+  visibility: hidden;
+}
+
+.menu__item[aria-checked="true"] {
+  font-weight: var(--w-medium);
+}
+
+.menu__item[aria-checked="true"] .menu__check {
+  visibility: visible;
+}
+
+.menu--theme .menu__list {
+  min-width: 232px;
 }
 
 .menu__label {

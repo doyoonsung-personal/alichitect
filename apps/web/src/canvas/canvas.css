@@ -19,8 +19,9 @@
 .cv .react-flow__node { cursor: default; }
 .cv .react-flow__node-card { pointer-events: all !important; }
 /* React Flow's attribution stays (its licence asks for it without a Pro subscription): quiet, bottom right */
-.cv .react-flow__attribution { background: transparent; font-size: 10px; line-height: 14px; padding: 0 var(--s-3); margin: 0 var(--s-2) var(--s-2) 0; }
-.cv .react-flow__attribution a { color: var(--ink-disabled); text-decoration: none; }
+.cv .react-flow__attribution { background: transparent; font-size: var(--t-12); line-height: var(--lh-12); padding: 0 var(--s-3); margin: 0 var(--s-2) var(--s-2) 0; }
+/* a link, not a disabled control: it holds 4.5:1 (ink-3) in both themes */
+.cv .react-flow__attribution a { color: var(--ink-3); text-decoration: none; }
 .cv .react-flow__node[data-id='edges'] { pointer-events: none; }
 .cv .react-flow__node-frame { pointer-events: none; }
 
@@ -77,7 +78,7 @@
   bottom: 12px;
   display: grid;
   place-items: center;
-  border: 1px dashed var(--line-2);
+  border: 1px dashed var(--frame-line);
   color: var(--ink-3);
   font-weight: var(--w-regular);
   text-align: center;
@@ -173,7 +174,7 @@
   display: grid;
   place-items: center;
   background: var(--rev-tag);
-  color: var(--on-action);
+  color: var(--on-ink);
   font-size: var(--c-tag);
   line-height: 1;
   font-weight: var(--w-bold);
@@ -220,8 +221,8 @@
   white-space: nowrap;
   border-radius: var(--r-control);
 }
-.cv-chip[data-fit='primary'] { background: var(--ink); color: var(--on-action); }
-.cv-chip[data-fit='complement'] { background: var(--sheet); color: var(--ink-2); border: 1px solid var(--line-control); }
+.cv-chip[data-fit='primary'] { background: var(--ink); color: var(--on-ink); }
+.cv-chip[data-fit='complement'] { background: var(--card-fill); color: var(--ink-2); border: 1px solid var(--line-control); }
 
 /* badges and attachments (7.20) */
 .cv-badge {
@@ -230,8 +231,8 @@
   align-items: center;
   justify-content: center;
   gap: var(--s-2);
-  background: var(--sheet);
-  border: 1px solid var(--card-line);
+  background: var(--card-fill);
+  border: 1px solid var(--line-control); /* a chip is small, and its border is the shape: 3:1 */
   border-radius: var(--r-card);
   color: var(--brand-icon);
   z-index: 2;
@@ -302,7 +303,7 @@
   height: 32px;
   display: flex;
   align-items: center;
-  background: var(--sheet);
+  background: var(--surface-pop);
   border: 1px solid var(--line-1);
   border-radius: var(--r-control);
   z-index: 5;
@@ -341,7 +342,7 @@
   bottom: calc(var(--s-4) + 28px); /* above the legend row, so the two never overlap on a narrow sheet */
   transform: translateX(-50%);
   padding: var(--s-2) var(--s-4);
-  background: var(--sheet);
+  background: var(--surface-pop);
   border: 1px solid var(--line-1);
   font-size: var(--t-12);
   line-height: var(--lh-12);
@@ -381,7 +382,7 @@
   position: fixed;
   z-index: 80;
   padding: var(--s-5);
-  background: var(--sheet);
+  background: var(--surface-pop);
   border: 1px solid var(--line-2);
   border-radius: var(--r-pop);
   box-shadow: var(--shadow-raise);

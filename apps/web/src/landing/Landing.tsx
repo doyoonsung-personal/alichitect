@@ -1,10 +1,10 @@
 // The landing: the lockup, a lead, the brief box (the primary action) and five real customer briefs. No header; the
-// language switch and Sessions sit at the top right. Enter or Draw architecture hands the box over to the console.
+// language switch, the theme menu and Sessions sit at the top right. Enter or Draw architecture hands the box over to the console.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactElement } from 'react';
 import { BrandMark } from '../brand/BrandMark.tsx';
 import { Icon } from '../shell/Icon.tsx';
-import { LanguageSwitch, SessionsMenu } from '../shell/controls.tsx';
+import { LanguageSwitch, SessionsMenu, ThemeMenu } from '../shell/controls.tsx';
 import { OfflineNotice } from '../shell/OfflineNotice.tsx';
 import { AccountMenu } from '../shell/AccountMenu.tsx';
 import { useAppState, useController, useT } from '../store/react.tsx';
@@ -101,6 +101,7 @@ export function Landing(): ReactElement {
     <main className="landing" data-handoff={handoff || undefined}>
       <div className="landing__util">
         <LanguageSwitch />
+        <ThemeMenu />
         <SessionsMenu />
         <AccountMenu />
       </div>

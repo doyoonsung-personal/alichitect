@@ -1,8 +1,9 @@
-// The stylesheet and script of the server-rendered pages, served from the Worker at /_auth/*. They are
+// The stylesheet and scripts of the server-rendered pages, served from the Worker at /_auth/*. They are
 // files (not inline) so the Content Security Policy needs no 'unsafe-inline'. The CSS starts with the app's own design
-// tokens (tokens.ts, copied from apps/web) and uses the app's vocabulary: square controls in the action blue, ink on
-// white, hairline rules, and orange only in the logo and the Cursor.
-import { TOKENS_CSS } from './tokens.ts';
+// tokens (tokens.ts, copied from apps/web, light and dark) and uses the app's vocabulary: square controls in the action
+// blue, ink on the sheet, hairline rules, and orange only in the logo and the Cursor. theme.js is the app's own pre-paint
+// script (also copied), so these pages open in the theme the reader chose in the builder, or the device's.
+import { THEME_JS, TOKENS_CSS } from './tokens.ts';
 
 const PAGE_CSS = `
 *, *::before, *::after { box-sizing: border-box; }
@@ -25,7 +26,7 @@ textarea::placeholder, input::placeholder { color: var(--ink-3); opacity: 1; }
 .num, time { font-variant-numeric: var(--num); }
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: var(--line-2); border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb { background: var(--line-control); border: 2px solid transparent; background-clip: padding-box; }
 ::-webkit-scrollbar-track { background: transparent; }
 button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
 
@@ -38,9 +39,9 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
   white-space: nowrap; text-decoration: none; color: inherit;
   transition: background-color var(--d-hover) linear, border-color var(--d-hover) linear, color var(--d-hover) linear;
 }
-.btn--primary { min-height: 36px; background: var(--action); color: var(--on-action); }
-.btn--primary:hover:not(:disabled) { background: var(--action-hover); }
-.btn--primary:active:not(:disabled) { background: var(--action-press); transform: translateY(1px); }
+.btn--primary { min-height: 36px; background: var(--action-fill); color: var(--on-action); }
+.btn--primary:hover:not(:disabled) { background: var(--action-fill-hover); }
+.btn--primary:active:not(:disabled) { background: var(--action-fill-press); transform: translateY(1px); }
 .btn--primary:disabled { background: var(--line-1); color: var(--ink-disabled); cursor: default; }
 .btn--primary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .btn--secondary { background: var(--sheet); color: var(--ink); border-color: var(--line-control); }
@@ -74,9 +75,12 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 
 /* ---------- language switch (segmented, as on the landing) ---------- */
 .seg { display: inline-flex; border: 1px solid var(--line-control); height: 32px; }
-.seg__btn { display: inline-flex; align-items: center; padding: 0 var(--s-4); font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink-2); text-decoration: none; transition: background-color var(--d-hover) linear; }
-.seg__btn[aria-current="true"] { color: var(--ink); background: var(--action-soft); }
-.seg__btn:not([aria-current="true"]):hover { background: var(--surface-2); color: var(--ink); }
+.seg__btn { display: inline-flex; align-items: center; gap: var(--s-3); padding: 0 var(--s-4); font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink-2); text-decoration: none; transition: background-color var(--d-hover) linear; }
+.seg__btn[aria-current="true"], .seg__btn[aria-pressed="true"] { color: var(--ink); background: var(--action-soft); box-shadow: inset 0 -2px 0 var(--action); } /* the soft fill alone is 1.1:1; the rule tells the chosen one apart */
+.seg__btn[aria-pressed="true"] { font-weight: var(--w-medium); }
+.seg__btn:not([aria-current="true"]):not([aria-pressed="true"]):hover { background: var(--surface-2); color: var(--ink); }
+.seg__btn:focus-visible { outline-offset: -2px; }
+.seg--theme { margin-top: var(--s-1); }
 .seg__btn + .seg__btn { border-left: 1px solid var(--line-1); }
 
 /* ---------- centred pages: sign-in, sign-up, codes, waiting for approval ---------- */
@@ -113,9 +117,9 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
   font-size: var(--t-12); line-height: 1; font-weight: var(--w-bold); font-variant-numeric: var(--num);
   border: 1px solid var(--rev-tag-old); color: var(--ink-2);
 }
-.step--done .step__tag { background: var(--ok); border-color: var(--ok); color: var(--on-action); }
-.step--current .step__tag { background: var(--rev-tag); border-color: var(--rev-tag); color: var(--on-action); }
-.step--bad .step__tag { background: var(--danger); border-color: var(--danger); color: var(--on-action); }
+.step--done .step__tag { background: var(--ok); border-color: var(--ok); color: var(--on-ink); }
+.step--current .step__tag { background: var(--rev-tag); border-color: var(--rev-tag); color: var(--on-ink); }
+.step--bad .step__tag { background: var(--danger); border-color: var(--danger); color: var(--on-ink); }
 .step__line { font-size: var(--t-14); line-height: 20px; color: var(--ink); }
 .step__line strong { font-weight: var(--w-medium); }
 .step__meta { margin-top: var(--s-2); font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink-3); }
@@ -160,8 +164,8 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .tag--warn { background: var(--warn-soft); color: var(--warn); }
 .tag--ok { background: var(--ok-soft); color: var(--ok); }
 .tag--danger { background: var(--danger-soft); color: var(--danger); }
-.tag--ink { background: var(--rev-tag); color: var(--on-action); }
-.tag--line { border: 1px solid var(--line-2); color: var(--ink-2); }
+.tag--ink { background: var(--rev-tag); color: var(--on-ink); }
+.tag--line { border: 1px solid var(--line-control); color: var(--ink-2); } /* the border is the chip's shape: 3:1 */
 
 /* ---------- the admin page: the app's 48 px header and ruled tables ---------- */
 .appbar { position: sticky; top: 0; z-index: 3; height: var(--header-h); display: flex; align-items: center; gap: var(--s-4); padding: 0 var(--s-5); background: var(--sheet); border-bottom: 1px solid var(--line-1); }
@@ -169,7 +173,7 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .appbar__right { margin-left: auto; display: flex; align-items: center; gap: var(--s-3); }
 .appbar__me { display: flex; align-items: center; gap: var(--s-3); height: 32px; font-size: var(--t-13); color: var(--ink-2); padding: 0 var(--s-3); text-decoration: none; }
 .appbar__me:hover { background: var(--surface-2); color: var(--ink); }
-.appbar__me[aria-current="page"] { color: var(--ink); background: var(--action-soft); }
+.appbar__me[aria-current="page"] { color: var(--ink); background: var(--action-soft); box-shadow: inset 0 -2px 0 var(--action); }
 .appbar__me .avatar { width: 24px; height: 24px; }
 .admin { max-width: 1280px; margin: 0 auto; padding: var(--s-8) var(--s-7) var(--s-11); }
 .admin__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-5); flex-wrap: wrap; }
@@ -178,8 +182,8 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .jump a { display: inline-flex; align-items: center; gap: var(--s-3); height: 40px; padding: 0 var(--s-4); color: var(--ink-2); text-decoration: none; font-weight: var(--w-medium); border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .jump a:hover { color: var(--ink); background: var(--surface-2); }
 .jump a.is-urgent { color: var(--ink); border-bottom-color: var(--ink); }
-.count { display: inline-flex; min-width: 20px; height: 20px; padding: 0 var(--s-2); align-items: center; justify-content: center; font-size: var(--t-12); line-height: 1; font-weight: var(--w-bold); font-variant-numeric: var(--num); border: 1px solid var(--line-2); color: var(--ink-2); }
-.count--hot { background: var(--rev-tag); border-color: var(--rev-tag); color: var(--on-action); }
+.count { display: inline-flex; min-width: 20px; height: 20px; padding: 0 var(--s-2); align-items: center; justify-content: center; font-size: var(--t-12); line-height: 1; font-weight: var(--w-bold); font-variant-numeric: var(--num); border: 1px solid var(--line-control); color: var(--ink-2); }
+.count--hot { background: var(--rev-tag); border-color: var(--rev-tag); color: var(--on-ink); }
 .section { margin-top: var(--s-9); scroll-margin-top: calc(var(--header-h) + var(--s-5)); }
 .section__title { display: flex; align-items: center; gap: var(--s-3); font-size: var(--t-16); line-height: var(--lh-16); font-weight: var(--w-medium); margin-bottom: var(--s-4); }
 .table-wrap { overflow-x: auto; }
@@ -221,12 +225,20 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
   .facts dd { margin-bottom: var(--s-3); }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+
+/* ---------- the theme switch: the page cross-fades once and nothing else moves (as in the app's base.css) ---------- */
+:root[data-theme-switching] *, :root[data-theme-switching] *::before, :root[data-theme-switching] *::after { transition: none !important; }
+::view-transition-group(root), ::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--d-fade); animation-timing-function: linear; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
 `;
 
 export const PAGES_CSS = `${TOKENS_CSS}\n${PAGE_CSS}`;
 
-export const PAGES_JS = `// The pages' only script: the language choice shared with the app, confirmations for admin actions, local times,
-// the note counter and the password show/hide buttons.
+export const PAGES_JS = `// The pages' script (theme.js only puts the stored theme on <html> before the first paint): the language choice
+// shared with the app, confirmations for admin actions, local times, the note counter, the password show/hide buttons
+// and the account page's theme choice.
 (() => {
   const root = document.documentElement;
   const KEY = 'ab.lang';
@@ -281,6 +293,52 @@ export const PAGES_JS = `// The pages' only script: the language choice shared w
     const show = () => { out.textContent = tpl.replace('{n}', String(max - [...ta.value].length)); };
     ta.addEventListener('input', show);
   }
+  // Light, Dark or System, under the key the app reads; nothing stored is System. The switch cross-fades the page once,
+  // or simply changes under reduced motion; a change made in another tab (the builder) is followed at once.
+  const THEME_KEY = 'ab.theme';
+  const readTheme = () => {
+    try {
+      const v = localStorage.getItem(THEME_KEY);
+      return v === 'light' || v === 'dark' ? v : 'system';
+    } catch { return 'system'; }
+  };
+  const applyTheme = (choice, animate) => {
+    const attr = choice === 'system' ? null : choice;
+    if (root.getAttribute('data-theme') === attr) return;
+    const set = () => { if (attr) root.setAttribute('data-theme', attr); else root.removeAttribute('data-theme'); };
+    const done = () => root.removeAttribute('data-theme-switching');
+    root.setAttribute('data-theme-switching', '');
+    const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (animate && !still && typeof document.startViewTransition === 'function') {
+      document.startViewTransition(set).finished.then(done, done);
+      return;
+    }
+    set();
+    requestAnimationFrame(() => requestAnimationFrame(done));
+  };
+  const themeButtons = [...document.querySelectorAll('button[data-theme-choice]')];
+  const showTheme = () => {
+    const c = readTheme();
+    for (const b of themeButtons) b.setAttribute('aria-pressed', String(b.dataset.themeChoice === c));
+  };
+  for (const b of themeButtons) {
+    b.addEventListener('click', () => {
+      const c = b.dataset.themeChoice === 'light' || b.dataset.themeChoice === 'dark' ? b.dataset.themeChoice : 'system';
+      try {
+        if (c === 'system') localStorage.removeItem(THEME_KEY);
+        else localStorage.setItem(THEME_KEY, c);
+      } catch { /* the choice holds for this page */ }
+      applyTheme(c, true);
+      showTheme();
+    });
+  }
+  for (const g of document.querySelectorAll('[data-theme-control]')) g.hidden = false;
+  showTheme();
+  window.addEventListener('storage', (ev) => {
+    if (ev.key !== THEME_KEY && ev.key !== null) return;
+    applyTheme(readTheme(), false);
+    showTheme();
+  });
 })();
 `;
 
@@ -291,6 +349,7 @@ export function authAsset(path: string): Response | null {
   const cache = 'public, max-age=300';
   if (path === '/_auth/pages.css') return new Response(PAGES_CSS, { headers: { 'Content-Type': 'text/css; charset=utf-8', 'Cache-Control': cache } });
   if (path === '/_auth/pages.js') return new Response(PAGES_JS, { headers: { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': cache } });
+  if (path === '/_auth/theme.js') return new Response(THEME_JS, { headers: { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': cache } });
   if (path === '/robots.txt') return new Response(ROBOTS, { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=86400' } });
   return null;
 }

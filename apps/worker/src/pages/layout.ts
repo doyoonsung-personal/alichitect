@@ -30,6 +30,7 @@ export function shell(c: PageCtx, o: { title: string; bodyClass: string; body: s
 <meta name="referrer" content="same-origin">
 <title>${e(title)} · ${e(t(c.lang, 'app.name'))}</title>
 <link rel="icon" href="/brand/alibaba-cloud-logo-en.svg" type="image/svg+xml">
+<script src="/_auth/theme.js"></script>
 <link rel="stylesheet" href="/_auth/pages.css">
 <script src="/_auth/pages.js" defer></script>
 </head>
@@ -85,6 +86,21 @@ function formatUtc(lang: Lang, ms: number): string {
     fmts.set(lang, f);
   }
   return `${f.format(new Date(ms))} UTC`;
+}
+
+// The theme icons, drawn as the app's UI icons are (16 px grid, 1.5 px strokes, square caps): Light, Dark, System.
+const STROKE = 'fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"';
+export const ICON_SUN = `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.75" ${STROKE}/><path d="M8 1.75V2.25M8 13.75V14.25M1.75 8H2.25M13.75 8H14.25M3.6 3.6L3.9 3.9M12.1 12.1L12.4 12.4M3.6 12.4L3.9 12.1M12.1 3.9L12.4 3.6" ${STROKE}/></svg>`;
+export const ICON_MOON = `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.25 9.6A5.5 5.5 0 1 1 6.4 2.75A4.25 4.25 0 0 0 13.25 9.6Z" ${STROKE}/></svg>`;
+export const ICON_SYSTEM = `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2.75" width="12" height="8.5" ${STROKE}/><path d="M8 11.25V13.5M5 13.5H11" ${STROKE}/></svg>`;
+
+/** Light, Dark or System as a segmented group of toggle buttons, kept in this browser under the key the app reads. It
+ * renders inside a hidden section: the pages' script reveals and drives it, since without script there is nothing to
+ * store the choice in (the page then follows the device through the stylesheet's media query). */
+export function themeSwitch(c: PageCtx, labelledBy: string): string {
+  const btn = (choice: 'light' | 'dark' | 'system', icon: string, key: StringKey): string =>
+    `<button class="seg__btn" type="button" data-theme-choice="${choice}" aria-pressed="${choice === 'system'}">${icon}<span>${e(t(c.lang, key))}</span></button>`;
+  return `<div class="seg seg--theme" role="group" aria-labelledby="${e(labelledBy)}">${btn('light', ICON_SUN, 'theme.light')}${btn('dark', ICON_MOON, 'theme.dark')}${btn('system', ICON_SYSTEM, 'theme.system')}</div>`;
 }
 
 export const ICON_CHECK = '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"/></svg>';

@@ -153,6 +153,8 @@
 .seg__btn[aria-pressed="true"] {
   color: var(--ink);
   background: var(--action-soft);
+  /* the chosen segment is told apart by a 2 px action rule as well as the soft fill, which alone is 1.1:1 (WCAG 1.4.11) */
+  box-shadow: inset 0 -2px 0 var(--action);
 }
 
 .seg__btn:not([aria-pressed="true"]):hover {

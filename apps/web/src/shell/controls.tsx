@@ -1,8 +1,11 @@
 // Shell controls used on both the landing and the working view: the language switch (a segmented group on the landing,
-// a menu in the working view), the Sessions menu and the connection state label.
+// a menu in the working view), the theme menu, the Sessions menu and the connection state label.
 import type { ReactElement } from 'react';
 import { Menu } from './Menu.tsx';
 import { Icon } from './Icon.tsx';
+import type { UiIconName } from './Icon.tsx';
+import { THEME_CHOICES, setTheme, useTheme } from './theme.ts';
+import type { ThemeChoice } from './theme.ts';
 import { useAppState, useController, useT } from '../store/react.tsx';
 import { headerMode } from '../store/selectors.ts';
 import type { Lang } from '../i18n/t.ts';
@@ -41,6 +44,40 @@ export function LanguageMenu(): ReactElement {
         </>
       }
       items={LANGS.map((l) => ({ key: l, label: LANG_NAME[l], lang: LANG_TAG[l], current: l === lang, onSelect: () => c.setLanguage(l) }))}
+    />
+  );
+}
+
+const THEME_ICON: Record<ThemeChoice, UiIconName> = { light: 'sun', dark: 'moon', system: 'system' };
+
+/** Light, Dark or System, in the header's menu grammar: an icon trigger showing the choice in force, three radio items. */
+export function ThemeMenu(): ReactElement {
+  const { t } = useT();
+  const theme = useTheme();
+  const name: Record<ThemeChoice, string> = { light: t('theme.light'), dark: t('theme.dark'), system: t('theme.system') };
+  const label = `${t('theme.menu')}: ${name[theme]}`;
+  return (
+    <Menu
+      className="menu--theme"
+      triggerClassName="btn btn--ghost btn--icon"
+      triggerLabel={label}
+      triggerTitle={label}
+      menuLabel={t('theme.menu')}
+      trigger={<Icon name={THEME_ICON[theme]} />}
+      items={THEME_CHOICES.map((c) => ({
+        key: c,
+        label: (
+          <>
+            <Icon name={THEME_ICON[c]} />
+            <span>{name[c]}</span>
+            <Icon name="check" className="menu__check" />
+          </>
+        ),
+        text: name[c],
+        meta: c === 'system' ? t('theme.systemMeta') : undefined,
+        checked: c === theme,
+        onSelect: () => setTheme(c),
+      }))}
     />
   );
 }

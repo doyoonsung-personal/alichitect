@@ -5,9 +5,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { EN, KO, ZH } from '../src/pages/strings.ts';
 import { langFromAcceptLanguage } from '../src/pages/i18n.ts';
-import { TOKENS_CSS } from '../src/pages/tokens.ts';
-import { SOURCE, render } from '../scripts/sync-tokens.ts';
-import { PAGES_CSS } from '../src/pages/assets.ts';
+import { THEME_JS, TOKENS_CSS } from '../src/pages/tokens.ts';
+import { SOURCE, THEME_SOURCE, render } from '../scripts/sync-tokens.ts';
+import { PAGES_CSS, PAGES_JS, authAsset } from '../src/pages/assets.ts';
 import worker from '../src/index.ts';
 import { ADMIN, Browser, PASSWORD, makeCtx, makeEnv, req, signIn } from './helpers.ts';
 
@@ -34,11 +34,38 @@ describe('strings', () => {
 });
 
 describe('design tokens', () => {
-  test("the pages carry apps/web's tokens.css verbatim (run npm run sync:tokens after changing it)", () => {
-    const css = readFileSync(SOURCE, 'utf8');
-    assert.equal(`export const TOKENS_CSS = ${JSON.stringify(TOKENS_CSS)};`, render(css).split('\n')[1]);
+  test("the pages carry apps/web's tokens.css and theme.js verbatim (run npm run sync:tokens after changing them)", () => {
+    const generated = render(readFileSync(SOURCE, 'utf8'), readFileSync(THEME_SOURCE, 'utf8')).split('\n');
+    assert.equal(`export const TOKENS_CSS = ${JSON.stringify(TOKENS_CSS)};`, generated[1]);
+    assert.equal(`export const THEME_JS = ${JSON.stringify(THEME_JS)};`, generated[2]);
     assert.ok(PAGES_CSS.startsWith(TOKENS_CSS));
     for (const v of ['--action: #1354ee', '--brand-orange: #ff6a00', '--ink: #181818', '--r-control: 0px']) assert.ok(PAGES_CSS.includes(v), v);
+  });
+
+  test('both themes: the dark layer for a chosen Dark and for System on a dark device, and the controls on its roles', () => {
+    assert.match(PAGES_CSS, /:root\[data-theme="dark"\] \{\s*color-scheme: dark;/);
+    assert.match(PAGES_CSS, /@media \(prefers-color-scheme: dark\) \{\s*:root:not\(\[data-theme="light"\]\) \{\s*color-scheme: dark;/);
+    const own = PAGES_CSS.slice(TOKENS_CSS.length);
+    assert.match(own, /\.btn--primary \{[^}]*background: var\(--action-fill\)/);
+    // a numeral or label on an ink, ok or danger square uses --on-ink, which turns dark when the square turns light
+    assert.doesNotMatch(own, /background: var\(--(rev-tag|ok|danger)\);[^}]*color: var\(--on-action\)/);
+  });
+
+  test('the chosen segment and the current appbar link carry a 3:1 rule, not only the 1.1:1 soft fill', () => {
+    const own = PAGES_CSS.slice(TOKENS_CSS.length);
+    assert.match(own, /\.seg__btn\[aria-current="true"\], \.seg__btn\[aria-pressed="true"\] \{[^}]*box-shadow: inset 0 -2px 0 var\(--action\)/);
+    assert.match(own, /\.appbar__me\[aria-current="page"\] \{[^}]*box-shadow: inset 0 -2px 0 var\(--action\)/);
+  });
+
+  test('theme.js is served from /_auth/ as a script, and the pages script drives the account page control', async () => {
+    const res = authAsset('/_auth/theme.js');
+    assert.ok(res);
+    assert.match(res.headers.get('Content-Type') ?? '', /javascript/);
+    assert.equal(await res.text(), THEME_JS);
+    assert.match(THEME_JS, /localStorage\.getItem\('ab\.theme'\)/);
+    assert.match(PAGES_JS, /const THEME_KEY = 'ab\.theme'/);
+    assert.match(PAGES_JS, /data-theme-control/);
+    assert.match(PAGES_JS, /prefers-reduced-motion: reduce/);
   });
 
   test('no gradients, glows or rounded controls slipped into the page CSS', () => {
@@ -111,6 +138,22 @@ describe('rendered pages', () => {
     assert.doesNotMatch(back, /sekret-not-echoed/);
     const login = await (await b.post('/login', { email: 'x@example.com', password: 'sekret-not-echoed' })).text();
     assert.doesNotMatch(login, /sekret-not-echoed/);
+  });
+
+  test('every page applies the stored theme before its stylesheet, and the account page offers Light, Dark and System', async () => {
+    const env = makeEnv();
+    const p = await everyPage(env);
+    for (const [name, html] of Object.entries(p)) {
+      const head = html.slice(0, html.indexOf('</head>'));
+      const js = head.indexOf('<script src="/_auth/theme.js"></script>');
+      assert.ok(js > 0, `${name}: theme.js in <head>, blocking (no defer)`);
+      assert.ok(js < head.indexOf('/_auth/pages.css'), `${name}: before the stylesheet`);
+    }
+    // the control sits in a section only the script reveals: without script the device decides
+    assert.match(p.account, /<section class="section" aria-labelledby="h-theme" data-theme-control hidden>/);
+    for (const c of ['light', 'dark', 'system']) assert.match(p.account, new RegExp(`<button class="seg__btn" type="button" data-theme-choice="${c}" aria-pressed="(true|false)">`));
+    assert.match(p.account, /role="group" aria-labelledby="h-theme"/);
+    assert.doesNotMatch(p.login, /data-theme-choice/);
   });
 
   test('the fields carry the autocomplete hints password managers and phones use', async () => {
