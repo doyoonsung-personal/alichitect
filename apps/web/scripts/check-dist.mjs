@@ -26,9 +26,11 @@ const files = [];
 
 // The words are assembled here so that this file, which is not part of the build, does not itself contain them.
 const WORDS = ['cl' + 'aude', 'anth' + 'ropic'];
-const HIDDEN = new RegExp(WORDS.join('|'), 'i');
+// The coding tool's product name (the first word followed by "Code") is allowed: the catalog lists compatibility with it
+// as a product fact. Anything else (model ids, the vendor, an attribution) would reveal which model runs in the backend.
+const HIDDEN = new RegExp(`${WORDS[1]}|${WORDS[0]}(?![ -]?code)`, 'i');
 // the same words as UTF-16 text (NUL between the letters), as an icon font or a wasm string table might hold them
-const HIDDEN_WIDE = new RegExp(WORDS.map((w) => [...w].join('\0')).join('|'), 'i');
+const HIDDEN_WIDE = new RegExp(`${[...WORDS[1]].join('\0')}|${[...WORDS[0]].join('\0')}(?!\0[ -]\0c\0o\0d\0e)`, 'i');
 
 const findings = [];
 for (const f of files) {

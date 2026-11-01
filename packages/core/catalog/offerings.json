@@ -229,7 +229,7 @@
       "status": "ga",
       "availability": "intl",
       "purpose": "Fixed-fee subscription for using Qwen and other models inside AI coding tools.",
-      "useWhen": "One developer using Qwen in Cursor, Cline, Qwen Code or another AI coding tool.",
+      "useWhen": "One developer using Qwen in Claude Code, Cursor, Cline or Qwen Code.",
       "avoidWhen": "App backends or scripts (interactive tools only); for teams use Token Plan.",
       "pairsWith": ["qoder","qwen-code"],
       "alternatives": ["token-plan"],
@@ -239,7 +239,7 @@
       "audience": "One developer",
       "purchase": "subscription-plan",
       "price": {"summary":"Pro $50/month: up to 6,000 requests per 5 hours, 45,000 per week, 90,000 per month","asOf":"2026-10-31"},
-      "intents": ["use Qwen inside Cursor or another coding tool","fixed-price model access for my coding tool"],
+      "intents": ["use Qwen inside Claude Code or Cursor","fixed-price model access for my coding tool"],
       "notFor": "App backends, automation scripts or shared team use"
     },
     {
@@ -476,7 +476,7 @@
       "lane": "saas",
       "status": "ga",
       "availability": "intl",
-      "purpose": "Dedicated always-on cloud computers that host agents such as OpenClaw or Qoder CLI.",
+      "purpose": "Dedicated always-on cloud computers that host agents such as OpenClaw, Claude Code or Qoder CLI.",
       "useWhen": "A 24/7 hosted agent per employee, reachable from IM, web chat or SSH.",
       "pairsWith": ["eds","model-studio","dingtalk"],
       "alternatives": ["qoderwake","agentbay"],
