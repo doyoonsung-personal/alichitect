@@ -26,7 +26,7 @@
 // - A password reset revokes every session of the account; a change revokes every other session.
 // - ADMIN_EMAILS addresses become approved admins once they confirm their address (only that inbox can).
 import type { Env, ExecutionContextLike } from './env.ts';
-import { adminCodeMailsPerDay, adminEmails, codeMailsPerDay, resetMailsPerDay, sessionSecret } from './env.ts';
+import { adminCodeMailsPerDay, adminEmails, codeMailsPerDay, isSharedAccount, resetMailsPerDay, sessionSecret } from './env.ts';
 import * as db from './db.ts';
 import type { UserRow } from './db.ts';
 import { NAME_MAX } from './db.ts';
@@ -481,6 +481,8 @@ export async function postReset(a: AuthCtx): Promise<Response> {
 /* ---------- change password (signed in) ---------- */
 
 export async function postChangePassword(a: AuthCtx, me: UserRow, sessionHash: string): Promise<Response> {
+  // Everyone using a shared demo account would be locked out (and signed out) if one of them changed its password.
+  if (isSharedAccount(a.env, me.email)) return html(403, accountPage(a.page, { me, shared: true }));
   const form = (await readForm(a.request)) ?? new URLSearchParams();
   const current = form.get('current') ?? '';
   const next = form.get('password') ?? '';

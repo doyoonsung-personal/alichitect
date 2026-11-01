@@ -85,6 +85,9 @@ export interface Env {
   ANTHROPIC_API_KEY?: string;
   /** Signs the session, flow and notice cookies, and keys the email-code and throttle HMACs. 32+ characters. */
   SESSION_SECRET?: string;
+  /** Comma-separated shared demo accounts (created by the owner, no email confirmation). Their password cannot be
+   * changed or reset from the app, and no mail is ever sent to them (the addresses need not be real inboxes). */
+  SHARED_ACCOUNTS?: string;
 }
 
 /** Lowercased, de-duplicated addresses from ADMIN_EMAILS. */
@@ -95,6 +98,15 @@ export function adminEmails(env: Env): string[] {
     if (s && s.includes('@')) out.add(s);
   }
   return [...out];
+}
+
+/** Lowercased addresses from SHARED_ACCOUNTS. */
+export function sharedAccounts(env: Env): string[] {
+  return (env.SHARED_ACCOUNTS ?? '').split(',').map((s) => s.trim().toLowerCase()).filter((s) => s.includes('@'));
+}
+
+export function isSharedAccount(env: Env, email: string): boolean {
+  return sharedAccounts(env).includes(email.trim().toLowerCase());
 }
 
 export function turnsPerDay(env: Env): number {

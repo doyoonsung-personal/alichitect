@@ -12,7 +12,7 @@
 // ServerEvent, so the SPA shows it). GET /api/health is public but anonymous callers only learn { ok: true }. State-changing requests must come from this origin (Origin check; Sec-Fetch-Site
 // when sent) and the session cookie is SameSite=Lax. Every response carries the security headers (http.ts secure).
 import type { Env, ExecutionContextLike } from './env.ts';
-import { allowedOrigin, sessionSecret, turnsPerDay } from './env.ts';
+import { allowedOrigin, isSharedAccount, sessionSecret, turnsPerDay } from './env.ts';
 import { cookie, html, json, redirect, safeNext, secure } from './http.ts';
 import * as auth from './auth.ts';
 import { currentUser } from './session.ts';
@@ -161,7 +161,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
     }
     if (!isGet(method)) return json(405, { error: 'method-not-allowed' }, { Allow: 'GET' });
     const note: Note | null = url.searchParams.get('n') === 'changed' ? { kind: 'ok', key: 'account.changed' } : null;
-    return html(200, accountPage(pc, { me, note }));
+    return html(200, accountPage(pc, { me, note, shared: isSharedAccount(env, me.email) }));
   }
 
   if (me.status !== 'approved') {

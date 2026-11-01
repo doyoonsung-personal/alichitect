@@ -518,3 +518,33 @@ describe('change password (signed in)', () => {
     assert.match(page, /Waiting for approval/);
   });
 });
+
+describe('shared demo accounts (SHARED_ACCOUNTS)', () => {
+  const SHARED = 'shared@demo.com';
+
+  test('signs in, but its password cannot be changed and the account page says why', async () => {
+    const env = makeEnv({ SHARED_ACCOUNTS: SHARED });
+    await makeUser(env, SHARED, { status: 'approved' });
+    const a = new Browser(env, '198.51.100.90');
+    const b = new Browser(env, '198.51.100.91');
+    assert.equal(where(await a.post('/login', { email: SHARED, password: PASSWORD })), '303 /');
+    assert.equal(where(await b.post('/login', { email: SHARED, password: PASSWORD })), '303 /');
+    const page = await a.text('/account');
+    assert.match(page, /shared demo account/);
+    assert.doesNotMatch(page, /action="\/account\/password"/);
+    const r = await a.post('/account/password', { current: PASSWORD, password: 'another good password' });
+    assert.equal(r.status, 403);
+    assert.equal((await b.fetch('/api/me')).status, 200, 'the other user of the account stays signed in');
+    assert.equal(where(await new Browser(env, '198.51.100.92').post('/login', { email: SHARED, password: PASSWORD })), '303 /', 'the password is unchanged');
+  });
+
+  test('is never mailed: a reset request sends nothing, so nobody can reset it', async () => {
+    const env = makeEnv({ SHARED_ACCOUNTS: SHARED });
+    await makeUser(env, SHARED, { status: 'approved' });
+    const r = await new Browser(env, '198.51.100.93').post('/forgot', { email: SHARED });
+    assert.ok(r.status === 303 || r.status === 200, `status ${r.status}`);
+    assert.equal(mailsTo(env, SHARED).length, 0);
+    await new Browser(env, '198.51.100.94').post('/signup', { name: 'X', email: SHARED, password: PASSWORD });
+    assert.equal(mailsTo(env, SHARED).length, 0, 'no "already registered" mail either');
+  });
+});

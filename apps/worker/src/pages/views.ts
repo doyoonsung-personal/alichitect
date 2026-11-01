@@ -248,7 +248,7 @@ function appbar(c: PageCtx, me: UserRow, section: StringKey): string {
 
 /* ---------- account settings ---------- */
 
-export function accountPage(c: PageCtx, o: { me: UserRow; note?: Note | null; passwordError?: StringKey | null; currentError?: boolean }): string {
+export function accountPage(c: PageCtx, o: { me: UserRow; note?: Note | null; passwordError?: StringKey | null; currentError?: boolean; shared?: boolean }): string {
   const L = (k: StringKey, v?: Record<string, string | number>): string => e(t(c.lang, k, v));
   const me = o.me;
   const statusTag =
@@ -282,13 +282,13 @@ export function accountPage(c: PageCtx, o: { me: UserRow; note?: Note | null; pa
   </section>
   <section class="section" aria-labelledby="h-password">
     <h2 class="section__title" id="h-password">${L('account.passwordTitle')}</h2>
-    <p class="intro intro--left">${L('account.passwordIntro')}</p>
+    ${o.shared ? `<p class="intro intro--left">${L('account.sharedPassword')}</p>` : `<p class="intro intro--left">${L('account.passwordIntro')}</p>
     <form class="form form--auth form--narrow" method="post" action="/account/password">
       <input type="text" name="username" value="${e(me.email)}" autocomplete="username" hidden>
       ${field(c, { id: 'current', label: 'field.currentPassword', type: 'password', autocomplete: 'current-password', error: o.currentError ? 'account.error.current' : null })}
       ${field(c, { id: 'password', label: 'field.newPassword', type: 'password', autocomplete: 'new-password', error: o.passwordError, errorVars: pwErrVars(o.passwordError), hint: t(c.lang, 'password.hint', pwVars) })}
       <div><button class="btn btn--primary" type="submit">${L('account.passwordSubmit')}</button></div>
-    </form>
+    </form>`}
   </section>
   <section class="section" aria-labelledby="h-signout">
     <h2 class="section__title" id="h-signout">${L('signOut')}</h2>

@@ -8,7 +8,7 @@
 // subject carries the code, which is how local tests read it. A failure is logged and returned, never thrown: a mail
 // must never break the request that caused it.
 import type { Env } from './env.ts';
-import { allowedOrigin, mailLogAllowed } from './env.ts';
+import { allowedOrigin, isSharedAccount, mailLogAllowed } from './env.ts';
 import { escapeHtml } from './http.ts';
 import { t } from './pages/i18n.ts';
 import type { Lang } from './pages/i18n.ts';
@@ -50,6 +50,12 @@ export interface MailResult {
 }
 
 async function send(env: Env, to: string, subject: string, title: string, lang: Lang, blocks: Block[]): Promise<MailResult> {
+  // A shared demo account's address need not be a real inbox (and may belong to someone else): never mail it. The
+  // answer is ok, so sign-up, reset and the rest behave the same from outside.
+  if (isSharedAccount(env, to)) {
+    console.log(JSON.stringify({ evt: 'mail-skipped', reason: 'shared account' }));
+    return { ok: true };
+  }
   if (mailLogAllowed(env)) {
     console.log(JSON.stringify({ evt: 'mail-logged', to, subject }));
     return { ok: true, logged: true };

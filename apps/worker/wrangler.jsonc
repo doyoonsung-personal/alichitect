@@ -29,6 +29,7 @@
   "send_email": [{ "name": "EMAIL", "remote": true }],
   "vars": {
     "ADMIN_EMAILS": "dysung.alicloud@gmail.com", // comma-separated; approved admins as soon as they confirm their email
+    "SHARED_ACCOUNTS": "shared@demo.com", // shared demo logins: no password change or reset, never mailed
     "TURNS_PER_DAY": "60", // per non-admin user, UTC day; admins are unlimited
     "ALLOWED_ORIGIN": "https://architect.alikorea-demo.com",
     "MAIL_FROM": "no-reply@alikorea-demo.com",
@@ -71,6 +72,7 @@
       "send_email": [{ "name": "EMAIL" }],
       "vars": {
         "ADMIN_EMAILS": "dysung.alicloud@gmail.com",
+        "SHARED_ACCOUNTS": "shared@demo.com",
         "TURNS_PER_DAY": "60",
         "ALLOWED_ORIGIN": "http://localhost:8800",
         "MAIL_FROM": "no-reply@alikorea-demo.com",
