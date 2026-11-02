@@ -895,7 +895,7 @@ The estimate takes the deployment scope from the session (International by defau
 **The new cloud baseline** is `eval/results/2026-11-02T11-29-56-phase0a-baseline`: 109 cases × 3 runs, pass@1 96%, all three runs pass 92%, $4.88. Against the last full run (`2026-10-31T18-06-03-p1b-final-full`):
 - **Headline:** pass@1 is unchanged at 96%; cases where every run passes went from 99 to 100.
 - **Noise:** six cases gained a run and four lost one, which sets the noise band at about ±1 run per case.
-- **`p1-vpc-no-group` (2/3 → 0/3):** this is a pre-existing repair gap, not the change. The model draws Private Zone attached to a VPC node that doesn't exist; it happened in 1 run of 3 before and in all 3 now.
+- **`p1-vpc-no-group` (2/3 → 0/3):** not the change, and not a live bug. The model draws Private Zone attached to a VPC node that doesn't exist, and the deterministic repair already fixes it, so users see a correct diagram. The `attachValid` assertion deliberately judges the model's output before repair (`eval/lib.ts:644`), so the case measures model quality. `packages/core/test/attach-hosts.test.ts` pins the repair.
 
 **Phases 0b and 1, done on 2026-11-02.** The spec is `impl/phase1-spec.md`.
 - **Phase 0b:**
@@ -921,6 +921,50 @@ The estimate takes the deployment scope from the session (International by defau
   - **Typechecks:** all three are clean.
   - **Cloud prompt:** byte-identical (sha256 `998fab22…`).
 - **Before phase 3, do a readability pass on `workflow.ts` and `workflow-validate.ts`.** The code is correct but denser than `reducer.ts` and `validate.ts`, with 19 lines over 160 characters.
+
+**Phases 2–7, done on 2026-11-03.** The run log is `impl/overnight.md`; the job briefs and reports are in `impl/` and `impl/results/`.
+- **Phase 2:** `workflow-layout.ts` covers sticky cells, attached stacks, repeat brackets, splice shifts, Tidy and the viewport. After integration, two fixes followed:
+  - the cycle search now starts at the triggers. In 13 of the 32 samples it had taken a forward link for the back edge, which folded fresh layouts into extra rows;
+  - the camera got a readable zoom floor of 11/14, never fits above 1.0, and cards are sized to their content.
+- **Phase 3a:** `runTurn` and `streamOps` handle both modes; the prompt cache is keyed by mode; the server and the Worker both admit workflow requests.
+  - Requests within one maximum-length ask of the 512 KiB body limit are rejected, so committed memory always leaves room for the next ask.
+- **Phase 3b:** the browser store streams, repairs, commits, reverts and restores workflow documents beside cloud ones.
+  - It keeps provenance by view, and replays and revives mixed sessions.
+  - It persists the committed workflow layout.
+- **Phase 4:** the workflow prompt is about 9,600 tokens. The eval has 63 cases: the 32 samples, 11 rule cases and 20 Korean and Chinese cases. Two tuning rounds followed, and then the stop rule.
+  - The user content carries the `REPLY LANGUAGE` line, as the cloud path does. Without it, Korean and Chinese replies came back in English.
+- **Phase 5:**
+  - the canvas: scene, glyphs, edges, camera, overview, popovers and keyboard navigation;
+  - the Steps and why panel: flow order, cloud-panel styling, and the step → runtime table;
+  - the cost editor, the settings strip, and en, ko and zh strings.
+- **Phase 6:** `estimateWorkflow` gives typical and upper scenarios with a coverage list. Its settings are bounded by `workflow-estimate-limits.ts`, the same limits admission uses.
+- **Phase 7:** the proposal step sections, the generated cost and mapping tables, and open questions. The PDF draws the workflow diagram as vector SVG, with compacted rows, wrapped strips and balanced detail pages.
+- **Contract tightened by the final review:**
+  - `effect` is kept only on act, tool and memory steps. Dropping a read or write is info; dropping an effect that needs approval is a warning;
+  - links that touch attached steps are rejected and repaired away;
+  - `edit` outcomes must leave a human approve step;
+  - repair stays within the caps;
+  - committed memory always passes admission.
+- **The hidden backend:** one identity matcher (NFKC; the vendor, the family with a version, and ko/zh/ja transliterations; the exact coding product and Anthropic-compatible APIs allowed) cleans backup-generated text in both modes, and filters proposals.
+- **Reviews:** seven per-phase reviews, then two final reviews of the integrated feature, each run by Codex and by a Claude workflow that verified every finding twice. Every fixed finding has a regression test that failed before the fix.
+- **Deferred:**
+  - requirement text that forges prompt sections. It comes only from the session's own client-held memory, and the fix would touch the cloud user content;
+  - phase 8.
+- **Open decision:** the live canvas keeps the per-row attachment reserve, so branch rows start below the first view. Reserving slots only under agent hosts would give up the zero-foreign-moves rule.
+- **Verification:**
+  - **Tests:** 1,087 root, 658 web and 276 Worker, all passing.
+  - **Typechecks:** all three are clean.
+  - **Cloud prompt:** byte-identical (sha256 `998fab22…`), and the cloud messages match `58b4fc3` on all 141 eval turns.
+  - **Production build:** clean, and the hidden-word scan passes.
+  - **Browser checks:** five browser e2e suites pass. A live check against real Qwen shows 5, 3 and 2 columns at 1150, 920 and 800 px, the hover popover, and the panel.
+  - **Workflow eval** `eval/results/2026-11-02T20-52-28-workflow-final-1` (63 cases × 3, $2.42):
+    - pass@1 84% and pass@3 97%;
+    - English 90%, rule cases 91%, ko/zh 72%;
+    - judge sign-off: samples 88%, rule cases 100%.
+  - **Cloud regression** `eval/results/2026-11-02T20-52-29-final-cloud-regression`:
+    - pass@1 96.3%, against 96% at the phase-0a baseline;
+    - every run passing on 100 of 109 cases, as before;
+    - `ai-07-training-residency` fell from 2/3 to 0/3, both times from the model's own choices.
 
 **Order.** The contract comes before the layout spike: a layout that holds still but draws the wrong semantics proves nothing. The spike still comes before the pipeline work, because layout remains the largest single risk.
 

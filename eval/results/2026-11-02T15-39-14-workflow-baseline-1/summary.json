@@ -1,0 +1,3630 @@
+{
+  "meta": {
+    "startedAt": "2026-11-02T15:39:14.025Z",
+    "args": {
+      "cases-dir": "eval/cases-workflow",
+      "runs": "1",
+      "concurrency": "3",
+      "label": "workflow-baseline-1",
+      "budget": "115",
+      "case": "wf-support-email-triage"
+    },
+    "model": "qwen3.8-max",
+    "fallbackModel": "qwen3.7-max",
+    "judgeModel": "kimi-k3",
+    "runsPerCase": 1,
+    "concurrency": 3,
+    "cases": 43,
+    "units": 43,
+    "catalogVersion": "2026-10-31",
+    "catalogEntries": 232,
+    "workflowSystemPromptSha256": "7a6757a4a6350fc92e42355de1871741acb1d5fc6a32be60b98c2268e1c1b1f8",
+    "systemPromptChars": 59906,
+    "systemPromptSha256": "998fab223daba0a4407930f0f6f61e90cf100d7783ca4b13008636526d049313",
+    "node": "v24.21.0",
+    "coreFiles": {
+      "approval.ts": "bdece30a0c71",
+      "asks.ts": "92203b64709a",
+      "catalog-node.ts": "44319b4a1f4b",
+      "catalog.ts": "5bf2d46dc58f",
+      "claude.ts": "ad0c3dd81115",
+      "constraints.ts": "7a677252f475",
+      "diff.ts": "eaabf1ce1def",
+      "display.ts": "941ca6dec769",
+      "layout.ts": "5b76a21851a5",
+      "llm.ts": "a11691449118",
+      "models.ts": "ee73eed1ecb5",
+      "ndjson.ts": "3163a8232eaa",
+      "pricing.ts": "901b4992f039",
+      "prompt.ts": "66c72385a15b",
+      "proposal-prompt.ts": "25b81487870e",
+      "proposal.ts": "285547fbbada",
+      "reducer.ts": "5afcf1cf50cd",
+      "regions.ts": "c34c43b79d8c",
+      "types.ts": "917e2ad68201",
+      "validate.ts": "d8b6e6ded6b3",
+      "workflow-estimate.ts": "1df7daacaa8e",
+      "workflow-layout.ts": "e0f227e7b06e",
+      "workflow-prompt.ts": "76d67594ad99",
+      "workflow-validate.ts": "3baad234b02a",
+      "workflow.ts": "7a7e158a8f6e"
+    },
+    "judgeAllRunsOf": [],
+    "finishedAt": "2026-11-02T15:45:02.206Z",
+    "spentUsd": 0.8339709999999999
+  },
+  "totals": {
+    "cases": 43,
+    "conversations": 43,
+    "turns": 43,
+    "casePassRate": 0,
+    "passAtN": 0,
+    "majority": 0,
+    "allRuns": 0,
+    "runPassRate": 0,
+    "turnPassRate": 0,
+    "assertionPassRate": 0.917,
+    "assertions": 726,
+    "apiFailures": 0,
+    "costUsd": 0.383
+  },
+  "byCategory": {
+    "pattern": {
+      "cases": 32,
+      "runs": 32,
+      "runPassRate": 0,
+      "passAtN": 0,
+      "majority": 0,
+      "allRuns": 0
+    },
+    "trap": {
+      "cases": 11,
+      "runs": 11,
+      "runPassRate": 0,
+      "passAtN": 0,
+      "majority": 0,
+      "allRuns": 0
+    }
+  },
+  "byMode": {
+    "workflow": {
+      "cases": 43,
+      "runs": 43,
+      "runPassRate": 0,
+      "passAtN": 0,
+      "majority": 0,
+      "allRuns": 0
+    }
+  },
+  "workflowJudge": {
+    "n": 43,
+    "means": {
+      "patternChoice": 4.372,
+      "humanApproval": 4.628,
+      "modelTierFit": 4.558,
+      "productCorrectness": 3.86,
+      "clarity": 4.279
+    }
+  },
+  "byLang": {
+    "en": {
+      "cases": 43,
+      "runs": 43,
+      "runPassRate": 0,
+      "passAtN": 0,
+      "majority": 0,
+      "allRuns": 0
+    }
+  },
+  "byAssertionType": {
+    "mention": {
+      "checks": 10,
+      "passed": 7,
+      "rate": 0.7,
+      "failingCases": [
+        "wf-rule-agentbay",
+        "wf-rule-agentrun-lowcode",
+        "wf-rule-trifecta"
+      ]
+    },
+    "workflow": {
+      "checks": 501,
+      "passed": 444,
+      "rate": 0.886,
+      "failingCases": [
+        "wf-ai-tutor-socratic-hint",
+        "wf-code-review-pr-agent",
+        "wf-claims-processing-extraction",
+        "wf-contract-clause-review",
+        "wf-cross-border-document-compliance-check",
+        "wf-disruption-rebooking-agent",
+        "wf-ecommerce-shopping-assistant",
+        "wf-ecommerce-product-listing-enrichment",
+        "wf-employee-onboarding-helpdesk",
+        "wf-enterprise-knowledge-search",
+        "wf-financial-report-analysis",
+        "wf-hr-resume-screening-and-scheduling",
+        "wf-inbound-support-triage-and-draft",
+        "wf-inbound-voice-support-agent",
+        "wf-internal-policy-rag-assistant",
+        "wf-insurance-claims-triage",
+        "wf-invoice-three-way-match",
+        "wf-kyc-customer-onboarding",
+        "wf-it-helpdesk-triage-and-remediation",
+        "wf-meeting-notes-to-crm-update",
+        "wf-multilingual-document-localisation",
+        "wf-nl-to-sql-data-analysis",
+        "wf-multilingual-marketing-localisation",
+        "wf-rule-agentbay",
+        "wf-rule-agentrun-lowcode",
+        "wf-regulatory-change-monitoring",
+        "wf-rfp-security-questionnaire-answerer",
+        "wf-rule-chat-reply",
+        "wf-rule-automate",
+        "wf-rule-knowledge-base",
+        "wf-rule-email-send",
+        "wf-rule-email",
+        "wf-rule-phone",
+        "wf-rule-slack",
+        "wf-rule-trifecta",
+        "wf-sales-prospect-research-outreach",
+        "wf-rule-whatsapp",
+        "wf-sre-incident-triage-and-rca",
+        "wf-social-listening-review-analysis",
+        "wf-supply-chain-exception-handling",
+        "wf-support-email-triage",
+        "wf-travel-itinerary-booking",
+        "wf-whatsapp-line-chat-agent"
+      ]
+    },
+    "noErrors": {
+      "checks": 43,
+      "passed": 43,
+      "rate": 1,
+      "failingCases": []
+    },
+    "format": {
+      "checks": 43,
+      "passed": 43,
+      "rate": 1,
+      "failingCases": []
+    },
+    "escapes": {
+      "checks": 43,
+      "passed": 43,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noPrices": {
+      "checks": 43,
+      "passed": 43,
+      "rate": 1,
+      "failingCases": []
+    },
+    "sayLang": {
+      "checks": 43,
+      "passed": 43,
+      "rate": 1,
+      "failingCases": []
+    }
+  },
+  "cases": [
+    {
+      "id": "wf-ai-tutor-socratic-hint",
+      "category": "pattern",
+      "lang": "en",
+      "title": "AI Tutor with Socratic Hint Generation",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 17524,
+      "judge": {
+        "run": 1,
+        "mean": 3.75,
+        "signoff": false,
+        "scores": [
+          4,
+          3,
+          4,
+          4
+        ],
+        "defects": [
+          "extract uses tool 'web_search_image' on qwen3.7-plus, which has no established built-in tool support (functions:true but tools:null).",
+          "hint node placed on agentrun without justification; a code-first agent runtime is unnecessary for a single LLM generation step that could run on FC.",
+          "No approval or review gate on the hint content before delivery to students; acceptable for a low-stakes live reply with guardrails, but the reference's conservative teacher-review-before-delivery stance is dropped without note.",
+          "Guard node screens the image but there is no output-side moderation of the generated hint before delivery."
+        ],
+        "reasons": [
+          "Deterministic prompt chain fits the fixed sequence; no unnecessary agent autonomy.",
+          "Reply path is guarded by AI Guardrails and teacher escalation exists; internal notify needs no approval, which is fine.",
+          "qwen3.7-plus for vision extraction and hint generation is reasonable; qwen3.8-flash for the struggle classifier fits.",
+          "extract node declares tool web_search_image on qwen3.7-plus, whose built-in tool support is not established per model facts.",
+          "Hint generation runs on agentrun while everything else is on FC with no stated need for sandbox/MCP/tool hub; adds unjustified runtime complexity, though AgentRun code-first is available in Singapore.",
+          "No persisted learner state or retry/quality loop from the reference, but those were explicitly optional.",
+          "No invented pricing; questions and assumptions are reasonable."
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-claims-processing-extraction",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Insurance Claims Processing and Extraction",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.024,
+      "meanMs": 25826,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "OCR retry logic (max 3 attempts) from reference fixture not explicitly modeled in graph",
+          "Policy DB lookup uses MCP tool but could clarify if this is internal reversible read (no approval needed) vs external consequential",
+          "Merge-data join='any' may need clarification on handling partial failures from extraction branches"
+        ],
+        "reasons": [
+          "Deterministic workflow with bounded agent for policy checks fits the known sequence",
+          "Human approval gates all payout paths after final producer; denial paths correctly bypass payment",
+          "Model tiers align with task complexity: small for classification/extraction, mid for vision/policy, large for routing",
+          "Products are internationally available; AgentRun code-first runtime correctly distinguished from gated low-code builder",
+          "Clear orchestrator-workers pattern with explicit guardrails for untrusted uploads"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-code-review-pr-agent",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Code Review and Pull-Request Agent",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow task check": 1,
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 17745,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Lethal-trifecta adjacency: review-agent combines untrusted PR content, private repo access and outbound-capable MCP tools with approval:skip; mitigation relies entirely on the downstream human gate, so the approval UI must surface the exact outbound comment content (not explicit in the design)",
+          "sandbox-run duplicates code_interpreter while the agent already declares tool:mcp; tool set for repo access vs test execution is slightly muddled",
+          "No explicit guard on the agent's drafted comments before the human sees them (minor, since human reviews)"
+        ],
+        "reasons": [
+          "Bounded agent (15 turns) fits the open-ended review task; guard on untrusted PR content; human approval gates the only consequential send on every path, with edit loop back through the agent",
+          "qwen3.8-max is a reasonable fit for code review with tools; sandbox test execution is modeled as a tool on the agent",
+          "Products used (EventBridge webhook, FC, AI Guardrails, AgentRun code runtime, CloudFlow callback approval) are all internationally available; third-party posting correctly treated as external API",
+          "Clear linear flow with approve/reject/edit branches and stated assumptions"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-contract-clause-review",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Contract Clause Review and Redlining",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 21289,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Deterministic prompt chain fits the known sequence; no unnecessary agent autonomy",
+          "Lawyer approval gates the consequential decision on every path (approve/reject/edit loop) after the final content producer",
+          "Model tiers match tasks: mid-tier for extraction/drafting, large for comparison reasoning, small for embed/rerank",
+          "All products (FC, AI Guardrails, Tablestore, CloudFlow) are internationally available; no gated or region-locked assumptions",
+          "Clear narration, explicit assumptions, and relevant clarifying questions; no invented pricing"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-cross-border-document-compliance-check",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Cross-border trade document compliance check",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 21881,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          5
+        ],
+        "defects": [
+          "qwen3.8-max used for compliance-check is text-only per model facts, but receives parsed text so it is acceptable; however risk-flag could arguably reuse the check output rather than a separate small-model pass",
+          "Tablestore Singapore pricing flagged as CNY reference only; estimate not provided, which is correct, but the assumption should note pricing confirmation"
+        ],
+        "reasons": [
+          "Deterministic prompt chain fits the fixed sequence; no unnecessary agent",
+          "Approval gates the only consequential effect (customs submission) on every path after the final producer, with approve/reject/edit branches",
+          "OCR, embedding, rerank use small tiers; mid-tier for parsing/drafting; large tier reserved for the compliance check",
+          "All products (FC, CloudFlow, Tablestore, third-party API) are internationally available; no gated or misused connectors",
+          "Clear narration, explicit assumptions, and relevant clarifying questions"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-disruption-rebooking-agent",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Flight Disruption Rebooking Agent",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 19733,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Guard node has no failure/reject branch: guardrail detection errors or flagged content have no depicted path to rejection or safe termination",
+          "Untrusted flight data plus traveler private data plus outbound notify is a trifecta risk; narration does not state that guard covers the actual outbound notification content",
+          "search-tool uses web_search, whose availability as a built-in tool on qwen3.7-plus is not established per model facts; should be an MCP/FC-implemented tool",
+          "Recheck-stop semantics (stop after rebooking or 24h) from the reference are not represented in trigger settings"
+        ],
+        "reasons": [
+          "Bounded agent (10 turns) fits the ask: tool/route choice (status check, alternative search) benefits from model choice, while approval and execution are deterministic steps",
+          "Approval gates the consequential pay effect (rebook) after the final content producer (agent + guard); edit path loops back through guard before re-approval, so every path to rebook is gated",
+          "Notify occurs only after approval and sends confirmed/rejected outcomes, not unreviewed model content",
+          "qwen3.7-plus mid tier with function calling matches plan/retrieve agent work; no over- or under-tiering",
+          "Products are internationally available: AgentRun code-first (Singapore), SchedulerX, CloudFlow WaitForCustomCallback approval, AI Guardrails (Singapore), Chat App for WhatsApp-class notify",
+          "Clear branches including no-disruption, rejection, edit loop and exhaustion; assumptions and questions stated"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-ecommerce-product-listing-enrichment",
+      "category": "pattern",
+      "lang": "en",
+      "title": "E-commerce product listing creation from images",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.016,
+      "meanMs": 25903,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          5
+        ],
+        "defects": [
+          "extract node declares tool 'web_search_image' which is not a documented built-in tool for qwen3.7-plus (only web_search documented on qwen3.8-flash); the tool call would need a custom FC implementation"
+        ],
+        "reasons": [
+          "Deterministic workflow with parallel locale fan-out fits the known sequence; no unnecessary agent",
+          "Approval gate sits after the final content producer (join-listings) and covers both publish paths; edit loop returns to the merge step before re-approval, so no path bypasses review",
+          "Model tiers fit: qwen3.7-plus for vision extraction and SEO generation, qwen3.8-flash for high-volume translation and merge",
+          "All products (EventBridge, FC, Content Moderation, CloudFlow, third-party APIs) are internationally available; no gated or misused services",
+          "Clear narration, explicit assumptions, and relevant clarifying questions; no invented pricing"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-ecommerce-shopping-assistant",
+      "category": "pattern",
+      "lang": "en",
+      "title": "E-commerce Shopping Assistant",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 21418,
+      "judge": {
+        "run": 1,
+        "mean": 3.75,
+        "signoff": false,
+        "scores": [
+          4,
+          3,
+          4,
+          4
+        ],
+        "defects": [
+          "Tablestore used for vector similarity search over the product catalog; not documented as a vector search store internationally.",
+          "Coupon source declared as 'mcp' tool with no concrete product or adapter; assumption only.",
+          "'apply' node lets qwen3.8-flash select and apply a coupon (effect write) with no validation or approval of the discount actually applied; approval subject is checkout, not the coupon content.",
+          "No escalation path from the live recommendation reply to a human agent.",
+          "No estimate or volume sizing despite the volume question being raised."
+        ],
+        "reasons": [
+          "Deterministic prompt chain fits the known sequence; no unnecessary agent loop.",
+          "Checkout payment is gated by human approval on the only path to pay, with reject and timeout branches.",
+          "Model tiers mostly fit: flash for classify, embedding and rerank for retrieval, plus for drafting.",
+          "Product correctness issues: Tablestore is documented as agent-memory store and knowledge-base connector, not a vector-similarity product search engine; coupon fetch via 'mcp' tool is an assumed connector; checkout third-party API is fine but unspecified.",
+          "Applying a coupon is a consequential write to the order done by an AI node before approval; approval covers checkout but the coupon application itself is unguarded model output.",
+          "Live chat reply (recommend) has input guardrails but no explicit human escalation path."
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-employee-onboarding-helpdesk",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Employee Onboarding Q&A and HR Helpdesk",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 19186,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          5
+        ],
+        "defects": [
+          "Tablestore Knowledge Storage pricing is CNY reference only; Singapore rates need confirmation before cost estimates"
+        ],
+        "reasons": [
+          "Deterministic router workflow fits the known sequence: guard, classify, confidence gate, retrieve, rerank, draft, reply or escalate",
+          "Live chat reply correctly treated as guarded with human escalation path rather than routine approval; no consequential send/publish/pay/delete actions exist",
+          "Model tiers fit tasks: qwen3.8-flash for classification, text-embedding-v4 for retrieval, qwen3-rerank for ranking, qwen3.7-plus for grounded drafting",
+          "All products available internationally: AgentCore, AI Guardrails (Singapore), Tablestore Knowledge Storage (Singapore/Hong Kong); no gated or Beijing-only services assumed",
+          "Clear narration, explicit assumptions about IM channel and handbook store, useful clarifying questions about volume and success metrics"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-enterprise-knowledge-search",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Enterprise Knowledge Search Assistant",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow kind end": 1,
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.005,
+      "meanMs": 12213,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "AgentCore trigger with AgentRun runtime is slightly inconsistent but workable",
+          "No explicit human escalation path for live chat, though guard is present"
+        ],
+        "reasons": [
+          "Bounded agent with clear tool use for permission-aware search",
+          "Internal notify requires no approval; no external sends",
+          "Model tiers match tasks: mid for generation, small for retrieve/rerank",
+          "Products available internationally; Tablestore for knowledge base is correct",
+          "Clear narration and assumptions; no invented prices"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-financial-report-analysis",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Financial Report Analysis and Summarisation",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.006,
+      "meanMs": 13954,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [
+          "Compute node is tagged task=generate with an ai model assigned though the actual work is deterministic code execution; minor labeling inconsistency but harmless since code_interpreter does the math",
+          "No explicit redraft bound (edit loop from approve back to draft is unbounded in the graph, though in practice human-driven)"
+        ],
+        "reasons": [
+          "Deterministic prompt chain fits the known sequence: parse, guard, compute, draft, approve",
+          "Approval gate placed after the final content producer (draft) with approve/edit/reject branches covering all paths",
+          "AI Guardrails screens untrusted PDF content before processing, addressing injection risk from untrusted input",
+          "Products used (AgentRun code-first, FC, CloudFlow, AI Guardrails) are all internationally available; CloudFlow WaitForCustomCallback is the correct approval mechanism",
+          "Qwen3.7 Plus is a reasonable mid-tier default for extract/summarise/generate roles; ratio math is delegated to code interpreter rather than the model",
+          "Clear narration, labeled nodes, and honest questions about volume and success criteria without inventing estimates"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-hr-resume-screening-and-scheduling",
+      "category": "pattern",
+      "lang": "en",
+      "title": "HR Résumé Screening and Interview Scheduling",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 21093,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Decide node marked approval:required but has no human step; the only human gate is at approve, so the below-threshold rejection path executes a consequential decide without an actual approval mechanism",
+          "CV source assumption says email, but no explicit webhook adapter node is shown for inbound email into EventBridge",
+          "Tablestore Singapore pricing is CNY-reference only per catalog; design should flag confirmation rather than assume",
+          "No estimate or volume sizing despite asking about daily CV volume"
+        ],
+        "reasons": [
+          "Deterministic prompt chain fits the known sequence; no unnecessary agent autonomy",
+          "Approval gates both the consequential decide and the send after the final content producer, with edit loop re-approval",
+          "Guardrails on untrusted CV input before parsing; outbound email content is exactly what the recruiter approved",
+          "Mid-tier model for parse/draft, large for rubric scoring is defensible; embedding model fits retrieval",
+          "Products are internationally available: EventBridge webhook intake, FC, AgentRun code runtime, Tablestore, CloudFlow callback approval, Direct Mail outbound-only"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-inbound-support-triage-and-draft",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Inbound support email triage and reply drafting",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.006,
+      "meanMs": 14312,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Approval covers the draft, but if the send payload is re-rendered or edited after approval, the actual outbound content could diverge; send should transmit exactly the approved draft",
+          "Guard node has no explicit block/quarantine path shown; blocked-email handling is implied but not drawn",
+          "Narration is minimal; retry bounds and escalation/notification mechanics for the approval wait are not described"
+        ],
+        "reasons": [
+          "Deterministic pipeline with a bounded agent (5 turns) only for the variable tracking lookup; good pattern fit",
+          "Approval gate sits after the final content producer (draft) and before send, covering approve/reject/timeout paths",
+          "Model tiers fit: small Flash for classification, Plus for agentic lookup and drafting",
+          "Inbound email correctly modeled as webhook into EventBridge; Direct Mail used only for outbound; no gated products assumed",
+          "Guardrails screen untrusted inbound content before classification, mitigating injection into the agent/draft"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-inbound-voice-support-agent",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Inbound Voice Support Agent",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow task transcribe": 1,
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.006,
+      "meanMs": 14726,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": false,
+        "scores": [
+          4,
+          3,
+          5,
+          4
+        ],
+        "defects": [
+          "Phone line ingress is asserted via ims-conversational-ai without naming the required partner CCaaS/telephony; Model Studio speech models alone do not supply a phone line",
+          "transfer-human node has approval:skip with no explanation of how the CCaaS handoff is triggered or what happens if no human is available",
+          "No fallback path if guard flags the input or if the balance agent fails; the graph dead-ends on those branches",
+          "check-balance agent runs 5 turns with MCP tools but the bank API tool and its auth boundary are not described"
+        ],
+        "reasons": [
+          "Router pattern with bounded agent for balance lookup is appropriate for the two-path intent split",
+          "Live voice reply correctly uses guard + human escalation rather than routine approval, matching the live-chat exception",
+          "Model tiers fit: Flash for classification, Plus for the tool-calling balance agent, Audio Realtime Flash for voice",
+          "IMS Conversational AI handles real-time voice but the design never states how the phone line/PSTN termination is supplied; a partner CCaaS/telephony is required and only appears as a vague assumption",
+          "Balance read is internal and reversible so no approval needed; transfer to human is the escalation path itself, so gating is adequate",
+          "Untrusted voice input is guarded before the LLM, and the only outbound content is the spoken balance, which is a read result, not a consequential send"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-insurance-claims-triage",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Insurance Claims FNOL Triage and Settlement",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 20803,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "extract-docs declares tool web_extractor on qwen3.7-plus, whose built-in tool support is not established per MODEL FACTS",
+          "Coverage determination is a consequential decide with no denial path: a not-covered outcome has no reviewed denial disposition or branch, only adjuster rejection of a calculated settlement",
+          "Lethal trifecta (untrusted email + private data + outbound payment API) is approval-gated, but the approval subject is the draft package, not the actual outbound payment payload sent to the third-party API"
+        ],
+        "reasons": [
+          "Deterministic pipeline with bounded agent for document extraction fits the known sequence",
+          "Adjuster approval gates the pay effect after the final content producer, with approve/edit/reject branches",
+          "Model tiers mostly fit: flash for formatting, plus for extraction, max for coverage reasoning",
+          "Email ingestion correctly uses EventBridge webhook; guardrails screen untrusted inbound content",
+          "Clear narration, assumptions and questions; no invented prices"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-internal-policy-rag-assistant",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Internal Policy RAG Assistant",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow kind human": 1,
+        "workflow task takeover": 1,
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 18304,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": false,
+        "scores": [
+          4,
+          3,
+          5,
+          4
+        ],
+        "defects": [
+          "Tablestore Knowledge Storage used from FC without a documented knowledge-base connector (AgentCore connector not applicable).",
+          "Channel assumption (DingTalk or web widget) lacks a specified international webhook adapter; DingTalk is not an international product.",
+          "guard-out verifies no hallucination but does not explicitly screen for private data leaks in the outbound reply, leaving the lethal trifecta partially unmitigated."
+        ],
+        "reasons": [
+          "Deterministic workflow with clear branches fits the known sequence; no unnecessary agent.",
+          "Live chat reply is guarded by input screening and output verification, with HR escalation for unknowns; no routine approval needed for internal reversible replies.",
+          "Model tiers match tasks: small embedding/rerank/flash for routine work, mid-tier plus for grounded generation.",
+          "Product correctness issue: Tablestore Knowledge Storage is documented for AgentCore, but the workflow runs on FC without a stated connector; DingTalk/web widget channel lacks a specified international webhook adapter.",
+          "Lethal trifecta is present (untrusted employee input + private policy data + outbound reply), but guard-out checks hallucination, not explicit data-leak prevention for the outbound content."
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-invoice-three-way-match",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Invoice Processing with 3-Way Match",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.007,
+      "meanMs": 19382,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Email webhook adapter not explicitly detailed",
+          "Approval for ERP write tool could be more explicit at call time"
+        ],
+        "reasons": [
+          "Deterministic workflow with bounded agent for matching logic is appropriate",
+          "Human approval gates ERP posting on all paths after final producer",
+          "Model tier fits task complexity",
+          "Products are internationally available",
+          "Clear steps and boundaries"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-it-helpdesk-triage-and-remediation",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Internal IT Helpdesk Triage and Remediation",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 22641,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": false,
+        "scores": [
+          4,
+          3,
+          5,
+          4
+        ],
+        "defects": [
+          "reply node drafts a response to the requester but has no declared effect, product or send path; if it sends externally it needs approval or an explicit guarded send step after the final producer",
+          "approve/reject branch: on reject the flow goes straight to reply with no recorded notification to the requester that production change was declined, and no approval covers that outbound content",
+          "Knowledge base assumed in Tablestore with vector search; for a new international AgentRun customer this KB capability is not established (Tablestore Knowledge Storage is documented as an AgentCore connector, Singapore/Hong Kong only, CNY reference rates)",
+          "prod-fix runs on agentrun but targets a third-party production API; the approval covers the plan subject, not the actual remediation command/content executed against production",
+          "No output-side guardrail or moderation on the drafted reply despite untrusted input and private KB data feeding an outbound message",
+          "sandbox-fix is a bounded agent (5 turns) which is reasonable, but its tool is labeled code_interpreter while the catalog documents AgentRun sandboxes; the mapping is plausible but not explicit"
+        ],
+        "reasons": [
+          "Router pattern with bounded sandbox agent fits the ask; deterministic steps for classify/retrieve/rank, bounded agent only for remediation",
+          "Manager approval gates the production admin action on the approve path, but the reject path and sandbox path reach the reply with no approval on the outbound response, and the reply node has no explicit send effect so the outbound boundary is ambiguous",
+          "Model tiers fit: Flash for classify/draft, embedding+rerank for retrieval, Plus for plan and sandbox remediation",
+          "Product issues: Tablestore as a vector knowledge base for a new international customer is not established (no new-account Model Studio KB; Tablestore KB connector is documented for AgentCore, not AgentRun), and the reply delivery channel back to the requester is unspecified (email would need a third",
+          "Untrusted ticket content plus KB data plus an outbound reply is a lethal-trifecta pattern; guardrails screen input but the outbound reply content is not covered by approval or an output guard"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-kyc-customer-onboarding",
+      "category": "pattern",
+      "lang": "en",
+      "title": "KYC and Customer Onboarding Triage",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow task extract": 1,
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 19215,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": false,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Low-risk path bypasses human approval entirely: assess-risk has approval:required but the low-risk branch goes straight to approve-onboard (write) without a human gate, violating the policy that consequential effects need approval on every path after the final producer.",
+          "The decide node (assess-risk) is placed before the final content producer (approve-onboard), so approval on the decide node does not cover the actual outbound write on the low-risk path.",
+          "No explicit guard or escalation for the sanctions screening tool result if it returns ambiguous or partial matches.",
+          "The compliance-review node runs on cloudflow but the graph does not show how the task token is persisted or resumed across the human wait state."
+        ],
+        "reasons": [
+          "Deterministic workflow with a bounded risk decision fits the known sequence; no unnecessary agent sprawl.",
+          "High-risk path correctly routes to a human compliance officer before any consequential write.",
+          "Model tiers are sensible: mid-tier for ID verification, small for classification.",
+          "Products used are internationally available and correctly matched to their roles.",
+          "Steps and outcomes are clear, with explicit assumptions and open questions."
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-meeting-notes-to-crm-update",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Meeting notes to CRM updates",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.027,
+      "meanMs": 20872,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          5
+        ],
+        "defects": [
+          "EventBridge trigger for audio upload is plausible but assumes an HTTP event source or OSS event wiring not spelled out"
+        ],
+        "reasons": [
+          "Deterministic prompt chain fits the known sequence; no unnecessary agent",
+          "Approval gates the only consequential write on every path, with edit loop back to diff and reject end",
+          "Model tiers match tasks: ASR flash for transcription, small flash for extract/diff",
+          "All products available internationally; Salesforce correctly treated as third-party API",
+          "Clear narration, explicit assumptions, and useful discovery questions"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-multilingual-document-localisation",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Multilingual Document Localisation Pipeline",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.027,
+      "meanMs": 20627,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "No explicit guard mentioned for untrusted document content before processing",
+          "Auto-approve path bypasses human review entirely—acceptable for internal docs but should be noted as a boundary"
+        ],
+        "reasons": [
+          "Deterministic workflow with bounded human review loop fits the known sequence",
+          "Human approval gates low-confidence segments before finalization; high-confidence auto-approval is acceptable for internal content",
+          "Qwen3.8 Flash appropriately sized for segmentation, translation, and scoring tasks",
+          "All products (EventBridge, FC, CloudFlow) available internationally; CloudFlow WaitForCustomCallback correctly used for human review",
+          "Clear step progression with explicit branching logic and assumptions stated"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-multilingual-marketing-localisation",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Marketing content generation and localisation",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.013,
+      "meanMs": 25930,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Edit loop re-enters translate without a visible bound on refinement iterations (reference suggests at most three measured refinements per locale)",
+          "Master copy generation on AgentRun is heavier than needed; a plain FC model call would suffice since no agent tools are used, though AgentRun code runtime is still a valid international choice"
+        ],
+        "reasons": [
+          "Deterministic workflow with parallel fan-out fits the known sequence; no unnecessary agent autonomy",
+          "Human approval gates publishing on every path after the final content producer (translate), including the edit loop which returns to review",
+          "Model tiers fit: large for creative generation, small for translation",
+          "Products used are internationally available: FC, AgentRun code runtime (Singapore), CloudFlow, AI Guardrails (Singapore), third-party API for publishing",
+          "Clear narration, explicit assumptions and relevant follow-up questions; no invented pricing",
+          "Untrusted brief is screened by guardrails before drafting; approval covers the actual outbound content"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-nl-to-sql-data-analysis",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Data Analysis Agent (NL to SQL)",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.006,
+      "meanMs": 14472,
+      "judge": {
+        "run": 1,
+        "mean": 3.75,
+        "signoff": false,
+        "scores": [
+          4,
+          3,
+          4,
+          4
+        ],
+        "defects": [
+          "Channel unspecified: AgentCore IM channels support only DingTalk/Lark/WeCom for managed agents; a generic chat agent needs Chat App Message Service or a custom webhook into Function Compute, neither of which is shown.",
+          "Cross-product orchestration undefined: nodes span agentcore, agentrun, cloudflow and fc with no stated runner connecting them; the CloudFlow approval step (WaitForCustomCallback with task token) has no enclosing workflow.",
+          "FC to RDS connectivity not addressed: FC is outside the VPC unless VPC access is configured; run-sql on fc against RDS in a VPC needs that configuration stated.",
+          "No guard on the final reply: formatted results derived from private data go straight to the user; the human gate covers the SQL only, not the outbound answer content.",
+          "SQL safety measures beyond approval are unspecified: no read-only enforcement, row limits, timeout or schema allowlist on run-sql despite the 'runs them safely' ask.",
+          "Edit loop has no bound: verify-edit loops back to gen-sql with no retry limit, though bounded retries are expected to stay in this run."
+        ],
+        "reasons": [
+          "Deterministic chain with a bounded edit loop fits NL-to-SQL; no unnecessary agent autonomy.",
+          "Human verification of generated SQL occurs before execution, and the edit loop re-verifies regenerated SQL, so the gate covers every path to the database read.",
+          "qwen3.8-max for SQL generation is defensible; qwen3.8-flash for formatting fits.",
+          "Product split is muddled: chat-in and reply-user run on agentcore while gen-sql runs on agentrun and run-sql/format-res on fc, with no stated channel (AgentCore IM channels are DingTalk/Lark/WeCom only; other chat needs Chat App Message Service or custom webhook) and no stated orchestration of the c",
+          "Approval is placed on CloudFlow but no surrounding CloudFlow state machine is shown; FC is drawn outside VPC by default yet must reach RDS in a VPC, and VPC access is not configured.",
+          "Lethal-trifecta handling is partial: untrusted user text plus private data reaches an outbound reply with no guard on the final content; approval covers the SQL, not the answer content.",
+          "No cost or volume estimates invented; open questions are reasonable."
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-regulatory-change-monitoring",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Regulatory Change Monitoring and Impact Assessment",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 23456,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Tablestore used as vector index for policy retrieval is plausible (documented as AgentCore knowledge connector) but Singapore pricing is CNY-reference only and unconfirmed",
+          "Untrusted crawled content plus private policies plus outbound publish is a lethal-trifecta pattern; approval covers the memo, but the design does not explicitly flag content-injection risk from feeds",
+          "No persistence/remediation-tracking state (open tasks, overdue notifications) from the reference is carried in, though the ask did not require it"
+        ],
+        "reasons": [
+          "Deterministic pipeline fits the known sequence; no unnecessary agent autonomy",
+          "Approval gate placed after final content producer (draft-memo) and before publish, with approve/edit/reject branches covering all paths",
+          "Model tiers match tasks: small models for classify/translate/embed/rerank, mid-tier for impact analysis and drafting",
+          "Products are internationally available: SchedulerX, FC, AgentRun (code-first), Tablestore, CloudFlow all valid; no gated low-code or new-account KB assumptions",
+          "Clear narration, explicit assumptions, and relevant clarifying questions"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-rfp-security-questionnaire-answerer",
+      "category": "pattern",
+      "lang": "en",
+      "title": "RFP and security questionnaire answering",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 22459,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Final assembly happens after SME approval with no final human check on the assembled document before delivery",
+          "Assumes Tablestore Knowledge Storage in Singapore/Hong Kong but pricing confirmation flagged as CNY reference only",
+          "No explicit guard on the final assembled output before it reaches the customer"
+        ],
+        "reasons": [
+          "Deterministic workflow with bounded retries fits the known sequence; no unnecessary agent autonomy",
+          "SME approval gates the draft before final assembly; all consequential paths route through human review",
+          "Model tiers match tasks: small models for embedding/rerank/check, mid-tier for generation",
+          "All products available internationally; Tablestore knowledge storage noted with pricing caveat",
+          "Clear linear flow with explicit hallucination loop and approval branches"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-rule-agentbay",
+      "category": "trap",
+      "lang": "en",
+      "title": "AgentBay availability",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1,
+        "mentions gated|restricted|access|availability": 1
+      },
+      "failedTypes": [
+        "workflow",
+        "mention"
+      ],
+      "meanCostUsd": 0.005,
+      "meanMs": 8518,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          5
+        ],
+        "defects": [
+          "Does not flag the need to confirm browser sandbox type availability per region in the console, as catalog notes per-type availability is set there",
+          "Assumption cites ap-southeast-1 availability but does not mention ACS cluster, controller/sandbox-manager add-ons, or ALB Ingress prerequisites"
+        ],
+        "reasons": [
+          "Correctly identifies AgentBay as unavailable and substitutes ACS Agent Sandbox, which is GA in Singapore with self-service activation",
+          "Single bounded agent with a browser tool is the right pattern for exploratory website testing; no deterministic sequence was forced",
+          "Read-only effect: no send/publish/delete actions, so no approval gates required",
+          "qwen3.7-plus fits the check/navigate role and is GA in ap-southeast-1",
+          "Clear narration, explicit gap note for AgentBay, fallback assumption to Function Compute + Playwright, and relevant clarifying questions"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-rule-agentrun-lowcode",
+      "category": "trap",
+      "lang": "en",
+      "title": "AgentRun low-code versus code runtime",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1,
+        "mentions gated|restricted|not available|access": 1
+      },
+      "failedTypes": [
+        "workflow",
+        "mention"
+      ],
+      "meanCostUsd": 0.004,
+      "meanMs": 6936,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": false,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Missing human approval or guard step between support-agent (final content producer) and reply-out for customer-facing replies",
+          "No explicit handling of untrusted web search results combined with outbound customer communication (lethal trifecta risk)",
+          "Reply delivered directly to customer without escalation path or content review"
+        ],
+        "reasons": [
+          "Correctly identifies AgentRun low-code as gated and uses code-first runtime",
+          "Single agent with bounded turns (10) is appropriate for support research with tool use",
+          "qwen3.7-plus is the recommended default agent model and fits the task",
+          "Support ticket replies to customers are consequential outbound content; no approval or guard node shown after the agent produces the reply",
+          "Web search on support tickets may pull untrusted external content that flows into customer replies without sanitization or approval gate"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-rule-automate",
+      "category": "trap",
+      "lang": "en",
+      "title": "Just automate internal reversible work",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.005,
+      "meanMs": 9023,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Ticket update modeled as generic third-party-api rather than a concrete internal system, leaving the write target ambiguous",
+          "On-call channel assumed to be DingTalk-like but chatapp's documented channels are WhatsApp/Viber/Messenger/etc.; internal chat channel fit is unverified",
+          "Untrusted ticket content flows into the classifier and then into a notify message; narration does not flag content-boundary handling, though no external outbound path exists"
+        ],
+        "reasons": [
+          "Deterministic prompt chain matches the known sequence; no agent loop justified or used",
+          "All effects are internal reversible write plus notify; approval skip is correct per policy",
+          "qwen3.8-flash small tier fits routine classification; ap-southeast-1 matches AgentRun's Singapore endpoint",
+          "FC 3.0 trigger and AgentRun code runtime are internationally available; chatapp supports internal channels",
+          "Steps, boundaries and assumptions are clear; volume question is appropriate; no invented prices"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-rule-chat-reply",
+      "category": "trap",
+      "lang": "en",
+      "title": "Live chat replies need no approval",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1,
+        "workflow required checks clean": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.005,
+      "meanMs": 8855,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          5
+        ],
+        "defects": [
+          "WebSocket assumption for chat channel not explicitly validated against FC capabilities, though custom webhook pattern is acceptable"
+        ],
+        "reasons": [
+          "Correctly implements live chat pattern with guardrails and escalation, no routine approval per explicit user override and reference guidance",
+          "AI Guardrails properly placed on inbound untrusted messages before agent processing",
+          "Order lookup is internal reversible read, correctly no approval",
+          "Escalation path for low confidence/complex cases satisfies human-in-loop requirement for live chat",
+          "Qwen3.7 Plus appropriate for order chat with tool calling; mid-tier fits routine customer service",
+          "Products available internationally: FC, AI Guardrails (Singapore endpoint), AgentRun code-first runtime (Singapore)"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-rule-email-send",
+      "category": "trap",
+      "lang": "en",
+      "title": "Email answers need approval",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 20829,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          5
+        ],
+        "defects": [
+          "Lookup node is labeled runs:agentrun with ai/tool fields though it is a plain RDS read; minor labeling inconsistency, but AgentRun code runtime is internationally available so no correctness break"
+        ],
+        "reasons": [
+          "Deterministic prompt chain fits the known sequence; no unbounded agent loop",
+          "Approval sits after the final content producer (draft) and before send, with edit loop returning to approval and reject path terminal; send itself cannot fire without approval",
+          "Model tiers fit: Flash for classify/extract, Plus for grounded drafting",
+          "Email enters via EventBridge webhook and sends via Direct Mail, matching catalog facts; no gated products assumed",
+          "Guardrails on untrusted inbound before processing; private order data only feeds the draft, and approval covers the actual outbound content"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-rule-email",
+      "category": "trap",
+      "lang": "en",
+      "title": "Inbound email adapter",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 20515,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          5
+        ],
+        "defects": [
+          "Tablestore is used as the knowledge store; its Singapore/Hong Kong rates are CNY reference only, so international pricing should be confirmed before commit"
+        ],
+        "reasons": [
+          "Deterministic CloudFlow sequence with no unnecessary agent autonomy; matches known support-email pipeline",
+          "Approval sits after the final content producer (draft) and before send, with approve/edit/reject/timeout branches covering every path; edit loops back through approval",
+          "Model tiers fit: Flash for classify, embedding + rerank for retrieval, Plus for grounded drafting",
+          "Inbound email correctly uses a mailbox webhook into EventBridge rather than claiming a native inbound service; Direct Mail used only for outbound send",
+          "Guardrails screen untrusted inbound content before models; retrieval is internal; the only outbound content (the draft) is exactly what approval covers",
+          "Clear narration, explicit assumptions and volume/success questions; no invented prices"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-rule-knowledge-base",
+      "category": "trap",
+      "lang": "en",
+      "title": "Knowledge base for a new international account",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.006,
+      "meanMs": 11725,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "The 'embed' node is labeled with product tablestore, but embedding is a Model Studio API call (text-embedding-v4); Tablestore stores vectors, it does not embed — product attribution is muddled.",
+          "No explicit guard check on the drafted answer before reply (e.g., data-leak/harmful-content screening); minor since content is grounded in internal policy, but an outbound moderation step would harden it.",
+          "Tablestore Knowledge Storage Singapore pricing is CNY reference only per catalog; the design does not flag the need to confirm Singapore pricing.",
+          "No citation/grounding or low-confidence fallback step specified, so answer-quality boundaries are implicit."
+        ],
+        "reasons": [
+          "Correctly identifies the Model Studio hosted KB gate for new international accounts and pivots to external retrieval (Tablestore Knowledge Storage) with Model Studio APIs, matching the reference guidance.",
+          "Deterministic linear RAG pipeline (guard → embed → retrieve → rerank → draft → reply) is the right pattern; no unnecessary agentic routing.",
+          "Read-only internal Q&A reply needs no human approval; inbound guard via AI Guardrails addresses prompt injection from untrusted user input.",
+          "Model tiers fit: text-embedding-v4 and qwen3-rerank (small) for retrieval/rerank, qwen3.7-plus (mid) for grounded generation; all GA in ap-southeast-1 (Singapore).",
+          "No outbound external access or private-data exfiltration path, so no lethal trifecta; retrieved policy content is internal.",
+          "Narration explains the KB gate and the alternative; asks relevant volume and success-baseline questions without inventing prices."
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-rule-phone",
+      "category": "trap",
+      "lang": "en",
+      "title": "Inbound phone line",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow task transcribe": 1,
+        "workflow task speak": 1,
+        "workflow products model-studio": 1,
+        "workflow required checks clean": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.006,
+      "meanMs": 12507,
+      "judge": {
+        "run": 1,
+        "mean": 3.75,
+        "signoff": false,
+        "scores": [
+          4,
+          3,
+          4,
+          4
+        ],
+        "defects": [
+          "inbound-call uses product artc for a 'real inbound phone number' even though the supplied facts say the phone line must come from a carrier SIP trunk, partner CCaaS, or customer telephony.",
+          "No separate telephony/CCaaS ingress node is shown, so the design still implies ARTC itself is the phone-line product.",
+          "The voice agent handles untrusted speech plus private account/support data and can reply outbound to the caller, but no concrete guard or escalation policy is shown beyond a generic transfer edge.",
+          "The human transfer is present, but there is no explicit condition model for when transfer happens beyond 'requested or confidence low'."
+        ],
+        "reasons": [
+          "Pattern is a single bounded voice agent with explicit human escalation, which fits a live support call.",
+          "Live voice reply is treated as guard-and-escalate rather than routine approval, and the human transfer path is explicit.",
+          "Model choice fits realtime audio in/out and tool-capable voice support, but the design does not show concrete guardrails for private data disclosure during the call.",
+          "Biggest product concern is the phone line: the graph labels ARTC as the inbound phone-call entry even though the facts only support customer/partner telephony supplying the number, with ARTC/IMS handling realtime media after that.",
+          "The narration and gap note partially correct this, but the final topology still blurs who provisions the actual PSTN/SIP ingress."
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-rule-slack",
+      "category": "trap",
+      "lang": "en",
+      "title": "Slack custom webhook",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1,
+        "workflow required checks clean": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 18043,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          5
+        ],
+        "defects": [
+          "Tablestore as knowledge store: published rates are CNY reference only, Singapore pricing needs confirmation"
+        ],
+        "reasons": [
+          "Correctly uses deterministic router pattern with bounded classification for routing",
+          "Live chat reply path has guardrails and human escalation for hard questions, no routine approval needed",
+          "Model tiers fit tasks: small for classify/embed/rerank, mid for generation",
+          "Slack handled via custom webhook on FC as documented, no invented native connector",
+          "Clear narration, explicit gaps and assumptions"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-rule-trifecta",
+      "category": "trap",
+      "lang": "en",
+      "title": "Untrusted content, private data and outbound email",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1,
+        "mentions untrusted|injection|trifecta": 1
+      },
+      "failedTypes": [
+        "workflow",
+        "mention"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 18635,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Tablestore knowledge-base connector is documented for AgentCore, not AgentRun; design assumes Tablestore KB works with AgentRun (flagged as assumption cust-store but not fully resolved)",
+          "Guard node labeled with approval=required as well as a separate human approve step; slight redundancy, though the human approve is the operative gate",
+          "Edit loop (approve -> researcher) re-enters the guard before re-approval, which is correct, but the guard's own approval=required flag is ambiguous"
+        ],
+        "reasons": [
+          "Correctly identifies and mitigates the lethal trifecta: untrusted web content + private customer records + outbound email",
+          "Approval gate placed after the final content producer (guard) and before the send action, covering the actual outbound content",
+          "Deterministic single-agent pattern is appropriate; tools are bounded and the sequence is known",
+          "Model tiers fit: qwen3.7-plus for agentic drafting, small models for embed/rerank",
+          "Products are internationally available: AgentRun (Singapore), Tablestore (Singapore), AI Guardrails (Singapore), Direct Mail, CloudFlow"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-rule-whatsapp",
+      "category": "trap",
+      "lang": "en",
+      "title": "Inbound WhatsApp chat",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1,
+        "workflow required checks clean": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 19813,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "lookup-order runs on agentrun but is a simple read tool; FC would suffice and avoid unnecessary runtime complexity",
+          "escalate-human uses agentcore, but AgentCore IM channels are DingTalk/Lark/WeCom only; WhatsApp handoff needs Chat App Message Service or custom webhook, not AgentCore native channel",
+          "No explicit mention that AI Guardrails is available in Singapore (it is, but design should confirm region)"
+        ],
+        "reasons": [
+          "Deterministic prompt chain with bounded routing is appropriate for order-status queries",
+          "Live chat replies correctly avoid routine approval; human escalation handles uncertainty",
+          "Small model for classification, mid-tier for generation fits the task",
+          "WhatsApp correctly uses Chat App Message Service; guardrails and FC are internationally available",
+          "Clear flow with explicit guard, confidence check, and handoff path"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-sales-prospect-research-outreach",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Sales prospect research and outreach drafting",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.006,
+      "meanMs": 12589,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Edit loop (rep-approve -> researcher) has no visible bound; a rep could cycle indefinitely, though each cycle still ends at approval so no unsafe send",
+          "Web search results are untrusted content fetched inside the agent; guard screens inbound lead data but not tool-returned web content before it shapes the outbound email — approval on the final email largely covers this, but a note on tool-output screening would strengthen it",
+          "No explicit retry on the research step as the reference suggests (one research retry); minor deviation, not required",
+          "runs:customer on end nodes is a labelling quirk; harmless"
+        ],
+        "reasons": [
+          "Bounded agent (10 turns) with web_search is appropriate for research+drafting; deterministic flow around it",
+          "Approval gate sits after the final content producer on every send path; edit loop returns to producer then re-approval; reject path terminates safely",
+          "qwen3.7-plus mid tier fits research/drafting with tool use; no over- or under-tiering evident",
+          "Products all internationally available: FC, AgentRun (Singapore code-first), CloudFlow callbacks, Direct Mail outbound, AI Guardrails",
+          "Untrusted lead data is screened by AI Guardrails before the agent, mitigating injection from lead content into the outbound email",
+          "Clear narration, explicit assumptions about lead source and send channel, and relevant discovery questions"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-social-listening-review-analysis",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Social listening and review analysis",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1,
+        "workflow every approval-needing effect gated on every path": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 25287,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Model tier could be smaller for routine extraction/classification if split, but single agent justifies large tier",
+          "No explicit guard on outbound reply content at post time (approval covers it, but lethal trifecta flag: untrusted reviews + private data + outbound publish is mitigated by PR approval)"
+        ],
+        "reasons": [
+          "Bounded agent with tools fits the ask; deterministic sequence with model choice for clustering/drafting",
+          "Approval gates both PR creation and posting; human approval after final content producer",
+          "Qwen3.8 Max is large tier for orchestration; tools use code_interpreter appropriately",
+          "EventBridge webhook ingestion, AI Guardrails, AgentRun code runtime, and CloudFlow human callback are all internationally available",
+          "Clear narration, assumptions, and questions; no invented prices"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-sre-incident-triage-and-rca",
+      "category": "pattern",
+      "lang": "en",
+      "title": "SRE Incident Triage and Root-Cause Analysis",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 18529,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          5
+        ],
+        "defects": [
+          "CloudMonitor-to-EventBridge inbound path assumed via webhook without noting the exact CloudMonitor event source configuration (minor, flagged as assumption)"
+        ],
+        "reasons": [
+          "Bounded agent (10 turns) fits the open-ended diagnosis ask; deterministic flow around it",
+          "Approval gates the admin rollback on every path (approve/edit loop/reject/timeout), placed after the final content producer",
+          "qwen3.8-max for multi-tool hypothesis reasoning, qwen3.7-plus for drafting: tiers match roles",
+          "Guardrails sanitize untrusted alert payload before agent context; read-only tools need no approval",
+          "All products (EventBridge, FC, AI Guardrails, AgentRun code runtime, CloudFlow) available internationally; CloudFlow WaitForCustomCallback fits the approval step",
+          "Clear narration, explicit assumptions and relevant questions; no invented pricing"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-supply-chain-exception-handling",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Supply-Chain Exception Handling",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 21792,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Supplier PDF content is untrusted but only the event payload passes through AI Guardrails; PDF text is not explicitly screened for prompt injection before the parse agent",
+          "Edit branch loops back to draft-proposal and re-enters planner-review, which is correct, but no bound or note on edit cycles",
+          "Minor: fetch-pdf runs on agentrun as a standalone step while the parse agent also runs there; could be folded into the agent, a small topology inefficiency"
+        ],
+        "reasons": [
+          "Deterministic pipeline with a bounded agent (10 turns) only where PDF parsing and calculation need tool use; good pattern fit",
+          "Payment action is gated by planner approval after the final content producer, with approve/reject/edit branches covering all paths",
+          "Model tiers fit: small Flash for classification, Plus for extraction/calculation and proposal drafting",
+          "EventBridge webhook trigger, FC, AI Guardrails, CloudFlow approval and AgentRun code runtime are all internationally available; third-party carrier API is correctly external",
+          "Untrusted event payload is screened by guardrails before processing; PDF content feeds a pay action that is human-approved, covering the lethal-trifecta outbound effect",
+          "Clear narration, sensible assumptions and relevant discovery questions"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-support-email-triage",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Support Email Triage and Auto-Resolution",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.007,
+      "meanMs": 18210,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Edit loop from approve back to draft has no explicit revision cap in the graph (reference allows at most two revisions); relies on human reject to terminate",
+          "Tablestore used as knowledge store has only CNY reference rates for Singapore/Hong Kong; pricing unconfirmed, though no price was invented",
+          "No explicit handling path for guard-flagged malicious emails (e.g., quarantine) beyond proceeding to classify"
+        ],
+        "reasons": [
+          "Deterministic prompt chain fits a known sequence; no unnecessary agent autonomy",
+          "Approval gates the only consequential effect (send) after the final producer, with edit loop bounded by human choice and reject/timeout paths ending safely",
+          "Model tiers match tasks: flash for classify, embedding+rerank for retrieval, plus for drafting",
+          "Inbound email correctly uses EventBridge webhook; Direct Mail outbound-only is consistent; no gated products assumed",
+          "Guard screens untrusted inbound content before LLM processing, mitigating injection into the draft that a human approves"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-travel-itinerary-booking",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Travel Itinerary Booking Agent",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 18580,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Search nodes are marked as kind:tool but assigned ai:qwen3.7-plus; tool nodes should not have an AI model, or should be AI nodes with tool use",
+          "No explicit guard mentioned for handling untrusted content from third-party travel APIs before it reaches the itinerary builder"
+        ],
+        "reasons": [
+          "Deterministic workflow with parallel search, itinerary build, and explicit approval gate fits the known sequence",
+          "Approval is placed after the final content producer and before both payment actions; reject and edit paths also route correctly",
+          "Model tiers are appropriate: qwen3.8-max for planning, qwen3.7-plus for search and itinerary generation",
+          "Products are internationally available: AgentRun code runtime in Singapore, CloudFlow for approval, third-party APIs for travel",
+          "Steps are clear with outcomes and boundaries; assumptions and questions are stated"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "wf-whatsapp-line-chat-agent",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Multichannel Chat Agent with Human Handoff",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow products model-studio": 1,
+        "workflow every approval-needing effect gated on every path": 1
+      },
+      "failedTypes": [
+        "workflow"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 20758,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Small-talk path bypasses check-stuck, so a stuck small-talk reply has no escalation route (minor, low risk)",
+          "Human handoff mechanism is only an assumption (DingTalk/ticketing); the handoff node's actual delivery path is unspecified",
+          "Guard node lacks an explicit block/reject path for flagged messages — what happens to injection attempts is not shown"
+        ],
+        "reasons": [
+          "Router pattern with bounded agent (5 turns) fits the ask; deterministic routing with model choice only where needed",
+          "Live chat replies correctly use guard + escalation rather than routine approval; send-reply skip is acceptable for live chat per rules",
+          "Model tiers fit: flash for classify/small talk, plus for the tool-calling order agent",
+          "Products are internationally available: Chat App for WhatsApp/LINE, AgentRun code runtime (Singapore), FC, AI Guardrails",
+          "Lethal trifecta handled: untrusted input screened by guardrails before agent with private order data and outbound reply"
+        ]
+      },
+      "runPass": [
+        false
+      ]
+    }
+  ],
+  "warnings": {
+    "preRepairByCode": {
+      "wf-reply-guard": {
+        "total": 23,
+        "perTurn": 0.535,
+        "turns": 16
+      },
+      "wf-decision-review": {
+        "total": 18,
+        "perTurn": 0.419,
+        "turns": 13
+      },
+      "wf-dangling-ref": {
+        "total": 16,
+        "perTurn": 0.372,
+        "turns": 6
+      },
+      "wf-ai-mismatch": {
+        "total": 12,
+        "perTurn": 0.279,
+        "turns": 9
+      },
+      "bad-op": {
+        "total": 11,
+        "perTurn": 0.256,
+        "turns": 7
+      },
+      "wf-unreachable": {
+        "total": 9,
+        "perTurn": 0.209,
+        "turns": 2
+      },
+      "wf-bad-op": {
+        "total": 7,
+        "perTurn": 0.163,
+        "turns": 7
+      },
+      "dangling-edge": {
+        "total": 5,
+        "perTurn": 0.116,
+        "turns": 2
+      },
+      "wf-dead-end": {
+        "total": 4,
+        "perTurn": 0.093,
+        "turns": 4
+      },
+      "wf-approval": {
+        "total": 2,
+        "perTurn": 0.047,
+        "turns": 2
+      },
+      "wf-attach-form": {
+        "total": 1,
+        "perTurn": 0.023,
+        "turns": 1
+      },
+      "wf-mixed-out": {
+        "total": 1,
+        "perTurn": 0.023,
+        "turns": 1
+      },
+      "wf-trifecta": {
+        "total": 1,
+        "perTurn": 0.023,
+        "turns": 1
+      }
+    },
+    "postRepairByCode": {
+      "wf-reply-guard": {
+        "total": 23,
+        "perTurn": 0.535,
+        "turns": 16
+      },
+      "wf-decision-review": {
+        "total": 18,
+        "perTurn": 0.419,
+        "turns": 13
+      },
+      "wf-ai-mismatch": {
+        "total": 9,
+        "perTurn": 0.209,
+        "turns": 9
+      },
+      "wf-bad-op": {
+        "total": 5,
+        "perTurn": 0.116,
+        "turns": 5
+      },
+      "wf-dead-end": {
+        "total": 2,
+        "perTurn": 0.047,
+        "turns": 2
+      },
+      "wf-approval": {
+        "total": 2,
+        "perTurn": 0.047,
+        "turns": 2
+      },
+      "wf-trifecta": {
+        "total": 1,
+        "perTurn": 0.023,
+        "turns": 1
+      }
+    },
+    "preRepairBySeverity": {
+      "info": 57,
+      "warn": 44,
+      "error": 9
+    },
+    "postRepairBySeverity": {
+      "warn": 33,
+      "info": 27
+    },
+    "fixesByCode": {
+      "wf-dangling-ref": 16,
+      "wf-attach-form": 1,
+      "wf-mixed-out": 1
+    },
+    "unknownProducts": {
+      "count": 0,
+      "top": []
+    },
+    "nonIdProducts": {
+      "count": 0,
+      "top": []
+    }
+  },
+  "latency": {
+    "firstByteMs": {
+      "n": 43,
+      "p50": 1273,
+      "p95": 1992,
+      "mean": 1419,
+      "max": 7289
+    },
+    "perceivedFirstByteMs": {
+      "n": 43,
+      "p50": 1287,
+      "p95": 6822,
+      "mean": 1799,
+      "max": 9568
+    },
+    "firstSayMs": {
+      "n": 43,
+      "p50": 1519,
+      "p95": 2265,
+      "mean": 1692,
+      "max": 7609
+    },
+    "firstOpMs": {
+      "n": 43,
+      "p50": 1960,
+      "p95": 3208,
+      "mean": 2152,
+      "max": 8044
+    },
+    "firstNodeMs": {
+      "n": 43,
+      "p50": 4379,
+      "p95": 6621,
+      "mean": 4561,
+      "max": 11181
+    },
+    "streamMs": {
+      "n": 43,
+      "p50": 18623,
+      "p95": 23366,
+      "mean": 17696,
+      "max": 25818
+    },
+    "turnMs": {
+      "n": 43,
+      "p50": 19211,
+      "p95": 25766,
+      "mean": 18277,
+      "max": 25927
+    },
+    "diagramStreamMs": {
+      "n": 43,
+      "p50": 18623,
+      "p95": 23366,
+      "mean": 17696,
+      "max": 25818
+    },
+    "productStreamMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "editStreamMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    }
+  },
+  "tokens": {
+    "prompt": 376758,
+    "cached": 350848,
+    "cacheHit": 0.931,
+    "completion": 36388,
+    "completionPerTurn": {
+      "n": 43,
+      "p50": 891,
+      "p95": 1134,
+      "mean": 846,
+      "max": 1244
+    },
+    "costPerTurn": {
+      "n": 43,
+      "p50": 0.0078,
+      "p95": 0.02323,
+      "mean": 0.0089,
+      "max": 0.026575
+    },
+    "costPerConversation": {
+      "n": 43,
+      "p50": 0.0078,
+      "p95": 0.02323,
+      "mean": 0.0089,
+      "max": 0.026575
+    },
+    "costUsd": 0.383
+  },
+  "reliability": {
+    "turns": 43,
+    "truncatedMain": 0,
+    "continued": 0,
+    "repairTurns": 2,
+    "hedged": 0,
+    "hedgeWon": 0,
+    "fallbackUsed": 2,
+    "retriedAttempts": 2,
+    "apiFailures": 0,
+    "badLines": 0,
+    "escapes": 0
+  },
+  "failover": {
+    "turns": 2,
+    "rate": 0.047,
+    "byReason": {
+      "first-byte-timeout": 2
+    },
+    "stalledAttemptMs": {
+      "n": 2,
+      "p50": 8170,
+      "p95": 8237,
+      "mean": 8170,
+      "max": 8244
+    },
+    "fallbackFirstByteMs": {
+      "n": 2,
+      "p50": 1178,
+      "p95": 1309,
+      "mean": 1178,
+      "max": 1324
+    },
+    "perceivedFirstByteMs": {
+      "n": 2,
+      "p50": 9348,
+      "p95": 9546,
+      "mean": 9348,
+      "max": 9568
+    },
+    "turnMs": {
+      "n": 2,
+      "p50": 20746,
+      "p95": 20857,
+      "mean": 20746,
+      "max": 20869
+    },
+    "followUpFallbacks": 0,
+    "examples": [
+      {
+        "case": "wf-meeting-notes-to-crm-update",
+        "run": 1,
+        "turn": 1,
+        "reasons": [
+          "first-byte-timeout"
+        ],
+        "stalledMs": 8244,
+        "fallbackFirstByteMs": 1324
+      },
+      {
+        "case": "wf-multilingual-document-localisation",
+        "run": 1,
+        "turn": 1,
+        "reasons": [
+          "first-byte-timeout"
+        ],
+        "stalledMs": 8096,
+        "fallbackFirstByteMs": 1031
+      }
+    ]
+  },
+  "cutoff": {
+    "truncated": 0,
+    "byCause": {},
+    "rescued": 0,
+    "notRescued": 0,
+    "rescuedPassing": 0,
+    "turnPassRateExcludingRescued": 0,
+    "list": []
+  },
+  "constraints": {
+    "residency": {
+      "checks": 0,
+      "passed": 0,
+      "rate": 0,
+      "failing": [],
+      "warnMentions": 0,
+      "correctedByRepair": 0,
+      "scan": {
+        "checks": 0,
+        "passed": 0,
+        "failing": []
+      }
+    },
+    "pins": {
+      "checks": 0,
+      "passed": 0,
+      "rate": 0,
+      "failing": []
+    },
+    "avoid": {
+      "checks": 0,
+      "passed": 0,
+      "rate": 0
+    },
+    "product": {
+      "turnsWithConstraints": 0,
+      "findingsBefore": {},
+      "findingsAfter": {}
+    }
+  },
+  "repairs": {
+    "fixesByCode": {
+      "wf-dangling-ref": {
+        "total": 16,
+        "turns": 6
+      },
+      "wf-attach-form": {
+        "total": 1,
+        "turns": 1
+      },
+      "wf-mixed-out": {
+        "total": 1,
+        "turns": 1
+      }
+    },
+    "followUps": {
+      "turns": 2,
+      "byKind": {
+        "repair": 2
+      },
+      "byFindingCode": {
+        "wf-bad-op": 2,
+        "dangling-edge": 2,
+        "wf-unreachable": 2,
+        "wf-dead-end": 2
+      },
+      "list": [
+        {
+          "case": "wf-ecommerce-product-listing-enrichment",
+          "run": 1,
+          "turn": 1,
+          "kind": "repair",
+          "model": "qwen3.8-max",
+          "findings": [
+            "wf-bad-op/warn: Step 'join-listings' has an unknown kind.",
+            "dangling-edge/warn: Link 'l-seo-join' was dropped because an endpoint never arrived.",
+            "dangling-edge/warn: Link 'l-join-approve' was dropped because an endpoint never arrived.",
+            "dangling-edge/warn: Link 'l-approve-edit' was dropped because an endpoint never arrived.",
+            "wf-unreachable/error: 'Merchandiser approval' (approve): Connect this step to a trigger.",
+            "wf-unreachable/error: 'Listings published' (done-ok): Connect this step to a trigger.",
+            "wf-unreachable/error: 'Listing rejected' (done-reject): Connect this step to a trigger.",
+            "wf-unreachable/error: 'Publish to Amazon' (pub-amazon): Connect this step to a trigger.",
+            "wf-unreachable/error: 'Publish to Shopee' (pub-shopee): Connect this step to a trigger.",
+            "wf-dead-end/warn: 'Generate SEO listing' (seo): Add an outgoing link or an end step."
+          ],
+          "pass": false
+        },
+        {
+          "case": "wf-multilingual-marketing-localisation",
+          "run": 1,
+          "turn": 1,
+          "kind": "repair",
+          "model": "qwen3.8-max",
+          "findings": [
+            "wf-bad-op/warn: Step 'join' has an unknown kind.",
+            "dangling-edge/warn: Link 'trans-join' was dropped because an endpoint never arrived.",
+            "dangling-edge/warn: Link 'join-review' was dropped because an endpoint never arrived.",
+            "wf-unreachable/error: 'Campaign published' (done-pub): Connect this step to a trigger.",
+            "wf-unreachable/error: 'Publish approved copy' (publish): Connect this step to a trigger.",
+            "wf-unreachable/error: 'Review rejected' (rejected): Connect this step to a trigger.",
+            "wf-unreachable/error: 'In-market review' (review): Connect this step to a trigger.",
+            "wf-dead-end/warn: 'Translate to locale' (translate): Add an outgoing link or an end step."
+          ],
+          "pass": false
+        }
+      ]
+    }
+  },
+  "i18n": {
+    "en": {
+      "turns": 43,
+      "completionPerTurn": 846,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 8762,
+      "sayLangPass": 43,
+      "sayLangChecks": 43,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    }
+  },
+  "multiturn": [],
+  "judge": {
+    "model": "kimi-k3",
+    "judged": 43,
+    "runsJudged": 43,
+    "constraintRuns": null,
+    "errors": 0,
+    "means": {
+      "completeness": 4.372,
+      "accuracy": 3.86,
+      "rationality": 4.791,
+      "readability": 4.279,
+      "overall": 4.326
+    },
+    "signoffRate": 0.791,
+    "byCategory": {
+      "pattern": {
+        "n": 32,
+        "overall": 4.281,
+        "signoff": 0.781
+      },
+      "trap": {
+        "n": 11,
+        "overall": 4.455,
+        "signoff": 0.818
+      }
+    },
+    "agreement": {
+      "n": 43,
+      "agree": 9,
+      "rate": 0.209,
+      "tp": 0,
+      "tn": 9,
+      "fp": 0,
+      "fn": 34,
+      "meanScorePass": null,
+      "meanScoreFail": 4.326,
+      "pointBiserial": null,
+      "disagreements": [
+        {
+          "case": "wf-claims-processing-extraction",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "OCR retry logic (max 3 attempts) from reference fixture not explicitly modeled in graph",
+            "Policy DB lookup uses MCP tool but could clarify if this is internal reversible read (no approval needed) vs external consequential",
+            "Merge-data join='any' may need clarification on handling partial failures from extraction branches"
+          ]
+        },
+        {
+          "case": "wf-code-review-pr-agent",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow task check",
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Lethal-trifecta adjacency: review-agent combines untrusted PR content, private repo access and outbound-capable MCP tools with approval:skip; mitigation relies entirely on the downstream human gate, so the approval UI must surface the exact outbound comment content (not explicit in the design)",
+            "sandbox-run duplicates code_interpreter while the agent already declares tool:mcp; tool set for repo access vs test execution is slightly muddled",
+            "No explicit guard on the agent's drafted comments before the human sees them (minor, since human reviews)"
+          ]
+        },
+        {
+          "case": "wf-contract-clause-review",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": []
+        },
+        {
+          "case": "wf-cross-border-document-compliance-check",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "qwen3.8-max used for compliance-check is text-only per model facts, but receives parsed text so it is acceptable; however risk-flag could arguably reuse the check output rather than a separate small-model pass",
+            "Tablestore Singapore pricing flagged as CNY reference only; estimate not provided, which is correct, but the assumption should note pricing confirmation"
+          ]
+        },
+        {
+          "case": "wf-disruption-rebooking-agent",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Guard node has no failure/reject branch: guardrail detection errors or flagged content have no depicted path to rejection or safe termination",
+            "Untrusted flight data plus traveler private data plus outbound notify is a trifecta risk; narration does not state that guard covers the actual outbound notification content",
+            "search-tool uses web_search, whose availability as a built-in tool on qwen3.7-plus is not established per model facts; should be an MCP/FC-implemented tool"
+          ]
+        },
+        {
+          "case": "wf-ecommerce-product-listing-enrichment",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "extract node declares tool 'web_search_image' which is not a documented built-in tool for qwen3.7-plus (only web_search documented on qwen3.8-flash); the tool call would need a custom FC implementation"
+          ]
+        },
+        {
+          "case": "wf-employee-onboarding-helpdesk",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Tablestore Knowledge Storage pricing is CNY reference only; Singapore rates need confirmation before cost estimates"
+          ]
+        },
+        {
+          "case": "wf-enterprise-knowledge-search",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow kind end",
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "AgentCore trigger with AgentRun runtime is slightly inconsistent but workable",
+            "No explicit human escalation path for live chat, though guard is present"
+          ]
+        },
+        {
+          "case": "wf-financial-report-analysis",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Compute node is tagged task=generate with an ai model assigned though the actual work is deterministic code execution; minor labeling inconsistency but harmless since code_interpreter does the math",
+            "No explicit redraft bound (edit loop from approve back to draft is unbounded in the graph, though in practice human-driven)"
+          ]
+        },
+        {
+          "case": "wf-hr-resume-screening-and-scheduling",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Decide node marked approval:required but has no human step; the only human gate is at approve, so the below-threshold rejection path executes a consequential decide without an actual approval mechanism",
+            "CV source assumption says email, but no explicit webhook adapter node is shown for inbound email into EventBridge",
+            "Tablestore Singapore pricing is CNY-reference only per catalog; design should flag confirmation rather than assume"
+          ]
+        },
+        {
+          "case": "wf-inbound-support-triage-and-draft",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Approval covers the draft, but if the send payload is re-rendered or edited after approval, the actual outbound content could diverge; send should transmit exactly the approved draft",
+            "Guard node has no explicit block/quarantine path shown; blocked-email handling is implied but not drawn",
+            "Narration is minimal; retry bounds and escalation/notification mechanics for the approval wait are not described"
+          ]
+        },
+        {
+          "case": "wf-insurance-claims-triage",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "extract-docs declares tool web_extractor on qwen3.7-plus, whose built-in tool support is not established per MODEL FACTS",
+            "Coverage determination is a consequential decide with no denial path: a not-covered outcome has no reviewed denial disposition or branch, only adjuster rejection of a calculated settlement",
+            "Lethal trifecta (untrusted email + private data + outbound payment API) is approval-gated, but the approval subject is the draft package, not the actual outbound payment payload sent to the third-party API"
+          ]
+        },
+        {
+          "case": "wf-invoice-three-way-match",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Email webhook adapter not explicitly detailed",
+            "Approval for ERP write tool could be more explicit at call time"
+          ]
+        },
+        {
+          "case": "wf-meeting-notes-to-crm-update",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "EventBridge trigger for audio upload is plausible but assumes an HTTP event source or OSS event wiring not spelled out"
+          ]
+        },
+        {
+          "case": "wf-multilingual-document-localisation",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "No explicit guard mentioned for untrusted document content before processing",
+            "Auto-approve path bypasses human review entirely—acceptable for internal docs but should be noted as a boundary"
+          ]
+        },
+        {
+          "case": "wf-multilingual-marketing-localisation",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Edit loop re-enters translate without a visible bound on refinement iterations (reference suggests at most three measured refinements per locale)",
+            "Master copy generation on AgentRun is heavier than needed; a plain FC model call would suffice since no agent tools are used, though AgentRun code runtime is still a valid international choice"
+          ]
+        },
+        {
+          "case": "wf-regulatory-change-monitoring",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Tablestore used as vector index for policy retrieval is plausible (documented as AgentCore knowledge connector) but Singapore pricing is CNY-reference only and unconfirmed",
+            "Untrusted crawled content plus private policies plus outbound publish is a lethal-trifecta pattern; approval covers the memo, but the design does not explicitly flag content-injection risk from feeds",
+            "No persistence/remediation-tracking state (open tasks, overdue notifications) from the reference is carried in, though the ask did not require it"
+          ]
+        },
+        {
+          "case": "wf-rfp-security-questionnaire-answerer",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Final assembly happens after SME approval with no final human check on the assembled document before delivery",
+            "Assumes Tablestore Knowledge Storage in Singapore/Hong Kong but pricing confirmation flagged as CNY reference only",
+            "No explicit guard on the final assembled output before it reaches the customer"
+          ]
+        },
+        {
+          "case": "wf-rule-agentbay",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio",
+            "mentions gated|restricted|access|availability"
+          ],
+          "defects": [
+            "Does not flag the need to confirm browser sandbox type availability per region in the console, as catalog notes per-type availability is set there",
+            "Assumption cites ap-southeast-1 availability but does not mention ACS cluster, controller/sandbox-manager add-ons, or ALB Ingress prerequisites"
+          ]
+        },
+        {
+          "case": "wf-rule-automate",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Ticket update modeled as generic third-party-api rather than a concrete internal system, leaving the write target ambiguous",
+            "On-call channel assumed to be DingTalk-like but chatapp's documented channels are WhatsApp/Viber/Messenger/etc.; internal chat channel fit is unverified",
+            "Untrusted ticket content flows into the classifier and then into a notify message; narration does not flag content-boundary handling, though no external outbound path exists"
+          ]
+        },
+        {
+          "case": "wf-rule-chat-reply",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio",
+            "workflow required checks clean"
+          ],
+          "defects": [
+            "WebSocket assumption for chat channel not explicitly validated against FC capabilities, though custom webhook pattern is acceptable"
+          ]
+        },
+        {
+          "case": "wf-rule-email-send",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Lookup node is labeled runs:agentrun with ai/tool fields though it is a plain RDS read; minor labeling inconsistency, but AgentRun code runtime is internationally available so no correctness break"
+          ]
+        },
+        {
+          "case": "wf-rule-email",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Tablestore is used as the knowledge store; its Singapore/Hong Kong rates are CNY reference only, so international pricing should be confirmed before commit"
+          ]
+        },
+        {
+          "case": "wf-rule-knowledge-base",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "The 'embed' node is labeled with product tablestore, but embedding is a Model Studio API call (text-embedding-v4); Tablestore stores vectors, it does not embed — product attribution is muddled.",
+            "No explicit guard check on the drafted answer before reply (e.g., data-leak/harmful-content screening); minor since content is grounded in internal policy, but an outbound moderation step would harden it.",
+            "Tablestore Knowledge Storage Singapore pricing is CNY reference only per catalog; the design does not flag the need to confirm Singapore pricing."
+          ]
+        },
+        {
+          "case": "wf-rule-slack",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio",
+            "workflow required checks clean"
+          ],
+          "defects": [
+            "Tablestore as knowledge store: published rates are CNY reference only, Singapore pricing needs confirmation"
+          ]
+        },
+        {
+          "case": "wf-rule-trifecta",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio",
+            "mentions untrusted|injection|trifecta"
+          ],
+          "defects": [
+            "Tablestore knowledge-base connector is documented for AgentCore, not AgentRun; design assumes Tablestore KB works with AgentRun (flagged as assumption cust-store but not fully resolved)",
+            "Guard node labeled with approval=required as well as a separate human approve step; slight redundancy, though the human approve is the operative gate",
+            "Edit loop (approve -> researcher) re-enters the guard before re-approval, which is correct, but the guard's own approval=required flag is ambiguous"
+          ]
+        },
+        {
+          "case": "wf-rule-whatsapp",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio",
+            "workflow required checks clean"
+          ],
+          "defects": [
+            "lookup-order runs on agentrun but is a simple read tool; FC would suffice and avoid unnecessary runtime complexity",
+            "escalate-human uses agentcore, but AgentCore IM channels are DingTalk/Lark/WeCom only; WhatsApp handoff needs Chat App Message Service or custom webhook, not AgentCore native channel",
+            "No explicit mention that AI Guardrails is available in Singapore (it is, but design should confirm region)"
+          ]
+        },
+        {
+          "case": "wf-sales-prospect-research-outreach",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Edit loop (rep-approve -> researcher) has no visible bound; a rep could cycle indefinitely, though each cycle still ends at approval so no unsafe send",
+            "Web search results are untrusted content fetched inside the agent; guard screens inbound lead data but not tool-returned web content before it shapes the outbound email — approval on the final email largely covers this, but a note on tool-output screening would strengthen it",
+            "No explicit retry on the research step as the reference suggests (one research retry); minor deviation, not required"
+          ]
+        },
+        {
+          "case": "wf-social-listening-review-analysis",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio",
+            "workflow every approval-needing effect gated on every path"
+          ],
+          "defects": [
+            "Model tier could be smaller for routine extraction/classification if split, but single agent justifies large tier",
+            "No explicit guard on outbound reply content at post time (approval covers it, but lethal trifecta flag: untrusted reviews + private data + outbound publish is mitigated by PR approval)"
+          ]
+        },
+        {
+          "case": "wf-sre-incident-triage-and-rca",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "CloudMonitor-to-EventBridge inbound path assumed via webhook without noting the exact CloudMonitor event source configuration (minor, flagged as assumption)"
+          ]
+        },
+        {
+          "case": "wf-supply-chain-exception-handling",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Supplier PDF content is untrusted but only the event payload passes through AI Guardrails; PDF text is not explicitly screened for prompt injection before the parse agent",
+            "Edit branch loops back to draft-proposal and re-enters planner-review, which is correct, but no bound or note on edit cycles",
+            "Minor: fetch-pdf runs on agentrun as a standalone step while the parse agent also runs there; could be folded into the agent, a small topology inefficiency"
+          ]
+        },
+        {
+          "case": "wf-support-email-triage",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Edit loop from approve back to draft has no explicit revision cap in the graph (reference allows at most two revisions); relies on human reject to terminate",
+            "Tablestore used as knowledge store has only CNY reference rates for Singapore/Hong Kong; pricing unconfirmed, though no price was invented",
+            "No explicit handling path for guard-flagged malicious emails (e.g., quarantine) beyond proceeding to classify"
+          ]
+        },
+        {
+          "case": "wf-travel-itinerary-booking",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio"
+          ],
+          "defects": [
+            "Search nodes are marked as kind:tool but assigned ai:qwen3.7-plus; tool nodes should not have an AI model, or should be AI nodes with tool use",
+            "No explicit guard mentioned for handling untrusted content from third-party travel APIs before it reaches the itinerary builder"
+          ]
+        },
+        {
+          "case": "wf-whatsapp-line-chat-agent",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow products model-studio",
+            "workflow every approval-needing effect gated on every path"
+          ],
+          "defects": [
+            "Small-talk path bypasses check-stuck, so a stuck small-talk reply has no escalation route (minor, low risk)",
+            "Human handoff mechanism is only an assumption (DingTalk/ticketing); the handoff node's actual delivery path is unspecified",
+            "Guard node lacks an explicit block/reject path for flagged messages — what happens to injection attempts is not shown"
+          ]
+        }
+      ]
+    },
+    "costUsd": 0.451
+  },
+  "failures": [
+    {
+      "case": "wf-ai-tutor-socratic-hint",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-code-review-pr-agent",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow task check",
+      "detail": ""
+    },
+    {
+      "case": "wf-code-review-pr-agent",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-claims-processing-extraction",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-contract-clause-review",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-cross-border-document-compliance-check",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-disruption-rebooking-agent",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-ecommerce-shopping-assistant",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-ecommerce-product-listing-enrichment",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-employee-onboarding-helpdesk",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-enterprise-knowledge-search",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow kind end",
+      "detail": ""
+    },
+    {
+      "case": "wf-enterprise-knowledge-search",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-financial-report-analysis",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-hr-resume-screening-and-scheduling",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-inbound-support-triage-and-draft",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-inbound-voice-support-agent",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow task transcribe",
+      "detail": ""
+    },
+    {
+      "case": "wf-inbound-voice-support-agent",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-internal-policy-rag-assistant",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow kind human",
+      "detail": ""
+    },
+    {
+      "case": "wf-internal-policy-rag-assistant",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow task takeover",
+      "detail": ""
+    },
+    {
+      "case": "wf-internal-policy-rag-assistant",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-insurance-claims-triage",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-invoice-three-way-match",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-kyc-customer-onboarding",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow task extract",
+      "detail": ""
+    },
+    {
+      "case": "wf-kyc-customer-onboarding",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-it-helpdesk-triage-and-remediation",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-meeting-notes-to-crm-update",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-multilingual-document-localisation",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-nl-to-sql-data-analysis",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-multilingual-marketing-localisation",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-agentbay",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-agentbay",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "mention",
+      "name": "mentions gated|restricted|access|availability",
+      "detail": "single agent pattern using agentrun with acs agent sandbox for browser testing, since agentbay is unavailable.\nsingle agent on agentrun uses acs agent sandbox b"
+    },
+    {
+      "case": "wf-rule-agentrun-lowcode",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-agentrun-lowcode",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "mention",
+      "name": "mentions gated|restricted|not available|access",
+      "detail": "agentrun low-code builder is unavailable; using code-first agentrun runtime with a single agent pattern.\ncode-first agentrun support agent with web search tool,"
+    },
+    {
+      "case": "wf-regulatory-change-monitoring",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rfp-security-questionnaire-answerer",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-chat-reply",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-chat-reply",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow required checks clean",
+      "detail": "wf-reply-guard: 'Receive chat message' (msg-in): Guard untrusted input before replying and add an escalation route to a person."
+    },
+    {
+      "case": "wf-rule-automate",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-knowledge-base",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-email-send",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-email",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-phone",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow task transcribe",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-phone",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow task speak",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-phone",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-phone",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow required checks clean",
+      "detail": "wf-reply-guard: 'Voice support agent' (voice-agent): Guard untrusted input before replying and add an escalation route to a person."
+    },
+    {
+      "case": "wf-rule-slack",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-slack",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow required checks clean",
+      "detail": "wf-reply-guard: 'Post reply to Slack' (send-reply): Guard untrusted input before replying and add an escalation route to a person."
+    },
+    {
+      "case": "wf-rule-trifecta",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-trifecta",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "mention",
+      "name": "mentions untrusted|injection|trifecta",
+      "detail": "single agent pattern: web research, private retrieval, guarded drafting, human approval before emailing third party.\nagentrun single agent searches public web, "
+    },
+    {
+      "case": "wf-sales-prospect-research-outreach",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-whatsapp",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-rule-whatsapp",
+      "category": "trap",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow required checks clean",
+      "detail": "wf-reply-guard: 'Draft order reply' (draft-reply): Guard untrusted input before replying and add an escalation route to a person.; wf-reply-guard: 'Human takeover' (escalate-human): Guard untrusted input before replying and add an escalatio"
+    },
+    {
+      "case": "wf-sre-incident-triage-and-rca",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-social-listening-review-analysis",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-social-listening-review-analysis",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow every approval-needing effect gated on every path",
+      "detail": "wf-approval: 'Create PR for approval' (create-pr): Approve at call or move the action inline after an approve step."
+    },
+    {
+      "case": "wf-supply-chain-exception-handling",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-support-email-triage",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-travel-itinerary-booking",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-whatsapp-line-chat-agent",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow products model-studio",
+      "detail": ""
+    },
+    {
+      "case": "wf-whatsapp-line-chat-agent",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow every approval-needing effect gated on every path",
+      "detail": "wf-approval: 'Send chat reply' (send-reply): Approve at call or move the action inline after an approve step."
+    }
+  ]
+}

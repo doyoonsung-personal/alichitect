@@ -1,0 +1,2834 @@
+{
+  "meta": {
+    "startedAt": "2026-11-02T16:41:56.636Z",
+    "args": {
+      "cases-dir": "C:\\Users\\mendo\\AppData\\Local\\Temp/claude/C--Users-mendo-ali-catalog/35292bdb-ca0c-4df0-80b4-dd0f93723039/scratchpad/cases-i18n",
+      "runs": "3",
+      "concurrency": "4",
+      "label": "workflow-i18n-1",
+      "budget": "100"
+    },
+    "model": "qwen3.8-max",
+    "fallbackModel": "qwen3.7-max",
+    "judgeModel": "kimi-k3",
+    "runsPerCase": 3,
+    "concurrency": 4,
+    "cases": 20,
+    "units": 60,
+    "catalogVersion": "2026-10-31",
+    "catalogEntries": 232,
+    "workflowSystemPromptSha256": "0e40d3a81089e7c94e9c54139f7ce9adc10f82d42344a0fa5b6d01ea3f1a5d8c",
+    "systemPromptChars": 59906,
+    "systemPromptSha256": "998fab223daba0a4407930f0f6f61e90cf100d7783ca4b13008636526d049313",
+    "node": "v24.21.0",
+    "coreFiles": {
+      "approval.ts": "bdece30a0c71",
+      "asks.ts": "92203b64709a",
+      "catalog-node.ts": "44319b4a1f4b",
+      "catalog.ts": "5bf2d46dc58f",
+      "claude.ts": "ad0c3dd81115",
+      "constraints.ts": "7a677252f475",
+      "diff.ts": "eaabf1ce1def",
+      "display.ts": "941ca6dec769",
+      "layout.ts": "5b76a21851a5",
+      "llm.ts": "18c7ba807fcf",
+      "models.ts": "ee73eed1ecb5",
+      "ndjson.ts": "3163a8232eaa",
+      "pricing.ts": "901b4992f039",
+      "prompt.ts": "66c72385a15b",
+      "proposal-prompt.ts": "9cfdcc9c831a",
+      "proposal.ts": "c1aa1c506251",
+      "reducer.ts": "5afcf1cf50cd",
+      "regions.ts": "c34c43b79d8c",
+      "types.ts": "917e2ad68201",
+      "validate.ts": "d8b6e6ded6b3",
+      "workflow-constraints.ts": "e08e305a5959",
+      "workflow-estimate.ts": "e3b1571131ed",
+      "workflow-layout.ts": "e0f227e7b06e",
+      "workflow-prompt.ts": "0302fea97bfd",
+      "workflow-validate.ts": "3baad234b02a",
+      "workflow.ts": "7a7e158a8f6e"
+    },
+    "judgeAllRunsOf": [],
+    "finishedAt": "2026-11-02T16:47:45.485Z",
+    "spentUsd": 0.7646329999999996
+  },
+  "totals": {
+    "cases": 20,
+    "conversations": 60,
+    "turns": 60,
+    "casePassRate": 0.05,
+    "passAtN": 0.1,
+    "majority": 0.05,
+    "allRuns": 0,
+    "runPassRate": 0.05,
+    "turnPassRate": 0.05,
+    "assertionPassRate": 0.9,
+    "assertions": 1097,
+    "apiFailures": 0,
+    "costUsd": 0.525
+  },
+  "byCategory": {
+    "i18n": {
+      "cases": 20,
+      "runs": 60,
+      "runPassRate": 0.05,
+      "passAtN": 0.1,
+      "majority": 0.05,
+      "allRuns": 0
+    }
+  },
+  "byMode": {
+    "workflow": {
+      "cases": 20,
+      "runs": 60,
+      "runPassRate": 0.05,
+      "passAtN": 0.1,
+      "majority": 0.05,
+      "allRuns": 0
+    }
+  },
+  "workflowJudge": {
+    "n": 20,
+    "means": {
+      "patternChoice": 4.3,
+      "humanApproval": 4.55,
+      "modelTierFit": 4.5,
+      "productCorrectness": 4.1,
+      "clarity": 4.15
+    }
+  },
+  "byLang": {
+    "ko": {
+      "cases": 10,
+      "runs": 30,
+      "runPassRate": 0.1,
+      "passAtN": 0.2,
+      "majority": 0.1,
+      "allRuns": 0
+    },
+    "zh": {
+      "cases": 10,
+      "runs": 30,
+      "runPassRate": 0,
+      "passAtN": 0,
+      "majority": 0,
+      "allRuns": 0
+    }
+  },
+  "byAssertionType": {
+    "sayLang": {
+      "checks": 60,
+      "passed": 3,
+      "rate": 0.05,
+      "failingCases": [
+        "wf-ko-invoice-three-way-match",
+        "wf-ko-internal-policy-rag-assistant",
+        "wf-ko-claims-processing-extraction",
+        "wf-ko-it-helpdesk-triage-and-remediation",
+        "wf-ko-meeting-notes-to-crm-update",
+        "wf-ko-kyc-customer-onboarding",
+        "wf-ko-multilingual-marketing-localisation",
+        "wf-ko-sales-prospect-research-outreach",
+        "wf-ko-whatsapp-line-chat-agent",
+        "wf-zh-internal-policy-rag-assistant",
+        "wf-zh-claims-processing-extraction",
+        "wf-zh-it-helpdesk-triage-and-remediation",
+        "wf-zh-invoice-three-way-match",
+        "wf-zh-kyc-customer-onboarding",
+        "wf-zh-meeting-notes-to-crm-update",
+        "wf-zh-multilingual-marketing-localisation",
+        "wf-zh-sales-prospect-research-outreach",
+        "wf-zh-support-email-triage",
+        "wf-zh-whatsapp-line-chat-agent",
+        "wf-ko-support-email-triage"
+      ]
+    },
+    "askLang": {
+      "checks": 59,
+      "passed": 23,
+      "rate": 0.39,
+      "failingCases": [
+        "wf-ko-kyc-customer-onboarding",
+        "wf-ko-multilingual-marketing-localisation",
+        "wf-ko-whatsapp-line-chat-agent",
+        "wf-zh-internal-policy-rag-assistant",
+        "wf-zh-claims-processing-extraction",
+        "wf-zh-it-helpdesk-triage-and-remediation",
+        "wf-zh-invoice-three-way-match",
+        "wf-zh-meeting-notes-to-crm-update",
+        "wf-zh-multilingual-marketing-localisation",
+        "wf-zh-sales-prospect-research-outreach",
+        "wf-zh-whatsapp-line-chat-agent",
+        "wf-zh-kyc-customer-onboarding",
+        "wf-zh-support-email-triage"
+      ]
+    },
+    "workflow": {
+      "checks": 738,
+      "passed": 721,
+      "rate": 0.977,
+      "failingCases": [
+        "wf-ko-invoice-three-way-match",
+        "wf-ko-internal-policy-rag-assistant",
+        "wf-zh-internal-policy-rag-assistant",
+        "wf-zh-multilingual-marketing-localisation",
+        "wf-ko-claims-processing-extraction",
+        "wf-ko-multilingual-marketing-localisation",
+        "wf-zh-sales-prospect-research-outreach"
+      ]
+    },
+    "noErrors": {
+      "checks": 60,
+      "passed": 60,
+      "rate": 1,
+      "failingCases": []
+    },
+    "format": {
+      "checks": 60,
+      "passed": 60,
+      "rate": 1,
+      "failingCases": []
+    },
+    "escapes": {
+      "checks": 60,
+      "passed": 60,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noPrices": {
+      "checks": 60,
+      "passed": 60,
+      "rate": 1,
+      "failingCases": []
+    }
+  },
+  "cases": [
+    {
+      "id": "wf-ko-claims-processing-extraction",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "[KO] Insurance Claims Processing and Extraction",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in ko": 3,
+        "workflow every approval-needing effect gated on every path": 1
+      },
+      "failedTypes": [
+        "sayLang",
+        "workflow"
+      ],
+      "meanCostUsd": 0.011,
+      "meanMs": 27214,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Narration says 'Prompt chain pattern' but the graph is a routed workflow with retrieval and approval — mislabeled pattern",
+          "No OCR retry/failure path: ocr-img failure handling and the three-retry bound are absent",
+          "Rejection path ends silently with no claimant notification step",
+          "No estimate or cost framing from the app; volume assumption stated but not tied to any capacity note"
+        ],
+        "reasons": [
+          "Deterministic workflow with bounded branches fits the known sequence; no unnecessary agent autonomy",
+          "Payment gated by human approval after the final content producer (review) on every path; edit loops back to review before re-approval; denial path has no consequential external effect",
+          "Model tiers fit: flash for classify/structure, plus for vision OCR, max for policy reasoning, embedding/rerank small",
+          "All products (FC, AI Guardrails, DashVector, CloudFlow) available internationally; no gated or misused connectors",
+          "Guardrails screen untrusted uploads before processing; no outbound content path, so no lethal trifecta",
+          "Narration mislabels the design as 'prompt chain' when it is a state-machine workflow with retrieval and human gate",
+          "OCR retry policy (max three) from the reference not represented; denial notification to claimant not modeled"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-ko-internal-policy-rag-assistant",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "[KO] Internal Policy RAG Assistant",
+      "runs": 3,
+      "passes": 1,
+      "passRate": 0.333,
+      "passAtN": true,
+      "majority": false,
+      "failed": {
+        "workflow kind human": 1,
+        "workflow task takeover": 1,
+        "say text in ko": 2
+      },
+      "failedTypes": [
+        "workflow",
+        "sayLang"
+      ],
+      "meanCostUsd": 0.012,
+      "meanMs": 22741,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": false,
+        "scores": [
+          4,
+          3,
+          5,
+          4
+        ],
+        "defects": [
+          "chat-in claims AgentCore IM channel while all processing runs on FC; AgentCore IM channels require managed agents, so the entry topology is internally inconsistent (custom webhook into FC would be needed)",
+          "Channel assumption ('internal web chat') contradicts the ask's DingTalk/Lark/WeCom scope; no Chat App Message Service or webhook adapter is specified for the real channel",
+          "Missing the one retrieval retry before refuse/escalate; route decides after a single search pass",
+          "DashVector free-trial 30-day release and lack of VPC access not addressed for an internal policy store holding private HR data",
+          "Private policy data plus untrusted chat input plus outbound reply: output guard exists but no explicit note that guard inspection covers the actual delivered content region-wise (AI Guardrails endpoint is ap-southeast-1; data residency unaddressed)",
+          "Narration minimal; no volume-based estimate from the app and no statement of what is out of scope"
+        ],
+        "reasons": [
+          "Deterministic RAG workflow with bounded routing is appropriate for the known sequence",
+          "Live chat reply is guarded by input/output AI Guardrails and HR escalation path exists, matching the live-reply guard+escalation rule; no routine approval needed",
+          "Model tiers fit: text-embedding-v4 and qwen3-rerank for retrieval, qwen3.7-plus for grounded generation, qwen3.8-flash for routing",
+          "Product issues: AgentCore IM channels (DingTalk/Lark/WeCom) are for managed agents only, but the compute runs on FC per node runtimes, so the claimed AgentCore chat-in channel is inconsistent; the ask names DingTalk/Lark/WeCom but the assumption says 'internal web chat', leaving the actual channel u",
+          "DashVector has no documented VPC access and its free trial is released after 30 days; private policy data egress to FC outside VPC plus untrusted input is not addressed beyond guards",
+          "No retrieval retry is modeled despite the reference pattern (one retry then refuse/handoff); route goes straight from a single search to answer/escalate",
+          "Narration is a single line; no estimates or boundaries on data residency for HR policy content"
+        ]
+      },
+      "runPass": [
+        false,
+        true,
+        false
+      ]
+    },
+    {
+      "id": "wf-ko-invoice-three-way-match",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "[KO] Invoice Processing with 3-Way Match",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow kind human": 1,
+        "workflow task approve": 1,
+        "say text in ko": 3
+      },
+      "failedTypes": [
+        "workflow",
+        "sayLang"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 22153,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Mismatch branch routes straight to 'failed' end with no notification or human review path, so finance is not alerted on reconciliation failures despite notify being labeled for manual review needs",
+          "guard-out screens only the notify path; approval on post-erp is declared but no explicit guard/validation of the agent's posted payload content is shown before the ERP write",
+          "parse-pdf runs on agentrun as a standalone tool node rather than FC or as an agent tool, a minor runtime-choice oddity but not a catalog violation"
+        ],
+        "reasons": [
+          "Bounded agent (10 turns) with tools is a reasonable fit for 3-way match reconciliation where routing between match/mismatch/review needs model judgment; a deterministic workflow would also be defensible",
+          "Consequential ERP write (post-erp) carries approval:required at call time, and the agent itself is approval-gated; notify is internal notification needing no approval",
+          "qwen3.7-plus (mid tier) fits extraction/reconciliation with tool use; no over- or under-tiering evident",
+          "Email ingress via EventBridge webhook matches catalog facts (no native inbound email); Direct Mail used outbound-only; AgentRun code-first runtime assumed, consistent with guidance",
+          "Korean questions, clear narration, explicit assumptions about ERP REST APIs and PDF format, and a guard on outbound content addressing the untrusted-email + private-ERP-data + outbound trifecta"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-ko-it-helpdesk-triage-and-remediation",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "[KO] Internal IT Helpdesk Triage and Remediation",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in ko": 3
+      },
+      "failedTypes": [
+        "sayLang"
+      ],
+      "meanCostUsd": 0.01,
+      "meanMs": 25699,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Reply to requester after production fix lacks explicit guard/escalation for live chat scenarios, though email ticket context implies async reply is acceptable"
+        ],
+        "reasons": [
+          "Deterministic workflow with bounded decision points fits the known sequence; no unnecessary agent autonomy",
+          "Admin approval gates all production changes on every path after plan generation; sandbox execution is internal/reversible",
+          "Model tiers match tasks: small models for classify/check/rerank/retrieve, mid-tier for planning",
+          "All products available internationally; EventBridge webhook entry, FC runtime, AgentRun code-first sandbox, CloudFlow approval, DashVector KB are correct",
+          "Clear step flow with Korean narration and appropriate questions; no invented pricing"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-ko-kyc-customer-onboarding",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "[KO] KYC and Customer Onboarding Triage",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in ko": 3,
+        "ask text in ko": 3
+      },
+      "failedTypes": [
+        "sayLang",
+        "askLang"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 20055,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": false,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "low-risk-ok auto-approves onboarding (consequential decide) with no human approval on that path after assess-risk/route-risk.",
+          "Narration/say text not in Korean despite Korean request.",
+          "Untrusted input plus private identity data flows to an external sanctions tool; the outbound content of that screening call is not explicitly covered by approval or scoping (potential lethal-trifecta exposure via screen-sanctions).",
+          "No explicit guard/escalation note on what happens when input-guard flags content (no reject/escalate edge from input-guard)."
+        ],
+        "reasons": [
+          "Deterministic workflow with a bounded decide step fits the known KYC sequence; guard on untrusted input is correct.",
+          "High-risk path is gated by compliance approval, but the low-risk path reaches 'Approve onboarding' with no human approval after the final producer, and auto-approving a customer based on screening is a consequential decide.",
+          "record-decision is an internal reversible write and needs no approval; rejected end is fine.",
+          "Model tiers are reasonable: qwen3.7-plus for extraction, qwen3.8-max for risk classification is defensible though arguably mid-tier would do.",
+          "Products are internationally available: AI Guardrails, FC, AgentRun code runtime, CloudFlow Standard approval via callback; no gated low-code or KB assumptions.",
+          "Narration is only in English while the request is Korean; say text should be Korean. Steps and boundaries are otherwise clear, and no prices were invented."
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-ko-meeting-notes-to-crm-update",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "[KO] Meeting notes to CRM updates",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in ko": 3
+      },
+      "failedTypes": [
+        "sayLang"
+      ],
+      "meanCostUsd": 0.007,
+      "meanMs": 14924,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Reference mentions a follow-up email with separate approval, but the design omits it; the ask as stated does not require it, so this is a minor gap vs guidance",
+          "Narration is in English rather than Korean despite the request language; node labels are also English (product names excepted, say text should be Korean)",
+          "Untrusted call audio flows into extraction and then to a human-approved write; approval covers the actual outbound diff, so the trifecta is mitigated, but no explicit guard note on prompt-injection in transcripts"
+        ],
+        "reasons": [
+          "Deterministic prompt-chain workflow fits the known sequence: transcribe → extract → approve → write",
+          "Approval gate placed after the final content producer (extract) and before the consequential Salesforce write, with approve/reject/edit branches covering all paths",
+          "Model tiers fit: small ASR model for transcription, mid-tier Qwen3.7 Plus for structured extraction",
+          "Products used (FC, CloudFlow) are internationally available; no gated or new-account-only services assumed",
+          "Steps, outcomes, and boundaries are clear; assumptions and follow-up questions are stated"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-ko-multilingual-marketing-localisation",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "[KO] Marketing content generation and localisation",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in ko": 3,
+        "ask text in ko": 3,
+        "workflow kind human": 1,
+        "workflow task approve": 1,
+        "workflow effect publish": 1
+      },
+      "failedTypes": [
+        "sayLang",
+        "askLang",
+        "workflow"
+      ],
+      "meanCostUsd": 0.007,
+      "meanMs": 15204,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Edit loop from review back to draft-master could allow unbounded refinement cycles; the reference suggests at most three measured refinements per locale, but no iteration cap is modeled",
+          "qwen3.8-max for routine master copy drafting may be oversized; qwen3.7-plus would likely suffice, though large is defensible for flagship copy",
+          "Narration is in English rather than Korean despite the request language; say text should be in Korean",
+          "No explicit handling of guardrail rejection path for the inbound brief (screen failure endpoint not shown)"
+        ],
+        "reasons": [
+          "Deterministic prompt chain with parallel fan-out fits the known sequence; no unnecessary agent autonomy",
+          "Human approval gates the publish effect on every path after the final producer, with approve/reject/edit branches",
+          "Model tiers mostly fit: large for master copy, mid for translation, small for assembly",
+          "Products used (FC, AI Guardrails, CloudFlow) are internationally available; no gated or unavailable services assumed",
+          "Untrusted inbound brief is screened by AI Guardrails before generation, and no outbound path bypasses review"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-ko-sales-prospect-research-outreach",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "[KO] Sales prospect research and outreach drafting",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in ko": 3
+      },
+      "failedTypes": [
+        "sayLang"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 19070,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Research agent's web_search tool results are untrusted content that flows into draft-email without a second injection screen between research and drafting; review-email checks the draft, which mitigates but does not fully isolate the tool output",
+          "Edit loop (sales-approve → draft-email) regenerates content and re-passes review and approval, which is correct, but the regenerated draft reuses the same research output without re-screening",
+          "No explicit retry path for the research step despite the reference allowing one research retry; minor since not required",
+          "log-sent writes to CRM after send without approval, which is acceptable as an internal reversible write, but it records external send outcome and could be noted as such"
+        ],
+        "reasons": [
+          "Deterministic sequence (screen → fetch → research → draft → review → approve → send) fits a known pipeline; bounded agent only for open-ended web research with 5-turn cap",
+          "Approval gate sits after the final content producer (draft-email) and before send on every path; edit loop returns to draft then re-enters review and approval, so no path bypasses the gate",
+          "qwen3.7-plus (mid tier) is appropriate for research and personalized drafting; no over- or under-tiering",
+          "All products (EventBridge, FC, AI Guardrails, AgentRun code runtime, CloudFlow, Direct Mail) are internationally available; Direct Mail correctly used outbound-only; no gated low-code AgentRun or knowledge base assumptions",
+          "Lethal trifecta handled: untrusted lead payload screened by AI Guardrails, private CRM data flagged, outbound email gated by human approval after guard review of the actual draft",
+          "Narration and questions are in Korean as required; steps, outcomes and boundaries are clear"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-ko-support-email-triage",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "[KO] Support Email Triage and Auto-Resolution",
+      "runs": 3,
+      "passes": 2,
+      "passRate": 0.667,
+      "passAtN": true,
+      "majority": true,
+      "failed": {
+        "say text in ko": 1
+      },
+      "failedTypes": [
+        "sayLang"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 19612,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          5
+        ],
+        "defects": [
+          "Edit loop has no revision cap; reference allows at most two draft revisions, so an unbounded approve->draft cycle could loop indefinitely",
+          "DashVector free trial caveat (30-day release) not mentioned for a new international customer, though paid cluster assumption is acceptable"
+        ],
+        "reasons": [
+          "Deterministic prompt-chain fits the known sequence; no unnecessary agent autonomy",
+          "Approval gates the send on every path after the final producer, with edit loop returning to draft then re-approval; reject path sends nothing",
+          "Model tiers fit: flash for classify, embedding+rerank small models, mid-tier plus for drafting",
+          "Inbound email correctly modeled as webhook into EventBridge; Direct Mail used for outbound only; CloudFlow callback approval is the documented mechanism",
+          "Korean narration and labels with English product names; honest assumption about DashVector knowledge base and relevant clarifying questions"
+        ]
+      },
+      "runPass": [
+        true,
+        false,
+        true
+      ]
+    },
+    {
+      "id": "wf-ko-whatsapp-line-chat-agent",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "[KO] Multichannel Chat Agent with Human Handoff",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in ko": 3,
+        "ask text in ko": 3
+      },
+      "failedTypes": [
+        "sayLang",
+        "askLang"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 17025,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "Guard screens inbound only; the outbound reply is not shown passing through moderation before send, so the lethal-trifecta outbound content is not explicitly covered",
+          "Handoff path lacks any detail on how the live agent is reached (queue/notification), though this is minor",
+          "No conversation memory node is shown despite multi-turn chat expectations; reference notes persistence is incidental, so only a small clarity deduction"
+        ],
+        "reasons": [
+          "Bounded agent with tool use and escalation is appropriate for order Q&A with handoff",
+          "Guard screens untrusted inbound; live chat reply uses guard plus human escalation rather than routine approval, matching policy",
+          "qwen3.7-plus fits a tool-calling support agent; no over/under-tiering evident",
+          "WhatsApp and LINE correctly use Chat App Message Service; AgentCore is not relied on for those IM channels; AI Guardrails regions are international",
+          "Narration is brief but the graph is understandable; no invented prices; assumptions and questions are reasonable"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-zh-claims-processing-extraction",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "[ZH] Insurance Claims Processing and Extraction",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in zh": 3,
+        "ask text in zh": 3
+      },
+      "failedTypes": [
+        "sayLang",
+        "askLang"
+      ],
+      "meanCostUsd": 0.011,
+      "meanMs": 25920,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "decide-route uses qwen3.8-flash for plan task; mid-tier qwen3.7-plus would better fit routing logic complexity",
+          "No explicit guard on outbound payment API calls beyond approval; payment system adapter could validate amounts",
+          "DashVector free trial limitation not mentioned; production assumes paid cluster"
+        ],
+        "reasons": [
+          "Deterministic workflow with bounded routing fits the known sequence; no unnecessary agent autonomy",
+          "Payment approval gated on every path after final producer (verify) via CloudFlow human steps; both auto and manual paths require approval before pay",
+          "Model tiers appropriate: small OCR/extract models for routine work, large model only for policy verification reasoning",
+          "All products available internationally; FC, CloudFlow, DashVector, AI Guardrails all in scope",
+          "Clear step flow with Chinese narration as required; estimates not invented"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-zh-internal-policy-rag-assistant",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "[ZH] Internal Policy RAG Assistant",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow kind human": 3,
+        "workflow task takeover": 3,
+        "say text in zh": 3,
+        "ask text in zh": 3
+      },
+      "failedTypes": [
+        "workflow",
+        "sayLang",
+        "askLang"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 19915,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Refusal path drafts with qwen3.8-flash but has no output guard before the HR escalation/notify; low risk since it is an internal notify, but the refusal text shown to the employee is not explicitly delivered or guarded.",
+          "Escalate-to-HR payload content is not specified; if it includes employee question plus retrieved private policy chunks, the outbound content to HR should be defined and screened.",
+          "Tablestore Knowledge Storage Singapore pricing is CNY-reference only per catalog; design does not flag confirming regional pricing.",
+          "No explicit retrieval retry before refusal, though the reference allows retry as guidance rather than a requirement."
+        ],
+        "reasons": [
+          "Deterministic workflow with a single evidence-check branch fits the known retrieve-answer-or-escalate sequence; no unnecessary agent loop.",
+          "Live chat reply is guarded on input and output rather than routinely approved, which matches the live-reply rule; HR escalation is a notify, not a consequential external send requiring approval.",
+          "Model tiers fit: embedding and rerank small models, flash for evidence check and refusal, plus for grounded drafting.",
+          "Products are internationally available: AgentCore IM channels, AI Guardrails in Singapore, FC, Tablestore Knowledge Storage, Model Studio inference; no gated knowledge base or AgentBay assumptions.",
+          "Steps, branches and outcomes are clear; assumptions and open questions are stated; no invented prices."
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-zh-invoice-three-way-match",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "[ZH] Invoice Processing with 3-Way Match",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in zh": 3,
+        "ask text in zh": 3
+      },
+      "failedTypes": [
+        "sayLang",
+        "askLang"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 22276,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Narration/say text not in Chinese as required for a Chinese-language request.",
+          "Edge l-fetch-po goes extract->fetch-po but no edge from fetch-po into match; match only consumes fetch-receipt, so PO data flow is not wired in the graph."
+        ],
+        "reasons": [
+          "Deterministic workflow with a single bounded decision branch fits a known sequence; no unnecessary agent.",
+          "Approval gate sits after the final content producer (match) and before the consequential ERP posting on every path; edit loop returns to match and re-enters approval, so no path bypasses the gate.",
+          "qwen3.7-plus for extraction and qwen3.8-max for the three-way match reasoning are reasonable tier choices; match could arguably use mid tier but large is defensible for financial comparison.",
+          "Email enters via EventBridge webhook per catalog facts; AI Guardrails screens untrusted email before the model; CloudFlow WaitForCustomCallback supports the approval step; ERP access via customer adapters avoids unverified product claims.",
+          "Lethal trifecta handled: untrusted email is screened, private PO/receipt data is read-only, and the only outbound consequential effect (ERP posting) is human-approved.",
+          "Narration is in English rather than Chinese despite the request language; say text should be Chinese per the case instructions.",
+          "fetch-po has no incoming edge in the graph (only fetch-receipt feeds match), a minor wiring inconsistency."
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-zh-it-helpdesk-triage-and-remediation",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "[ZH] Internal IT Helpdesk Triage and Remediation",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in zh": 3,
+        "ask text in zh": 3
+      },
+      "failedTypes": [
+        "sayLang",
+        "askLang"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 21889,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Reply-with-resolution is an outbound notification carrying content derived from untrusted ticket input; it proceeds without approval on the sandbox-only path — acceptable as internal notify, but the design should state the reply is templated/sanitised to avoid leaking sensitive data",
+          "check-scope uses an LLM (qwen3.8-flash) as the sole decider for whether approval is required; a deterministic rule or fail-closed default (treat uncertain as prod-impacting) would be safer",
+          "Narration is in English while the request is Chinese; user-facing say text should be in Chinese (product names in English)",
+          "Minor: sandbox-fix labelled task 'generate' though it executes remediation; label clarity could be improved"
+        ],
+        "reasons": [
+          "Deterministic router workflow with a bounded sandbox agent (10 turns) fits the ask; no unnecessary agentic sprawl",
+          "Production-impacting changes gated by manager approval on every path after the final producer; sandbox-only path correctly skips approval as internal reversible work",
+          "Model tiers match tasks: Flash for classify/check, embedding+rerank for retrieval, Plus for plan and sandbox execution",
+          "Products are internationally available: EventBridge webhook intake, FC, AI Guardrails (SG), DashVector (SG), AgentRun code-first runtime (SG), Agent Sandbox Flash (SG), CloudFlow WaitForCustomCallback for approval",
+          "Untrusted ticket content is screened by AI Guardrails before LLM steps, mitigating injection risk before retrieval and sandbox actions",
+          "Clear steps, branches, outcomes and assumptions; no invented pricing"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-zh-kyc-customer-onboarding",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "[ZH] KYC and Customer Onboarding Triage",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in zh": 3,
+        "ask text in zh": 2
+      },
+      "failedTypes": [
+        "sayLang",
+        "askLang"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 17483,
+      "judge": {
+        "run": 1,
+        "mean": 4,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          4,
+          4
+        ],
+        "defects": [
+          "The standard-risk path writes the customer record without human approval; while internal writes may not need default approval, onboarding approval is a consequential decide that arguably warrants review on all paths, not just high-risk.",
+          "The guard node screens inbound payload but there is no explicit guard on the screen-agent's web_search results (untrusted external content) before it influences the risk decision.",
+          "assess-risk uses qwen3.8-flash for a decision that determines compliance routing; a mid-tier model might be more reliable for this consequential classification.",
+          "No explicit handling for guard-rejected input (what happens if AI Guardrails flags the payload?)."
+        ],
+        "reasons": [
+          "Deterministic workflow with a bounded agent for sanctions screening fits the known sequence; agent is bounded at 5 turns with a single tool.",
+          "Human approval gates the consequential write (approve-onboard) on the high-risk path after the final content producer; standard-risk path is an internal reversible write, so no routine approval is defensible.",
+          "Model tiers are reasonable: qwen3.8-flash for classification, qwen3.7-plus for identity verification/extraction, qwen3.8-max for the multi-step sanctions search agent.",
+          "Products are internationally available: FC, AI Guardrails (Singapore), AgentRun code runtime (Singapore), CloudFlow with WaitForCustomCallback for human review.",
+          "Narration is concise and in English; the request is Chinese but the workflow labels and narration are acceptable as design artifacts, though customer-facing text would need Chinese."
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-zh-meeting-notes-to-crm-update",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "[ZH] Meeting notes to CRM updates",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in zh": 3,
+        "ask text in zh": 3
+      },
+      "failedTypes": [
+        "sayLang",
+        "askLang"
+      ],
+      "meanCostUsd": 0.007,
+      "meanMs": 14025,
+      "judge": {
+        "run": 1,
+        "mean": 4.5,
+        "signoff": true,
+        "scores": [
+          5,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Diff generation uses qwen3.8-flash (small) for a task that compares extracted updates against CRM state and produces the exact content a human approves; mid-tier would better fit this consequential summarisation",
+          "Trigger node marks EventBridge as untrusted but the design does not explicitly flag the transcript/extraction as untrusted content flowing into the approval view; minor since no outbound send occurs",
+          "Salesforce write runs on customer side with approval required, which is correct, but the design does not specify how the approved diff content is bound to the write payload to prevent tampering between approval and write"
+        ],
+        "reasons": [
+          "Deterministic workflow fits the fixed sequence: transcribe → extract → fetch → diff → approve → write",
+          "Approval gate placed after the final content producer (diff) and before the consequential Salesforce write, with explicit approve/reject branches",
+          "ASR uses the small audio transcription model; extraction uses mid-tier qwen3.7-plus which warrants stronger reasoning",
+          "All products (EventBridge, FC, CloudFlow) are internationally available; CloudFlow WaitForCustomCallback is the correct approval mechanism",
+          "Clear narration and explicit assumptions about audio source and Salesforce API access"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-zh-multilingual-marketing-localisation",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "[ZH] Marketing content generation and localisation",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "workflow every approval-needing effect gated on every path": 1,
+        "say text in zh": 3,
+        "ask text in zh": 3,
+        "workflow effect publish": 1
+      },
+      "failedTypes": [
+        "workflow",
+        "sayLang",
+        "askLang"
+      ],
+      "meanCostUsd": 0.007,
+      "meanMs": 14448,
+      "judge": {
+        "run": 1,
+        "mean": 4.75,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          4
+        ],
+        "defects": [
+          "Edit loop from review back to translate is unbounded; the reference suggests at most three measured refinements per locale, but no iteration cap is modelled"
+        ],
+        "reasons": [
+          "Deterministic workflow with parallel fan-out per locale fits the known sequence; no unnecessary agent autonomy",
+          "Human review gates every locale before publish, and publish itself carries explicit approval; edit loop returns to translation, keeping approval after the final producer",
+          "Model tiers fit: qwen3.7-plus for master copy generation, qwen3.8-flash for high-volume translation and assembly",
+          "All products (FC, AI Guardrails, CloudFlow) are available internationally; guard on untrusted inbound brief is appropriate",
+          "Clear steps, branches and outcomes; assumptions and open questions stated"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-zh-sales-prospect-research-outreach",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "[ZH] Sales prospect research and outreach drafting",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in zh": 3,
+        "ask text in zh": 3,
+        "workflow effect send": 1
+      },
+      "failedTypes": [
+        "sayLang",
+        "askLang",
+        "workflow"
+      ],
+      "meanCostUsd": 0.007,
+      "meanMs": 14802,
+      "judge": {
+        "run": 1,
+        "mean": 4.25,
+        "signoff": true,
+        "scores": [
+          4,
+          4,
+          5,
+          4
+        ],
+        "defects": [
+          "Edit branch returns to research-agent, whose output re-passes output-guard and sales-approve, so coverage holds, but the graph does not show a retry/loop bound on edit cycles",
+          "Narration and labels are English-only; the Chinese-language request would ideally get Chinese say text, though product names correctly stay in English",
+          "Queue storage (Tablestore) and CRM adapter are assumptions, not confirmed products; acceptable but unverified"
+        ],
+        "reasons": [
+          "Deterministic workflow with a single bounded agent (10 turns, MCP tools) fits the known sequence: research, draft, guard, approve, send",
+          "Approval gate sits after the final content producer and before the only consequential effect (email send); edit path loops back through the agent and re-enters the guard/approval path, so every path to send is gated",
+          "Qwen3.8 Max is defensible for personalized drafting plus tool use, though a mid-tier model could handle routine drafts; not a defect worth blocking",
+          "Products check out internationally: AgentRun code-first runtime in Singapore, AI Guardrails available in Singapore, CloudFlow Standard for human callback approval, Direct Mail outbound-only which matches the send-only design",
+          "Lethal trifecta handled: CRM private data plus web research plus outbound email is mitigated by output guard and human approval of actual content before send",
+          "Narration is thin (one line) and node labels are in English despite the Chinese ask, but steps, outcomes and boundaries are understandable; no invented prices"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-zh-support-email-triage",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "[ZH] Support Email Triage and Auto-Resolution",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in zh": 3,
+        "ask text in zh": 1
+      },
+      "failedTypes": [
+        "sayLang",
+        "askLang"
+      ],
+      "meanCostUsd": 0.008,
+      "meanMs": 18771,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Deterministic workflow fits the known sequence: intake, guard, classify, retrieve, rerank, draft, approve, send",
+          "Approval gates the send on every path after the draft producer, including revision loop, reject and timeout branches",
+          "Model tiers fit: small flash for classification, embedding and rerank models for retrieval, mid-tier plus for grounded drafting",
+          "All products available internationally; inbound email correctly uses EventBridge webhook, outbound uses Direct Mail, approval uses CloudFlow callback",
+          "Untrusted inbound email is screened by AI Guardrails before processing, and approval covers the actual outbound content",
+          "Clear narration, labeled nodes and edges, explicit terminal states, and a stated assumption about the knowledge base"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "id": "wf-zh-whatsapp-line-chat-agent",
+      "category": "i18n",
+      "lang": "zh",
+      "title": "[ZH] Multichannel Chat Agent with Human Handoff",
+      "runs": 3,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "say text in zh": 3,
+        "ask text in zh": 3
+      },
+      "failedTypes": [
+        "sayLang",
+        "askLang"
+      ],
+      "meanCostUsd": 0.009,
+      "meanMs": 20457,
+      "judge": {
+        "run": 1,
+        "mean": 5,
+        "signoff": true,
+        "scores": [
+          5,
+          5,
+          5,
+          5
+        ],
+        "defects": [],
+        "reasons": [
+          "Deterministic router workflow with exclusive branches fits the known sequence; no unbounded agent needed",
+          "Live chat reply path uses AI Guardrails on inbound and outbound plus confidence-based human escalation, matching the live-reply guard-and-escalate rule; no routine approval needed",
+          "Model tiers fit: qwen3.8-flash for classify/route/check, text-embedding-v4 and qwen3-rerank for retrieval, qwen3.7-plus for drafting",
+          "All products available internationally: Chat App Message Service covers WhatsApp and LINE, FC 3.0, AI Guardrails in Singapore, DashVector in Singapore; no gated or unavailable products assumed",
+          "Clear steps, explicit assumptions (order API, pre-indexed KB) and relevant questions; no invented pricing; outbound guard screens the actual reply content, addressing the untrusted-input plus private-order-data plus outbound-send trifecta"
+        ]
+      },
+      "runPass": [
+        false,
+        false,
+        false
+      ]
+    }
+  ],
+  "warnings": {
+    "preRepairByCode": {
+      "bad-op": {
+        "total": 15,
+        "perTurn": 0.25,
+        "turns": 13
+      },
+      "wf-bad-op": {
+        "total": 13,
+        "perTurn": 0.217,
+        "turns": 13
+      },
+      "wf-reply-guard": {
+        "total": 8,
+        "perTurn": 0.133,
+        "turns": 8
+      },
+      "wf-mixed-out": {
+        "total": 4,
+        "perTurn": 0.067,
+        "turns": 4
+      },
+      "wf-approval": {
+        "total": 4,
+        "perTurn": 0.067,
+        "turns": 2
+      },
+      "wf-dead-end": {
+        "total": 3,
+        "perTurn": 0.05,
+        "turns": 3
+      },
+      "wf-decision-review": {
+        "total": 3,
+        "perTurn": 0.05,
+        "turns": 3
+      },
+      "wf-ai-mismatch": {
+        "total": 1,
+        "perTurn": 0.017,
+        "turns": 1
+      },
+      "wf-trifecta": {
+        "total": 1,
+        "perTurn": 0.017,
+        "turns": 1
+      },
+      "wf-dangling-ref": {
+        "total": 1,
+        "perTurn": 0.017,
+        "turns": 1
+      },
+      "wf-unreachable": {
+        "total": 1,
+        "perTurn": 0.017,
+        "turns": 1
+      }
+    },
+    "postRepairByCode": {
+      "wf-bad-op": {
+        "total": 12,
+        "perTurn": 0.2,
+        "turns": 12
+      },
+      "wf-reply-guard": {
+        "total": 8,
+        "perTurn": 0.133,
+        "turns": 8
+      },
+      "wf-approval": {
+        "total": 4,
+        "perTurn": 0.067,
+        "turns": 2
+      },
+      "wf-dead-end": {
+        "total": 3,
+        "perTurn": 0.05,
+        "turns": 3
+      },
+      "wf-decision-review": {
+        "total": 3,
+        "perTurn": 0.05,
+        "turns": 3
+      },
+      "wf-ai-mismatch": {
+        "total": 1,
+        "perTurn": 0.017,
+        "turns": 1
+      },
+      "wf-trifecta": {
+        "total": 1,
+        "perTurn": 0.017,
+        "turns": 1
+      }
+    },
+    "preRepairBySeverity": {
+      "warn": 31,
+      "info": 22,
+      "error": 1
+    },
+    "postRepairBySeverity": {
+      "warn": 27,
+      "info": 5
+    },
+    "fixesByCode": {
+      "wf-mixed-out": 4,
+      "wf-dangling-ref": 1
+    },
+    "unknownProducts": {
+      "count": 0,
+      "top": []
+    },
+    "nonIdProducts": {
+      "count": 0,
+      "top": []
+    }
+  },
+  "latency": {
+    "firstByteMs": {
+      "n": 60,
+      "p50": 1122,
+      "p95": 1972,
+      "mean": 1181,
+      "max": 2216
+    },
+    "perceivedFirstByteMs": {
+      "n": 60,
+      "p50": 1122,
+      "p95": 1972,
+      "mean": 1181,
+      "max": 2216
+    },
+    "firstSayMs": {
+      "n": 60,
+      "p50": 1374,
+      "p95": 2230,
+      "mean": 1465,
+      "max": 2503
+    },
+    "firstOpMs": {
+      "n": 60,
+      "p50": 1890,
+      "p95": 2822,
+      "mean": 1975,
+      "max": 2991
+    },
+    "firstNodeMs": {
+      "n": 60,
+      "p50": 4374,
+      "p95": 6271,
+      "mean": 4435,
+      "max": 7363
+    },
+    "streamMs": {
+      "n": 60,
+      "p50": 19665,
+      "p95": 26345,
+      "mean": 19642,
+      "max": 32112
+    },
+    "turnMs": {
+      "n": 60,
+      "p50": 19668,
+      "p95": 26347,
+      "mean": 19680,
+      "max": 32114
+    },
+    "diagramStreamMs": {
+      "n": 60,
+      "p50": 19665,
+      "p95": 26345,
+      "mean": 19642,
+      "max": 32112
+    },
+    "productStreamMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "editStreamMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    }
+  },
+  "tokens": {
+    "prompt": 585655,
+    "cached": 562176,
+    "cacheHit": 0.96,
+    "completion": 56315,
+    "completionPerTurn": {
+      "n": 60,
+      "p50": 908,
+      "p95": 1263,
+      "mean": 939,
+      "max": 1616
+    },
+    "costPerTurn": {
+      "n": 60,
+      "p50": 0.00844,
+      "p95": 0.01096,
+      "mean": 0.00876,
+      "max": 0.017702000000000002
+    },
+    "costPerConversation": {
+      "n": 60,
+      "p50": 0.00844,
+      "p95": 0.01096,
+      "mean": 0.00876,
+      "max": 0.017702000000000002
+    },
+    "costUsd": 0.525
+  },
+  "reliability": {
+    "turns": 60,
+    "truncatedMain": 0,
+    "continued": 0,
+    "repairTurns": 1,
+    "hedged": 0,
+    "hedgeWon": 0,
+    "fallbackUsed": 0,
+    "retriedAttempts": 0,
+    "apiFailures": 0,
+    "badLines": 0,
+    "escapes": 0
+  },
+  "failover": {
+    "turns": 0,
+    "rate": 0,
+    "byReason": {},
+    "stalledAttemptMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "fallbackFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "perceivedFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "turnMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "followUpFallbacks": 0,
+    "examples": []
+  },
+  "cutoff": {
+    "truncated": 0,
+    "byCause": {},
+    "rescued": 0,
+    "notRescued": 0,
+    "rescuedPassing": 0,
+    "turnPassRateExcludingRescued": 0.05,
+    "list": []
+  },
+  "constraints": {
+    "residency": {
+      "checks": 0,
+      "passed": 0,
+      "rate": 0,
+      "failing": [],
+      "warnMentions": 0,
+      "correctedByRepair": 0,
+      "scan": {
+        "checks": 0,
+        "passed": 0,
+        "failing": []
+      }
+    },
+    "pins": {
+      "checks": 0,
+      "passed": 0,
+      "rate": 0,
+      "failing": []
+    },
+    "avoid": {
+      "checks": 0,
+      "passed": 0,
+      "rate": 0
+    },
+    "product": {
+      "turnsWithConstraints": 0,
+      "findingsBefore": {},
+      "findingsAfter": {}
+    }
+  },
+  "repairs": {
+    "fixesByCode": {
+      "wf-mixed-out": {
+        "total": 4,
+        "turns": 4
+      },
+      "wf-dangling-ref": {
+        "total": 1,
+        "turns": 1
+      }
+    },
+    "followUps": {
+      "turns": 1,
+      "byKind": {
+        "repair": 1
+      },
+      "byFindingCode": {
+        "wf-unreachable": 1
+      },
+      "list": [
+        {
+          "case": "wf-ko-internal-policy-rag-assistant",
+          "run": 3,
+          "turn": 1,
+          "kind": "repair",
+          "model": "qwen3.8-max",
+          "findings": [
+            "wf-unreachable/error: 'Answer refused' (end-refused): Connect this step to a trigger."
+          ],
+          "pass": false
+        }
+      ]
+    }
+  },
+  "i18n": {
+    "ko": {
+      "turns": 30,
+      "completionPerTurn": 973,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 9962,
+      "sayLangPass": 3,
+      "sayLangChecks": 30,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    },
+    "zh": {
+      "turns": 30,
+      "completionPerTurn": 904,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 9560,
+      "sayLangPass": 0,
+      "sayLangChecks": 30,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    }
+  },
+  "multiturn": [],
+  "judge": {
+    "model": "kimi-k3",
+    "judged": 20,
+    "runsJudged": 20,
+    "constraintRuns": null,
+    "errors": 0,
+    "means": {
+      "completeness": 4.3,
+      "accuracy": 4.1,
+      "rationality": 4.8,
+      "readability": 4.15,
+      "overall": 4.338
+    },
+    "signoffRate": 0.9,
+    "byCategory": {
+      "i18n": {
+        "n": 20,
+        "overall": 4.338,
+        "signoff": 0.9
+      }
+    },
+    "agreement": {
+      "n": 20,
+      "agree": 3,
+      "rate": 0.15,
+      "tp": 1,
+      "tn": 2,
+      "fp": 0,
+      "fn": 17,
+      "meanScorePass": 4.75,
+      "meanScoreFail": 4.316,
+      "pointBiserial": 0.306,
+      "disagreements": [
+        {
+          "case": "wf-ko-claims-processing-extraction",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "say text in ko"
+          ],
+          "defects": [
+            "Narration says 'Prompt chain pattern' but the graph is a routed workflow with retrieval and approval — mislabeled pattern",
+            "No OCR retry/failure path: ocr-img failure handling and the three-retry bound are absent",
+            "Rejection path ends silently with no claimant notification step"
+          ]
+        },
+        {
+          "case": "wf-ko-invoice-three-way-match",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow kind human",
+            "workflow task approve",
+            "say text in ko"
+          ],
+          "defects": [
+            "Mismatch branch routes straight to 'failed' end with no notification or human review path, so finance is not alerted on reconciliation failures despite notify being labeled for manual review needs",
+            "guard-out screens only the notify path; approval on post-erp is declared but no explicit guard/validation of the agent's posted payload content is shown before the ERP write",
+            "parse-pdf runs on agentrun as a standalone tool node rather than FC or as an agent tool, a minor runtime-choice oddity but not a catalog violation"
+          ]
+        },
+        {
+          "case": "wf-ko-it-helpdesk-triage-and-remediation",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "say text in ko"
+          ],
+          "defects": [
+            "Reply to requester after production fix lacks explicit guard/escalation for live chat scenarios, though email ticket context implies async reply is acceptable"
+          ]
+        },
+        {
+          "case": "wf-ko-meeting-notes-to-crm-update",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "say text in ko"
+          ],
+          "defects": [
+            "Reference mentions a follow-up email with separate approval, but the design omits it; the ask as stated does not require it, so this is a minor gap vs guidance",
+            "Narration is in English rather than Korean despite the request language; node labels are also English (product names excepted, say text should be Korean)",
+            "Untrusted call audio flows into extraction and then to a human-approved write; approval covers the actual outbound diff, so the trifecta is mitigated, but no explicit guard note on prompt-injection in transcripts"
+          ]
+        },
+        {
+          "case": "wf-ko-multilingual-marketing-localisation",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "say text in ko",
+            "ask text in ko"
+          ],
+          "defects": [
+            "Edit loop from review back to draft-master could allow unbounded refinement cycles; the reference suggests at most three measured refinements per locale, but no iteration cap is modeled",
+            "qwen3.8-max for routine master copy drafting may be oversized; qwen3.7-plus would likely suffice, though large is defensible for flagship copy",
+            "Narration is in English rather than Korean despite the request language; say text should be in Korean"
+          ]
+        },
+        {
+          "case": "wf-ko-sales-prospect-research-outreach",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "say text in ko"
+          ],
+          "defects": [
+            "Research agent's web_search tool results are untrusted content that flows into draft-email without a second injection screen between research and drafting; review-email checks the draft, which mitigates but does not fully isolate the tool output",
+            "Edit loop (sales-approve → draft-email) regenerates content and re-passes review and approval, which is correct, but the regenerated draft reuses the same research output without re-screening",
+            "No explicit retry path for the research step despite the reference allowing one research retry; minor since not required"
+          ]
+        },
+        {
+          "case": "wf-ko-whatsapp-line-chat-agent",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "say text in ko",
+            "ask text in ko"
+          ],
+          "defects": [
+            "Guard screens inbound only; the outbound reply is not shown passing through moderation before send, so the lethal-trifecta outbound content is not explicitly covered",
+            "Handoff path lacks any detail on how the live agent is reached (queue/notification), though this is minor",
+            "No conversation memory node is shown despite multi-turn chat expectations; reference notes persistence is incidental, so only a small clarity deduction"
+          ]
+        },
+        {
+          "case": "wf-zh-claims-processing-extraction",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "say text in zh",
+            "ask text in zh"
+          ],
+          "defects": [
+            "decide-route uses qwen3.8-flash for plan task; mid-tier qwen3.7-plus would better fit routing logic complexity",
+            "No explicit guard on outbound payment API calls beyond approval; payment system adapter could validate amounts",
+            "DashVector free trial limitation not mentioned; production assumes paid cluster"
+          ]
+        },
+        {
+          "case": "wf-zh-internal-policy-rag-assistant",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow kind human",
+            "workflow task takeover",
+            "say text in zh",
+            "ask text in zh"
+          ],
+          "defects": [
+            "Refusal path drafts with qwen3.8-flash but has no output guard before the HR escalation/notify; low risk since it is an internal notify, but the refusal text shown to the employee is not explicitly delivered or guarded.",
+            "Escalate-to-HR payload content is not specified; if it includes employee question plus retrieved private policy chunks, the outbound content to HR should be defined and screened.",
+            "Tablestore Knowledge Storage Singapore pricing is CNY-reference only per catalog; design does not flag confirming regional pricing."
+          ]
+        },
+        {
+          "case": "wf-zh-invoice-three-way-match",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "say text in zh",
+            "ask text in zh"
+          ],
+          "defects": [
+            "Narration/say text not in Chinese as required for a Chinese-language request.",
+            "Edge l-fetch-po goes extract->fetch-po but no edge from fetch-po into match; match only consumes fetch-receipt, so PO data flow is not wired in the graph."
+          ]
+        },
+        {
+          "case": "wf-zh-it-helpdesk-triage-and-remediation",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "say text in zh",
+            "ask text in zh"
+          ],
+          "defects": [
+            "Reply-with-resolution is an outbound notification carrying content derived from untrusted ticket input; it proceeds without approval on the sandbox-only path — acceptable as internal notify, but the design should state the reply is templated/sanitised to avoid leaking sensitive data",
+            "check-scope uses an LLM (qwen3.8-flash) as the sole decider for whether approval is required; a deterministic rule or fail-closed default (treat uncertain as prod-impacting) would be safer",
+            "Narration is in English while the request is Chinese; user-facing say text should be in Chinese (product names in English)"
+          ]
+        },
+        {
+          "case": "wf-zh-kyc-customer-onboarding",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "say text in zh"
+          ],
+          "defects": [
+            "The standard-risk path writes the customer record without human approval; while internal writes may not need default approval, onboarding approval is a consequential decide that arguably warrants review on all paths, not just high-risk.",
+            "The guard node screens inbound payload but there is no explicit guard on the screen-agent's web_search results (untrusted external content) before it influences the risk decision.",
+            "assess-risk uses qwen3.8-flash for a decision that determines compliance routing; a mid-tier model might be more reliable for this consequential classification."
+          ]
+        },
+        {
+          "case": "wf-zh-meeting-notes-to-crm-update",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "say text in zh",
+            "ask text in zh"
+          ],
+          "defects": [
+            "Diff generation uses qwen3.8-flash (small) for a task that compares extracted updates against CRM state and produces the exact content a human approves; mid-tier would better fit this consequential summarisation",
+            "Trigger node marks EventBridge as untrusted but the design does not explicitly flag the transcript/extraction as untrusted content flowing into the approval view; minor since no outbound send occurs",
+            "Salesforce write runs on customer side with approval required, which is correct, but the design does not specify how the approved diff content is bound to the write payload to prevent tampering between approval and write"
+          ]
+        },
+        {
+          "case": "wf-zh-multilingual-marketing-localisation",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "workflow every approval-needing effect gated on every path",
+            "say text in zh",
+            "ask text in zh"
+          ],
+          "defects": [
+            "Edit loop from review back to translate is unbounded; the reference suggests at most three measured refinements per locale, but no iteration cap is modelled"
+          ]
+        },
+        {
+          "case": "wf-zh-sales-prospect-research-outreach",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "say text in zh",
+            "ask text in zh"
+          ],
+          "defects": [
+            "Edit branch returns to research-agent, whose output re-passes output-guard and sales-approve, so coverage holds, but the graph does not show a retry/loop bound on edit cycles",
+            "Narration and labels are English-only; the Chinese-language request would ideally get Chinese say text, though product names correctly stay in English",
+            "Queue storage (Tablestore) and CRM adapter are assumptions, not confirmed products; acceptable but unverified"
+          ]
+        },
+        {
+          "case": "wf-zh-support-email-triage",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "say text in zh"
+          ],
+          "defects": []
+        },
+        {
+          "case": "wf-zh-whatsapp-line-chat-agent",
+          "run": 1,
+          "assertions": "fail",
+          "judge": "yes",
+          "failed": [
+            "say text in zh",
+            "ask text in zh"
+          ],
+          "defects": []
+        }
+      ]
+    },
+    "costUsd": 0.239
+  },
+  "failures": [
+    {
+      "case": "wf-ko-invoice-three-way-match",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow kind human",
+      "detail": ""
+    },
+    {
+      "case": "wf-ko-invoice-three-way-match",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow task approve",
+      "detail": ""
+    },
+    {
+      "case": "wf-ko-invoice-three-way-match",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 84 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":84}"
+    },
+    {
+      "case": "wf-ko-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow kind human",
+      "detail": ""
+    },
+    {
+      "case": "wf-ko-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow task takeover",
+      "detail": ""
+    },
+    {
+      "case": "wf-ko-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 95 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":95}"
+    },
+    {
+      "case": "wf-ko-claims-processing-extraction",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 79 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":79}"
+    },
+    {
+      "case": "wf-ko-it-helpdesk-triage-and-remediation",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 83 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":83}"
+    },
+    {
+      "case": "wf-ko-meeting-notes-to-crm-update",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 83 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":83}"
+    },
+    {
+      "case": "wf-ko-kyc-customer-onboarding",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 90 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":90}"
+    },
+    {
+      "case": "wf-ko-kyc-customer-onboarding",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in ko",
+      "detail": "share 0.00 of 106 letters"
+    },
+    {
+      "case": "wf-ko-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 98 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":98}"
+    },
+    {
+      "case": "wf-ko-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in ko",
+      "detail": "share 0.00 of 90 letters"
+    },
+    {
+      "case": "wf-ko-sales-prospect-research-outreach",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 83 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":83}"
+    },
+    {
+      "case": "wf-ko-whatsapp-line-chat-agent",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 79 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":79}"
+    },
+    {
+      "case": "wf-ko-whatsapp-line-chat-agent",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in ko",
+      "detail": "share 0.00 of 103 letters"
+    },
+    {
+      "case": "wf-zh-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow kind human",
+      "detail": ""
+    },
+    {
+      "case": "wf-zh-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow task takeover",
+      "detail": ""
+    },
+    {
+      "case": "wf-zh-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 75 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":75}"
+    },
+    {
+      "case": "wf-zh-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 74 letters"
+    },
+    {
+      "case": "wf-zh-claims-processing-extraction",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 83 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":83}"
+    },
+    {
+      "case": "wf-zh-claims-processing-extraction",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 98 letters"
+    },
+    {
+      "case": "wf-zh-it-helpdesk-triage-and-remediation",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 81 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":81}"
+    },
+    {
+      "case": "wf-zh-it-helpdesk-triage-and-remediation",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 49 letters"
+    },
+    {
+      "case": "wf-zh-invoice-three-way-match",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 98 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":98}"
+    },
+    {
+      "case": "wf-zh-invoice-three-way-match",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 105 letters"
+    },
+    {
+      "case": "wf-zh-kyc-customer-onboarding",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 101 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":101}"
+    },
+    {
+      "case": "wf-zh-meeting-notes-to-crm-update",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 80 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":80}"
+    },
+    {
+      "case": "wf-zh-meeting-notes-to-crm-update",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 90 letters"
+    },
+    {
+      "case": "wf-zh-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow every approval-needing effect gated on every path",
+      "detail": "wf-approval: 'Publish approved content' (publish): Approve at call or move the action inline after an approve step."
+    },
+    {
+      "case": "wf-zh-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 74 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":74}"
+    },
+    {
+      "case": "wf-zh-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 77 letters"
+    },
+    {
+      "case": "wf-zh-sales-prospect-research-outreach",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 81 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":81}"
+    },
+    {
+      "case": "wf-zh-sales-prospect-research-outreach",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 84 letters"
+    },
+    {
+      "case": "wf-zh-support-email-triage",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 96 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":96}"
+    },
+    {
+      "case": "wf-zh-whatsapp-line-chat-agent",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 104 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":104}"
+    },
+    {
+      "case": "wf-zh-whatsapp-line-chat-agent",
+      "category": "i18n",
+      "run": 1,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 96 letters"
+    },
+    {
+      "case": "wf-ko-invoice-three-way-match",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 87 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":87}"
+    },
+    {
+      "case": "wf-ko-claims-processing-extraction",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow every approval-needing effect gated on every path",
+      "detail": "wf-approval: 'Auto-approve low-risk claim' (auto-approve): Approve at call or move the action inline after an approve step.; wf-approval: 'Execute payment routing' (execute-payment): Approve at call or move the action inline after an approv"
+    },
+    {
+      "case": "wf-ko-claims-processing-extraction",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 102 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":102}"
+    },
+    {
+      "case": "wf-ko-kyc-customer-onboarding",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 87 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":87}"
+    },
+    {
+      "case": "wf-ko-kyc-customer-onboarding",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in ko",
+      "detail": "share 0.00 of 101 letters"
+    },
+    {
+      "case": "wf-ko-it-helpdesk-triage-and-remediation",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 114 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":114}"
+    },
+    {
+      "case": "wf-ko-meeting-notes-to-crm-update",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 98 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":98}"
+    },
+    {
+      "case": "wf-ko-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow kind human",
+      "detail": ""
+    },
+    {
+      "case": "wf-ko-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow task approve",
+      "detail": ""
+    },
+    {
+      "case": "wf-ko-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow effect publish",
+      "detail": ""
+    },
+    {
+      "case": "wf-ko-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 82 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":82}"
+    },
+    {
+      "case": "wf-ko-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in ko",
+      "detail": "share 0.00 of 99 letters"
+    },
+    {
+      "case": "wf-ko-support-email-triage",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 105 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":105}"
+    },
+    {
+      "case": "wf-ko-whatsapp-line-chat-agent",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 71 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":71}"
+    },
+    {
+      "case": "wf-ko-whatsapp-line-chat-agent",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in ko",
+      "detail": "share 0.00 of 103 letters"
+    },
+    {
+      "case": "wf-ko-sales-prospect-research-outreach",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 91 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":91}"
+    },
+    {
+      "case": "wf-zh-claims-processing-extraction",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 89 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":89}"
+    },
+    {
+      "case": "wf-zh-claims-processing-extraction",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 115 letters"
+    },
+    {
+      "case": "wf-zh-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow kind human",
+      "detail": ""
+    },
+    {
+      "case": "wf-zh-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow task takeover",
+      "detail": ""
+    },
+    {
+      "case": "wf-zh-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 77 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":77}"
+    },
+    {
+      "case": "wf-zh-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 95 letters"
+    },
+    {
+      "case": "wf-zh-it-helpdesk-triage-and-remediation",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 86 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":86}"
+    },
+    {
+      "case": "wf-zh-it-helpdesk-triage-and-remediation",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 77 letters"
+    },
+    {
+      "case": "wf-zh-invoice-three-way-match",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 109 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":109}"
+    },
+    {
+      "case": "wf-zh-invoice-three-way-match",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 94 letters"
+    },
+    {
+      "case": "wf-zh-kyc-customer-onboarding",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 102 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":102}"
+    },
+    {
+      "case": "wf-zh-kyc-customer-onboarding",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 102 letters"
+    },
+    {
+      "case": "wf-zh-meeting-notes-to-crm-update",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 102 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":102}"
+    },
+    {
+      "case": "wf-zh-meeting-notes-to-crm-update",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 81 letters"
+    },
+    {
+      "case": "wf-zh-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 96 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":96}"
+    },
+    {
+      "case": "wf-zh-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 80 letters"
+    },
+    {
+      "case": "wf-zh-sales-prospect-research-outreach",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 91 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":91}"
+    },
+    {
+      "case": "wf-zh-sales-prospect-research-outreach",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 84 letters"
+    },
+    {
+      "case": "wf-zh-support-email-triage",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 93 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":93}"
+    },
+    {
+      "case": "wf-zh-whatsapp-line-chat-agent",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 75 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":75}"
+    },
+    {
+      "case": "wf-zh-whatsapp-line-chat-agent",
+      "category": "i18n",
+      "run": 2,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 97 letters"
+    },
+    {
+      "case": "wf-ko-claims-processing-extraction",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 78 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":78}"
+    },
+    {
+      "case": "wf-ko-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 94 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":94}"
+    },
+    {
+      "case": "wf-ko-invoice-three-way-match",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 99 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":99}"
+    },
+    {
+      "case": "wf-ko-it-helpdesk-triage-and-remediation",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 109 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":109}"
+    },
+    {
+      "case": "wf-ko-meeting-notes-to-crm-update",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 89 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":89}"
+    },
+    {
+      "case": "wf-ko-kyc-customer-onboarding",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 108 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":108}"
+    },
+    {
+      "case": "wf-ko-kyc-customer-onboarding",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in ko",
+      "detail": "share 0.00 of 93 letters"
+    },
+    {
+      "case": "wf-ko-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 91 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":91}"
+    },
+    {
+      "case": "wf-ko-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in ko",
+      "detail": "share 0.00 of 76 letters"
+    },
+    {
+      "case": "wf-ko-sales-prospect-research-outreach",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 83 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":83}"
+    },
+    {
+      "case": "wf-ko-whatsapp-line-chat-agent",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in ko",
+      "detail": "share 0.00 of 83 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":83}"
+    },
+    {
+      "case": "wf-ko-whatsapp-line-chat-agent",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in ko",
+      "detail": "share 0.00 of 61 letters"
+    },
+    {
+      "case": "wf-zh-claims-processing-extraction",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 95 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":95}"
+    },
+    {
+      "case": "wf-zh-claims-processing-extraction",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 68 letters"
+    },
+    {
+      "case": "wf-zh-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow kind human",
+      "detail": ""
+    },
+    {
+      "case": "wf-zh-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow task takeover",
+      "detail": ""
+    },
+    {
+      "case": "wf-zh-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 85 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":85}"
+    },
+    {
+      "case": "wf-zh-internal-policy-rag-assistant",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 97 letters"
+    },
+    {
+      "case": "wf-zh-invoice-three-way-match",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 77 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":77}"
+    },
+    {
+      "case": "wf-zh-invoice-three-way-match",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 82 letters"
+    },
+    {
+      "case": "wf-zh-it-helpdesk-triage-and-remediation",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 87 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":87}"
+    },
+    {
+      "case": "wf-zh-it-helpdesk-triage-and-remediation",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 94 letters"
+    },
+    {
+      "case": "wf-zh-meeting-notes-to-crm-update",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 86 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":86}"
+    },
+    {
+      "case": "wf-zh-meeting-notes-to-crm-update",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 83 letters"
+    },
+    {
+      "case": "wf-zh-kyc-customer-onboarding",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 100 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":100}"
+    },
+    {
+      "case": "wf-zh-kyc-customer-onboarding",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 103 letters"
+    },
+    {
+      "case": "wf-zh-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow effect publish",
+      "detail": ""
+    },
+    {
+      "case": "wf-zh-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 82 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":82}"
+    },
+    {
+      "case": "wf-zh-multilingual-marketing-localisation",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 77 letters"
+    },
+    {
+      "case": "wf-zh-sales-prospect-research-outreach",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "workflow",
+      "name": "workflow effect send",
+      "detail": ""
+    },
+    {
+      "case": "wf-zh-sales-prospect-research-outreach",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 89 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":89}"
+    },
+    {
+      "case": "wf-zh-sales-prospect-research-outreach",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 89 letters"
+    },
+    {
+      "case": "wf-zh-support-email-triage",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 91 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":91}"
+    },
+    {
+      "case": "wf-zh-support-email-triage",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 92 letters"
+    },
+    {
+      "case": "wf-zh-whatsapp-line-chat-agent",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "sayLang",
+      "name": "say text in zh",
+      "detail": "share 0.00 of 70 letters {\"hangul\":0,\"han\":0,\"kana\":0,\"latin\":70}"
+    },
+    {
+      "case": "wf-zh-whatsapp-line-chat-agent",
+      "category": "i18n",
+      "run": 3,
+      "turn": 1,
+      "type": "askLang",
+      "name": "ask text in zh",
+      "detail": "share 0.00 of 108 letters"
+    }
+  ]
+}
