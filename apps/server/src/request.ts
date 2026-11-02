@@ -7,6 +7,7 @@ import type {
   TurnMode, WorkflowGraph, WorkflowNode, WorkflowEdge, WorkflowGroup, WorkflowSettings, WorkflowEstimateSettings,
 } from '../../../packages/core/src/types.ts';
 import { DEFAULT_WORKFLOW_LIMITS } from '../../../packages/core/src/workflow.ts';
+import { ESTIMATE_LIMITS } from '../../../packages/core/src/workflow-estimate-limits.ts';
 import { createModelTable, WORKFLOW_TASKS } from '../../../packages/core/src/models.ts';
 import type { ModelFile } from '../../../packages/core/src/models.ts';
 import { normalizeId, ID_PATTERN } from '../../../packages/core/src/reducer.ts';
@@ -429,7 +430,7 @@ function workflowSettings(v: unknown, p: string): WorkflowSettings {
 function estimate(v: unknown, p: string): WorkflowEstimateSettings {
   const o = obj(v, p);
   const out: WorkflowEstimateSettings = {};
-  if (own(o, 'runsPerMonth') !== undefined) out.runsPerMonth = number(o.runsPerMonth, `${p}.runsPerMonth`, 1e9, 0, true);
+  if (own(o, 'runsPerMonth') !== undefined) out.runsPerMonth = number(o.runsPerMonth, `${p}.runsPerMonth`, ESTIMATE_LIMITS.runsPerMonth, 0, true);
   if (own(o, 'scope') !== undefined) out.scope = choice(o.scope, `${p}.scope`, ['international', 'global']);
   for (const k of ['steps', 'items', 'shares', 'loops', 'agents', 'guardTypes'] as const) {
     if (own(o, k) === undefined) continue;
@@ -441,7 +442,7 @@ function estimate(v: unknown, p: string): WorkflowEstimateSettings {
       const path = `${p}.${k}.${key}`;
       workflowId(key, path);
       if (k === 'shares' || k === 'guardTypes') {
-        parsed[key] = number(map[key], path, k === 'shares' ? 1 : 3, 0, k === 'guardTypes');
+        parsed[key] = number(map[key], path, k === 'shares' ? ESTIMATE_LIMITS.share : ESTIMATE_LIMITS.guardTypes, 0, k === 'guardTypes');
         continue;
       }
       const value = obj(map[key], path);
@@ -451,7 +452,7 @@ function estimate(v: unknown, p: string): WorkflowEstimateSettings {
       for (const field of fields) {
         if (own(value, field) === undefined) continue;
         item[field] = field === 'thinking' || field === 'offline' ? bool(value[field], `${path}.${field}`)
-          : number(value[field], `${path}.${field}`, 1e9);
+          : number(value[field], `${path}.${field}`, ESTIMATE_LIMITS.amount);
       }
       parsed[key] = item;
     }
