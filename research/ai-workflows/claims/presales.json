@@ -1,0 +1,964 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "Model Studio applications in the Singapore region created before April 21, 2025 are restricted to calls from users who created them prior to that date.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/application-introduction",
+      "topic": "Model Studio Singapore app restriction",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c2",
+      "claim": "Model Studio regions include Beijing, Virginia, Singapore, Tokyo, Frankfurt, and Hong Kong.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/what-is-model-studio",
+      "topic": "Model Studio regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c3",
+      "claim": "Fine-tuning APIs are available only in the Singapore region on the international site.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/create-fine-tuning-job-api",
+      "topic": "Fine-tuning API availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c4",
+      "claim": "The US DoD added Alibaba to the Section 1260H 'Chinese military companies' list on June 8, 2026.",
+      "url": "https://media.defense.gov/2026/Jun/08/2003945537/-1/-1/1/ENTITIES-IDENTIFIED-AS-CHINESE-MILITARY-COMPANIES-OPERATING-IN-THE-UNITED-STATES-IN-ACCORDANCE-WITH-SECTION-1260H.PDF",
+      "topic": "Alibaba 1260H listing",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c5",
+      "claim": "Alibaba publicly disputed its inclusion on the Pentagon's China military list on June 9, 2026.",
+      "url": "https://www.cnbc.com/2026-06-09/alibaba-baidu-byd-named-on-pentagons-china-military-list-.html",
+      "topic": "Alibaba dispute of listing",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c6",
+      "claim": "Alibaba won a preliminary injunction limiting US government denial of Pentagon contracts tied to the 1260H listing on October 26, 2026.",
+      "url": "https://www.reuters.com/legal/litigation/alibaba-wins-injunction-against-pentagon-contract-restrictions-tied-china-2026-10-27/",
+      "topic": "Alibaba injunction",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c7",
+      "claim": "SCMP reports that the designation of Alibaba as a Chinese military company was left intact despite the injunction.",
+      "url": "https://www.scmp.com/news/us/article/3372356/alibaba-wins-preliminary-injunction-against-pentagon-lobbying-rule",
+      "topic": "Designation status",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c8",
+      "claim": "Gartner reported that more than 50% of GenAI projects were abandoned after PoC by end-2025.",
+      "url": "https://www.gartner.com/en/articles/genai-project-failure",
+      "topic": "GenAI project abandonment rate",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c9",
+      "claim": "Section 1532 of the FY2026 NDAA bars DoD contractors from using 'covered AI' products effective January 17, 2026.",
+      "url": "https://www.hklaw.com/en/insights/publications/2026/07/department-of-war-updates-section-1260h",
+      "topic": "NDAA Section 1532",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c10",
+      "claim": "It is unconfirmed whether Alibaba/Qwen becomes a 'covered AI company' under NDAA Section 1532 following the 1260H designation.",
+      "url": null,
+      "topic": "Qwen covered AI status",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c11",
+      "claim": "The EU Commission adopted a proposal for a Cloud and AI Development Act (CADA) in June 2026.",
+      "url": "https://digital-strategy.ec.europa.eu/en/policies/cloud-computing",
+      "topic": "EU CADA adoption",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c12",
+      "claim": "Alibaba Cloud plans to open its first cloud regions in Türkiye, Finland, and the Netherlands within 12 months.",
+      "url": "https://www.datacenterdynamics.com/en/news/alibaba-cloud-plans-new-cloud-regions-in-turkey-finland-the-netherlands/",
+      "topic": "New Alibaba Cloud regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c13",
+      "claim": "Alibaba Cloud expanded its European footprint with two new availability zones in France.",
+      "url": "https://www.alibabacloud.com/blog/alibaba-cloud-expands-european-footprint-with-two-availability-zones-in-france_603265",
+      "topic": "France AZs",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c14",
+      "claim": "Alibaba Cloud has 105 availability zones across 32 regions.",
+      "url": "https://www.alibabacloud.com/blog/alibaba-cloud-expands-european-footprint-with-two-availability-zones-in-france_603265",
+      "topic": "Alibaba Cloud global footprint",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c15",
+      "claim": "Alibaba Cloud was named a Leader in the 2026 Gartner Magic Quadrant for Generative AI Model Providers.",
+      "url": "https://www.alibabacloud.com/about/gartner-gaimp-2026",
+      "topic": "Gartner MQ GenAI Leader",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c16",
+      "claim": "Alibaba Cloud was named a Leader in the 2026 Gartner MQ for Strategic Cloud Platform Services.",
+      "url": "https://www.alibabacloud.com/en/about/gartner-scps-2026?_p_lc=1",
+      "topic": "Gartner MQ SCPS Leader",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c17",
+      "claim": "Alibaba Cloud is described as the only Chinese and only Asia-Pacific provider in the Leaders quadrant of the 2026 Gartner MQ for Strategic Cloud Platform Services.",
+      "url": "https://www.alibabacloud.com/en/about/gartner-scps-2026?_p_lc=1",
+      "topic": "Unique APAC Leader status",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c18",
+      "claim": "AWS guidance states that a PoC must validate business value, data readiness, technical feasibility, and risk mitigation.",
+      "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/gen-ai-lifecycle-operational-excellence/dev-architecting.html",
+      "topic": "AWS PoC validation criteria",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c19",
+      "claim": "The AWS Well-Architected Generative AI Lens lifecycle lists scoping as the first phase.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/generative-ai-lifecycle.html",
+      "topic": "AWS GenAI Lens phases",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c20",
+      "claim": "Model Studio rate limits are defined by RPM/TPM and reject requests with HTTP 429 upon breach.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/rate-limit",
+      "topic": "Model Studio rate limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c21",
+      "claim": "RAND lists lack of quality data as a root cause of AI project failure.",
+      "url": "https://www.rand.org/pubs/research_reports/RRA2680-1.html",
+      "topic": "RAND failure causes",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c22",
+      "claim": "Model Studio knowledge bases split files into chunks and vectorise them.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/rag-knowledge-base",
+      "topic": "Model Studio RAG mechanics",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c23",
+      "claim": "The AWS Agentic Scoping Matrix classifies agents by connectivity and autonomy.",
+      "url": "https://aws.amazon.com/ai/security/agentic-ai-scoping-matrix/",
+      "topic": "AWS Scoping Matrix",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c24",
+      "claim": "Model Studio supports MCP servers.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/mcp",
+      "topic": "Model Studio MCP support",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c25",
+      "claim": "Anthropic recommends combining code-based, model-based, and human graders for evaluations.",
+      "url": "https://www.anthropic.com/research/demystifying-evals-for-ai-agents",
+      "topic": "Anthropic eval recommendation",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c26",
+      "claim": "Model Studio dedicated deployment reserves TPM capacity with no rate limiting.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-deployment-introduction",
+      "topic": "Dedicated deployment features",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c27",
+      "claim": "DTU model deployment provides throughput guarantee and low latency.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/dtu-model-deployment",
+      "topic": "DTU features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c28",
+      "claim": "Google recommends using the human-in-the-loop pattern for tasks needing oversight, subjective judgement, or final approval.",
+      "url": "https://docs.cloud.google.com/architecture/choose-design-pattern-agentic-ai-system",
+      "topic": "Google HITL recommendation",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c29",
+      "claim": "Qwen3 expands multilingual support from 29 to 119 languages and dialects.",
+      "url": "https://arxiv.org/html/2505.09388v1",
+      "topic": "Qwen3 language support",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c30",
+      "claim": "Model Studio defines a data retention policy where prompts/responses are retained for no longer than 30 days unless legally required.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/data-retention-policy",
+      "topic": "Data retention policy",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c31",
+      "claim": "ZDR-enabled workspaces change retention behavior for ZDR-supported models, while non-ZDR models fall back to standard policy.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/data-retention-policy",
+      "topic": "ZDR workspace behavior",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c32",
+      "claim": "The specific list of models supporting Zero Data Retention (ZDR) is unconfirmed at the product-doc level.",
+      "url": null,
+      "topic": "ZDR model coverage",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c33",
+      "claim": "Model Studio budget management allows monthly limits, alerts, and optional auto-restriction of pay-as-you-go usage.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/budget-management",
+      "topic": "Budget management features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c34",
+      "claim": "Batch inference in Model Studio costs 50% of the real-time price.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/batch-inference",
+      "topic": "Batch inference pricing",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c35",
+      "claim": "Context cache input is typically billed at approximately 20% of the standard input price.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/context-cache",
+      "topic": "Context cache pricing",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c36",
+      "claim": "Savings plans offer tiered discounts for committing monthly spend over 3, 6, 12, or 24 months.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/savings-plan-and-resource-package",
+      "topic": "Savings plan structure",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c37",
+      "claim": "China site documentation quantifies savings plan discounts as 'up to 47% off'.",
+      "url": "https://help.aliyun.com/en/model-studio/savings-plan-and-resource-package",
+      "topic": "Savings plan max discount (China)",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c38",
+      "claim": "FinOps Foundation guidance recommends tracking cost per inference, per user, and per successful outcome as distributions.",
+      "url": "https://www.finops.org/wg/finops-for-ai-overview/",
+      "topic": "FinOps cost tracking",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c39",
+      "claim": "Gartner names escalating costs as one of three reasons agentic projects get cancelled.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027",
+      "topic": "Gartner cancellation reasons",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c40",
+      "claim": "The AgentRun tool marketplace publishes integration guides for Model Studio, LangStudio, Cursor, Cline, ModelScope, and Dify.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/tool-market",
+      "topic": "AgentRun integrations",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c41",
+      "claim": "Model Studio offers OpenAI-compatible APIs, including the Batch interface.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/batch-interfaces-compatible-with-openai",
+      "topic": "OpenAI compatibility",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c42",
+      "claim": "Qwen3.8 is published under the Apache 2.0 license.",
+      "url": "https://github.com/QwenLM/Qwen3.8",
+      "topic": "Qwen3.8 license",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c43",
+      "claim": "Qwen3.8 includes the first Max-class open release.",
+      "url": "https://huggingface.co/Qwen/Qwen3.8-2.4T-A95B",
+      "topic": "Qwen3.8 Max release",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c44",
+      "claim": "International personal data for Model Studio is stored in Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/legal/latest/alibaba-cloud-international-website-privacy-policy",
+      "topic": "Data residency Singapore",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c45",
+      "claim": "API keys cannot be mixed across regions for Model Studio services.",
+      "url": "https://help.aliyun.com/en/model-studio/germany-frankfurt-global",
+      "topic": "Cross-region API key mixing",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c46",
+      "claim": "Air-gapped sovereign Qwen deployment is documented on Alibaba Cloud.",
+      "url": "https://www.alibabacloud.com/blog/603351",
+      "topic": "Sovereign Qwen deployment",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c47",
+      "claim": "Alibaba Cloud achieved MTCS Level 3 certification in Singapore.",
+      "url": "https://www.alibabacloud.com/en/press-room/alibaba-cloud-expands-singapore-data-center-and-achieves",
+      "topic": "MTCS Level 3 cert",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c48",
+      "claim": "OWASP Top 10 for Agentic Applications 2026 includes ASI01 Agent Goal Hijack through ASI10 Rogue Agents.",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "topic": "OWASP Agentic Top 10",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c49",
+      "claim": "Google SAIF flags indirect prompt injection as inherent when agents read untrusted content.",
+      "url": "https://saif.google/focus-on-agents",
+      "topic": "SAIF prompt injection",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c50",
+      "claim": "AgentRun provides disposable/isolated execution workspaces.",
+      "url": "https://www.alibabacloud.com/blog/giving-your-ai-agent-a-disposable-workspace-with-alibaba-cloud-agentrun_603324",
+      "topic": "AgentRun workspaces",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c51",
+      "claim": "Agent Sandbox supports agent-generated code/tools/browser workloads.",
+      "url": "https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/agent-sandbox-overview",
+      "topic": "Agent Sandbox capabilities",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c52",
+      "claim": "AgentLoop provides full-stack observability and audit for agents.",
+      "url": "https://www.alibabacloud.com/help/en/agentloop/product-overview/what-is-agentloop",
+      "topic": "AgentLoop observability",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c53",
+      "claim": "CSA post-incident rule states an agent must not be able to modify its own autonomy level or disable its own oversight controls.",
+      "url": "https://labs.cloudsecurityalliance.org/wp-content/uploads/2026/03/autonomy-levels-framework-update-assessment-v1-csa-styled.pdf",
+      "topic": "CSA autonomy constraint",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c54",
+      "claim": "The Brynjolfsson–Li–Raymond field study found AI assistance raised issues resolved per hour by ~14% on average.",
+      "url": "https://www.nber.org/papers/w31161",
+      "topic": "AI productivity gain avg",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c55",
+      "claim": "The same study found AI assistance raised issues resolved per hour by ~34% for novice/low-skill workers.",
+      "url": "https://www.nber.org/papers/w31161",
+      "topic": "AI productivity gain novices",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c56",
+      "claim": "Stanford Digital Economy publication finds employment of 22–25-year-olds in AI-exposed occupations stands 19% below trend.",
+      "url": "https://digitaleconomy.stanford.edu/publication/canaries-in-the-coal-mine-six-facts-about-the-recent-employment-effects-of-artificial-intelligence/",
+      "topic": "Youth employment impact",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c57",
+      "claim": "Klarna claimed their AI assistant handled work equivalent to 700 FTEs.",
+      "url": "https://www.klarna.com/international/press/klarna-ai-assistant-handles-two-thirds-of-customer-service-chats-in-its-first-month/",
+      "topic": "Klarna FTE claim",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c58",
+      "claim": "Klarna estimated a $40M profit improvement in 2024 from their AI assistant.",
+      "url": "https://www.klarna.com/international/press/klarna-ai-assistant-handles-two-thirds-of-customer-service-chats-in-its-first-month/",
+      "topic": "Klarna profit estimate",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c59",
+      "claim": "Intercom Fin is priced at $0.99 per outcome.",
+      "url": "https://www.intercom.com/pricing",
+      "topic": "Intercom Fin price",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c60",
+      "claim": "Zepto AI agents manage 80%+ of support tickets.",
+      "url": "https://www.databricks.com/blog/evaluation-first-ai-agents-how-zepto-scales-customer-support-databricks-and-mlflow",
+      "topic": "Zepto ticket automation",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c61",
+      "claim": "Zepto cut support costs by 65% using AI agents.",
+      "url": "https://www.databricks.com/blog/evaluation-first-ai-agents-how-zepto-scales-customer-support-databricks-and-mlflow",
+      "topic": "Zepto cost reduction",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c62",
+      "claim": "Alibaba Cloud's customer-service agent achieves a self-service resolution rate over 10% higher than traditional solutions.",
+      "url": "https://www.alibabacloud.com/blog/alibaba-cloud-customer-service-agent-thoughts-design-and-practices-from-concept-to-implementation_601555",
+      "topic": "Alibaba CS agent metric",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c63",
+      "claim": "Gartner predicts agentic AI will autonomously resolve 80% of common customer service issues by 2029.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2025-03-05-gartner-predicts-agentic-ai-will-autonomously-resolve-80-percent-of-common-customer-service-issues-without-human-intervention-by-20290",
+      "topic": "Gartner 2029 prediction",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c64",
+      "claim": "McKinsey estimates GenAI applied to customer care could increase productivity valued at 30–45% of current cost.",
+      "url": "https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/the-economic-potential-of-generative-ai-the-next-productivity-frontier",
+      "topic": "McKinsey productivity value",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c65",
+      "claim": "Vendor blogs indicate human-handled ticket costs range from $10 to $25.",
+      "url": "https://fin.ai/learn/reduce-support-costs-ai",
+      "topic": "Human ticket cost range",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c66",
+      "claim": "qwen3.8-max is priced at $2.00 / 1M input tokens and $6.00 / 1M output tokens in Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen3.8-max price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c67",
+      "claim": "qwen-plus is priced at $0.115 / 1M input tokens and $0.287 / 1M output tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-plus",
+      "topic": "qwen-plus price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c68",
+      "claim": "qwen-plus thinking mode output is priced at $1.147 / 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-plus",
+      "topic": "qwen-plus thinking price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c69",
+      "claim": "qwen-flash is priced at $0.022 / 1M input tokens and $0.216 / 1M output tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-flash",
+      "topic": "qwen-flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c70",
+      "claim": "qwen-flash implicit-cache input is priced at $0.005 / 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-flash",
+      "topic": "qwen-flash cache price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c71",
+      "claim": "New-user free quota for eligible models is 1M tokens for 90 days, limited to Singapore/international-scope models.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/new-free-quota",
+      "topic": "Free quota terms",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c72",
+      "claim": "There is a discrepancy between aggregate pricing page values ($0.23/$1.434) and per-model qwen-plus page values ($0.115/$0.287).",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Pricing discrepancy",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c73",
+      "claim": "Function Compute is billed on CU/vCPU/memory/invocation with pay-as-you-go or resource plans.",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/billing-overview-of-fc",
+      "topic": "FC billing model",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c74",
+      "claim": "CloudZero published a worked example showing 12 calls (~36K input + 6K output) cost approx $0.132 per task.",
+      "url": "https://www.cloudzero.com/blog/ai-agent-cost/",
+      "topic": "Agent cost example",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c75",
+      "claim": "EU AI Act Article 50 transparency obligations apply from August 2, 2026.",
+      "url": "https://artificialintelligenceact.eu/article/50/",
+      "topic": "EU AI Act Art 50 date",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c76",
+      "claim": "AWS Agentic AI Security Scoping Matrix classifies Scope 1 as No Agency and Scope 4 as Full Agency.",
+      "url": "https://aws.amazon.com/ai/security/agentic-ai-scoping-matrix/",
+      "topic": "AWS Scoping Levels",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c77",
+      "claim": "CSA defines six autonomy levels (L0–L5).",
+      "url": "https://cloudsecurityalliance.org/blog/2026-01-28/levels-of-autonomy",
+      "topic": "CSA Autonomy Levels",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c78",
+      "claim": "Google's ADK guide illustrates eight multi-agent patterns including sequential pipeline and parallel fan-out.",
+      "url": "https://developers.googleblog.com/developers-guide-to-multi-agent-patterns-in-adk/",
+      "topic": "Google ADK patterns",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c79",
+      "claim": "Anthropic defines five workflow patterns: prompt chaining, routing, parallelization, orchestrator-workers, and evaluator-optimizer.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "Anthropic workflow patterns",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c80",
+      "claim": "For new international accounts, Model Studio's no-code agent and workflow applications are not callable.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/application-introduction",
+      "topic": "No-code app restriction",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c81",
+      "claim": "PAI-EAS supports self-hosted open-weight Qwen deployment.",
+      "url": "https://www.alibabacloud.com/help/en/pai/deploy-an-llm/",
+      "topic": "PAI-EAS Qwen support",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c82",
+      "claim": "EventBridge can trigger Function Compute workflows.",
+      "url": "https://www.alibabacloud.com/help/en/eventbridge/product-overview/what-is-eventbridge",
+      "topic": "EventBridge Trigger",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c83",
+      "claim": "Direct Mail handles outbound sending and reply-to processing.",
+      "url": "https://www.alibabacloud.com/help/en/direct-mail/product-overview/directmail",
+      "topic": "Direct Mail function",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c84",
+      "claim": "AgentRun is a serverless agent runtime providing full lifecycle management.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/what-is-agentrun",
+      "topic": "AgentRun definition",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c85",
+      "claim": "AgentCore provides build, govern, and execute capabilities for agents.",
+      "url": "https://www.alibabacloud.com/en/product/agentcore?_p_lc=1",
+      "topic": "AgentCore definition",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c86",
+      "claim": "Dify can be orchestrated on ACK.",
+      "url": "https://www.alibabacloud.com/help/en/ack/cloud-native-ai-suite/use-cases/building-customized-ai-question-and-answer-assistant-based-on-dify",
+      "topic": "Dify on ACK",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c87",
+      "claim": "PAI LangStudio node set includes flow control, LLM, agents, data retrieval, document parsing, speech, and Python nodes.",
+      "url": "https://www.alibabacloud.com/help/en/pai/node-reference",
+      "topic": "LangStudio nodes",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c88",
+      "claim": "AI Search Open Platform is documented for Shanghai and Frankfurt regions only.",
+      "url": "https://www.alibabacloud.com/help/en/open-search/search-platform/getting-started/ai-getting-started",
+      "topic": "AI Search regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c89",
+      "claim": "AnalyticDB for PostgreSQL supports vector RAG applications.",
+      "url": "https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/openapi-based-rag-applications-1",
+      "topic": "ADB Vector RAG",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c90",
+      "claim": "Tablestore Memory Storage works with AgentRun.",
+      "url": "https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/agentrun-tablestore-memory",
+      "topic": "Tablestore AgentRun integration",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c91",
+      "claim": "No managed Alibaba Cloud 'human approval inbox' product was found; this is unconfirmed.",
+      "url": null,
+      "topic": "Approval inbox existence",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c92",
+      "claim": "AgentRun's only international endpoint is Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/what-is-agentrun",
+      "topic": "AgentRun international region",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c93",
+      "claim": "AgentLoop is available internationally only in Hong Kong.",
+      "url": "https://www.alibabacloud.com/help/en/agentloop/faqs",
+      "topic": "AgentLoop international region",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c94",
+      "claim": "Model Studio PrivateLink is available in Beijing and Hong Kong.",
+      "url": null,
+      "topic": "PrivateLink regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c95",
+      "claim": "RAM execution roles can be assigned to AgentRuntime for least privilege.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/api-agentrun-2025-09-10-struct-agentruntime",
+      "topic": "RAM for AgentRuntime",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c96",
+      "claim": "Vectara HHEM leaderboard publishes per-model hallucination rates, e.g., Gemini-2.5-flash-lite at 3.3%.",
+      "url": "https://www.vectara.com/blog/introducing-the-next-generation-of-vectaras-hallucination-leaderboard",
+      "topic": "Vectara Hallucination Rate",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c97",
+      "claim": "Grounding with retrieval moves part of the failure into retrieval but does not eliminate unsupported answers.",
+      "url": "https://www.scality.com/glossary/rag-hallucination",
+      "topic": "RAG limitation",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c98",
+      "claim": "Hamel Husain recommends ~100 traces for error discovery in eval sets.",
+      "url": "https://hamel.dev/blog/posts/evals-faq/how-many-examples-do-i-need-for-an-eval.html",
+      "topic": "Eval set size recommendation",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c99",
+      "claim": "LLM judges need ~100–200 labelled examples to be validated against human judgement.",
+      "url": "https://hamel.dev/blog/posts/evals-faq/how-many-examples-do-i-need-for-an-eval.html",
+      "topic": "Judge validation size",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c100",
+      "claim": "Amazon's agentic evaluation framework covers tool-use accuracy through multi-agent coordination.",
+      "url": "https://aws.amazon.com/blogs/machine-learning/evaluating-ai-agents-real-world-lessons-from-building-agentic-systems-at-amazon/",
+      "topic": "Amazon Eval Framework",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c101",
+      "claim": "Zepto moved from 500 examples to 2,000 examples over six months while scaling to 80%+ of support tickets.",
+      "url": "https://www.databricks.com/blog/evaluation-first-ai-agents-how-zepto-scales-customer-support-databricks-and-mlflow",
+      "topic": "Zepto dataset growth",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c102",
+      "claim": "MIT State of AI in Business report via Fortune states 95% of GenAI pilots deliver no measurable P&L impact.",
+      "url": "https://fortune.com/2025-08-18/mit-report-95-percent-generative-ai-pilots-at-companies-failing-cfo/",
+      "topic": "MIT Pilot Failure Rate",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c103",
+      "claim": "Deloitte predicts orgs launching agentic pilots/PoCs will rise from 25% of GenAI users in 2025 to 50% by 2027.",
+      "url": "https://www.deloitte.com/in/en/services/consulting/services/engineering-ai-data/agentic-ai.html",
+      "topic": "Deloitte Adoption Prediction",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c104",
+      "claim": "RAND identifies misunderstanding/miscommunication about project intent as the most common root cause of AI failure.",
+      "url": "https://www.rand.org/pubs/research_reports/RRA2680-1.html",
+      "topic": "RAND Root Cause",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c105",
+      "claim": "OpenAI's guide suggests building agents where there is complex decision-making, unstructured data, and rules too numerous to maintain deterministically.",
+      "url": "https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf",
+      "topic": "OpenAI Agent Criteria",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c106",
+      "claim": "Anthropic recommends preferring workflows (predefined code paths) over agents (model-directed) unless the task requires it.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "Anthropic Workflow Preference",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c107",
+      "claim": "McKinsey states that scale of agentic adoption is capped by how much oversight capacity humans can provide.",
+      "url": "https://www.mckinsey.com/capabilities/people-and-organization/our-insights/the-agentic-organization-contours-of-the-next-paradigm-for-the-ai-era",
+      "topic": "McKinsey Oversight Cap",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c108",
+      "claim": "Gartner predicted >40% of agentic AI projects will be canceled by end-2027 due to escalating costs, unclear business value, and inadequate risk controls.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027",
+      "topic": "Gartner Agentic Cancellation",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c109",
+      "claim": "Gartner predicted 30% of GenAI projects would be abandoned after PoC by end-2025.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2024-07-29-gartner-predicts-30-percent-of-generative-ai-projects-will-be-abandoned-after-proof-of-concept-by-end-of-2025",
+      "topic": "Gartner GenAI Abandonment",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c110",
+      "claim": "RAND reports >80% of AI projects fail overall, twice the rate of non-AI IT projects.",
+      "url": "https://www.rand.org/pubs/research_reports/RRA2680-1.html",
+      "topic": "RAND Overall Failure Rate",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c111",
+      "claim": "Alibaba Cloud Trust Center FAQ states Alibaba Cloud does not access or use member content without customer consent.",
+      "url": "https://www.alibabacloud.com/en/trust-center/faq?_p_lc=1",
+      "topic": "Trust Center Access Policy",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c112",
+      "claim": "Japan Trust Center states that if a government agency wants customer data, Alibaba Cloud requires the agency to obtain the customer's permission first.",
+      "url": "https://www.alibabacloud.com/en/trust-center/japan?_p_lc=1",
+      "topic": "Japan Gov Data Access",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c113",
+      "claim": "Alibaba Cloud is a member of the EU Cloud Code of Conduct since 2017.",
+      "url": "https://eucoc.cloud/en/detail/alibaba-cloud-adheres-to-the-eu-cloud-code-of-conduct",
+      "topic": "EU CCC Membership",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c114",
+      "claim": "Alibaba Cloud offers an international Data Processing Addendum with EU SCCs.",
+      "url": "https://www.alibabacloud.com/help/en/legal/latest/fe2cxg",
+      "topic": "DPA/SCCs Availability",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c115",
+      "claim": "The statute FY2026 NDAA §1532 names DeepSeek and High Flyer explicitly as covered AI entities.",
+      "url": "https://www.crowell.com/en/insights/client-alerts/the-fy-2026-national-defense-authorization-act",
+      "topic": "Covered AI Entities",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c116",
+      "claim": "Gartner published a First Take on how US restrictions involving Alibaba may affect Salesforce China customers.",
+      "url": "https://www.gartner.com/en/documents/7983737",
+      "topic": "Salesforce China Impact",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c117",
+      "claim": "Trade coverage notes EU sovereignty rules could limit non-EU providers' access to public-sector contracts.",
+      "url": "https://thenextweb.com/news/alibaba-cloud-france-data-centres-eu-sovereignty",
+      "topic": "EU Sovereignty Limits",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c118",
+      "claim": "Alibaba Cloud privacy notice states Alibaba Cloud will never use customer data for model training.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/privacy-notice",
+      "topic": "No Training on Customer Data",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c119",
+      "claim": "Alibaba Cloud holds SOC 2 certification with an unqualified opinion.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/faq-about-alibaba-cloud-model-studio",
+      "topic": "SOC 2 Status",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c120",
+      "claim": "AgentTeams was announced at WAIC 2026 alongside AgentLoop, but international availability is unconfirmed.",
+      "url": "https://www.alibabacloud.com/blog/alibaba-cloud-unveils-agent-native-innovations-at-waic-2026_603377",
+      "topic": "AgentTeams Availability",
+      "kind": "alibaba",
+      "weight": "high"
+    }
+  ]
+}

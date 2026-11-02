@@ -1,0 +1,628 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "OpenAI Agent Builder is deprecated as of 2026-06-03 and scheduled to shut down on November 30, 2026.",
+      "url": "https://developers.openai.com/api/docs/guides/agent-builder",
+      "topic": "OpenAI Agent Builder status",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c2",
+      "claim": "Microsoft prompt flow (Azure AI Foundry visual DAG) will be retired on April 20, 2027.",
+      "url": "https://learn.microsoft.com/en-us/azure/foundry-classic/concepts/prompt-flow",
+      "topic": "Microsoft prompt flow retirement",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c3",
+      "claim": "Foundry Agent Service classic is deprecated with a retirement date of 2027-03-31 (unconfirmed on official lifecycle page).",
+      "url": "https://learn.microsoft.com/en-za/answers/questions/5934023/will-azure-ai-agents-sdk-foundry-agent-service-cla",
+      "topic": "Foundry Agent Service status",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c4",
+      "claim": "Azure OpenAI Assistants API retires on August 26, 2026 (unconfirmed on official lifecycle page).",
+      "url": "https://www.beri.net/article/assistants-api-august-26-shutdown-openai-responses-vs-azure-foundry-agents",
+      "topic": "Azure OpenAI Assistants API retirement",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c5",
+      "claim": "Google renamed 'Vertex AI Agent Designer' to 'Workflow Builder' and it is generally available (GA) in Gemini Enterprise.",
+      "url": "https://docs.cloud.google.com/release-notes",
+      "topic": "Google Workflow Builder GA",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c6",
+      "claim": "The GA date for Google Workflow Builder is reported as 2026-09-03 by a third-party guide but is unconfirmed officially.",
+      "url": "https://www.workspaceblog.in/blog/gemini-enterprise-workflow-builder-guide/",
+      "topic": "Google Workflow Builder GA date",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c7",
+      "claim": "Google ADK has deprecated SequentialAgent, ParallelAgent, and LoopAgent in favor of a graph-based Workflow engine.",
+      "url": "https://github.com/google/adk-python/blob/main/.agents/skills/adk-agent-builder/references/multi-agent.md",
+      "topic": "Google ADK deprecations",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c8",
+      "claim": "Alibaba PAI-LangStudio will be retired on March 9, 2027 at 16:00.",
+      "url": "https://www.alibabacloud.com/help/en/pai/product-overview/pai-langstudio-feature-retirement-and-migration-guide",
+      "topic": "PAI-LangStudio retirement",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c9",
+      "claim": "Users can migrate LangStudio workflow apps to Model Studio workflow apps, but the Model Studio DSL cannot directly import the LangStudio flow.",
+      "url": "https://www.alibabacloud.com/help/en/pai/create-a-code-based-application",
+      "topic": "LangStudio migration constraints",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c10",
+      "claim": "Model Studio documents a 'Flow Agent' visual platform with Agent Creation, Agent Group and Memory nodes, marked as China site only.",
+      "url": "https://help.aliyun.com/en/model-studio/flow-agent-introduction",
+      "topic": "Model Studio Flow Agent existence",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c11",
+      "claim": "Singapore availability of Model Studio Flow Agent is unconfirmed.",
+      "url": "https://help.aliyun.com/en/model-studio/flow-agent-introduction",
+      "topic": "Flow Agent Singapore availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c12",
+      "claim": "Only users who created Alibaba Cloud Model Studio applications in the Singapore region before April 21, 2025 can call the application APIs.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/workflow-application",
+      "topic": "Model Studio Singapore restriction",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c13",
+      "claim": "Alibaba AgentRun includes a low-code visual 'Flow Agent' canvas that supports drag-and-drop node orchestration.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/quick-start-to-low-code-agent-creation-1",
+      "topic": "AgentRun Flow Agent feature",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c14",
+      "claim": "Dify v1.13.0 added a Human Input node allowing workflows to pause for human review and resume with approved, edited, or rerouted decisions.",
+      "url": "https://dify.ai/blog/the-human-input-node-bringing-human-judgment-into-automated-workflows",
+      "topic": "Dify Human Input node",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c15",
+      "claim": "n8n treats the Chat Model as a sub-node attached to the AI Agent root node, not as a standalone step.",
+      "url": "https://docs.n8n.io/key-concept-glossary",
+      "topic": "n8n Chat Model structure",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c16",
+      "claim": "n8n Memory sub-nodes do not persist between sessions.",
+      "url": "https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.agent/tools-agent",
+      "topic": "n8n Memory persistence",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c17",
+      "claim": "Dify defines a Trigger as a type of Start node that runs workflows automatically on a schedule or in response to events.",
+      "url": "https://docs.dify.ai/en/cloud/use-dify/nodes/trigger/overview",
+      "topic": "Dify Trigger definition",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c18",
+      "claim": "Coze defines a plugin as a collection of tools, each of which is an invokable API.",
+      "url": "https://www.coze.com/open/docs/guides/plugin_node",
+      "topic": "Coze Plugin definition",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c19",
+      "claim": "LangGraph nodes and edges are functions that can contain an LLM or code, rather than distinct primitive types for every action.",
+      "url": "https://docs.langchain.com/oss/python/langgraph/graph-api",
+      "topic": "LangGraph Node definition",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c20",
+      "claim": "In Langflow, any component with Tool Mode enabled connects to the Agent's Tools input.",
+      "url": "https://docs.langflow.org/agents-tools",
+      "topic": "Langflow Tool Mode",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c21",
+      "claim": "Flowise Agent nodes allow the LLM to dynamically choose a tool.",
+      "url": "https://docs.flowiseai.com/using-flowise/agentflowv2",
+      "topic": "Flowise Agent behavior",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c22",
+      "claim": "OpenAI Agent Builder uses a Set State node to write workflow state.",
+      "url": "https://developers.openai.com/api/docs/guides/node-reference",
+      "topic": "OpenAI Agent Builder State node",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c23",
+      "claim": "Google ADK Visual Builder pre-wires tools including Google Search, URL context, and Vertex AI Search.",
+      "url": "https://discuss.google.dev/t/introducing-vertex-ai-agent-designer-in-agent-builder/299224",
+      "topic": "ADK Pre-wired tools",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c24",
+      "claim": "Microsoft Copilot Studio sets the generative model at the agent level, with availability varying by region.",
+      "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/prompt-model-availability",
+      "topic": "Copilot Studio Model config",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c25",
+      "claim": "AWS Bedrock Flows includes a Prompt node for inline or managed prompts.",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/flows-nodes.html",
+      "topic": "Bedrock Flows Prompt node",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c26",
+      "claim": "AWS Bedrock AgentCore Gateway converts APIs and Lambda functions to MCP compatible tools.",
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-core-concepts.html",
+      "topic": "AgentCore Gateway capability",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c27",
+      "claim": "Zapier Agents are configured via panels (instructions, trigger, knowledge, actions) and do not use a node canvas.",
+      "url": "https://help.zapier.com/hc/en-us/articles/24393442652557-Build-an-agent-in-Zapier-Agents",
+      "topic": "Zapier Agents UI structure",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c28",
+      "claim": "Alibaba Model Studio includes an Agent Creation node that natively supports tool invocation and knowledge base configuration.",
+      "url": "https://help.aliyun.com/en/model-studio/workflow/agent-create-node",
+      "topic": "Model Studio Agent Creation node",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c29",
+      "claim": "Alibaba Model Studio includes an Agent Group node for coordinating multiple published agents.",
+      "url": "https://help.aliyun.com/en/model-studio/workflow/agent-group-node",
+      "topic": "Model Studio Agent Group node",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c30",
+      "claim": "Alibaba Model Studio workflow nodes include API, Function Compute, Script, Plugin, MCP, AppFlow, Application Component, and Data Connector types.",
+      "url": "https://help.aliyun.com/en/model-studio/workflow/mcp-node",
+      "topic": "Model Studio Workflow Nodes",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c31",
+      "claim": "Alibaba Model Studio includes a Memory node that adds and retrieves memories on a memory store within a workflow.",
+      "url": "https://help.aliyun.com/en/model-studio/workflow/memory-node",
+      "topic": "Model Studio Memory node",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c32",
+      "claim": "Alibaba AgentRun no-code Quick Create involves selecting a model, writing a prompt, and configuring tools and a sandbox.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/what-is-agentrun",
+      "topic": "AgentRun Quick Create steps",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c33",
+      "claim": "Alibaba AgentRun supports knowledge base integration with Model Studio and RAGFlow.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/knowledge-base-integration-guide",
+      "topic": "AgentRun Knowledge Integration",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c34",
+      "claim": "Alibaba PAI-LangStudio node families include flow control, LLMs, agents, data retrieval, document parsing, speech recognition, and Python.",
+      "url": "https://www.alibabacloud.com/help/en/pai/node-reference",
+      "topic": "PAI-LangStudio Node Families",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c35",
+      "claim": "n8n offers a Wait node that pauses until a webhook or form resumes execution.",
+      "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.wait",
+      "topic": "n8n Wait node",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c36",
+      "claim": "Dify Iteration node processes arrays sequentially or in parallel.",
+      "url": "https://docs.dify.ai/en/cloud/use-dify/nodes/iteration",
+      "topic": "Dify Iteration modes",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c37",
+      "claim": "Dify Variable Aggregator is designed for exclusive branches and does not combine outputs from multiple parallel paths.",
+      "url": "https://docs.dify.ai/en/cloud/use-dify/nodes/variable-aggregator",
+      "topic": "Dify Variable Aggregator constraint",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c38",
+      "claim": "Coze includes a Question node to proactively collect user information and capture intents.",
+      "url": "https://www.coze.com/open/docs/guides/question_node",
+      "topic": "Coze Question node",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c39",
+      "claim": "LangGraph uses conditional edges where a function determines the next node.",
+      "url": "https://docs.langchain.com/oss/python/langgraph/graph-api",
+      "topic": "LangGraph Conditional Edges",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c40",
+      "claim": "LangGraph interrupt() pauses execution for external input with approve/edit/reject/respond decisions.",
+      "url": "https://docs.langchain.com/oss/python/langgraph/interrupts",
+      "topic": "LangGraph Interrupts",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c41",
+      "claim": "Flowise AgentFlow V2 includes Condition (rule-based) and Condition Agent (AI-driven) nodes.",
+      "url": "https://docs.flowiseai.com/using-flowise/agentflowv2",
+      "topic": "Flowise Condition nodes",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c42",
+      "claim": "OpenAI Agent Builder includes If-Else and While loop nodes.",
+      "url": "https://developers.openai.com/api/docs/guides/node-reference",
+      "topic": "OpenAI Agent Builder Control Nodes",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c43",
+      "claim": "Google ADK Parallel workflow agent executes its sub-agents concurrently.",
+      "url": "https://adk.dev/agents/workflow-agents/parallel-agents/",
+      "topic": "ADK Parallel Agent",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c44",
+      "claim": "AWS Bedrock Flows quota limits condition nodes to 5 per flow.",
+      "url": "https://docs.aws.amazon.com/general/latest/gr/bedrock.html",
+      "topic": "Bedrock Flows Condition Quota",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c45",
+      "claim": "AWS Bedrock Flows quota limits collector nodes to 1 per flow.",
+      "url": "https://docs.aws.amazon.com/general/latest/gr/bedrock.html",
+      "topic": "Bedrock Flows Collector Quota",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c46",
+      "claim": "AWS Bedrock Flows quota limits agent nodes to 20 per flow.",
+      "url": "https://docs.aws.amazon.com/general/latest/gr/bedrock.html",
+      "topic": "Bedrock Flows Agent Quota",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c47",
+      "claim": "Alibaba Model Studio Batch Processing node supports concurrent execution across multiple elements.",
+      "url": "https://help.aliyun.com/en/model-studio/workflow/batch-node",
+      "topic": "Model Studio Batch Concurrency",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c48",
+      "claim": "Alibaba Model Studio Loop node orchestrates logic via a dedicated sub-canvas (loop body) and disallows Batch Processing nodes inside.",
+      "url": "https://help.aliyun.com/en/model-studio/workflow/loop-node",
+      "topic": "Model Studio Loop Constraints",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c49",
+      "claim": "n8n AI Agent node loops internally where a chat model chooses and calls tools until answering without requesting a tool.",
+      "url": "https://www.activepieces.com/blog/n8n-ai-agent-node-explained-tools-memory-cost",
+      "topic": "n8n Agent Loop Logic",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c50",
+      "claim": "Each tool attached to an n8n AI Agent node is re-billed every turn.",
+      "url": "https://community.n8n.io/t/each-tool-you-attach-to-an-ai-agent-node-is-re-billed-every-turn-some-numbers-i-measured/304536?tl=es",
+      "topic": "n8n Tool Billing",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c51",
+      "claim": "n8n AI Agent Tool node allows a root-level agent to call other agents as tools.",
+      "url": "https://docs.n8n.io/integrations/builtin/cluster-nodes/sub-nodes/n8n-nodes-langchain.toolaiagent",
+      "topic": "n8n Sub-agent as Tool",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c52",
+      "claim": "Dify exposes agent strategy as a visible property (Function Calling vs ReAct).",
+      "url": "https://docs.dify.ai/en/cloud/use-dify/nodes/agent",
+      "topic": "Dify Agent Strategy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c53",
+      "claim": "Camunda defines an AI agent as an automation leveraging ad-hoc subprocesses for non-deterministic tasks.",
+      "url": "https://camunda.com/blog/2025/02/building-ai-agent-camunda/",
+      "topic": "Camunda BPMN Agent Definition",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c54",
+      "claim": "Anthropic recommends five workflow patterns: prompt chaining, routing, parallelization, orchestrator-workers, and evaluator-optimizer.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "Anthropic Workflow Patterns",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c55",
+      "claim": "LangChain names four multi-agent patterns: subagents, skills, handoffs, and routers.",
+      "url": "https://www.langchain.com/blog/choosing-the-right-multi-agent-architecture",
+      "topic": "LangChain Multi-Agent Patterns",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c56",
+      "claim": "Chat2Workflow benchmark reports a best model resolve rate of only 46.55%.",
+      "url": "https://arxiv.org/html/2604.19667v2",
+      "topic": "Chat2Workflow Resolve Rate",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c57",
+      "claim": "Chat2Workflow benchmark shows the largest average pass-vs-resolve gap is 20.96% for GLM-4.6.",
+      "url": "https://www.emergentmind.com/topics/chat2workflow",
+      "topic": "Chat2Workflow Pass/Resolve Gap",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c58",
+      "claim": "React Flow documentation identifies dagre as a simple layout library focusing on speed over optimal layout.",
+      "url": "https://reactflow.dev/learn/layouting/layouting",
+      "topic": "React Flow Layout Engines",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c59",
+      "claim": "ELK Layered algorithm arranges nodes into subsequent layers to minimize edge crossings.",
+      "url": "https://eclipse.dev/elk/reference/algorithms/org-eclipse-elk-layered.html",
+      "topic": "ELK Layered Algorithm",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c60",
+      "claim": "Langflow frontend uses @xyflow/react for graph visualization.",
+      "url": "https://github.com/langflow-ai/langflow/blob/main/AGENTS.md",
+      "topic": "Langflow Visualization Lib",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c61",
+      "claim": "Microsoft Agent Framework workflows export to Mermaid or Graphviz via ToMermaidString() / ToDotString().",
+      "url": "https://learn.microsoft.com/en-us/agent-framework/workflows/visualization",
+      "topic": "Agent Framework Export",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c62",
+      "claim": "n8n enforces a mandatory Left-to-Right horizontal layout constraint.",
+      "url": "https://community.n8n.io/t/dynamic-node-layouts-native-vertical-orientation-label-positioning/296484?tl=en",
+      "topic": "n8n Layout Direction",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c63",
+      "claim": "Coze limits workflows to 1000 nodes.",
+      "url": "https://www.coze.com/open/docs/guides/workflow_limits",
+      "topic": "Coze Node Limit",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c64",
+      "claim": "n8n Assistant supersedes the AI Workflow Builder and asks the user for permission while building on canvas.",
+      "url": "https://blog.n8n.io/introducing-n8n-assistant/",
+      "topic": "n8n Assistant Behavior",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c65",
+      "claim": "n8n self-hosted users must bring their own AI provider for the Assistant.",
+      "url": "https://docs.n8n.io/build-your-first-workflow",
+      "topic": "n8n Self-hosted AI Provider",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c66",
+      "claim": "Copilot Studio generates agent flows using natural language descriptions.",
+      "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/nlu-gpt-overview",
+      "topic": "Copilot Studio NL Generation",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c67",
+      "claim": "Google Agent Studio pre-populates agent flow and configuration based on a prompt.",
+      "url": "https://docs.cloud.google.com/gemini-enterprise-agent-platform/agent-studio/design-agents",
+      "topic": "Google Agent Studio Pre-fill",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c68",
+      "claim": "Zapier Agents generate instructions, not a workflow graph.",
+      "url": "https://help.zapier.com/hc/en-us/articles/24393442652557-Build-an-agent-in-Zapier-Agents",
+      "topic": "Zapier NL Output Type",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c69",
+      "claim": "No first-party natural language to canvas generator was found in Dify docs.",
+      "url": "https://github.com/langgenius/dify/discussions/34916",
+      "topic": "Dify NL Generator Absence",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c70",
+      "claim": "No natural language generation feature is documented for AWS Bedrock Flows.",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/flows.html",
+      "topic": "Bedrock NL Generator Absence",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c71",
+      "claim": "No natural language to workflow canvas generator was found for Alibaba Model Studio or AgentRun.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/quick-start-to-low-code-agent-creation-1",
+      "topic": "Alibaba NL Generator Absence",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c72",
+      "claim": "LangGraph Studio cannot render Command-based routing unless destinations are explicitly declared.",
+      "url": "https://github.com/langchain-ai/langgraph/issues/2965",
+      "topic": "LangGraph Studio Rendering Issue",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c73",
+      "claim": "Alibaba Model Studio workflow applications support Singapore region endpoints but restrict API calls to accounts created before April 21, 2025.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/single-agent-application",
+      "topic": "Model Studio Singapore Access",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c74",
+      "claim": "Alibaba AgentRun is a serverless runtime powered by Function Compute supporting Python, Node.js, and Java.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/what-is-agentrun",
+      "topic": "AgentRun Runtime Specs",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c75",
+      "claim": "Alibaba AgentRun sandbox supports 50+ languages.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/what-is-agentrun",
+      "topic": "AgentRun Sandbox Languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c76",
+      "claim": "Alibaba AgentCore SDK manages models, MCP tools, Skills, memory, and credentials.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-sdk-overview",
+      "topic": "AgentCore SDK Features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c77",
+      "claim": "Alibaba AgentLoop provides non-intrusive end-to-end observability including traces, metrics, and logs.",
+      "url": "https://www.alibabacloud.com/help/en/agentloop/product-overview/what-is-agentloop",
+      "topic": "AgentLoop Observability",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c78",
+      "claim": "Alibaba blog recommends building code-first when a workflow earns an agent, citing AgentRun as the infrastructure platform.",
+      "url": "https://www.alibabacloud.com/blog/603614",
+      "topic": "Alibaba Agent Recommendation",
+      "kind": "alibaba",
+      "weight": "medium"
+    }
+  ]
+}

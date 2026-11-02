@@ -1,0 +1,35 @@
+| id | verdict | evidence | correct value | page checked |
+|---|---|---|---|---|
+| m64 | confirmed | Overview gives 20% as typical implicit-cache pricing; model and regional exceptions apply. | | [Context cache](https://www.alibabacloud.com/help/en/model-studio/context-cache) |
+| m65 | confirmed | Overview gives 125% as typical explicit-cache creation pricing; model-specific exceptions apply. | | [Context cache](https://www.alibabacloud.com/help/en/model-studio/context-cache) |
+| m68 | confirmed | “Calls made using the OpenAI-compatible - Batch (file input) method are not eligible for cache discounts.” | | [Context cache](https://www.alibabacloud.com/help/en/model-studio/context-cache) |
+| a36 | confirmed | Typical cached-input rate is 20%, including eligible Singapore/International models; exceptions are listed. | | [Context cache](https://www.alibabacloud.com/help/en/model-studio/context-cache) |
+| m10 | confirmed | This international-site new-user quota program requires Singapore and International deployment scope. | | [Free quota](https://www.alibabacloud.com/help/en/model-studio/new-free-quota) |
+| m23 | confirmed | Pricing table explicitly lists 1 million tokens, 90-day validity, Singapore/International only. | | [Model pricing](https://www.alibabacloud.com/help/en/model-studio/model-pricing) |
+| a82 | corrected | Page says “typically 1,000,000 tokens,” rather than guaranteeing that amount for every eligible model. | Typically 1M tokens per model; Singapore/International only. Current validity is 90 days; pre–September 8 activations are grandfathered. | [Free quota](https://www.alibabacloud.com/help/en/model-studio/new-free-quota) |
+| m3 | confirmed | “US (Virginia) supports Global and US” | | [Regions](https://www.alibabacloud.com/help/en/model-studio/regions) |
+| a81 | confirmed | Regional feature matrix marks Singapore fine-tuning as supported. | | [Regions](https://www.alibabacloud.com/help/en/model-studio/regions) |
+| m24 | confirmed | Singapore, International: USD $2.50 input and $7.50 output per 1M tokens. | | [qwen3.7-max](https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max) |
+| m25 | confirmed | Singapore, International: USD $0.50 implicit-cache input and $3.125 explicit-cache creation per 1M tokens. | | [qwen3.7-max](https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max) |
+| a9 | confirmed | Singapore BASE_URL exactly matches the claimed workspace-specific URL. | | [OpenAI compatibility](https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope) |
+| a10 | confirmed | Cross-region section explicitly requires a key created in the endpoint’s region; mismatched keys cause authentication errors. | | [OpenAI compatibility](https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope) |
+| m5 | confirmed | Each region has separate endpoints, API keys and model lists that cannot be used across regions. | | [Obtain an API key](https://www.alibabacloud.com/help/en/model-studio/get-api-key) |
+| m22 | not on page | August 3 launch and global-developer API access are stated; formal GA status is not explicitly stated. | | [Launch announcement](https://www.alibabacloud.com/blog/alibaba-unveils-qwen3-8-max-its-largest-and-most-capable-flagship-model-to-date_603420) |
+| m37 | confirmed | No `qwen3.8-plus` entry appears in the text-generation index or checked pay-as-you-go pricing list. | | [Model pricing](https://www.alibabacloud.com/help/en/model-studio/model-pricing) |
+| m47 | contradicted | The `qwen-long` row marks structured output as supported; the other three capabilities are unsupported. | Thinking, function calling and built-in tools: unsupported. Structured output: supported. | [Text generation](https://docs.modelstudio.console.alibabacloud.com/en/model-studio/text-generation-model) |
+| m60 | china-only | China-site documentation lists Beijing only; targeted international-site search found no matching model documentation. | | [qwen-mt-uni](https://help.aliyun.com/en/model-studio/qwen-mt-uni) |
+| a6 | confirmed | “The Assistant API is being deprecated. Migrate to the Responses API as an alternative.” | | [Assistant API](https://www.alibabacloud.com/help/en/model-studio/quick-start-of-assistant-api) |
+| a34 | confirmed | Responses examples use `type: "mcp"`, `server_protocol: "sse"` and a remote SSE `server_url`. | | [MCP](https://www.alibabacloud.com/help/en/model-studio/mcp) |
+| a64 | corrected | The default policy also permits longer retention reasonably necessary for service security. | Inference prompts/responses: ≤30 days unless law or service security requires longer. Stateful conversations/files: until user deletion. | [Data retention](https://docs.modelstudio.console.alibabacloud.com/en/model-studio/data-retention-policy) |
+| a70 | confirmed | Supported public-cloud regions are Beijing and Hong Kong; private access is explicitly unsupported elsewhere. | | [PrivateLink](https://www.alibabacloud.com/help/en/model-studio/access-model-studio-through-privatelink) |
+
+- Cache percentages are not universal: `qwen3.8-max`, its `0902` snapshot and several other models have exceptions. Check model-specific rates before quoting savings. [Context cache](https://www.alibabacloud.com/help/en/model-studio/context-cache)
+- Free quotas were removed for numerous models on October 29; previously issued quotas survive until expiry or exhaustion. Free quota covers real-time inference, and automatic paid usage follows exhaustion unless Free Quota Only is enabled. [Free quota](https://www.alibabacloud.com/help/en/model-studio/new-free-quota)
+- The text-generation guide classifies `qwen3.7-max` and `qwen-long` as legacy models that are no longer recommended. This is distinct from deprecation. [Text generation](https://docs.modelstudio.console.alibabacloud.com/en/model-studio/text-generation-model)
+- Region determines access and storage location; deployment scope determines inference location. Virginia/Global must not be presented as US-only processing. [Regions](https://www.alibabacloud.com/help/en/model-studio/regions)
+- The OpenAI compatibility page contains a Beijing URL inconsistency: its initial list uses Singapore’s region code, while its migration instructions correctly specify `cn-beijing`. [OpenAI compatibility](https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope)
+- PrivateLink’s current supported-region statement excludes Singapore, despite a later legacy-endpoint example containing `ap-southeast-1`. That example is not a Singapore availability commitment. [PrivateLink](https://www.alibabacloud.com/help/en/model-studio/access-model-studio-through-privatelink)
+- ZDR requires enterprise eligibility and supported models/features. Stateful Responses sessions are excluded; unsupported model calls fall back to standard retention instead of being blocked. [Data retention](https://docs.modelstudio.console.alibabacloud.com/en/model-studio/data-retention-policy)
+
+Codex session ID: 01a19b13-e41d-7821-8f36-9c46c489f695
+Resume in Codex: codex resume 01a19b13-e41d-7821-8f36-9c46c489f695

@@ -1,0 +1,2205 @@
+I'll research this systematically, starting with the AI Gateway and agent runtime layer.
+
+# Supporting products for agents on Alibaba Cloud (international) — research report
+
+Research date: 2026‑11‑02. All facts below come from pages retrieved today; URLs are in brackets after each fact. `China site only` = the fact was found only on help.aliyun.com / aliyun.com. `unconfirmed` = I could not find an official page that states it.
+
+---
+
+## 0. Corrections / updates to the facts verified on 2026‑10‑31
+
+| Prior fact | What I found today | Source |
+|---|---|---|
+| "AgentLoop runs internationally only in Hong Kong" | **Contradicted.** AgentLoop's own region page (Chinese version of the same doc) lists 新加坡 `ap-southeast-1`; the AgentLoop API endpoint page lists `agentloop.ap-southeast-1.aliyuncs.com`; and the Multimodal evaluator / Code evaluator docs list Singapore among supported regions (with Hangzhou, Shanghai, Beijing, Shenzhen, Hong Kong). Treat "Singapore" as available but verify in console, because the English "Supported regions" page renders only the table header in search snippets. | [https://www.alibabacloud.com/help/zh/agentloop/product-overview/server-launch-regions-of-agentloop], [https://help.aliyun.com/en/agentloop/developer-reference/api-agentloop-2026-05-20-endpoint] (China site only), [https://www.alibabacloud.com/help/doc-detail/3064616.html], [https://www.alibabacloud.com/help/en/agentloop/product-overview/server-launch-regions-of-agentloop] |
+| "AgentRun's only international endpoint is Singapore" | **Confirmed.** AgentRun supported regions = China (Hangzhou, Shanghai, Beijing, Shenzhen) + Singapore `ap-southeast-1`. | [https://help.aliyun.com/en/agentrun/open-service-area] (China site only), [https://www.alibabacloud.com/help/doc-detail/3049222.html] |
+| AgentCore listed as an option for international customers | **Contradicted / needs a catalog rule.** AgentCore Overview states the regions it supports as China (Hangzhou) `cn-hangzhou`, China (Beijing) `cn-beijing`, China (Shenzhen) `cn-shenzhen`; the AgentCore endpoint table lists only Shenzhen and Beijing. No `ap-southeast-1` AgentCore endpoint appears in any page I found → **AgentCore is China-only today (unconfirmed for international)**. | [https://www.alibabacloud.com/help/en/agentcore/agentcore-product-overview], [https://help.aliyun.com/en/agentcore/api-agentcore-2026-08-04-endpoint] (China site only) |
+| Model Studio international regions = SG, Virginia, Frankfurt, Tokyo, HK | **Confirmed** (Beijing is the mainland region; no Seoul). | [https://www.alibabacloud.com/help/en/model-studio/regions], [https://www.alibabacloud.com/help/en/model-studio/kimi-api] |
+| AI Search Open Platform = Shanghai + Frankfurt only | **Confirmed**, verbatim on the international doc site. | [https://www.alibabacloud.com/help/en/open-search/search-platform/user-guide/get-service-call-address] |
+| — (new) | **FC Agent Sandbox** (the API/SDK form of Agent Sandbox Flash) is now documented in Beijing, Shanghai, Hangzhou, Shenzhen, **China (Hong Kong), Singapore, US (Virginia), US (Silicon Valley)**; a new billing model rolls out region-by-region from 2026‑07‑31. | [https://help.aliyun.com/en/functioncompute/supported-regions-of-fc-agent-sandbox] (China site only), [https://www.alibabacloud.com/help/en/functioncompute/cloud-sandbox-new-billing-model-online-announcement] |
+| — (new) | Alibaba Cloud opened its **Netherlands (Amsterdam)** region and announced it will bring **ACS Agent Sandbox, Agent Security Center, AI Security Guardrails 2.0, Agentic SOC** there; France (Paris) region launched June 2026 with a suite of agentic AI services "later this year". | [https://www.alibabacloud.com/press-room/first-public-cloud-region-in-the-netherlands], [https://www.alibabacloud.com/en/press-room/alibaba-cloud-expands-european-footprint-with-two?_p_lc=1] |
+
+---
+
+## 1. AI Gateway (Cloud‑native API Gateway → "AI Gateway") — the agent traffic layer
+
+**What it is:** "AI Gateway is a unified proxy purpose‑built for AI applications. It sits in front of large language model (LLM) APIs and MCP Servers" and gives centralized control over how applications call AI services [https://www.alibabacloud.com/help/en/api-gateway/product-overview/]. It is the commercial form of the Higress AI gateway [https://higress.ai/en/ai-gateway/].
+
+| Capability | What the docs say | Doc |
+|---|---|---|
+| MCP server proxying | "MCP Gateway lets you create and manage MCP services"; product page: "MCP Server proxy, security authentication, as well as unified observability and rate-limiting" | [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/user-guide/mcp-gateway-management], [https://www.alibabacloud.com/en/product/api-gateway?_p_lc=1] |
+| REST API → MCP tool | "MCP service management lets you migrate RESTful APIs to MCP services. It supports SSE and Streamable HTTP protocols with consumer-based authentication"; "automatically convert existing HTTP APIs into MCP Servers". Test domain is capped at 1,000 calls/day. | [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/getting-started/mcp-service-management], [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/what-is-an-ai-gateway] |
+| Model routing | "The AI Gateway intelligent routing feature uses semantic analysis to automatically route requests to the best-fit model"; use-case page: "unifies LLM API routing, multi-model failover, and token-based cost allocation into a single control plane" | [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/user-guide/managing-the-model-api], [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/use-cases/] |
+| Fallback | "AI Fallback" is the documented configuration for main/backup model services; Higress supports protocol conversion for 100+ models and model-level fallback | [https://www.alibabacloud.com/blog/building-a-self-routing-multi-llm-architecture-with-alibaba-cloud-ai-gateway_603381], [https://higress.ai/en/docs/ai/scene-guide/multi-proxy/] |
+| Token rate limits | "Global limits: Apply an API-wide fallback limit on total token consumption, request count, and concurrency"; per-consumer authentication/monitoring/throttling/metering; `ai-token-ratelimit` plugin limits by apikey, IP or consumer; consumer quota rules support **Token and Credits** dimensions with daily/weekly/monthly reset (China site) | [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/user-guide/current-limiting], [https://help.aliyun.com/en/api-gateway/ai-gateway/], [https://www.alibabacloud.com/help/en/mse/user-guide/ai-token-current-limiting], [https://help.aliyun.com/en/api-gateway/consumer-quotas-management] (China site only) |
+| Semantic caching | "Combining a Redis-based precise cache and the DashVector semantic cache, it reduces costs and improves efficiency"; "AI Gateway uses DashVector to manage vectors efficiently" | [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/user-guide/ai-cache-1] |
+| Content safety plug-ins | "AI Gateway protects data exchanged with LLMs by applying **privacy controls to outbound requests and content filtering to inbound** requests" (AI Guardrails integration); WAF 3.0 "AI application protection integrates Alibaba Cloud AI Security Guardrails to detect prompt injection and jailbreak attacks"; governance check items reference enabling "inbound rate limiting, circuit breaking, content safety, and other plugins for Agent API and Model API" | [https://www.alibabacloud.com/help/en/content-moderation/latest/how-to-open-and-use-ai-security-guardrail-products-and], [https://www.alibabacloud.com/help/en/waf/web-application-firewall-3-0/ai-application-protection/], [https://www.alibabacloud.com/help/en/cgc/user-guide/ai-governance-supported-check-items] |
+| Observability | "AI Gateway integrates with the Alibaba Cloud observability system. One-click enablement covers the entire call chain" (China site); FinOps/Credits metering for token cost governance | [https://help.aliyun.com/en/api-gateway/ai-gateway/] (China site only), [https://www.alibabacloud.com/blog/alibaba-cloud-ai-gateway-finops-features-officially-launched-%7C-making-every-tokens-consumption-visible-and-controllable_603282] |
+
+**Regions (international):** the endpoint table lists Singapore `ap-southeast-1`, Malaysia (Kuala Lumpur) `ap-southeast-3`, Indonesia (Jakarta) `ap-southeast-5`, Japan (Tokyo) `ap-northeast-1`, US (Virginia) `us-east-1`, Germany (Frankfurt) `eu-central-1`, plus China (Hong Kong) and mainland regions [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/developer-reference/api-apig-2024-03-27-endpoint-ai-gateway], [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/supported-regions]. The **new Serverless edition is in public preview only in mainland regions + HK** (Beijing, Shanghai, Hangzhou, Shenzhen, China (…)) [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/announcement-new-serverless-version-of-the-ai-gateway-now-in-public-beta], and becomes commercial from 2026‑09‑01 (China site) [https://help.aliyun.com/en/api-gateway/ai-gateway-commercialization-announcement].
+
+**Pricing model:**
+- Dedicated instance = instance fee + data processing fee + Internet traffic [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/free-product-templates]; example data-processing rate USD 0.005/GB and `apigw.small.x1` USD 0.291/hour (Chinese mainland example) [https://www.alibabacloud.com/help/en/api-gateway/cloud-native-api-gateway/product-overview/billing-overview]. Dedicated gives 99.99% SLA and full gateway capability [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/ai-gateway-capacity-description].
+- Serverless (legacy) = request CU fees + Internet traffic, pay-as-you-go, hourly [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/serverless-old-billing-details].
+- Serverless (new, preview) = gateway fees waived during preview; only inbound Internet traffic billed via CDT [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/announcement-new-serverless-version-of-the-ai-gateway-now-in-public-beta].
+
+**Drawing rule for the app:** put AI Gateway between the agent runtime and (a) Model Studio model APIs and (b) every MCP tool endpoint; in Singapore it must be a **dedicated instance** (Serverless-new is not sold internationally).
+
+---
+
+## 2. MCP servers Alibaba Cloud hosts or lists internationally
+
+| Asset | What it gives an agent | International availability | Pricing | Doc |
+|---|---|---|---|---|
+| **Alibaba Cloud OpenAPI MCP Server** (hosted remote MCP) | "officially hosted remote MCP service… seamless integration capabilities for Alibaba Cloud services to AI agents"; international endpoint `https://api.alibabacloud.com/mcp` (Streamable HTTP, per-account URL) | International site URL documented | Free to use as a service; you pay for the cloud APIs it calls (unconfirmed as an explicit statement) | [https://github.com/aliyun/alibabacloud-api-mcp-server/blob/main/README-EN.md], [https://docs.qoder.com/cloud-agents/best-practices/cloud-use] |
+| **OpenAPI MCP Server Core Edition** | 15 built-in tools: API calls, multi-step orchestration, Terraform resource management, doc lookup | International doc site | unconfirmed | [https://www.alibabacloud.com/help/en/openapi/user-guide/openapi-mcp-server-core-tool-guide] |
+| **Cloud Agent Catalog / Agent Skills portal** (`skills.alibabacloud.com`) | "official Agents, Skills, Plugins, and Tools, such as MCP Server, CLI, Terraform, and SDK, to help agents securely and reliably operate cloud"; press: converts capabilities across **60+ cloud products** into Skill-based, MCP-compatible assets | International portal domain + international press release | Free portal (unconfirmed) | [https://help.aliyun.com/en/skillsportal/] (China site only), [https://skills.alibabacloud.com/], [https://www.alibabacloud.com/en/press-room/alibaba-cloud-unveil-advanced-agentic-ai-ecosystem?_p_lc=1], [https://www.alibabacloud.com/help/en/skillsportal/learn-about-the-alibaba-cloud-agent-skills-portal] |
+| **AgentRun Tool Marketplace** | "pre-built Skills, MCP tools, and Function Call tools for data processing, security, storage management, and more"; one-click install; three ways to add MCP (remote connection, code/package, JSON import); agents/sandboxes/API tools can be converted to MCP with one click | Singapore (AgentRun's only international region) | Included in AgentRun; runtime billed via Function Compute CU | [https://www.alibabacloud.com/help/en/agentrun/tool-market], [https://www.alibabacloud.com/help/en/agentrun/create-the-mcp-tool-1], [https://www.alibabacloud.com/help/en/agentrun/start-using/] |
+| **AgentBay MCP toolsets** | "Integrated MCP toolsets: Browser, File, and Terminal"; Computer Use exposes sandboxed Linux/Windows sessions **via MCP** | Deployed in Singapore | Credits/points (see §5) | [https://www.alibabacloud.com/help/en/agentbay/support/faq], [https://www.alibabacloud.com/help/en/agentbay/developer-reference/mcp-computer-use/] |
+| **Model Studio MCP (official + custom MCP services)** | Official hosted MCP services (web search, document processing, maps, image, database categories) and three custom-MCP deployment methods | **China site only** — "MCP capabilities are currently available only to China site (aliyun.com) accounts"; the Model Studio CLI README repeats that native MCP setup is not supported for international/global accounts. An international MCP doc page exists but the marketplace gating statement is on the China-site pages. | Free limited-time trial (China site) | [https://www.alibabacloud.com/help/en/model-studio/mcp], [https://help.aliyun.com/en/model-studio/cli/mcp-skill] (China site only), [https://github.com/modelstudioai/cli], [https://docs.bailian.console.aliyun.com/en/model-studio/managed-agents-mcp] (China site only) |
+| **MaxCompute MCP (MCMCP) remote server** | Public MCP endpoints in specific service regions | Region list on the page (not enumerated in snippet) — verify | unconfirmed | [https://www.alibabacloud.com/help/en/maxcompute/mcmcp-service-remote-mcp-server] |
+| **Observability MCP Server** (open source, aliyun) | Structured access to SLS/ARMS/CMS data for AI models | Self-hosted OSS | Free (OSS) | [https://github.com/aliyun/alibabacloud-observability-mcp-server/blob/master/README_EN.md] |
+| **Product MCP servers on GitHub** (FC, Ops, DMS, DAS, Data Agent) | FC MCP Server (Serverless Devs + OpenAPI); Alibaba Cloud Ops MCP; DMS MCP (40+ data sources, NL2SQL); DAS Agent MCP; Data Agent MCP skill (18 `data_agent_*` tools) | Self-hosted OSS; they call regional OpenAPI | Free (OSS); underlying APIs billed | [https://github.com/aliyun/alibabacloud-fc-mcp-server], [https://mcpservers.org/servers/aliyun/alibaba-cloud-ops-mcp-server], [https://mcpservers.org/servers/aliyun/alibabacloud-dms-mcp-server], [https://www.alibabacloud.com/blog/cross-account-intelligent-database-operations-integrating-das-agent-mcp-server-and-dify_603320], [https://github.com/aliyun/data-agent-skill/blob/main/alibabacloud-data-agent-mcp-skill/README.md] |
+| **Function Compute as MCP host** | "FC is an ideal runtime for hosting MCP services on the cloud and provides elastic invocation capabilities" | FC is international; this intro page is China-site only | FC CU pay-as-you-go | [https://help.aliyun.com/en/functioncompute/mcp-service-introduction/] (China site only), [https://www.alibabacloud.com/help/en/functioncompute/what-is-function-compute] |
+| **AgentCore knowledge-base MCP** | "AgentCore establishes the knowledge base connection and exposes the knowledge base's retrieval tools to Agents through the Model Context Protocol" | AgentCore = China regions only | AgentCore CU | [https://www.alibabacloud.com/help/en/agentcore/overview-of-knowledge-base-connections.md] |
+
+**Catalog implication:** for an international (Singapore) customer the MCP story is **AI Gateway MCP proxy + AgentRun Tool Marketplace + AgentBay MCP + self-hosted OSS MCP servers + hosted OpenAPI MCP Server** — *not* Model Studio's MCP marketplace.
+
+---
+
+## 3. Knowledge & retrieval for RAG
+
+### 3.1 Comparison table
+
+| Product | What it adds for RAG | International regions / status | Pricing model | Pick when | Doc |
+|---|---|---|---|---|---|
+| **Vector Retrieval Service for Milvus** | Fully managed, 100% open-source-Milvus-compatible vector DB; multi-AZ intra-city DR; "AI Center" bills model invocations (tokens/images) so embedding can be done in-service; one-switch `data_inspection` content-safety guardrail pattern | Zones documented for **Singapore (Zone C, B)** and **Germany (Frankfurt) (Zone B, A)**; mainland Hangzhou (J/I), Shanghai (F), etc. Multi-AZ DR modes listed for Frankfurt, Singapore, Ulanqab | CU fees: subscription priced per region in USD/CU/month (service node vs compute node vs compute-optimized) and pay-as-you-go CU charged hourly while the instance runs, regardless of query load; plus AI Center token billing | You want an open-source-compatible dedicated vector DB and your team already knows Milvus | [https://www.alibabacloud.com/en/product/milvus?_p_lc=1], [https://www.alibabacloud.com/help/en/milvus/product-overview/region-and-zone], [https://help.aliyun.com/en/milvus/product-overview/announcements-and-updates/] (China site only), [https://www.alibabacloud.com/help/en/milvus/user-guide/upgrade-a-single-zone-instance-to-a-multi-zone-instance], [https://www.alibabacloud.com/help/en/milvus/product-overview/billing-item], [https://www.alibabacloud.com/help/en/milvus/product-overview/ai-center-billing] |
+| **OpenSearch — Vector Search Edition** | Large-scale distributed vector engine (ms query, second-level updates); built-in templates incl. image/text vector search; index data recovery/rebuild | A Singapore endpoint exists for the OpenSearch Retrieval-Engine API (`searchengine.ap-southeast-1.aliyuncs.com`, China-site page); edition-level international availability **unconfirmed** | Instance/compute-based (see View bills page) | You need very high-QPS vector recall as a standalone engine | [https://www.alibabacloud.com/en/product/opensearch?_p_lc=1], [https://www.alibabacloud.com/help/en/open-search/], [https://help.aliyun.com/en/open-search/developer-reference/api-searchengine-2021-10-25-endpoint] (China site only), [https://www.alibabacloud.com/blog/build-conversational-search-based-on-opensearch-vector-search-edition-integrated-with-a-large-language-model_600119] |
+| **OpenSearch — LLM-Based Conversational Search Edition** | Turnkey conversational search: built-in LLM, generates answers with references; can ingest from Alibaba Cloud Elasticsearch/OpenSearch into an enterprise knowledge base; supports Internet search; **Agentic RAG** capability announced | Product/blog pages are international and a blog shows choosing models "in Singapore region"; a formal region list was not found → **partly unconfirmed** | Instance + storage capacity purchase; separate bills per edition | You want a managed "help-centre Q&A" service rather than building RAG yourself | [https://www.alibabacloud.com/en/product/opensearch?_p_lc=1], [https://www.alibabacloud.com/help/en/open-search/search-platform/getting-started/knowledge-base-management], [https://www.alibabacloud.com/blog/opensearch-a-one-stop-solution-to-easily-integrate-llm-generative-ai-in-your-application_600509], [https://www.alibabacloud.com/en/news/product/internet-search-supported-by-llm-based-conversational-search-edition-kbd?_p_lc=1], [https://www.alibabacloud.com/en/news/product/opensearch-llm-based-conversational-search-edition-supports-agentic-rag-jto?_p_lc=1] |
+| **AI Search Open Platform (OpenSearch "search platform")** | Component services for RAG: **document parsing, document chunking, text/multimodal embedding, sorting (rerank), object detection**; RAG-based conversational search that chunks, reranks and generates; Agentic Search builds on Elasticsearch + OpenSearch Vector Search Edition | **China (Shanghai) and Germany (Frankfurt) only** (stated verbatim, twice) | Component/usage based; underlying ES + OpenSearch Vector engines billed separately (China-site billing page) | EU customers who want managed parsing/chunking/rerank APIs; **not usable from Singapore** | [https://www.alibabacloud.com/help/en/open-search/search-platform/product-overview/introduction-to-search-platform], [https://www.alibabacloud.com/help/en/open-search/search-platform/user-guide/get-service-call-address], [https://www.alibabacloud.com/help/en/open-search/search-platform/user-guide/experience-center], [https://www.alibabacloud.com/help/en/open-search/search-platform/user-guide/building-knowledge-base-online-q-a-based-on-rag], [https://help.aliyun.com/en/open-search/search-platform/getting-started/agentic-search-billing] (China site only) |
+| **Alibaba Cloud Elasticsearch (AI search)** | Managed ES with vector retrieval, `aliyun-knn`, RRF hybrid ranking, and an **Inference API** that exposes Alibaba Cloud AI Search embedding/rerank/sparse-vector/completion models inside ES; `semantic_text` workflows | Elasticsearch PaaS regions include **Indonesia (Jakarta) `ap-southeast-5`, Japan (Tokyo), US (Virginia) `us-east-1`, US (Silicon Valley) `us-west-1`, Germany (…)** (Singapore listed on the same page family); the "AI Search Solution" guide page itself is China-site | Cluster instance (node spec/hour) + storage; inference calls billed by the AI model service | The customer already runs ES/log search and wants hybrid BM25+vector with rerank in one engine | [https://www.alibabacloud.com/en/product/elasticsearch?_p_lc=1], [https://www.alibabacloud.com/help/en/es/user-guide/open-service-area], [https://help.aliyun.com/en/es/user-guide/alibaba-cloud-ai-search-solution] (China site only), [https://www.elastic.co/search-labs/blog/alibaba-cloud-ai-embeddings-reranking], [https://www.alibabacloud.com/blog/601024], [https://www.alibabacloud.com/blog/mastering-vector-search-how-alibaba-cloud%E2%80%99s-inference-api-enhances-elasticsearch%C2%A0_602005] |
+| **AnalyticDB for PostgreSQL (vector / RAG Service)** | Self-developed **Nova** vector engine (China-site overview); exact + approximate index search; **RAG Service** "handles document ingestion, embedding, hybrid search, and reranking"; GraphRAG service; "AI Context Engineering" adds document parsing + multimodal search + knowledge-graph-enhanced RAG | Pricing page lists **Singapore, Malaysia (KL), Indonesia (Jakarta), Thailand (Bangkok), Germany (Frankfurt), UK (London), US (Virginia), US (Silicon Valley)** | Instance (storage-elastic or Serverless) hourly/subscription; RAG Service usage | The agent must join retrieved chunks with structured business data (orders, contracts) in one SQL engine | [https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/user-guide/vector-search], [https://www.alibabacloud.com/help/analyticdb-for-postgresql/user-guide/what-is-rag-service], [https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/user-guide/use-the-graphrag-service], [https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/product-overview/pricing-1], [https://help.aliyun.com/en/analyticdb/vector-analysis-overview] (China site only), [https://www.alibabacloud.com/blog/is-your-ai-agent-getting-dumber-alibaba-cloud-analyticdb-unveils-ai-context-engineering_602803] |
+| **Hologres (vector)** | Vector computation with Proxima/HGraph indexes; "unifies 4 retrieval paths": full-text, dense vector, graph, scalar; hybrid search then LLM ranking; SQL calls to Model Studio LLMs | Regions/zones incl. **Singapore (A, C), Malaysia (KL) (B), Indonesia, US (Virginia) (A), Germany (Frankfurt) (A), UAE (Dubai) (A)** | Pay-as-you-go CU hourly — Singapore example **USD 0.066604/CU/hour** compute, **USD 0.000379/GB/hour** storage; subscription Singapore USD 31.970149 | Real-time warehouse already in place and RAG must filter on live business dimensions | [https://www.alibabacloud.com/help/en/hologres/user-guide/introduction-to-vector-computation], [https://www.alibabacloud.com/help/en/hologres/user-guide/guide-on-vector-processing], [https://www.alibabacloud.com/help/en/hologres/user-guide/supported-regions-and-zones], [https://www.alibabacloud.com/help/en/hologres/product-overview/pay-as-you-go], [https://www.alibabacloud.com/help/en/hologres/product-overview/subscription-1], [https://www.alibabacloud.com/help/en/hologres/user-guide/best-practices-financial-multimodal-ai-data-analysis-and-retrieval-system], [https://www.alibabacloud.com/blog/rag-architecture-beyond-vector-search-%7C-hologres_603633] |
+| **PolarDB (pgvector engine + PolarSearch)** | pgvector turned into a "production-grade vector engine supporting billion-scale"; **PolarSearch** distributed search/analytics engine used as a Dify knowledge base; PolarDB for PostgreSQL also offers Mem0-based long-term memory (see §4) | PolarSearch (PolarDB for MySQL doc) lists **Singapore Zone A/B, Japan (Tokyo), South Korea (Seoul), Germany (Frankfurt)**; the PolarDB-for-PostgreSQL PolarSearch page lists China (Hangzhou/Shanghai…) zones; newsletter: "Currently available in Singapore and select regions" | Cluster instance (node/hour) + storage | The customer standardises on PostgreSQL and wants vectors + memory in the same DB | [https://www.alibabacloud.com/blog/from-open-source-extension-to-production-grade-engine-a-new-paradigm-for-vector-capabilities-in-polardb-for-postgresql_603405], [https://www.alibabacloud.com/help/en/polardb/polardb-for-mysql/user-guide/guidelines-for-using-polarsearch], [https://www.alibabacloud.com/help/en/polardb/polardb-for-postgresql/guidelines-for-using-polarsearch], [https://help.aliyun.com/en/polardb/polardb-for-postgresql/polarsearch-dify-create-a-knowledge-base-on-the-cloud] (China site only), [https://www.alibabacloud.com/blog/603384] |
+| **Lindorm (vector engine)** | Multi-model (wide table, time series, search, vector); vector engine with multiple index algorithms/distance metrics; **hybrid search across scalar, vector and full-text fields**; topped VectorDBBench | International presence implied by instance zones `ap-southeast-1abc` (Singapore), `ap-southeast-5abc` (Jakarta) and multi-zone Basic Edition listing **Seoul, Tokyo, Singapore, KL, Jakarta, Bangkok**; a consolidated international region table was not found → **partly unconfirmed** | Instance (node/engine) based | IoT/log/time-series estate plus vectors in one multi-model DB | [https://www.alibabacloud.com/help/en/lindorm/engine-overview-3], [https://help.aliyun.com/en/lindorm/user-guide/accessing-the-vector-engine-through-curl] (China site only), [https://www.alibabacloud.com/help/en/lindorm/developer-reference/api-hitsdb-2020-06-15-createlindorminstance], [https://help.aliyun.com/en/lindorm/user-guide/multi-az-basic-edition-deployment] (China site only), [https://www.alibabacloud.com/blog/lindorm-tops-vectordbbench-performance-defining-new-heights-for-vector-retrieval_603106] |
+| **DashVector** | Serverless-style managed vector retrieval on the Proxima kernel (Tongyi Lab); also the **semantic-cache backend used by AI Gateway** | **US (Virginia) and Singapore only** | Pay-as-you-go only, billed per second by instance type and replica count (China-site billing page) | Small/medium knowledge base, or you need the gateway's semantic cache | [https://www.alibabacloud.com/help/en/vrs/latest/what-is-vector-retrieval-service], [https://www.alibabacloud.com/help/en/vrs/latest/opening-service], [https://help.aliyun.com/en/document_detail/2510232.html] (China site only), [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/user-guide/ai-cache-1] |
+| **Tablestore Knowledge Storage** | "The service manages **document parsing, chunking, embedding, indexing, and retrieval**. Your application only needs to maintain documents" | Memory/Knowledge Storage service available in **China (Shanghai), China (Shenzhen), China (Hong Kong), Singapore** | Pay-as-you-go, hourly on actual usage | You want serverless RAG with no vector DB to operate, and already use Tablestore for memory | [https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/overview], [https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/product-billing], [https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/news-and-announcements] |
+| **Document Mind (DocMind)** | Multimodal document recognition/parsing (PDF, Word, PPT, Excel, images → Markdown/JSON/HTML) for LLM pipelines; shipped as an agent Skill (`alibabacloud-docmind-parse`) | Endpoints documented only for **China (Hangzhou)** `docmind-api.cn-hangzhou.aliyuncs.com`; no international region found → **China site only / international availability unconfirmed** | Pay-as-you-go per page (CNY tiers, e.g. CNY 0.06/page above 100k pages); V2 API has a 100,000-credit daily free quota, 50 credits per page (China site) | Mainland deployments, or as an OSS Skill where the China endpoint is reachable | [https://help.aliyun.com/en/document-mind/developer-reference/document-mind-endpoints] (China site only), [https://help.aliyun.com/en/document-mind/product-overview/pay-as-you-go] (China site only), [https://help.aliyun.com/en/document-mind/developer-reference/docmind-document-parsing-tool-skill-alibabacloud-docmind-parse] (China site only), [https://github.com/aliyun/alibabacloud-aiops-skills/blob/master/skills/aiml/docmind/alibabacloud-docmind-parse/SKILL.md] |
+| **PAI knowledge bases** | "Unstructured documents are parsed and split into… chunks. Structured data is chunked by row. Images…" — managed KB inside PAI | PAI regions include Singapore, KL, Jakarta, Tokyo, Frankfurt, Silicon Valley, Virginia (service-by-service) | PAI resource/EAS billing | The customer is already on PAI for training/serving | [https://www.alibabacloud.com/help/en/pai/knowledge-base-management], [https://www.alibabacloud.com/help/en/pai/product-overview/regions-and-zones] |
+| **AI-Native Database Service (AIDBS) / RAGFlow KB** | Create a RAGFlow knowledge-base instance, upload documents, build an enterprise KB | "Basic Edition is free of charge… all features are available free of charge" (billing overview) | Usage-based on underlying resources | You want open-source RAGFlow managed | [https://www.alibabacloud.com/help/en/aidbs/getting-started/get-started-with-ai-data-preparation], [https://www.alibabacloud.com/help/en/aidbs/product-overview/billing-overview] |
+| **AgentRun knowledge base** | "AgentRun supports knowledge base integration with **Alibaba Cloud Model Studio and RAGFlow**"; attach a Model Studio KB or a RAGFlow KB | Singapore (AgentRun's only international region) | AgentRun/FC usage | The runtime is AgentRun and you want KB wiring inside the platform | [https://www.alibabacloud.com/help/en/agentrun/knowledge-base-integration-guide], [https://help.aliyun.com/en/agentrun/knowledge-base-integration-guide] (China site only) |
+
+**Note for the drawing rules:** the only *fully managed, documented-in-Singapore* RAG stacks today are (a) vector DB (Milvus / DashVector / AnalyticDB‑PG / Hologres / PolarDB / Lindorm) + your own parsing & chunking, (b) Tablestore Knowledge Storage, (c) Elasticsearch with the Inference API, (d) OpenSearch LLM Conversational Search Edition (region list unconfirmed). Managed parsing+chunking+rerank as a service (AI Search Open Platform, Document Mind) is **not** available in Singapore.
+
+---
+
+## 4. Agent memory
+
+| Product | What it does for an agent | International regions / status | Pricing model | Doc |
+|---|---|---|---|---|
+| **Tablestore Memory Storage (Knowledge and Memory Storage)** | Serverless memory service on Tablestore: "memory writing, automatic extraction, and semantic retrieval"; supports **short-term messages, long-term structured memory, file memory, memory consolidation ("Dream")** and knowledge storage; Tablestore itself now has an **AI (Agent Memory)** data model alongside Wide Column/TimeSeries/Timeline | Available in **China (Shanghai), China (Shenzhen), China (Hong Kong), Singapore**; Tablestore itself is in many regions (Asia Pacific: Seoul, Singapore, Bangkok, Malaysia (Johor), …) | Pay-as-you-go, billed hourly on actual usage; the international doc page shows **CNY 0.002 per 10,000 long-term-memory entries per hour** and **CNY 0.00004 per 10,000 short-term entries per hour** (China-site currency on an international page — verify USD in console) | [https://www.alibabacloud.com/help/en/tablestore/table-store-service/memory-storage-introduction], [https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/agent-memory-quick-start/], [https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/file-memory-1], [https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/news-and-announcements], [https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/product-billing], [https://www.alibabacloud.com/help/en/tablestore/table-store-service/product-overview/what-is-tablestore], [https://www.alibabacloud.com/help/en/tablestore/table-store-service/product-overview/basic-concepts] |
+| **Tablestore Agent Storage SDK / OSS integrations** | "unified wrapper for memory store, file memory, …"; official `alibabacloud-tablestore-for-agent-memory` repo; **mem0 + Tablestore** integration ("Fully managed storage: Alibaba Cloud operates Tablestore—pay per use"); AgentScope Runtime integration; Hermes Agent memory plugin | Same as Tablestore (Singapore included) | SDK free; storage per above | [https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/agentstorage-sdk], [https://github.com/aliyun/alibabacloud-tablestore-for-agent-memory], [https://www.alibabacloud.com/help/en/tablestore/use-cases/openclaw-tablestore-memory], [https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/agentscope-runtime-with-tablestore], [https://www.alibabacloud.com/help/en/tablestore/use-cases/implementation-of-tablestore-memory-storage-in-hermes] |
+| **AgentRun memory** | "AgentRun integrates Tablestore to provide three persistent memory types: **session history (in-conversation context), long-term memory (cross-…)**"; AgentRun's open platform lists memory + knowledge base + prompt management as built-in core capabilities | Singapore | AgentRun runtime usage (Function Compute CU) + Tablestore memory | [https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/agentrun-tablestore-memory], [https://www.alibabacloud.com/help/en/agentrun/open-platform-introduction.md] |
+| **AgentCore memory (MemoryStore)** | `SearchMemories` API: "Retrieves long-term memory from a MemoryStore based on semantics"; RAM-authorizable | **China regions only** (Hangzhou/Beijing/Shenzhen) | AgentCore Compute/Storage CU | [https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-searchmemories.md], [https://www.alibabacloud.com/help/en/agentcore/agentcore-product-overview] |
+| **CloudMonitor 2.0 Memory module** | "**MemoryStore** is a storage container for memory data. It holds all short-term and long-term memory for an AI agent or application"; includes a **Mem0-compatible SDK** "for zero-cost migration" and **MCP Server access** for agent frameworks; enterprise security | CMS 2.0 serves all non-China regions from the **Singapore** region group; CMS 2.0 region list includes Frankfurt, Virginia, Singapore, KL, … | CMS 2.0 / underlying SLS resource billing (unconfirmed detail) | [https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/memory-module-overview], [https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/what-is-cloud-monitor-2-0], [https://help.aliyun.com/en/cms/cloudmonitor-2-0/supported-regions] (China site only) |
+| **Tair (Redis OSS-compatible) semantic cache** | "Tair Semantic Cache is an application access layer designed for the AI era… between AI applications and model services"; LangCache-compatible mode to plug into a **self-hosted agent**; also Tair KVCache / HiCache for inference KV reuse | Tair is sold internationally (region list per Tair docs — not enumerated here, **unconfirmed for the semantic-cache gateway feature**) | Tair instance (memory/spec) billing | [https://www.alibabacloud.com/help/en/redis/tair-ai-gateway-semantic-caching], [https://www.alibabacloud.com/help/en/redis/semantic-cache-integration-custom-agent], [https://www.alibabacloud.com/blog/get-started-with-tair-semantic-caching-in-4-steps-stop-burning-money-on-repetitive-ai-queries_603502], [https://help.aliyun.com/en/redis/product-overview/tair-kvcache/] (China site only) |
+| **PolarDB for PostgreSQL memory management** | "One-stop memory management… combines vector and graph databases"; **Mem0/MemOS** compatible; integrates with AgentRun | PolarDB PG is international; the memory solution doc is China-site → **international availability unconfirmed** | PolarDB cluster billing | [https://www.alibabacloud.com/blog/polardb-one-stop-memory-management-launched-empowering-ai-agents-with-persistent-cross-session-memory_603109], [https://help.aliyun.com/en/polardb/polardb-for-postgresql/ganos-age-based-on-polardb-ai-agent-long-memory-solution] (China site only) |
+
+**Short-term vs long-term in the reference architectures:** short-term = session history/messages in Tablestore Memory Storage (or AgentRun session state); long-term = extracted structured memory entries retrieved semantically (Tablestore, CMS 2.0 MemoryStore, PolarDB+Mem0); prompt/response reuse = Tair or AI-Gateway semantic cache (Redis + DashVector).
+
+---
+
+## 5. Sandboxes for agent actions
+
+| Product | What it does | International regions / status | Pricing model | Doc |
+|---|---|---|---|---|
+| **Agent Sandbox — Flash Edition** | "fully managed, API-first, ready-to-use… through the Developer API. The Flash Edition is **compatible with the E2B SDK**"; on-demand sandboxes for code, tools, browsers; designed for model/agent developers and "migration from the E2B ecosystem" | Flash Edition regions include **Asia Pacific SE 1 (Singapore) `ap-southeast-1`, Malaysia (Johor) `ap-southeast-8`, US (Virginia)** + China (Beijing/Hohhot/…); FC Agent Sandbox API/SDK list = Beijing, Shanghai, Hangzhou, Shenzhen, **HK, Singapore, US (Virginia), US (Silicon Valley)** | Pay-as-you-go, **billed by the second**; class rates shown: Economy vCPU **USD 0.0000026/s (USD 0.00936/hour)**, Default (recommended) **USD 0.0000034/s (USD 0.01224/hour)**, memory **USD 0.00000128/GiB/s (USD 0.004608/GiB-hour)**; Flash strictly validates specs; disk has a 15 GiB free allowance (FC Agent Sandbox) | [https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/agent-sandbox-overview], [https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/open-service-area], [https://help.aliyun.com/en/agent-sandbox/product-overview/open-service-area] (China site only), [https://help.aliyun.com/en/functioncompute/supported-regions-of-fc-agent-sandbox] (China site only), [https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/billing-overview], [https://www.alibabacloud.com/help/en/functioncompute/pay-as-you-go-of-fc-agent-sandbox], [https://www.alibabacloud.com/help/en/agent-sandbox/using-the-cloud-sandbox-via-the-sdk] |
+| **Agent Sandbox — Container Edition** | Runs in **ACS** clusters (install add-ons, create warm pool, claim sandboxes); "designed for platform engineering teams, AI infrastructure teams, and Kubernetes PaaS"; scenarios incl. **Code Interpreter and Browser Use**; hibernation/wake-up; checkpoint cloning; TrafficPolicy egress control; credential injection; AgenticFS/OSS mounts; flexible spec configuration | ACS regions (Asia-Pacific China + international ACS regions; ACS is documented as available to international customers); Netherlands region announced for ACS Agent Sandbox | Pay-as-you-go, per second, invoiced hourly; ACS example: (2 vCPU × USD 0.0000026/s + 8 GiB × USD 0.00000128/s) × 3,300 s ≈ **USD 0.05**; plus cloud-service resource fees | [https://www.alibabacloud.com/help/en/agent-sandbox/create-an-agent-sandbox], [https://www.alibabacloud.com/help/en/cs/user-guide/agent-sandbox/], [https://www.alibabacloud.com/help/en/cs/product-overview/product-billing-rules], [https://www.alibabacloud.com/help/en/agent-sandbox/network-configuration/], [https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/agent-sandbox-overview], [https://www.alibabacloud.com/press-room/first-public-cloud-region-in-the-netherlands] |
+| **AgentRun sandbox / AIO Sandbox** | "secure, high-performance, and serverless sandbox for code execution and browser automation"; **AIO Sandbox** = web automation + code execution + file processing + interactive terminal in one image; billing adjusts in "light sleep" state; upgrade path from AgentRun Sandbox to FC Cloud Sandbox | Singapore (AgentRun international region) | "Pay-as-you-go serverless billing… see Function Compute Billing overview" | [https://www.alibabacloud.com/help/en/agentrun/what-is-agentrun], [https://www.alibabacloud.com/help/en/agentrun/aio-sandbox-1], [https://www.alibabacloud.com/help/en/agentrun/agenrun-sandbox-upgrade-fc-cloud-sandbox-scheme] |
+| **AgentBay (Wuying)** | "cloud-native execution platform for AI agents… automate browsers, desktop applications, mobile devices"; **Browser Use** (cloud-hosted browser, navigate/extract/multi-step web workflows), **Computer Use** (Linux/Windows via MCP), **Code Space**, **Mobile Use**, All-in-One Sandbox image; named browser contexts; MCP toolsets Browser/File/Terminal | "**Deployed in Singapore**"; free trial for new accounts (once per account); SDK is OSS | Plans: **Basic (free + pay-as-you-go resources), Pro USD 149/month, Ultra**; **Credit unit price USD 0.0267/Credit**; point rates: Cloud Computer/Computer Use **1 point/hour**, Browser Use **0.5 points/hour**, Code Space **0.5 points/hour**; new-user trial includes **100 free points**; a pricing-model change took effect 2026‑05‑18 (China-site notice) | [https://www.alibabacloud.com/en/product/agentbay?_p_lc=1], [https://www.alibabacloud.com/help/en/agentbay/product-overview/what-is-eds-agentbay], [https://www.alibabacloud.com/help/en/agentbay/agentbay-browseruse], [https://www.alibabacloud.com/help/en/agentbay/developer-reference/all-in-one-sandbox], [https://www.alibabacloud.com/help/en/agentbay/product-overview/agentbay-billing-instructions], [https://www.alibabacloud.com/help/en/agentbay/support/management-points], [https://www.alibabacloud.com/help/en/agentbay/product-overview/new-user-trial-instructions], [https://help.aliyun.com/en/agentbay/product-overview/agentbay-pricing-adjustment-announcement] (China site only), [https://github.com/agentbay-ai/wuying-agentbay-sdk] |
+| **OpenSandbox (open source)** | Alibaba's Apache-2.0 sandbox platform (self-managed alternative) | OSS | Infra only | [https://northflank.com/blog/alibaba-opensandbox-architecture-use-cases] (third-party), [https://www.digitalapplied.com/blog/alibaba-opensandbox-open-source-ai-agent-execution] (third-party) |
+
+**Browser automation choice for the diagram:** AgentBay Browser Use (managed, Singapore, MCP-exposed) vs Agent Sandbox Container Edition "Browser Use" scenario on ACS vs AgentRun AIO Sandbox (Serverless, Singapore). AgentBay's own paper describes Windows/Linux/Android/browser/code-interpreter environments [https://arxiv.org/html/2512.04367v1].
+
+---
+
+## 6. Safety and identity
+
+| Product | What it does for an agent | International regions / status | Pricing model | Doc |
+|---|---|---|---|---|
+| **AI Guardrails (Guardrails)** | Detects risks in AI inputs/outputs: **prompt-injection detection** (jailbreak prompts, role-play and other adversarial behaviour), **high-risk/malicious URLs**, PII and corporate-sensitive data (data-leak prevention via **encryption and masking**, plus masking/restoration API), **model hallucination (public preview)**, malicious files; context-aware multi-turn analysis; streaming moderation with <2 s latency claims (blog) | Console "currently supports the **China East 2 (Shanghai), China (Hong Kong), Singapore, Germany (Frankfurt), and US (Virginia)** regions"; Singapore API endpoint `green-cip.ap-southeast-1.aliyuncs.com`; press: "available through its Singapore region" | Pay-per-call **or** token-based; **USD 6 per 10,000 calls** for API access / AI Gateway integration; custom **detection Agent USD 8 per 10,000 calls** (e.g. Qwen3Guard-Gen-4B), free quota first; one-click activation through Model Studio | [https://www.alibabacloud.com/help/en/content-moderation/latest/what-is-ai-security-barrier], [https://www.alibabacloud.com/en/product/ai_guardrails?_p_lc=1], [https://www.alibabacloud.com/help/en/content-moderation/latest/inspection-item-configuration], [https://www.alibabacloud.com/help/en/content-moderation/latest/product-overview], [https://www.alibabacloud.com/blog/how-alibaba-cloud-protects-ai-usage_602551], [https://www.alibabacloud.com/help/en/content-moderation/latest/billing-overview], [https://www.alibabacloud.com/help/en/content-moderation/latest/detecting-agent-billing-schemes], [https://www.sourcesecurity.com/news/alibaba-cloud-ai-guardrails-boost-security-co-7261-ga-co-13828-ga-co-1716962886-ga.1750749066.html] |
+| **Content Moderation (2.0)** | UGC moderation for image/text/voice/video/document: porn, political sensitivity, violence, gore, spam, hate, ads; multilingual text moderation 2.0 (+ text translation **only in Singapore**); Voice Moderation 2.0 in Singapore supports 35 languages | "Only specific algorithm models are available in the **Singapore, Germany (Frankfurt), and US (Virginia)**" regions; SDK region list on the access guide; pricing page shows Asia Pacific SE 1 (Singapore) | Pay-as-you-go tiers, e.g. text moderation from **USD 0.50 per 1,000 text tasks** (tiered down to 0.45/…), standard image moderation **USD 0.6 per 1,000 calls**; free trial | [https://www.alibabacloud.com/help/en/content-moderation/latest/java-sdk-initialization], [https://www.alibabacloud.com/help/en/content-moderation/latest/text-moderation-enhanced-multilingual-service-api], [https://www.alibabacloud.com/help/en/content-moderation/latest/speech-audit-multilingual-service], [https://www.alibabacloud.com/help/en/content-moderation/latest/access-guide], [https://www.alibabacloud.com/en/product/content-moderation/pricing?_p_lc=1], [https://www.alibabacloud.com/help/en/content-moderation/latest/billing-description] |
+| **AI Guardrails in the gateway/WAF path** | Enable Guardrails inside AI Gateway (privacy controls outbound, content filtering inbound); WAF 3.0 "AI application protection" detects prompt injection/jailbreak and enforces content policy; Dify integration tutorial; Guardrails service for Model Studio users | Same regions as AI Gateway / WAF / Model Studio | Per-call Guardrails fees + gateway/WAF fees | [https://www.alibabacloud.com/help/en/content-moderation/latest/how-to-open-and-use-ai-security-guardrail-products-and], [https://www.alibabacloud.com/help/en/waf/web-application-firewall-3-0/ai-application-protection/], [https://help.aliyun.com/en/document_detail/2925843.html] (China site only), [https://help.aliyun.com/en/document_detail/2923687.html] (China site only) |
+| **AI Guardrails 2.0 / Agent security solution** | "AI Guardrails 2.0 further upgrades end-to-end risk detection… supports zero-code integration and custom…"; positioned in the AI Agent Security Solution together with SASE 2.0 (Shadow AI, poisoning, privilege escalation) and Agent Security Center | Announced for the Netherlands region rollout; broader international status **unconfirmed** | unconfirmed | [https://www.alibabacloud.com/blog/alibaba-cloud-al-agent-security-solution%E2%80%94%E2%80%94security-risks-and-mitigations-for-enterprise-ai-agent-adoption_603175], [https://www.alibabacloud.com/press-room/first-public-cloud-region-in-the-netherlands], [https://www.alibabacloud.com/blog/alibaba-cloud-sase-2-0-upgrade-comprehensive-monitoring-of-agent-office-security_603047] |
+| **Agent Security Center (ASC)** | "cloud-native integrated security product designed for the AI Agent era": discovers AI agent assets on the cloud, detects agent-specific risks such as **prompt injection**, intercepts attacks; **Agent Loop** records runtime activity, network behaviour and security events into logstores for compliance audit; **AI Red Teaming** runs adversarial tests against connected models/agents (e.g. Model Studio OpenAI-compatible endpoint) | Public preview ("Agent Security Center comprehensive public preview"); API endpoint shown as `aisc.cn-shanghai.aliyuncs.com` (China); the Agent Loop log-storage regions include **China (Hong Kong), Singapore, Australia (Sydney), Malaysia (Kuala Lumpur)**; slated for the Netherlands region | Pay-as-you-go, T+1 bills; **defense seat fee USD 0.0574/seat/hour** (min 1 hour), **300 free Credits per seat per day**, credits overage billed; **agent risk detection free during public preview**; other items e.g. USD 1.42/instance and log storage USD 0.3/TB/hour | [https://www.alibabacloud.com/help/en/asc/], [https://www.alibabacloud.com/help/en/asc/product-overview/what-is-the-agent-security-center], [https://help.aliyun.com/en/asc/getting-started/openclaw-fast-access] (China site only), [https://www.alibabacloud.com/help/en/asc/user-guide/agent-oop], [https://www.alibabacloud.com/help/en/asc/user-guide/ai-red-teaming], [https://www.alibabacloud.com/help/en/asc/product-overview/billing-overview], [https://www.alibabacloud.com/help/en/asc/product-overview/agent-security-center-defense-capabilities-official-commercial-billing-announcement], [https://www.alibabacloud.com/help/en/asc/user-guide/purchase-agent-security-center], [https://www.alibabacloud.com/help/tr/asc/developer-reference/api-aisc-2026-01-01-endpoint], [https://www.alibabacloud.com/en/product/security_center?_p_lc=1] |
+| **Agent Identity** | "identity and credential management service designed for AI agents": **workload identities** (must be bound to a RAM role to obtain data-plane credentials), **Token Vault** with strict access control, **OAuth 2.0 credential providers** (RAM, DingTalk, Lark, …) and **API-key credential providers**, inbound user pools with OIDC IdPs (**DingTalk, WeChat, Lark, Entra ID, Okta, Ping Identity**), on-behalf-of token flows (`Obtain an OAuth Access Token`), workload access tokens validated by API Gateway | Docs are on the international site; API examples use `agentidentity.cn-beijing.aliyuncs.com` / ARNs in `cn-hangzhou` → **international region availability unconfirmed**. It is wired into AgentRun, Model Studio (Bailian) high-code, and Agent Sandbox (`AgentIdentity`, `CredentialProvider`, `AgentRole`, `AgentRoleBinding` CRs; `ack-agent-identity` add-on; KMS Secrets Manager API keys) | unconfirmed (no pricing page found) | [https://www.alibabacloud.com/help/en/agentidentity/what-is-agent-identity], [https://www.alibabacloud.com/help/en/agentidentity/use-scenarios], [https://www.alibabacloud.com/help/en/agentidentity/workload-identity-management], [https://www.alibabacloud.com/help/en/agentidentity/oauth-credential-provider-management.md], [https://www.alibabacloud.com/help/en/agentidentity/identity-provider-management.md], [https://www.alibabacloud.com/help/en/agentidentity/inbound.md], [https://www.alibabacloud.com/help/en/agentidentity/restrictions-on-use] (quotas: 1,000 WorkloadIdentity, 50 OAuth2 / 50 APIKey credential providers), [https://help.aliyun.com/en/agentidentity/what-is-agent-identity] (China site only, Token Vault), [https://help.aliyun.com/en/agentidentity/using-agent-identity-in-agenrun] (China site only), [https://www.alibabacloud.com/help/en/agentidentity/using-agent-identity-in-bailian-high-code], [https://www.alibabacloud.com/help/en/agent-sandbox/use-kms-secret-api-key-credentials-with-credentialprovider], [https://www.alibabacloud.com/help/en/agent-sandbox/acs-agent-sandbox-security-best-practices] |
+| **Agent ID Guard (IDaaS EIAM)** | IAM service purpose-built for AI agents: centralized identity registration, manages credentials (API keys, OAuth secrets, tokens) agents use to reach LLMs, SaaS and internal systems; integrates DingTalk, WeCom, Lark, LDAP, Microsoft Entra ID | IDaaS EIAM: "The Singapore region is supported" (product page news item); Agent ID Guard region matrix **unconfirmed** | IDaaS instance/account licensing | [https://www.alibabacloud.com/help/en/idaas/eiam/user-guide/what-is-agent-id-guard], [https://www.alibabacloud.com/help/en/idaas/eiam/user-guide/agent-id-configuration-guide], [https://www.alibabacloud.com/en/product/identity-as-a-service-idaas?_p_lc=1] |
+| **Database-side agent guardrails** | "Your database's biggest user is now an agent": identity on every connection, limits on every action, risk interception; a database agent protection capability is "free of charge for public preview… inspects agent inputs, tool calls, outputs, and sessions and can intercept high-risk operations" | Blog-level; region detail **unconfirmed** | Free during public preview | [https://www.alibabacloud.com/blog/your-databases-biggest-user-is-now-an-agent-%E2%80%94-and-that-changes-security_603709] |
+
+---
+
+## 7. Observability and evaluation
+
+| Product | What it does for an agent | International regions / status | Pricing model | Doc |
+|---|---|---|---|---|
+| **AgentLoop** | "one-stop self-evolving platform for enterprise-grade agents": **full-stack observability + behaviour auditing** (evidence trail, replay by time/user/session), **evaluation & experimentation** (Agent-as-a-Judge; evaluates model outputs, **RAG retrieval results, tool calling, and agent execution trajectories**; built-in + custom evaluators, code evaluator, multimodal evaluator), **datasets** (CRUD-able AI data storage) and agent asset management; "data flywheel" Collect → Analyze → Evaluate → Optimize; ingestion via proprietary probes, OpenTelemetry SDK, OTel eBPF (OBI) | Supported-regions page exists; Chinese version lists **Singapore `ap-southeast-1`**; endpoint `agentloop.ap-southeast-1.aliyuncs.com`; evaluator docs list Hangzhou/Shanghai/Beijing/Shenzhen/HK/**Singapore**. **This supersedes "HK only internationally".** | Pay-as-you-go on three items: **AI credits (USD 0.0016 per credit)**, **dataset storage (USD 0.0000055 per entry per day)**, **execution count (USD 0.00014 per execution)**; dependent services billed separately | [https://www.alibabacloud.com/help/en/agentloop/product-overview/what-is-agentloop], [https://www.alibabacloud.com/en/product/agentloop?_p_lc=1], [https://www.alibabacloud.com/help/en/agentloop/product-overview/server-launch-regions-of-agentloop], [https://www.alibabacloud.com/help/zh/agentloop/product-overview/server-launch-regions-of-agentloop], [https://help.aliyun.com/en/agentloop/developer-reference/api-agentloop-2026-05-20-endpoint] (China site only), [https://www.alibabacloud.com/help/doc-detail/3064616.html], [https://www.alibabacloud.com/help/en/agentloop/agentloop-billing-overview], [https://www.alibabacloud.com/help/en/agentloop/agentloop-quickstart-whole-process-practice], [https://www.alibabacloud.com/help/en/agentloop/audit-management], [https://www.alibabacloud.com/help/en/agentloop/user-guide/audit-facts], [https://www.alibabacloud.com/help/en/agentloop/user-guide/agent-space], [https://www.alibabacloud.com/help/en/agentloop/integrating-llm-applications-with-opentelemetry-genai-utils/] |
+| **CloudMonitor 2.0 (CMS 2.0) — AI observability** | Unified platform integrating **SLS + CMS + ARMS**; "AI observability" section contains **AgentLoop overview, AI Agent Observability, AI Infra Insights, Memory module**; Integration Center gives out-of-the-box onboarding for mainstream AI frameworks; OTel eBPF Instrumentation (OBI) for zero-code agent observability; AI agent list per workspace | "Requests from regions in China are served by the Beijing region group, and requests from regions **outside China are served by the Singapore** region group"; CMS 2.0 region list includes Frankfurt, Virginia, Singapore, KL, … | Underlying SLS/CMS/ARMS resource billing; CMS 2.0 platform itself not separately priced in the pages found (**unconfirmed**) | [https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/what-is-cloud-monitor-2-0], [https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/ai-observability-of-cms-2-0/], [https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/starting-to-integrate-ai-agent-observability], [https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/list-of-ai-agents], [https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/memory-module-overview], [https://help.aliyun.com/en/cms/cloudmonitor-2-0/integrate-ai-agent-observability-through-opentelemetry-obi] (China site only), [https://help.aliyun.com/en/cms/cloudmonitor-2-0/supported-regions] (China site only), [https://www.alibabacloud.com/blog/kernel-level-x-ray-vision-cloudmonitor-2-0-achieves-full-stack-observability-with-zero-code-changes_603337] |
+| **ARMS — AI Agent Observability (ex "LLM Application Monitoring")** | Platform upgrade: "LLM Application Monitoring is renamed to **AI Agent Observability**. The console access path is routed to **Cloud Monitor 2.0**"; capabilities include topology, traces, sessions, token and tool-invocation metrics, anomaly alerts; Python agent instruments LLM apps/inference services; AgentRun Java-agent integration shows **LLM call count, token usage, trace count, session count** | ARMS has regional endpoints incl. US (Virginia) `arms.us-east-1.aliyuncs.com`, UAE, etc.; AI Agent Observability region matrix **unconfirmed** | ARMS resource billing (traces/metrics/logs) | [https://www.alibabacloud.com/help/en/arms/product-overview/platform-upgrade-notification-that-arms-llm-application-monitoring-is-upgraded], [https://www.alibabacloud.com/help/en/arms/application-monitoring/user-guide/use-the-arms-agent-for-python-to-monitor-llm-applications], [https://www.alibabacloud.com/help/en/agentrun/connect-java-agent-to-arms-application-monitoring-1], [https://www.alibabacloud.com/help/en/cms/cloudmonitor-1-0/developer-reference/api-arms-2019-08-08-endpoint] |
+| **CloudMonitor (1.0 product page) AI Application Observability** | "Designed for LLM applications, it monitors key metrics such as **inference latency and token consumption**" | International product page | CMS billing | [https://www.alibabacloud.com/en/product/cloud-monitor?_p_lc=1] |
+| **Simple Log Service (SLS)** | Log/metric/trace platform used as the store for agent traces and audit logs; **Integration Center** one-click onboarding for agent logs (e.g. OpenClaw session audit + application logs); **data masking** functions for LLM apps (multi-stage masking/encryption); SQL Copilot; LoongSuite for agent observability & audit data collection with extended OTel semantics | SLS is international (region list per SLS docs) | SLS ingestion/storage/index billing; Full-stack Observability app itself free, you pay for consumed resources | [https://www.alibabacloud.com/help/en/sls/what-is-log-service], [https://www.alibabacloud.com/blog/achieve-operational-control-for-openclaw-with-alibaba-cloud-sls-one-click-integration_603034], [https://www.alibabacloud.com/blog/a-practical-guide-to-sls-data-masking-securing-sensitive-data-in-llm-applications_602775], [https://www.alibabacloud.com/blog/plaintext-stays-put-logs-stay-useful-sensitive-data-protection-with-alibaba-cloud-observability_603543], [https://www.alibabacloud.com/blog/603239], [https://www.alibabacloud.com/blog/introducing-the-new-full-stack-observability-in-simple-log-service_600928] |
+| **AI Gateway observability / FinOps** | One-click full-call-chain observability from app → gateway → model; token/Credits metering, quota rules by natural day/week/month, multi-timezone cost reports | Same regions as AI Gateway | Included in gateway billing | [https://help.aliyun.com/en/api-gateway/ai-gateway/] (China site only), [https://www.alibabacloud.com/blog/alibaba-cloud-ai-gateway-finops-features-officially-launched-%7C-making-every-tokens-consumption-visible-and-controllable_603282], [https://www.alibabacloud.com/blog/ai-gateway-introduces-credits-metering-&-quota-capability-making-consumer-usage-measurable-and-constrainable_603415] |
+| **Model Studio Model Evaluation** | "Model Evaluation is a model quality evaluation tool provided by the… Model Studio platform… quantitative evaluation of large…"; supports **LLM-as-judge numeric and classification scoring, string match, text similarity (ROUGE-L, BLEU, cosine)**; the international console docs carry a section "**Model Evaluation (New) for International Site**" | International doc page exists (`model-evaluation-intl`) and the international Model Studio docs list it; region gating **unconfirmed** | Model tokens consumed by the judge (unconfirmed as a separate SKU) | [https://www.alibabacloud.com/help/en/model-studio/model-evaluation-intl], [https://www.alibabacloud.com/help/en/model-studio/models], [https://www.alibabacloud.com/blog/model-routing-explained-send-each-request-to-the-cheapest-model-that-passes_603612], [https://docs.modelstudio.console.alibabacloud.com/en/model-studio/model-usage-statistics] |
+| **PAI ModelEval / LLM-as-a-Judge** | "ModelEval is a model evaluation tool provided by PAI. It evaluates large language models on specific or general-purpose scenarios"; PAI Judge Model scores LLM outputs automatically | PAI regions include Singapore, Tokyo, Jakarta, Frankfurt, Silicon Valley, Virginia (per-service) | PAI compute + model inference | [https://www.alibabacloud.com/help/en/pai/modeleval/], [https://www.alibabacloud.com/help/en/pai/judge-model/], [https://www.alibabacloud.com/help/en/pai/product-overview/regions-and-zones] |
+| **AgentRun built-in observability/evaluation** | AgentRun ships "runtime, sandbox, observability, agent evaluation, memory and knowledge bases (Context Engineering)"; AgentRun/AgentTeams "ingest observability data through **CMS 2.0** by default" | Singapore | AgentRun usage | [https://www.alibabacloud.com/blog/what-does-alibaba-clouds-agent-infra-look-like_603177], [https://www.alibabacloud.com/help/en/agentloop/agentloop-quickstart-whole-process-practice] |
+| **Agent Sandbox observability** | OBI-based "zero-code observability of AI Agents in ACS Agent Sandboxes" | ACS regions | Included + CMS/SLS resources | [https://www.alibabacloud.com/blog/zero-code-transformation-making-the-ai-agent-sandbox-no-longer-a-black-box_603571] |
+
+---
+
+## 8. Integration with business systems (email, IM, CRM/ERP)
+
+| Need | What Alibaba Cloud documents | International availability | Doc |
+|---|---|---|---|
+| IM channels for an agent | **AgentCore**: "Configures account integration with platforms such as **DingTalk, WeChat, and Lark**, connecting Agents to daily enterprise communication channels"; IM channel APIs with types `DINGTALK`, `FEISHU` (Lark), `WECOM` bound to a public ServiceEndpoint; Lark QR-code login + user sync | **AgentCore is China-region only** → not usable for international customers today | [https://www.alibabacloud.com/help/en/agentcore/agentcore-product-overview], [https://help.aliyun.com/en/agentcore/api-agentcore-2026-08-04-listagentimchannels] (China site only), [https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-createagentimchannel], [https://www.alibabacloud.com/help/en/agentcore/configure-dingtalk-account-integration.md] |
+| IM channel, runtime-side | **AgentRun**: "Integrate a Function Compute AgentRun agent with a **DingTalk bot**… interact with it in group chats or private chats"; Model Studio no-code "Add an AI robot to DingTalk" | AgentRun = Singapore internationally; the DingTalk guide is international-site; the Model Studio DingTalk robot page is China-site | [https://www.alibabacloud.com/help/en/agentrun/agent-integration-dingtalk.md], [https://help.aliyun.com/en/model-studio/add-an-ai-assistant-to-your-dingtalk] (China site only) |
+| Event-driven triggers from SaaS/IM | **EventBridge + Function Compute**: DingTalk connector best practice ("convert data-sending operations into EventBridge trigger events, use the CloudEvents protocol"); worked example DingTalk → EventBridge → FC HTTP API; FC trigger catalogue (native + cloud-product event triggers) | EventBridge/FC are international | [https://www.alibabacloud.com/help/en/functioncompute/best-practices-for-building-dingtalk-connectors], [https://www.alibabacloud.com/help/en/eventbridge/use-cases/automatically-trigger-an-http-api-operation-dingtalk-adding-member-information], [https://www.alibabacloud.com/help/en/functioncompute/trigger-overview], [https://www.alibabacloud.com/help/en/eventbridge/product-overview/what-is-eventbridge] |
+| **Inbound email** (the support-inbox trigger) | **No Alibaba Cloud inbound-email service found.** "DirectMail is an **outbound** email service and does not provide inbound email or an enterprise mailbox. To collect replies, set a reply-to address." | n/a | [https://www.alibabacloud.com/help/en/direct-mail/faqs-about-receiving-replies] |
+| **Outbound email** (draft/reply sending, notifications) | **Direct Mail**: triggered and batch email via console, API (`SingleSendMail`, `BatchSendMail`) or SMTP, with email tracking data APIs; regional endpoints incl. Singapore | International | [https://www.alibabacloud.com/help/en/direct-mail/product-overview/directmail], [https://www.alibabacloud.com/help/en/direct-mail/api-dm-2015-11-23-overview], [https://www.alibabacloud.com/help/en/direct-mail/api-dm-2015-11-23-endpoint] |
+| CRM | **Salesforce on Alibaba Cloud** exists but is a **China** offering ("exclusive authorization… to offer Salesforce services on Alibaba Cloud to customers in **China**"), and its feature-difference doc notes Agentforce restrictions and that some agent/Slack licences "are not available in China" | Not a CRM connector for international agent builds | [https://www.alibabacloud.com/en/product/salesforce?_p_lc=1], [https://www.alibabacloud.com/en/marketplace/salesforce?_p_lc=1], [https://www.alibabacloud.com/help/en/sfoa/product-overview/differences-between-salesforce-crm-functions-on-alibaba-cloud-winter-26-winter-edition] |
+| ERP / third-party SaaS credentials | **Agent Identity OAuth credential providers**: "You can create a workload identity for the agent and configure an OAuth 2.0 credential provider that points to **DingTalk or Lark**"; tokens are fetched and "securely stored in **Token Vault**"; inbound IdPs include **Entra ID, Okta, Ping Identity** — the generic mechanism for on-behalf-of access to any OAuth2 SaaS (Salesforce, ServiceNow, etc.), but **no named CRM/ERP connector catalogue was found** → unconfirmed | International docs; region availability unconfirmed | [https://www.alibabacloud.com/help/en/agentidentity/use-scenarios], [https://www.alibabacloud.com/help/en/agentidentity/oauth-credential-provider-management.md], [https://www.alibabacloud.com/help/en/agentidentity/identity-provider-management.md], [https://www.alibabacloud.com/help/en/agentidentity/dingtalk] |
+| Generic API/tool connectors | **AgentCore Connectors**: "Connectors integrate other Agents into AgentCore… centrally hosted"; the only connector type documented in the API reference is the **QoderCLI Connector** (site + API key + Service Account Keys, `VerifyConnector`, enable/disable) | China regions only | [https://www.alibabacloud.com/help/en/agentcore/manage-connectors], [https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-updateconnector], [https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-overview.md] |
+| Data/database connectors as MCP | DMS MCP (40+ data sources, NL2SQL, migration), DAS Agent MCP (cross-account DB O&M), Data Agent MCP skill, MaxCompute MCP | OSS/self-hosted or regional services | [https://mcpservers.org/servers/aliyun/alibabacloud-dms-mcp-server], [https://www.alibabacloud.com/blog/cross-account-intelligent-database-operations-integrating-das-agent-mcp-server-and-dify_603320], [https://github.com/aliyun/data-agent-skill/blob/main/alibabacloud-data-agent-mcp-skill/README.md], [https://www.alibabacloud.com/help/en/maxcompute/mcmcp-service-remote-mcp-server] |
+| Turn any internal REST API into an agent tool | AI Gateway REST→MCP conversion (SSE / Streamable HTTP, consumer auth) | AI Gateway international regions | [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/getting-started/mcp-service-management] |
+
+**Practical rule for the example workflow ("reads incoming support emails"):** Alibaba Cloud documents **no inbound-email trigger**. The diagram should show an external mailbox/relay (customer-side, e.g. Microsoft 365/Google Workspace webhook or IMAP poller) → **Function Compute / EventBridge** → agent runtime; outbound draft/reply via **Direct Mail**; human-approval notification via **DingTalk/Lark/WeCom** (AgentRun DingTalk bot, or AgentCore IM channels if China). Mark the inbound leg "customer-provided" in the catalog.
+
+---
+
+## 9. Final mapping table — workflow need → product
+
+| Workflow need | Product(s) | International availability | Note |
+|---|---|---|---|
+| Inbound trigger (email, webhook, schedule, event) | Function Compute triggers, EventBridge (+ DingTalk connector pattern); **no inbound email service** | FC/EventBridge: international | Draw the mailbox as customer-owned; DirectMail is outbound-only [https://www.alibabacloud.com/help/en/direct-mail/faqs-about-receiving-replies] |
+| Agent runtime / orchestration | **AgentRun** (Serverless, code-centric: runtime + sandbox + tools/skills + KB + memory + prompt mgmt); Function Compute / ACS custom code; Dify on ACK | AgentRun: **Singapore only** internationally | AgentCore (managed build/govern platform) is **China-only** — do not offer it in international diagrams [https://www.alibabacloud.com/help/en/agentcore/agentcore-product-overview] |
+| Model calls, model routing, fallback, token/credit budgets | **AI Gateway** (dedicated instance internationally) + Model Studio model APIs | AI Gateway: SG, KL, Jakarta, Tokyo, HK, Frankfurt, Virginia; Model Studio: SG, Virginia, Frankfurt, Tokyo, HK | Serverless-new AI Gateway is preview in mainland+HK only [https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/announcement-new-serverless-version-of-the-ai-gateway-now-in-public-beta] |
+| Tool layer / MCP hub | AI Gateway MCP Gateway (proxy + REST→MCP), AgentRun Tool Marketplace, AgentBay MCP toolsets, hosted OpenAPI MCP Server, Cloud Agent Catalog skills | SG-centred; OpenAPI MCP Server has an international endpoint | Model Studio's MCP marketplace is **China-site accounts only** [https://help.aliyun.com/en/model-studio/cli/mcp-skill] |
+| Help-centre knowledge (parse → chunk → embed → retrieve → rerank) | Managed all-in-one: **Tablestore Knowledge Storage** (SG) or **OpenSearch LLM Conversational Search Edition** (region list unconfirmed); build-your-own: Milvus / DashVector / AnalyticDB‑PG RAG Service / Elasticsearch+Inference API / Hologres / PolarDB PolarSearch / Lindorm | Tablestore Memory&Knowledge Storage: **Singapore** ✔; Milvus: SG + Frankfurt; DashVector: SG + Virginia; AnalyticDB‑PG, Hologres, Elasticsearch, PolarSearch, Lindorm: multiple intl regions | AI Search Open Platform (managed parsing+chunking+rerank) is **Shanghai + Frankfurt only** — not selectable for a SG default [https://www.alibabacloud.com/help/en/open-search/search-platform/user-guide/get-service-call-address] |
+| Document parsing (PDF/Word/PPT/Excel → Markdown/JSON) | Document Mind (DocMind), AI Search Open Platform parsing, Tablestore Knowledge Storage parsing, PAI KB parsing, AnalyticDB "AI Context Engineering" parsing | DocMind: **China (Hangzhou) endpoint only** (China site); AI Search Open Platform: Shanghai/Frankfurt; Tablestore KS: Singapore | For SG customers, parsing inside Tablestore Knowledge Storage or self-hosted (DocMind OSS skill) is the documented path |
+| Short-term (session) memory | Tablestore Memory Storage (short-term messages), AgentRun session history on Tablestore, CMS 2.0 MemoryStore | Singapore ✔ (Tablestore Memory Storage; CMS 2.0 non-China served from Singapore) | Pricing shown in CNY on the international page — confirm USD in console |
+| Long-term memory / user preferences | Tablestore long-term structured memory + "Dream" consolidation + file memory; **mem0** on Tablestore; PolarDB+Mem0/MemOS; AgentCore MemoryStore | Tablestore/mem0: Singapore ✔; PolarDB memory: intl availability unconfirmed; AgentCore: China-only | mem0 compatibility is explicit for Tablestore and CMS 2.0 Memory module |
+| Prompt/response caching (cost + latency) | AI Gateway cache (Redis precise + **DashVector** semantic), Tair Semantic Cache gateway | AI Gateway intl regions; DashVector SG+Virginia; Tair intl (feature-level unconfirmed) | Semantic cache adds a DashVector + embedding dependency to the diagram |
+| Code execution / file processing sandbox | **Agent Sandbox Flash Edition** (E2B-SDK compatible) / FC Agent Sandbox; AgentRun AIO Sandbox | Flash/FC: **Singapore**, US (Virginia), US (Silicon Valley), HK (+ mainland, Malaysia Johor) | Per-second billing; Default class USD 0.0000034/vCPU-s, memory USD 0.00000128/GiB-s |
+| Browser / desktop / mobile actions | **AgentBay** (Browser Use, Computer Use, Code Space, Mobile Use, All-in-One), Agent Sandbox Container Edition "Browser Use" on ACS | AgentBay: **Deployed in Singapore**; ACS Agent Sandbox: ACS regions, expanding to Netherlands | AgentBay uses points/credits (USD 0.0267/credit; Browser Use 0.5 points/hour) |
+| Human approval / hand-off to a person | AgentCore IM channels (DingTalk/Lark/WeCom), AgentRun DingTalk bot, EventBridge→FC webhooks, Direct Mail notifications | AgentCore: China-only; AgentRun DingTalk guide: international site; Direct Mail: international | For non-DingTalk customers there is **no documented Slack/Teams connector** → unconfirmed |
+| Agent identity, secrets, on-behalf-of access | **Agent Identity** (workload identity + Token Vault + OAuth2/API-key credential providers + OIDC IdPs incl. Entra ID/Okta/Ping), Agent ID Guard (IDaaS EIAM), KMS Secrets Manager via Agent Sandbox CredentialProvider | Agent Identity: international docs, region availability **unconfirmed**; IDaaS EIAM: Singapore supported; KMS: international | Agent Sandbox Container Edition has first-class CRs (AgentIdentity/CredentialProvider/AgentRole/AgentRoleBinding) |
+| Prompt-injection / jailbreak / data-leak / harmful-content filtering | **AI Guardrails** (Guardrails) + Content Moderation 2.0, plugged into **AI Gateway** or WAF 3.0 AI application protection | Guardrails console: Shanghai, **HK, Singapore, Frankfurt, Virginia**; SG endpoint `green-cip.ap-southeast-1.aliyuncs.com` | USD 6 / 10,000 calls (API or AI Gateway path); custom detection agent USD 8 / 10,000 calls |
+| Runtime agent security (asset discovery, risk detection, interception, red teaming, audit) | **Agent Security Center** (ASC) incl. Agent Loop logstores and AI Red Teaming | Public preview; Agent Loop log regions include **HK, Singapore, Sydney, KL**; API endpoint currently `aisc.cn-shanghai`; Netherlands rollout announced | Seat fee USD 0.0574/seat/hour, 300 free credits/seat/day; agent risk detection free in preview |
+| Traces, token cost dashboards, sessions, tool-call spans | **AgentLoop** (+ CMS 2.0 AI Agent Observability, ARMS AI Agent Observability, SLS as store) | AgentLoop: **Singapore endpoint documented** (plus HK/mainland); CMS 2.0 non-China served from Singapore | AgentLoop billing: AI credits USD 0.0016, dataset storage USD 0.0000055/entry-day, executions USD 0.00014 |
+| Evaluation & regression testing of the workflow | AgentLoop evaluators (Agent-as-a-Judge, code + multimodal evaluators, datasets/experiments), Model Studio Model Evaluation (international console section), PAI ModelEval / LLM-as-a-Judge | AgentLoop: SG (see above); Model Studio Evaluation: international page exists (region gating unconfirmed); PAI: SG/Tokyo/Jakarta/Frankfurt/Virginia/Silicon Valley | AgentLoop evaluates RAG retrieval and tool calling explicitly — the right node for "did the KB answer help?" |
+| Proposal/cost export data | AI Gateway FinOps (token/Credits metering, quota cycles), Model Studio model usage statistics, per-product billing pages above | International | Use gateway Credits metering as the single cost spine for multi-model steps |
+
+---
+
+## 10. Items I could not confirm (flag before they enter the catalog)
+
+1. **AgentCore international availability** — only China regions documented; the shared-context assumption that international customers can use AgentCore is not supported by today's docs [https://www.alibabacloud.com/help/en/agentcore/agentcore-product-overview].
+2. **Agent Identity region list and pricing** — no endpoint/region table or billing page found; API examples use `cn-beijing`/`cn-hangzhou`.
+3. **Milvus exact CU unit prices** — the billing page has subscription (USD/CU/month) and pay-as-you-go tables per region, but the numbers did not surface in search [https://www.alibabacloud.com/help/en/milvus/product-overview/billing-item].
+4. **OpenSearch edition-level international region list** — a Singapore API endpoint and a Singapore model-selection blog exist, but no "supported regions" page for Vector Search Edition / LLM Conversational Search Edition was found.
+5. **Lindorm consolidated international region table** — inferred from instance-zone IDs and a multi-zone deployment page (China site).
+6. **Document Mind international availability** — only a China (Hangzhou) endpoint and CNY pricing (China site).
+7. **Tablestore Memory Storage USD prices** — the international billing page displays CNY unit prices.
+8. **Slack / Microsoft Teams / Salesforce / SAP connectors for agents** — nothing documented; only DingTalk, Lark (Feishu), WeCom, plus generic OAuth2 credential providers via Agent Identity.
+9. **Tair Semantic Cache gateway international region matrix** — feature pages exist, region table not retrieved.
+10. **CMS 2.0 platform pricing** — described as integrating SLS/CMS/ARMS; separate SKU not found.
+
+---
+
+## Searches run (308)
+
+- Alibaba Cloud AI Gateway Cloud Native API Gateway MCP server features
+- Alibaba Cloud Cloud Agent Catalog MCP servers international
+- Alibaba Cloud Function Compute AgentRun MCP tool hub Singapore
+- Alibaba Cloud AI Gateway semantic cache token rate limit fallback regions
+- Alibaba Cloud Milvus vector retrieval service international regions pricing
+- Alibaba Cloud OpenSearch LLM-based conversational search edition vector
+- Alibaba Cloud Elasticsearch AI search retrieval
+- Alibaba Cloud AnalyticDB PostgreSQL vector search regions
+- Alibaba Cloud Tablestore agent memory features
+- Mem0 Alibaba Cloud Tablestore integration agent memory
+- Alibaba Cloud Tair vector memory agent semantic cache regions
+- Alibaba Cloud AgentCore memory short-term long-term
+- Alibaba Cloud Agent Sandbox Flash edition Container edition
+- Alibaba Cloud AgentBay browser automation sandbox regions pricing
+- Alibaba Cloud AI Guardrails prompt injection jailbreak detection
+- Alibaba Cloud Agent Identity workload identity token vault on-behalf-of
+- Alibaba Cloud AgentLoop agent observability regions
+- Alibaba Cloud SLS LLM observability traces token cost dashboard
+- Alibaba Cloud ARMS LLM observability agent tracing
+- Alibaba Cloud CloudMonitor 2.0 AI observability
+- Alibaba Cloud Agent Security Center regions pricing
+- Alibaba Cloud Content Moderation international regions pricing
+- Alibaba Cloud LLM evaluation service Model Studio evaluation
+- Alibaba Cloud AgentCore connectors email CRM ERP integration
+- alibabacloud.com AI Gateway supported regions Singapore Frankfurt Virginia
+- AI Gateway content safety plugin Higress AI security guard Alibaba Cloud
+- AI Gateway fallback model routing multi-model proxy alibabacloud help
+- Alibaba Cloud Model Studio MCP service marketplace international Singapore
+- Hologres vector search Proxima regions international
+- PolarDB PostgreSQL vector search AI agent memory
+- Lindorm AI vector engine international availability
+- Alibaba Cloud DashVector regions international availability
+- "AI Gateway" Alibaba Cloud supported regions ap-southeast-1 eu-central-1 us-east-1 ap-northeast-1
+- AgentRun Tool Marketplace pre-built Skills MCP tools list
+- Alibaba Cloud AgentRun regions Singapore endpoints billing
+- Cloud Agent Catalog Alibaba Cloud skills plugins official agents availability
+- Vector Retrieval Service for Milvus supported regions Singapore Frankfurt
+- OpenSearch Alibaba Cloud supported regions international Vector Search Edition
+- Alibaba Cloud Document Mind document parsing international availability
+- Alibaba Cloud Tablestore supported regions international Singapore
+- alibabacloud.com help AI Gateway REST API to MCP conversion tool
+- AI Gateway billing pricing Alibaba Cloud serverless enterprise edition instance
+- AI Gateway semantic cache Redis vector search alibabacloud help ai-cache
+- AI Gateway content moderation plugin Alibaba Cloud AI Guardrails integration gateway
+- What is AgentRun Alibaba Cloud runtime sandbox tool model observability
+- Alibaba Cloud AgentCore what is overview regions endpoints
+- AgentCore connectors manage connectors Alibaba Cloud list
+- Alibaba Cloud AgentRun pricing billing CU
+- "AI Gateway is available in the following regions" Singapore Frankfurt
+- AgentLoop supported regions Alibaba Cloud Singapore Hong Kong
+- Agent Sandbox supported regions Alibaba Cloud Singapore
+- AgentBay regions Singapore international availability pricing
+- Agent Identity Alibaba Cloud what is agent identity workload identity regions
+- "Agent Security Center" Alibaba Cloud what is regions public preview
+- AI Guardrails regions Singapore supported Content Moderation 2.0 international
+- Alibaba Cloud AI Guardrails pricing per 1000 calls text moderation
+- Alibaba Cloud Amsterdam Netherlands region launch agentic AI services ACS Agent Sandbox AI Security Guardrails 2.0
+- "Agent Sandbox" Flash Edition regions "ap-southeast-1" Container Edition ACS regions
+- Alibaba Cloud Document Mind DocMind supported regions Singapore international
+- Vector Retrieval Service for Milvus regions zones Singapore Frankfurt Virginia Tokyo
+- Alibaba Cloud OpenSearch international availability regions Singapore
+- Alibaba Cloud Elasticsearch supported regions international Singapore Frankfurt
+- AnalyticDB for PostgreSQL supported regions international Singapore Frankfurt
+- Hologres supported regions international Singapore
+- alibabacloud help milvus product-overview region-and-zone Singapore Frankfurt Virginia
+- Milvus Alibaba Cloud billing items CU pricing subscription pay-as-you-go
+- OpenSearch Alibaba Cloud LLM-Based Conversational Search Edition regions availability international
+- Lindorm Alibaba Cloud supported regions international Singapore
+- Document Mind Alibaba Cloud regions cn-hangzhou only international availability docmind
+- PolarDB for PostgreSQL supported regions international Singapore vector
+- DashVector pricing Alibaba Cloud vector retrieval service billing
+- Alibaba Cloud Elasticsearch regions supported Singapore Frankfurt Virginia Tokyo list
+- "apig.eu-central-1.aliyuncs.com" OR "apig.ap-southeast-1.aliyuncs.com" AI Gateway endpoints regions
+- "AgentLoop" supported regions "China (Hangzhou)" "Singapore"
+- Alibaba Cloud "Agent Sandbox" Flash Edition regions "China (Beijing)" "Singapore"
+- Milvus Alibaba Cloud "Germany (Frankfurt)" OR "US (Virginia)" region zone supported
+- Agent Identity Alibaba Cloud endpoints regions public preview
+- AI Guardrails Alibaba Cloud Singapore region supported text moderation enhanced 2.0
+- Alibaba Cloud AI Search Open Platform regions Shanghai Frankfurt
+- Alibaba Cloud Document Mind pricing regions available
+- AgentLoop "Supported regions" table "China (Hong Kong)" agentloop.aliyuncs.com endpoint
+- AgentLoop billing pricing Alibaba Cloud evaluator AgentSpace
+- AI Gateway Alibaba Cloud "Supported regions" Singapore Japan Frankfurt Virginia Malaysia Indonesia
+- Agent Sandbox Alibaba Cloud regions Flash Edition Container Edition "Malaysia (Johor)"
+- Alibaba Cloud Simple Log Service SLS AI observability LLM trace ingestion
+- ARMS "AI Agent Observability" Alibaba Cloud regions upgrade LLM application monitoring
+- CloudMonitor 2.0 AI observability Alibaba Cloud regions supported
+- Alibaba Cloud observability OpenTelemetry GenAI semantic conventions agent traces SLS
+- "AI Gateway" Alibaba Cloud supported regions "Japan (Tokyo)" "Singapore" "Germany (Frankfurt)"
+- AgentRun Alibaba Cloud supported regions Singapore endpoint
+- AgentCore Alibaba Cloud endpoints Singapore international availability
+- Function Compute MCP service international regions templates Model Studio
+- Model Studio MCP services list international Singapore Amap Quark web search
+- Tablestore Memory Storage billing pricing Alibaba Cloud
+- Elasticsearch PaaS regions supported Alibaba Cloud Singapore Frankfurt Tokyo
+- Alibaba Cloud OpenSearch available regions China only international site
+- "AgentRun supported regions" Singapore ap-southeast-1 Function Compute
+- "AI Gateway" supported regions "US (Virginia)" "Germany (Frankfurt)" "Singapore" "Malaysia"
+- Tablestore memory storage pricing USD Singapore per 10,000 entries per hour
+- Alibaba Cloud Milvus regions zones "Singapore" "Germany (Frankfurt)" "Japan (Tokyo)"
+- Alibaba Cloud OpenSearch editions Vector Search Edition Industry Algorithm Edition regions China only
+- "Regions supported by Elasticsearch PaaS" Alibaba Cloud Singapore Frankfurt
+- Model Studio official MCP service international Singapore available Amap
+- Alibaba Cloud AgentRun sandbox browser code interpreter regions Singapore billing
+- "apig.eu-central-1.aliyuncs.com" "apig.ap-southeast-1.aliyuncs.com" endpoint regions AI Gateway
+- "AgentRun supported regions" "China (Hangzhou)" Singapore ap-southeast-1
+- Milvus "Regions and zones" Alibaba Cloud "China (Hangzhou)" "Singapore" "Germany (Frankfurt)" zones
+- "Regions supported by Elasticsearch PaaS" Singapore Frankfurt Tokyo Alibaba
+- Alibaba Cloud OpenSearch console region Singapore purchase OpenSearch international
+- Hologres regions supported Alibaba Cloud international Singapore Frankfurt Virginia
+- PolarDB PostgreSQL regions supported international Singapore Frankfurt
+- Lindorm Alibaba Cloud regions international Singapore Frankfurt availability
+- AI Gateway Alibaba Cloud features AI fallback model proxy protocol conversion MCP token限流 semantic cache overview
+- "Enable Guardrails in AI Gateway" AI Guardrails privacy content filtering regions
+- AgentCore connectors list DingTalk Slack Salesforce AgentCore Alibaba Cloud
+- Alibaba Cloud Skills portal Cloud Agent Catalog MCP server OpenAPI regions international
+- AgentRun Tool Marketplace pre-built MCP tools list Alibaba Cloud what tools
+- Model Studio MCP international Singapore official MCP services available list
+- Function Compute MCP services Alibaba Cloud international site documentation
+- Tair semantic cache gateway regions pricing Alibaba Cloud international
+- "agentcore.ap-southeast-1.aliyuncs.com" OR "AgentCore" endpoint Singapore international
+- AgentCore Alibaba Cloud IM channel DingTalk WeChat Lark email connector agent
+- AgentCore memory SearchMemories Alibaba Cloud knowledge base connection Model Studio
+- Simple Log Service Alibaba Cloud LLM application observability trace token cost
+- "What is AI Gateway" Alibaba Cloud features MCP model proxy fallback token limit cache security
+- AI Gateway Alibaba Cloud "AI fallback" model service degradation documentation
+- AI Gateway Alibaba Cloud intelligent routing model API semantic routing documentation
+- AI Gateway Alibaba Cloud MCP Server proxy authentication observability rate limiting documentation
+- AgentCore connector types list "Service Account Key" AgentCore Alibaba Cloud documentation
+- AgentCore Alibaba Cloud email connector Gmail Outlook IMAP agent
+- AgentLoop Alibaba Cloud regions "China (Hong Kong)" international public preview launch
+- AgentLoop billing AI credits dataset storage execution count price
+- Agent Sandbox Flash Edition billing price per second vCPU GiB Alibaba Cloud
+- AgentBay billing Basic plan Pro Ultra pay-as-you-go Alibaba Cloud price
+- AI Guardrails Alibaba Cloud detection capabilities data leak harmful content jailbreak regions endpoint
+- Alibaba Cloud Guardrails 2.0 end-to-end risk detection launch
+- AgentLoop supported regions Singapore ap-southeast-1 agentloop.aliyuncs.com
+- AgentLoop billing items AI credits unit price dataset storage execution count
+- Agent Identity Alibaba Cloud endpoints regions "agentidentity" supported
+- Agent Security Center Alibaba Cloud what is features public preview regions
+- Agent Sandbox billing Default Economy vCPU price USD per second Alibaba Cloud regions
+- Model Studio Model Evaluation international regions Singapore available
+- Alibaba Cloud Elasticsearch AI search inference API rerank hybrid search features
+- Milvus Alibaba Cloud pricing CU per hour pay-as-you-go subscription
+- AgentLoop "Supported regions" table China Hangzhou Shanghai Shenzhen Beijing Singapore Hong Kong
+- Agent Identity Alibaba Cloud "what is Agent Identity" token vault workload identity credential provider
+- Agent Security Center Alibaba Cloud features agent asset discovery risk detection AI red teaming
+- AgentLoop Alibaba Cloud features observability audit evaluation dataset optimization what is
+- Tablestore memory storage service features session long-term knowledge file memory Singapore regions
+- AnalyticDB PostgreSQL AI context engineering document parsing multimodal RAG features
+- Hologres vector full-text hybrid search rerank features RAG
+- PolarSearch PolarDB PostgreSQL regions supported vector search
+- AgentLoop evaluator supported regions Singapore ap-southeast-1 China Hong Kong
+- Model Studio "Model Evaluation" international site Singapore regions Alibaba Cloud
+- CloudMonitor 2.0 supported regions Alibaba Cloud Singapore Frankfurt
+- ARMS AI Agent Observability supported regions Alibaba Cloud international
+- PolarSearch PolarDB Singapore region availability international
+- Lindorm Alibaba Cloud international regions Singapore available multi-model database
+- Document Mind Alibaba Cloud international availability regions pricing docmind-api
+- OpenSearch LLM-Based Conversational Search Edition features document parsing chunking rerank Alibaba Cloud
+- "server-launch-regions-of-agentloop" Singapore supported regions AgentLoop
+- alibabacloud.com help en document-mind Document Mind international documentation
+- Agent Identity Alibaba Cloud endpoints regions "agentidentity" ap-southeast-1 public preview
+- AI Guardrails Alibaba Cloud endpoints regions Singapore international activation
+- Milvus Alibaba Cloud billing CU price USD per CU hour Singapore
+- Tablestore knowledge and memory storage product billing USD price international
+- AgentBay Alibaba Cloud what is browser use computer use mobile use pricing regions Singapore
+- Simple Log Service SLS LLM application observability Alibaba Cloud documentation trace
+- AgentLoop 开服地域 新加坡 supported regions
+- Milvus Alibaba Cloud billing item CU price USD Singapore pay-as-you-go subscription
+- AgentCore Alibaba Cloud endpoints cn-shenzhen cn-beijing regions international Singapore
+- Alibaba Cloud Agent Sandbox Flash Edition regions Container Edition ACS regions list
+- Alibaba Cloud EventBridge email trigger SaaS connector agent workflow
+- Alibaba Cloud DirectMail inbound email receiving API international
+- Alibaba Cloud DingTalk connector agent workflow Function Compute trigger
+- Alibaba Cloud OpenAPI MCP Server hosted remote endpoint api.alibabacloud.com/mcp international
+- "agentcore" endpoint "ap-southeast-1" Alibaba Cloud international region
+- Agent Sandbox Flash Edition regions "US (Virginia)" "Malaysia (Johor)" "Singapore" Container Edition ACS
+- Milvus Alibaba Cloud "billing items" CU fee price Singapore USD per CU
+- AI Guardrails Alibaba Cloud pricing pay-per-call guardrails detection price USD
+- Alibaba Cloud Agent Skills portal Cloud Agent Catalog MCP servers list 60 products
+- Model Studio MCP international site official MCP services available Singapore Bailian
+- Alibaba Cloud MCP marketplace hosted MCP servers international list
+- AgentRun Alibaba Cloud model governance memory knowledge base context engineering features
+- "AgentCore" "Endpoints" "Region name" "Region ID" "Public endpoint" Alibaba Cloud
+- AgentCore Alibaba Cloud public preview international availability console workspace
+- AgentRun billing pricing Alibaba Cloud CU pay-as-you-go agent runtime
+- Agent Sandbox "Flash Edition" regions "China (Beijing)" "Singapore" "US (Virginia)" list
+- Tablestore "Knowledge and Memory Storage" billing price USD long-term memory short-term memory international
+- Milvus Alibaba Cloud "USD/CU" price Singapore subscription pay-as-you-go
+- AgentBay pricing Browser Use Code Space Computer Use per hour Alibaba Cloud
+- AI Guardrails detection agent billing plans free quota USD per 10,000 calls
+- "agentcore.ap-southeast-1.aliyuncs.com" OR "AgentCore" Singapore endpoint region
+- AgentCore billing Compute CU price USD region Alibaba Cloud
+- AgentRun billing pricing CU Alibaba Cloud agent runtime cost
+- Alibaba Cloud Agent Skills portal skills.alibabacloud.com install skill MCP regions international availability
+- Content Moderation Alibaba Cloud supported regions endpoints Singapore Frankfurt Virginia
+- Agent Identity Alibaba Cloud limits public preview regions supported
+- AI Gateway Alibaba Cloud dedicated instance billing USD per hour engine specification
+- Alibaba Cloud AI Gateway Serverless new public preview billing instance fee CU
+- "AgentCore currently supports the following regions" China Hangzhou Beijing Shenzhen
+- "The Flash Edition is available in the following regions" Agent Sandbox Asia-Pacific Singapore
+- AI Gateway "is available in the following regions" China Hangzhou Shanghai Beijing Shenzhen Hong Kong Singapore Malaysia Indonesia
+- Milvus Alibaba Cloud regions "Singapore" "Germany (Frankfurt)" "China (Hong Kong)" zones supported
+- Alibaba Cloud Lindorm available regions international Singapore Indonesia
+- Document Mind Alibaba Cloud international site documentation availability
+- Tablestore supported regions Asia Pacific Singapore Seoul Jakarta international
+- Hologres supported regions and zones international Singapore Virginia Frankfurt Tokyo
+- "apig.ap-southeast-3.aliyuncs.com" OR "apig.ap-southeast-5.aliyuncs.com" OR "apig.us-east-1.aliyuncs.com" AI Gateway
+- Milvus Alibaba Cloud "USD/CU/month" service node compute node price region
+- Alibaba Cloud Elasticsearch regions supported list Singapore Malaysia Indonesia Japan Germany US
+- AgentBay Alibaba Cloud service region Singapore deployed international
+- Model Studio MCP international site availability "China site" accounts only
+- CloudMonitor 2.0 supported regions list Alibaba Cloud Singapore Frankfurt Virginia
+- Agent Security Center billing overview public preview Alibaba Cloud price
+- Agent Identity Alibaba Cloud limits regions supported preview
+- Alibaba Cloud OpenSearch "Vector Search Edition" purchase region China only international site availability
+- Lindorm vector engine available regions China only international Alibaba Cloud
+- Document Mind Alibaba Cloud available regions Hangzhou Beijing only international
+- Milvus Alibaba Cloud "compute node unit price" USD CU month Singapore price
+- Agent Identity Alibaba Cloud "what is Agent Identity" credential provider token vault OAuth on-behalf-of
+- AgentRun memory knowledge base Tablestore integration AgentRun context engineering
+- Agent Sandbox Flash Edition E2B SDK compatible code interpreter browser use features
+- Alibaba Cloud AI Guardrails detection capabilities prompt injection jailbreak data leak hallucination list
+- OpenSearch LLM-Based Conversational Search Edition Singapore region available international
+- "Document Mind" Alibaba Cloud Singapore region endpoint docmind-api international
+- Lindorm "Singapore" region instance available international Alibaba Cloud
+- Milvus Alibaba Cloud price "USD" CU hour pay-as-you-go Singapore instance
+- Model Studio "Model Evaluation" new international site evaluation dimensions LLM-as-judge
+- AgentRun pricing billing Function Compute CU agent runtime Alibaba Cloud cost
+- Agent Identity Alibaba Cloud public preview regions "cn-hangzhou" endpoint
+- AI Guardrails configure check items list prompt injection hallucination sensitive data malicious URL
+- Lindorm "Regions and zones" Alibaba Cloud supported regions list
+- alibabacloud.com help en document-mind Document Mind documentation international
+- OpenSearch Alibaba Cloud activate instance region Singapore international available
+- Milvus Alibaba Cloud CU price "USD/CU/hour" pay-as-you-go region Singapore
+- "Enable Guardrails in AI Gateway" privacy masking content filtering features regions
+- CloudMonitor 2.0 AI observability modules MemoryStore AI Infra Insights agent observability
+- AgentLoop access center integration methods probes OpenTelemetry features tracing audit evaluation
+- AgentRun Alibaba Cloud features runtime sandbox tools skills knowledge base memory model observability evaluation
+- AI Gateway Guardrails Alibaba Cloud data masking privacy content filtering outbound requests inbound responses
+- AI Gateway cache Alibaba Cloud "DashVector" semantic cache Redis precise cache configuration
+- AI Gateway rate limiting token quota consumer API key global Alibaba Cloud documentation
+- Agent Identity Alibaba Cloud limits regions quota documentation
+- AnalyticDB PostgreSQL vector Nova engine rerank document parsing RAG features Alibaba Cloud
+- Hologres vector Proxima hybrid full-text search features RAG Alibaba Cloud documentation
+- Tablestore mem0 integration Alibaba Cloud documentation long-term memory
+- Cloud Agent Catalog Alibaba Cloud Agents Skills Plugins Tools MCP Server CLI Terraform SDK
+- CloudMonitor 2.0 Memory module MemoryStore Mem0 compatible SDK regions billing
+- Agent Identity Alibaba Cloud "Limits" quota workload identity credential provider number
+- Alibaba Cloud Elasticsearch regions supported Asia Pacific Singapore Japan Malaysia Indonesia
+- Agent Sandbox Container Edition regions ACS Alibaba Cloud supported regions list
+- Simple Log Service Alibaba Cloud "AI observability" or "LLM observability" application documentation
+- Function Compute MCP service international alibabacloud.com help documentation regions
+- Document Mind Alibaba Cloud pricing credits per page international account
+- OpenSearch Alibaba Cloud regions and endpoints documentation international
+- FC Agent Sandbox supported regions "China North 2 (Beijing)" Singapore Function Compute
+- OpenSearch "LLM-Based Conversational Search Edition" regions Singapore instance purchase
+- Agent Identity Alibaba Cloud limits quota regions workload identities credential providers
+- AI Gateway supported regions "China (Hangzhou)" "China (Shanghai)" "China (Beijing)" "China (Shenzhen)" Singapore Tokyo Frankfurt Virginia
+- Milvus Alibaba Cloud billing "Compute node unit price" Singapore USD CU month value
+- AgentRun Alibaba Cloud billing CU price agent runtime sandbox pay-as-you-go
+- PAI ModelEval LLM-as-a-Judge regions international Alibaba Cloud
+- AgentLoop Alibaba Cloud dataset evaluator Agent-as-a-Judge built-in evaluators list
+- Agent Identity Alibaba Cloud endpoint region "agentidentity" supported regions
+- MaxCompute MCP MCMCP server regions public endpoints available
+- Agent Security Center supported regions Alibaba Cloud international Singapore
+- AgentBay Alibaba Cloud credits pricing Computer Use Browser Use Code Space points per hour
+- Milvus Alibaba Cloud regions zones supported list Hangzhou Shanghai Beijing Shenzhen Singapore Frankfurt
+- AI Gateway Alibaba Cloud regions list China Hangzhou Shanghai Beijing Shenzhen Hong Kong Singapore
+- CloudMonitor 2.0 AI observability integration center supported regions Singapore
+- Tablestore Memory Storage Singapore region pricing USD entries hour
+- "Agent Security Center" supported regions Alibaba Cloud ASC console
+- Agent Identity credential provider supported third-party services DingTalk Lark OAuth Alibaba Cloud
+- Model Studio MCP international site "not available" China site accounts MCP services
+- AgentRun Tool Marketplace tools list data processing security storage management Alibaba Cloud
+- Cloud Monitor 2.0 supported regions list Alibaba Cloud Singapore Frankfurt Virginia Tokyo
+- Simple Log Service SLS AI application observability LLM trace Alibaba Cloud documentation
+- Alibaba Cloud Elasticsearch AI Search Solution international documentation inference API rerank
+- AgentLoop Alibaba Cloud audit session replay data flywheel features
+- "Model Studio" MCP Alibaba Cloud international "connect to MCP services" custom MCP official MCP availability
+- Lindorm Alibaba Cloud "Singapore" "Indonesia (Jakarta)" regions available instance
+- Salesforce on Alibaba Cloud Agentforce CRM integration availability international
+- Milvus Alibaba Cloud "USD/CU/hour" OR "USD/CU/month" price region Singapore pay-as-you-go
+- AgentRun knowledge base integration Alibaba Cloud document parsing chunking rerank model
+- AgentRun Alibaba Cloud observability evaluation AgentLoop integration built-in
+- Alibaba Cloud AI Gateway MCP server proxy authentication consumer rate limiting observability features documentation
+- Alibaba Cloud agent workflow email trigger support ticket automation documentation Function Compute
+- AI Gateway endpoints "US (Virginia)" "Germany (Frankfurt)" "China (Hong Kong)" apig list regions
+- Agent Identity Alibaba Cloud endpoints region "agentidentity" API region list
+- CloudMonitor 2.0 "AI observability" modules AI Agent observability AI Infra Insights Memory
+- Milvus Alibaba Cloud "Compute-optimized" CU price USD month Singapore region billing
+- Content Moderation 2.0 text moderation PLUS SDK supported regions Singapore Frankfurt Virginia endpoints
+- AI Guardrails "Guardrails service for Alibaba Cloud Model Studio users" one-click activation
+- Agent Security Center "Agent Loop" supported regions Singapore Hong Kong Sydney Kuala Lumpur
+- Alibaba Cloud AI Guardrails detection items prompt injection jailbreak sensitive data malicious URL file hallucination list
+- "agentidentity.ap-southeast-1.aliyuncs.com" OR "Agent Identity" endpoints region Beijing Hangzhou only
+- AgentRun billing Alibaba Cloud "Agent Run" cost CU price documentation
+- Milvus Alibaba Cloud Singapore price "USD" CU compute node service node month
+- AI Gateway dedicated instance price Singapore USD per hour apigw specification
+- Alibaba Cloud Agentic AI ecosystem announcement Skills portal AgentRun AgentLoop international regions Singapore 2026
+- Alibaba Cloud press room agentic AI ecosystem global customers Agent Infrastructure announcements
+- Alibaba Cloud AgentRun international Singapore launch general availability announcement
+- Alibaba Cloud AI Search Open Platform Agentic Search Frankfurt features document parsing chunking rerank
+- AI Gateway billing dedicated instance "instance fee" "data processing fee" CU Alibaba Cloud
+- "Alibaba Cloud Unveils Advanced Agentic AI Ecosystem for Global Customers" Singapore May 2026 AgentRun AgentLoop products
+- AI Gateway Serverless new billing instance fee request CU internet traffic Alibaba Cloud commercial September 2026
+- Alibaba Cloud AI Gateway FinOps credits metering quota token consumer
+
+## Sources returned by search (1677)
+
+- https://www.alibabacloud.com/en/product/api-gateway?_p_lc=1
+- https://www.alibabacloud.com/help/en/api-gateway/product-overview/
+- https://www.alibabacloud.com/blog/the-essential-course-that-ai-agent-engineers-cannot-avoid-api-gateway-vs-api-management_602254
+- https://help.aliyun.com/en/api-gateway/ai-gateway/
+- https://www.alibabacloud.com/blog/eight-common-application-scenarios-of-ai-gateways_602036
+- https://www.alibabacloud.com/help/en/api-gateway/cloud-native-api-gateway/product-overview/engine-version-description
+- https://www.alibabacloud.com/blog/the-practical-implementation-of-the-ai-gateway-by-ctrip-travel_602498
+- https://traefik.io/glossary/api-gateway-vs-ai-gateway-vs-mcp-gateway
+- https://next.api.alibabacloud.com/product/APIG
+- https://openobserve.ai/blog/mcp-gateway-guide/
+- https://help.aliyun.com/en/skillsportal/
+- https://www.alibabacloud.com/blog/what-does-alibaba-clouds-agent-infra-look-like_603177
+- https://www.alibabacloud.com/help/en/openapi/user-guide/openapi-mcp-server-core-tool-guide
+- https://github.com/aliyun/alibabacloud-api-mcp-server/blob/main/README-EN.md
+- https://www.alibabacloud.com/
+- https://mcpservers.org/servers/aliyun/alibabacloud-dms-mcp-server
+- https://www.alibabacloud.com/blog/cross-account-intelligent-database-operations-integrating-das-agent-mcp-server-and-dify_603320
+- https://docs.qoder.com/cloud-agents/best-practices/cloud-use
+- https://www.augmentcode.com/mcp/alibaba-cloud-ops-mcp-server
+- https://www.alibabacloud.com/help/en/agentbay/support/faq
+- https://www.alibabacloud.com/help/en/agentrun/what-is-agentrun
+- https://github.com/aliyun/alibabacloud-fc-mcp-server
+- https://glama.ai/mcp/servers/u4ijbbu7yb
+- https://www.alibabacloud.com/help/en/agentrun/tool-market
+- https://www.alibabacloud.com/blog/giving-your-ai-agent-a-disposable-workspace-with-alibaba-cloud-agentrun_603324
+- https://mcpmarket.com/server/alibaba-cloud-fc
+- https://help.aliyun.com/en/functioncompute/mcp-service-introduction/
+- https://www.alibabacloud.com/help/en/agentrun/create-the-mcp-tool-1
+- https://mcpservers.org/servers/aliyun/alibaba-cloud-ops-mcp-server
+- https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/user-guide/current-limiting
+- https://www.gmicloud.ai/en/blog/ai-gateway-architecture-rate-limiting-failover-and-multi-provider-abstraction
+- https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/user-guide/ai-cache-1
+- https://virtido.com/blog/ai-gateway-patterns-production-guide
+- https://higress.ai/en/docs/ai/scene-guide/semantic-cache/
+- https://www.truefoundry.com/blog/rate-limiting-in-llm-gateway
+- https://www.alibabacloud.com/blog/get-started-with-tair-semantic-caching-in-4-steps-stop-burning-money-on-repetitive-ai-queries_603502
+- https://www.digitalapi.ai/blogs/azure-ai-gateway
+- https://www.alibabacloud.com/en/product/milvus?_p_lc=1
+- https://www.alibabacloud.com/help/en/milvus/product-overview/billing-item
+- https://www.alibabacloud.com/blog/601234
+- https://www.alibabacloud.com/help/es/doc-detail/2805954.html
+- https://help.aliyun.com/en/milvus/product-overview/what-is-the-vector-retrieval-milvus-version
+- https://www.alibabacloud.com/help/en/milvus/getting-started/quickly-create-a-milvus-instance
+- https://milvus.io/
+- https://airbyte.com/data-engineering-resources/milvus-database-pricing
+- https://www.alibabacloud.com/blog/602715
+- https://zilliz.com/cloud
+- https://www.alibabacloud.com/en/product/opensearch?_p_lc=1
+- https://www.alibabacloud.com/help/en/open-search/
+- https://www.alibabacloud.com/blog/build-conversational-search-based-on-opensearch-vector-search-edition-integrated-with-a-large-language-model_600119
+- https://www.alibabacloud.com/help/en/open-search/search-platform/getting-started/knowledge-base-management
+- https://www.alibabacloud.com/blog/opensearch-a-one-stop-solution-to-easily-integrate-llm-generative-ai-in-your-application_600509
+- https://www.alibabacloud.com/blog/600962
+- https://opensearch.org/blog/revolutionizing-enterprise-search-opensearch-vector-engine-unleashed/
+- https://aws.amazon.com/blogs/big-data/build-conversational-ai-search-with-amazon-opensearch-service/
+- https://help.aliyun.com/en/open-search/vector-search-edition/
+- https://www.youtube.com/watch?v=txkyCj3Rwbo
+- https://www.alibabacloud.com/en/product/elasticsearch?_p_lc=1
+- https://www.alibabacloud.com/blog/alibaba-cloud-ai-search-solution-explained-intelligent-search-driven-by-large-language-models-helping-enterprises-in-digital_601971
+- https://help.aliyun.com/en/es/user-guide/alibaba-cloud-ai-search-solution
+- https://www.alibabacloud.com/blog/alibaba-cloud-unleashes-new-ai-search-solution-with-elasticsearch-8-9-release_601027
+- https://www.alibabacloud.com/blog/mastering-vector-search-how-alibaba-cloud%E2%80%99s-inference-api-enhances-elasticsearch%C2%A0_602005
+- https://www.alibabacloud.com/blog/from-enterprise-rag-to-ai-assistant%E2%80%94alibaba-cloud-elasticsearch-technology-practice-in-ai-search_601952
+- https://www.elastic.co/search-labs/blog/elasticsearch-alibaba-cloud-inference-api
+- https://www.alibabacloud.com/help/en/es/
+- https://www.alibabacloud.com/blog/what-is-rag-and-how-alibaba-cloud-elasticsearch-enhances-ai-search-with-retrieval-augmented-generation_602014
+- https://www.alibabacloud.com/blog/601024
+- https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/user-guide/vector-search
+- https://www.alibabacloud.com/en/product/hybriddb-postgresql?_p_lc=1
+- https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/user-guide/vector-analysis/
+- https://www.alibabacloud.com/blog/600692
+- https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/getting-started/instances-with-vector-engine-optimization-enabled
+- https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/product-overview/unstructured-data-analysis
+- https://www.vldb.org/pvldb/vol18/p5139-zhou.pdf
+- https://help.aliyun.com/en/analyticdb/vector-analysis-overview
+- https://db-engines.com/en/system/Alibaba+Cloud+AnalyticDB+for+PostgreSQL
+- https://www.alibabacloud.com/en/product/analyticdb?_p_lc=1
+- https://www.alibabacloud.com/help/en/tablestore/table-store-service/product-overview/what-is-tablestore
+- https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/agentrun-tablestore-memory
+- https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/agent-memory-quick-start/
+- https://github.com/aliyun/alibabacloud-tablestore-for-agent-memory
+- https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/file-memory-1
+- https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/agentstorage-sdk
+- https://help.aliyun.com/en/tablestore/memory-storage-service-sub-product-test/memory-storage-overview
+- https://www.alibabacloud.com/blog/polardb-one-stop-memory-management-launched-empowering-ai-agents-with-persistent-cross-session-memory_603109
+- https://github.com/bububa/tablestore-memory
+- https://www.alibabacloud.com/help/en/tablestore/table-store-service/memory-storage-introduction
+- https://www.alibabacloud.com/help/en/tablestore/use-cases/openclaw-tablestore-memory
+- https://www.alibabacloud.com/blog/openclaw-ai-agent-memory-loss-extend-your-agents-memory-easily-with-tablestore-skill-plugin_602977
+- https://www.linkedin.com/posts/richmondalake_100daysofagentmemory-mem0-langmem-activity-7362926269392384000-tFsU
+- https://www.alibabacloud.com/help/en/tablestore/use-cases/implementation-of-tablestore-memory-storage-in-hermes
+- https://www.alibabacloud.com/help/en/redis/tair-ai-gateway-semantic-caching
+- https://www.alibabacloud.com/help/en/redis/semantic-cache-integration-custom-agent
+- https://www.alibabacloud.com/blog/alibaba-cloud-tair-partners-with-sglang-to-build-hicache-constructing-a-new-cache-paradigm-for-agentic-inference_602767
+- https://www.alibabacloud.com/blog/alibaba-cloud-tair-kvcache-manager-architecture-design-and-implementation-of-enterprise-level-global-kvcache-management-service_602858
+- https://www.alibabacloud.com/en/product/tair?_p_lc=1
+- https://help.aliyun.com/en/redis/product-overview/tair-kvcache/
+- https://arxiv.org/html/2509.17360v1
+- https://github.com/alibaba/tair-kvcache
+- https://aws.amazon.com/about-aws/whats-new/2026/09/agentcore-memory-direct-ingest/
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-searchmemories
+- https://www.youtube.com/watch?v=o5A5hv82ZXU
+- https://dev.to/aws/bring-ai-agents-with-long-term-memory-into-production-in-minutes-338l
+- https://www.alibabacloud.com/blog/from-long-term-memory-to-self-evolution_603343
+- https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/memory-module-overview
+- https://medium.com/aws-tip/your-ai-agents-memory-can-now-expire-amazon-bedrock-agentcore-changes-what-you-need-to-know-about-6e61703e489a
+- https://builder.aws.com/content/3682S72Zhw7oKxeoFFXQfALwxVZ/build-production-ai-agents-with-managed-long-term-memory
+- https://towardsaws.com/on-amazon-beckrock-agentcore-memory-b9f5348f1481
+- https://aws51.com/en/ai-agent-memory-module-comparison/
+- https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/agent-sandbox-overview
+- https://help.aliyun.com/en/agent-sandbox/product-overview/limits-of-agent-sandbox
+- https://www.alibabacloud.com/help/en/agent-sandbox/create-an-agent-sandbox
+- https://www.alibabacloud.com/help/en/cs/user-guide/agent-sandbox/
+- https://www.alibabacloud.com/help/en/agent-sandbox/using-the-cloud-sandbox-via-the-sdk
+- https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/billing-overview
+- https://www.alibabacloud.com/help/en/agent-sandbox/user-guide/container-edition/
+- https://www.alibabacloud.com/blog/zero-code-transformation-making-the-ai-agent-sandbox-no-longer-a-black-box_603571
+- https://www.alibabacloud.com/help/en/agent-sandbox/getting-started/speed-edition/
+- https://northflank.com/blog/alibaba-opensandbox-architecture-use-cases
+- https://www.alibabacloud.com/en/product/agentbay?_p_lc=1
+- https://www.alibabacloud.com/help/en/agentbay/product-overview/what-is-eds-agentbay
+- https://www.alibabacloud.com/help/en/agentbay/developer-reference/all-in-one-sandbox
+- https://arxiv.org/html/2512.04367v1
+- https://github.com/agentbay-ai/wuying-agentbay-sdk
+- https://www.alibabacloud.com/blog/unlock-the-future-of-automation-introducing-alibaba-cloud-agentbay_602649
+- https://www.alibabacloud.com/help/en/agentbay/use-sdk-for-quick-access
+- https://sandbox0.ai/alternatives/alibaba-agentbay
+- https://www.digitalapplied.com/blog/alibaba-opensandbox-open-source-ai-agent-execution
+- https://marketplace.dify.ai/plugin/5101good/agentbay
+- https://www.alibabacloud.com/en/product/ai_guardrails?_p_lc=1
+- https://www.alibabacloud.com/help/en/content-moderation/latest/what-is-ai-security-barrier
+- https://www.alibabacloud.com/blog/how-alibaba-cloud-protects-ai-usage_602551
+- https://www.facebook.com/alibabacloud/posts/ai-guardrails-real-time-protection-for-llms-and-ai-agents-%EF%B8%8Fsecurity-is-mandatory/1505252311646856/
+- https://www.alibabacloud.com/help/en/waf/web-application-firewall-3-0/ai-application-protection/
+- https://cybersectools.com/compare/alibaba-cloud-platform-for-ai-vs-prompt-security-genai-solutions
+- https://www.linkedin.com/posts/alibaba-cloud-computing-company_alibabacloud-cybersecurity-security-activity-7492780818201817088-MkN6
+- https://www.alibabacloud.com/blog/openclaw-prompt-attacks-and-how-to-protect-your-ai-applications_602853
+- https://www.alibabacloud.com/blog/alibaba-cloud-al-agent-security-solution%E2%80%94%E2%80%94security-risks-and-mitigations-for-enterprise-ai-agent-adoption_603175
+- https://www.reddit.com/r/cybersecurity/comments/1liiqtg/new_ai_jailbreak_bypasses_guardrails_with_ease/
+- https://help.aliyun.com/en/agentidentity/what-is-agent-identity
+- https://www.alibabacloud.com/help/en/agentidentity/use-scenarios.md
+- https://www.alibabacloud.com/blog/alibaba-clouds-new-launch-agent-id-guard-who-will-manage-the-identity-security-of-these-claws_602954
+- https://www.alibabacloud.com/help/en/idaas/eiam/user-guide/what-is-agent-id-guard
+- https://www.descope.com/learn/post/workload-identity-federation-for-agents
+- https://auth0.com/blog/identity-chained-authorization-auth0-token-vault/
+- https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/agent-identity
+- https://aws.amazon.com/blogs/machine-learning/secure-ai-agents-with-amazon-bedrock-agentcore-identity-on-amazon-ecs/
+- https://www.agentid.com/blog/agent-identity-terminology-explainer
+- https://www.alibabacloud.com/help/en/idaas/eiam/user-guide/agent-id-configuration-guide
+- https://www.alibabacloud.com/blog/what-is-the-newly-released-agentloop-by-alibaba-cloud_603378
+- https://www.alibabacloud.com/help/en/agentloop/product-overview/what-is-agentloop
+- https://www.alibabacloud.com/en/product/agentloop?_p_lc=1
+- https://help.aliyun.com/en/cms/cloudmonitor-2-0/agentloop-overview
+- https://www.alibabacloud.com/help/en/agentloop/user-guide/agent-space
+- https://www.alibabacloud.com/help/en/agentloop/
+- https://www.alibabacloud.com/help/en/agentloop/agentloop-quickstart-whole-process-practice
+- https://www.reddit.com/r/learnmachinelearning/comments/1x6yw9z/ai_agents_linked_to_tencent_cloud_probed_alibabas/
+- https://rpabotsworld.com/alibaba-cloud-agent-native-cloud-agentrun-agentloop-agentteams-guide/
+- https://en.wikipedia.org/wiki/Large_language_model
+- https://cloud.google.com/ai/llms
+- https://llm.datasette.io/
+- https://hai.stanford.edu/ai-definitions/what-is-a-llm
+- https://www.reddit.com/r/explainlikeimfive/comments/1uwbsg5/eli5_what_is_an_llm_made_of_code_or_something_else/
+- https://forum.level1techs.com/t/why-your-local-llm-feels-dumber-than-it-is/253917
+- https://www.ibm.com/think/topics/large-language-models
+- https://llm-guide.com/board/usa/uc-berkeley-llm-2026-2027-266800
+- https://www.cloudflare.com/learning/ai/what-is-large-language-model/
+- https://martinfowler.com/articles/who-is-llm.html
+- https://www.alibabacloud.com/help/en/arms/product-overview/platform-upgrade-notification-that-arms-llm-application-monitoring-is-upgraded
+- https://www.alibabacloud.com/help/en/arms/application-monitoring/user-guide/use-the-arms-agent-for-python-to-monitor-llm-applications
+- https://www.alibabacloud.com/blog/observability-of-llm-applications-exploration-and-practice-from-the-perspective-of-trace_601604
+- https://www.alibabacloud.com/help/en/agentrun/connect-java-agent-to-arms-application-monitoring-1
+- https://vmts.com.hk/en/insights/alibaba-ai-agent-observability-2026-en/
+- https://www.youtube.com/watch?v=TWRs3CyEmiY
+- https://www.datadoghq.com/products/ai/agent-observability/
+- https://www.alibabacloud.com/help/en/arms/product-overview/what-is-arms
+- https://openobserve.ai/llm-observability/
+- https://www.groundcover.com/learn/observability/ai-agent-observability
+- https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/what-is-cloud-monitor-2-0
+- https://www.alibabacloud.com/en/product/cloud-monitor?_p_lc=1
+- https://www.alibabacloud.com/blog/say-goodbye-to-complex-onboarding-ai-agent-skills-drive-cloud-monitors-observability-integration_603437
+- https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/starting-to-integrate-ai-agent-observability
+- https://www.alibabacloud.com/blog/kernel-level-x-ray-vision-cloudmonitor-2-0-achieves-full-stack-observability-with-zero-code-changes_603337
+- https://help.aliyun.com/en/cms/cloudmonitor-2-0/feature-comparison-between-cloud-monitor-1-0-and-2-0
+- https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/ai-observability-of-cms-2-0/
+- https://www.alibabacloud.com/blog/602694
+- https://www.eginnovations.com/supported-technologies/alibaba-monitoring
+- https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/list-of-ai-agents
+- https://www.alibabacloud.com/en/product/security_center?_p_lc=1
+- https://www.alibabacloud.com/help/en/security-center/install-the-security-center-agent
+- https://www.alibabacloud.com/help/en/security-center/user-guide/security-overview
+- https://www.alibabacloud.com/help/en/security-center/billing-overview
+- https://www.alibabacloud.com/blog/alibaba-clouds-major-new-release-agent-security-center-an-integrated-defense-platform-for-ai-agents-under-a-new-security-framework_602949
+- https://www.devopsschool.com/tutorials/alibaba-cloud-security-center-tutorial-architecture-pricing-use-cases-and-hands-on-guide-for-security/
+- https://www.alibabacloud.com/help/en/security-center/purchase-security-center
+- https://www.alibabacloud.com/blog/alibaba-cloud-data-security-center_603202
+- https://www.linkedin.com/posts/crn-asia_alibaba-cloud-rolls-out-agentic-cloud-stack-activity-7508322322869731329-AYxr
+- https://trendmicro.com/trendaivisiononecloudriskmanagement/knowledge-base/alibaba-cloud/AlibabaCloud-SecurityCenter/security-center-plan.html
+- https://www.alibabacloud.com/en/product/content-moderation/pricing?_p_lc=1
+- https://www.alibabacloud.com/en/product/content-moderation?_p_lc=1
+- https://www.alibabacloud.com/help/en/content-moderation/latest/what-is-content-moderation
+- https://www.alibabacloud.com/help/en/content-moderation
+- https://www.reddit.com/r/AskProgramming/comments/1bf72pl/is_alibaba_cloud_content_moderation_accurate/
+- https://www.alibabacloud.com/en/press-room/alibaba-cloud-introduces-new-pricing-strategy?_p_lc=1
+- https://www.alibabacloud.com/help/en/content-moderation/latest/speech-audit-multilingual-service
+- https://www.subconscious.dev/providers/alibaba-cloud
+- https://help.aliyun.com/en/pai/content-security-configuration
+- https://www.alizila.com/alibaba-cloud-price-cuts-abroad-international-customers-boost-ai-growth/
+- https://www.alibabacloud.com/help/en/model-studio/model-evaluation-intl
+- https://www.alibabacloud.com/help/en/pai/modeleval/
+- https://www.alibabacloud.com/blog/fine-tuning-ai-models-on-alibaba-cloud-pai-a-practical-guide_603422
+- https://help.aliyun.com/en/model-studio/what-is-model-studio
+- https://www.youtube.com/watch?v=gfqytnlfx2s
+- https://www.alibabacloud.com/help/en/pai/judge-model/
+- https://www.alibabacloud.com/blog/building-a-retrieval-augmented-generation-rag-service-on-compute-nest-with-alibaba-cloud-model-studio-and-analyticdb-for-postgresql_601412
+- https://www.gartner.com/reviews/product/alibaba-cloud-model-studio
+- https://www.alibabacloud.com/help/en/model-studio/model-evaluation-introduction/
+- https://kingy.ai/news/alibaba-cloud-ai-review-model-studio-qwen-explained-2025/
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-overview.md
+- https://www.alibabacloud.com/en/product/agentcore?_p_lc=1
+- https://www.alibabacloud.com/help/en/agentcore/manage-connectors.md
+- https://www.alibabacloud.com/blog/what-makes-alibaba-cloud%E2%80%99s-newly-released-agentcore-different_603627
+- https://help.aliyun.com/en/agentcore/agentcore-product-overview
+- https://www.linkedin.com/pulse/what-makes-alibaba-clouds-newly-released-agentcore-q6q5e
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-endpoint
+- https://virtualworkforce.ai/email-agents-for-erp-integration/
+- https://www.alibabacloud.com/help/en/sfoa/product-overview/differences-between-salesforce-crm-functions-on-alibaba-cloud-winter-26-winter-edition
+- https://www.youtube.com/watch?v=1iu5yYtAKVw
+- https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/supported-regions
+- https://www.alibabacloud.com/help/en/model-studio/regions
+- https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/developer-reference/api-apig-2024-03-27-endpoint-ai-gateway
+- https://www.alibabacloud.com/blog/alibaba-cloud-ai-gateway-finops-features-officially-launched-%7C-making-every-tokens-consumption-visible-and-controllable_603282
+- https://www.alibabacloud.com/en/global-locations?_p_lc=1
+- https://help.aliyun.com/en/api-gateway/ai-gateway/product-overview/supported-regions
+- https://www.alibabacloud.com/blog/building-secure-enterprise-ai-apis-with-alibaba-cloud-api-gateway-and-model-studio_603583
+- https://en.wikipedia.org/wiki/Alibaba_Cloud
+- https://vercel.com/ai-gateway/models/labs/alibaba
+- https://www.alibabacloud.com/help/en/pai/product-overview/regions-and-zones
+- https://higress.ai/en/docs/ai/scene-guide/application-safety/
+- https://www.alibabacloud.com/blog/higress-ai-officially-launches-effortlessly-unlock-new-ai-capabilities-and-start-global-services_602096
+- https://higress.ai/en/plugins/
+- https://higress.ai/en/comparison/
+- https://www.alibabacloud.com/blog/dify-officially-lists-the-higress-plugin-making-it-easy-to-connect-to-the-ai-gateway-to-access-model-services_602883
+- https://github.com/higress-group/higress
+- https://higress.ai/en/docs/latest/plugins/ai/api-provider/ai-security-guard/
+- https://www.alibabacloud.com/blog/10-essential-capabilities-of-an-ai-gateway_601993
+- https://higress.ai/en/ai-gateway/
+- https://www.alibabacloud.com/blog/vercel-ai-gateway-vs-higress-which-one-is-more-suitable-for-your-ai-application_602278
+- https://www.alibabacloud.com/blog/building-a-self-routing-multi-llm-architecture-with-alibaba-cloud-ai-gateway_603381
+- https://higress.ai/en/docs/ai/scene-guide/multi-proxy/
+- https://www.getmaxim.ai/articles/top-5-ai-gateways-for-multi-model-routing-in-2026/
+- https://www.truefoundry.com/routing
+- https://www.datadoghq.com/blog/ai-gateways-best-practices/
+- https://api7.ai/blog/multi-llm-routing-ai-gateway-qwen
+- https://vercel.com/docs/ai-gateway/models-and-providers/model-fallbacks
+- https://www.youtube.com/watch?v=6r6MJpZ2i34
+- https://mlflow.org/ai-gateway
+- https://www.alibabacloud.com/help/en/model-studio/mcp
+- https://www.alibabacloud.com/blog/accelerating-ai-integration-with-alibaba-cloud%E2%80%99s-model-context-protocol-mcp_602490
+- https://www.alibabacloud.com/help/en/model-studio/faq-about-alibaba-cloud-model-studio
+- https://www.facebook.com/alibabacloud/videos/model-studio-finalmp4/874348851197500/
+- https://www.alibabacloud.com/help/en/model-studio/web-search-for-coding-plan
+- https://help.aliyun.com/en/model-studio/mcp-introduction
+- https://www.alibabacloud.com/blog/experience-the-power-of-ai-with-alibaba-cloud-model-studio_601353
+- https://technologymagazine.com/news/alibabas-model-studio-powers-trusted-ai-in-private-clouds
+- https://www.alibabacloud.com/help/en/hologres/user-guide/introduction-to-vector-computation
+- https://help.aliyun.com/en/hologres/user-guide/recommended-instance-specifications-for-vector-processing
+- https://www.alibabacloud.com/help/en/hologres/user-guide/guide-on-vector-processing
+- https://blogs.oracle.com/database/oracle-ai-vector-search-on-globally-distributed-databases
+- https://www.linkedin.com/posts/alibabacloudglobal_rag-hologres-multimodalsearch-activity-7516830484610318337-Acyx
+- https://superset.apache.org/user-docs/databases/supported/hologres/
+- https://github.com/aliyun/hologres-ai-plugins
+- https://docs.zilliz.com/docs/single-vector-search
+- https://www.yugabyte.com/key-concepts/what-is-a-vector-search/
+- https://www.youtube.com/watch?v=8C4bh59FtsI
+- https://help.aliyun.com/en/polardb/polardb-for-postgresql/ganos-age-based-on-polardb-ai-agent-long-memory-solution
+- https://www.linkedin.com/pulse/ai-agent-long-term-memory-powered-postgres-vectors-krishnakumar-ravi-cp76c
+- https://www.reddit.com/r/LocalLLM/comments/1uy4rbx/everyone_told_me_to_use_postgresql_for_ai_agent/
+- https://www.cfcamp.org/sessions/vector-search-with-postgresql.html
+- https://www.pgedge.com/blog/postgres-for-agentic-ai-your-database-is-a-compute-layer-not-a-parking-lot
+- https://infino.ai/blog/choosing-a-database-for-ai-agents/
+- https://www.tigerdata.com/learn/building-ai-agents-with-persistent-memory-a-unified-database-approach
+- https://render.com/articles/give-your-agent-a-memory-postgres-pgvector-and-key-value-as-a-three-tier-context
+- https://www.alibabacloud.com/help/en/lindorm/product-overview/
+- https://dl.acm.org/doi/abs/10.1145/3788853.3803088
+- https://help.aliyun.com/en/lindorm/product-overview/product-introduction-overview
+- https://help.aliyun.com/en/lindorm/user-guide/accessing-the-vector-engine-through-curl
+- https://www.alibabacloud.com/help/en/lindorm/engine-overview-3
+- https://news.sap.com/2024/04/sap-hana-cloud-vector-engine-ai-with-business-context/
+- https://docs.cloud.google.com/gemini-enterprise-agent-platform/build/vector-search/overview
+- https://www.linkedin.com/posts/almazequance_everyone-talks-about-ai-models-in-sap-but-activity-7439607114496462848-PN72
+- https://zilliz.com/blog
+- https://www.alibabacloud.com/blog/alibaba-cloud-expands-european-footprint-with-two-availability-zones-in-france_603265
+- https://www.alibabacloud.com/help/en/vrs/latest/opening-service
+- https://www.alibabacloud.com/en/press-room/alibaba-cloud-launch-first-cloud-region-in-brazil?_p_lc=1
+- https://help.aliyun.com/en/document_detail/40654.html
+- https://www.alibabacloud.com/en/product/dashvector?_p_lc=1
+- https://stackoverflow.com/questions/52562959/where-does-ali-cloud-keep-a-full-list-of-availability-zones
+- https://baike.baidu.com/en/item/Alibaba%20Cloud%20Global%20Infrastructure/5164732
+- https://www.facebook.com/fb-answers/alibaba-cloud-regions/
+- https://www.alibabacloud.com/help/en/starops/user-guide/mcp-service-configuration
+- https://help.aliyun.com/en/api-gateway/traditional-api-gateway/developer-reference/api-cloudapi-2016-07-14-endpoint
+- https://docs.databricks.com/aws/en/release-notes/product/
+- https://www.promptfoo.dev/docs/providers/aws-bedrock/
+- https://docs.snowflake.com/en/user-guide/snowflake-cortex/model-availability
+- https://docs.openclaw.ai/providers/bedrock-mantle
+- https://github.com/iOfficeAI/AionUi/wiki/LLM-Configuration
+- https://help.aliyun.com/en/agentrun/introduction-to-tools-and-skills
+- https://mcpmarket.com/tools/skills/categories/official
+- https://www.reddit.com/r/n8n/comments/1nsewf6/awesome_mcp_servers_curated_list_of_tools_that/
+- https://github.com/Awakehsh/awesome-agent-tools
+- https://www.reddit.com/r/mcp/comments/1xkzm8a/i_built_an_opensource_skill_library_for_ai_agents/
+- https://mcp-find.org/tools
+- https://help.aliyun.com/en/agentrun/create-the-mcp-tool-1
+- https://getstream.io/blog/mcp-llms-agents/
+- https://skillhub.pm/skills
+- https://www.alibabacloud.com/help/en/oss/user-guide/regions-and-endpoints
+- https://www.alibabacloud.com/help/en/model-studio/singapore-regional-access-information
+- https://www.alibabacloud.com/help/en/privatelink/private-link-billing-description
+- https://www.alibabacloud.com/help/en/functioncompute/endpoints
+- https://help.aliyun.com/en/mns/product-overview/regions-and-endpoints
+- https://www.alibabacloud.com/help/en/functioncompute/access-agenrun-resources-through-privatelink-intranet
+- https://wise.com/gb/blog/alibaba-cloud-pricing
+- https://www.alibabacloud.com/help/en/hologres/user-guide/endpoints-for-connecting-to-hologres
+- https://www.alibabacloud.com/help/en/skillsportal/learn-about-the-alibaba-cloud-agent-skills-portal
+- https://www.alibabacloud.com/help/en/skillsportal/understand-agent-skills
+- https://cloud.google.com/blog/topics/developers-practitioners/introducing-the-google-cloud-developer-plugin-for-ai-coding-agents
+- https://github.com/aliyun/alibabacloud-aiops-skills
+- https://skills.alibabacloud.com/
+- https://mcpmarket.com/server/alibaba-cloud-agent-toolkit
+- https://developers.googleblog.com/agent-plugins-package-your-skills-tools-and-more/
+- https://www.alibabacloud.com/en/press-room/alibaba-cloud-unveil-advanced-agentic-ai-ecosystem?_p_lc=1
+- https://mcpservers.org/agent-skills
+- https://heyclau.de/entry/skills/google-cloud-agent-skills
+- https://help.aliyun.com/en/milvus/product-overview/region-and-zone
+- https://milvus.io/blog/announcing-milvus-3-lake-native-vector-search-and-a-more-powerful-retrieval-engine.md
+- https://www.linkedin.com/posts/shih-yu-chang-717ab0203_milvus-overview-and-its-role-in-large-scale-activity-7417219513538220032-vSGf
+- https://zilliz.com/blog/zilliz-cloud-now-available-in-aws-europe-ireland
+- https://github.com/milvus-io/milvus
+- https://www.ibm.com/think/topics/milvus
+- https://devblogs.microsoft.com/dotnet/get-started-milvus-vector-db-dotnet/
+- https://aws.amazon.com/marketplace/pp/prodview-iqbidum7feuio
+- https://www.alibabacloud.com/help/doc-detail/2880995.html
+- https://www.alibabacloud.com/help/doc-detail/2666077.html
+- https://bigdataboutique.com/blog/best-managed-opensearch-services-compared
+- https://opensearch.org/platform/vector-search/
+- https://technologymagazine.com/articles/alibaba-cloud-solution-helping-enterprises-harness-gen-ai
+- https://help.aliyun.com/en/document-mind/developer-reference/docmind-document-parsing-tool-skill-alibabacloud-docmind-parse
+- https://help.aliyun.com/en/document-mind/product-overview/product-introduction/
+- https://www.alibabacloud.com/blog/ai-powered-document-processing-and-intelligent-extraction-on-alibaba-cloud_603592
+- https://www.alibabacloud.com/help/en/aidbs/getting-started/get-started-with-ai-data-preparation
+- https://skills.rest/skill/alicloud-ai-text-document-mind
+- https://www.alibabacloud.com/blog/is-your-ai-agent-getting-dumber-alibaba-cloud-analyticdb-unveils-ai-context-engineering_602803
+- https://www.alibabacloud.com/help/en/pai/file-type-input-output
+- https://www.alibabacloud.com/en/solutions/ai-application-information-extraction?_p_lc=1
+- https://help.aliyun.com/en/document-mind/product-overview/overview-of-document-understanding
+- https://www.alibabacloud.com/help/en/tablestore/table-store-service/product-overview/basic-concepts
+- https://www.facebook.com/alibabacloud/videos/alibaba-clouds-backup-and-disaster-recovery-center-bdrc/808393685478604/
+- https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/news-and-announcements
+- https://www.alibabacloud.com/blog/598311
+- https://www.imda.gov.sg/-/media/imda/files/industry-development/infrastructure/csp-selfdisclosure-formalibaba-cloudsigned.pdf
+- https://www.alibabacloud.com/en/notice/alibaba_cloud_tablestore_upgrade_notice_4e4?_p_lc=1
+- https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/user-guide/mcp-gateway-management
+- https://www.alibabacloud.com/blog/602490
+- https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/getting-started/mcp-service-management
+- https://www.alibabacloud.com/blog/602147
+- https://www.alibabacloud.com/blog/602162
+- https://www.alibabacloud.com/help/en/api-gateway/quick-start
+- https://developers.googleblog.com/turn-your-rest-apis-into-mcp-tools-with-google-cloud-api-gateway/
+- https://www.alibabacloud.com/help/en/api-gateway/cloud-native-api-gateway/product-overview/billing-overview
+- https://www.alibabacloud.com/en/pricing?_p_lc=1
+- https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/announcement-new-serverless-version-of-the-ai-gateway-now-in-public-beta
+- https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/serverless-old-billing-details
+- https://help.aliyun.com/en/api-gateway/ai-gateway/product-overview/overview-of-billing-during-the-serverless-public-preview-of-the
+- https://www.alibabacloud.com/help/en/pai/product-overview/billing-of-eas
+- https://www.getmaxim.ai/articles/top-5-ai-gateways-with-semantic-caching-to-cut-llm-api-calls/
+- https://wso2.com/library/blogs/what-is-semantic-caching/
+- https://www.reddit.com/r/LangChain/comments/1s0ldfk/semantic_caching_explained_reduce_ai_api_costs/
+- https://redis.io/blog/kong-ai-gateway-and-redis/
+- https://developer.konghq.com/ai-gateway/semantic-similarity/
+- https://www.youtube.com/watch?v=QQXnwN302n8
+- https://devblogs.microsoft.com/all-things-azure/accelerate-ai-applications-with-semantic-caching-on-azure-managed-redis/
+- https://help.aliyun.com/en/redis/tair-ai-gateway-semantic-caching
+- https://www.alibabacloud.com/help/en/content-moderation/latest/how-to-open-and-use-ai-security-guardrail-products-and
+- https://www.alibabacloud.com/help/en/content-moderation/latest/product-advantages
+- https://docs.api7.ai/ai-gateway/traffic-controls/guardrails/alibaba-cloud-ai
+- https://www.alibabacloud.com/blog/ai-guardrails-real-time-protection-for-llms-and-ai-agents%C2%A0_603442
+- https://cybersectools.com/compare/ai-gateway-vs-alibaba-cloud-platform-for-ai
+- https://www.alibabacloud.com/help/en/content-moderation/latest/product-overview
+- https://developer.konghq.com/plugins/ai-custom-guardrail/
+- https://developers.cloudflare.com/changelog/post/2025-02-26-guardrails/
+- https://www.alibabacloud.com/help/en/agentrun/start-using/
+- https://help.aliyun.com/en/agentrun/aio-sandbox-1
+- https://www.alibabacloud.com/blog/loongcollector-%2B-acs-agent-sandbox-build-a-production-grade-ai-agent-runtime-platform_603172
+- https://github.com/devsapp/agentrun-sandbox-demos
+- https://www.mii.co.id/giving-your-ai-agent-a-disposable-workspace-with-alibaba-cloud-agentrun-en
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-listserviceendpoints
+- https://www.alibabacloud.com/help/en/model-studio/usa-virginia-global
+- https://docs.aws.amazon.com/general/latest/gr/bedrock_agentcore.html
+- https://help.aliyun.com/en/agentcore/api-agentcore-2026-08-04-endpoint
+- https://www.alibabacloud.com/help/en/agentcore/agentcore-product-overview
+- https://www.crnasia.com/news/2026/cloud/alibaba-cloud-rolls-out-agentic-cloud-stack-with-agentcore-a
+- https://interconnected.blog/data-center-coverage-aws-alibaba-azure-gcp/
+- https://www.alibabacloud.com/help/en/agentcore/manage-connectors
+- https://www.alibabacloud.com/help/en/agentcore/overview-of-knowledge-base-connections
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-listconnectors
+- https://help.aliyun.com/en/agentcore/manage-connectors
+- https://aws.amazon.com/bedrock/agentcore/
+- https://www.alibabacloud.com/help/en/agentcore/connect-the-refined-knowledge-base-in-the-agentcore.md
+- https://repost.aws/questions/QUpv977XDvSSqdamZLO00kGw/amazon-connect-ai-agent-designer-not-showing-associated-agentcore-gateway-mcp-tool-namespace
+- https://www.alibabacloud.com/help/en/agentcore/agentcore-billing-instructions
+- https://www.alibabacloud.com/help/en/functioncompute/billing-overview-of-fc
+- https://www.alibabacloud.com/help/en/sae/product-overview/billing-new
+- https://help.aliyun.com/en/agent-sandbox/product-overview/billing-overview
+- https://www.alibabacloud.com/help/en/hologres/product-overview/pay-as-you-go
+- https://www.alibabacloud.com/help/en/model-studio/tpm-reservation-billing
+- https://computecomparison.com/provider/alibaba-cloud
+- https://www.youtube.com/watch?v=zAfNVucDKAU
+- https://www.alibabacloud.com/help/en/agentloop/product-overview/server-launch-regions-of-agentloop
+- https://www.alibabacloud.com/help/en/cloud-migration-guide-for-beginners/latest/regions-and-zones
+- https://help.aliyun.com/en/asc/user-guide/agent-oop
+- https://www.instagram.com/reel/DF9RNTzSWOl/
+- https://www.alibabacloud.com/blog/choosing-the-best-hosting-region-for-you_595805
+- https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/open-service-area
+- https://www.alibabacloud.com/blog/602942
+- https://help.aliyun.com/en/agent-sandbox/product-overview/open-service-area
+- https://mastra.ai/articles/best-ai-agent-sandbox-platforms
+- https://www.facebook.com/christopher.odhiambo.3386/posts/-breaking-alibaba-just-open-sourced-the-sandbox-ai-agents-actually-needopensandb/1451363259797582/
+- https://help.aliyun.com/en/agentbay/product-overview/agentbay-billing-instructions
+- https://sme.asia/alibaba-cloud-introduces-new-pricing-strategy-and-service-availability-for-international-customers/
+- https://github.com/michael98671/agentbay
+- https://createos.sh/vs/alibaba-agentbay
+- https://infron.ai/provider/alibaba/sg
+- https://www.alibabacloud.com/help/en/agentidentity/workload-identity-management
+- https://www.datarobot.com/blog/what-a-first-class-agent-identity-actually-is-and-whether-it-is-just-workload-identity/
+- https://www.alibabacloud.com/help/en/agentidentity/use-scenarios
+- https://learn.microsoft.com/en-us/entra/agent-id/what-are-agent-identities
+- https://triotechsystems.com/blog/agent-identity-workload-authentication/
+- https://www.alibabacloud.com/press-room/first-public-cloud-region-in-the-netherlands
+- https://www.taiwannews.com.tw/news/6468044
+- https://datacentremagazine.com/news/alibaba-cloud-opens-amsterdam-region-with-two-data-centres
+- https://www.itpro.com/cloud/cloud-computing/alibaba-clouds-european-push-continues-with-first-public-cloud-region-in-the-netherlands
+- https://help.aliyun.com/en/ecs/user-guide/regions-and-zones
+- https://www.alibabacloud.com/help/en/security-center/dynamics-and-announcements/
+- https://aicoder.com/news/news-20261029-alibaba-cloud-apsara-amsterdam-netherlands-region-agentic-ai-services-jetbrains-junie-qwen
+- https://fintechnews.ch/cloud/alibaba-cloud-netherlands-amsterdam-region/86778/
+- https://govinsider.asia/intl-en/article/govtech-singapore-launches-upgraded-content-guardrails-for-llms
+- https://www.alibabacloud.com/help/en/content-moderation/latest/text-moderation-enhanced-multilingual-service-api
+- https://medium.com/@adnanmasood/the-state-of-ai-guardrails-what-they-stop-and-what-they-miss-ceb668f693bc
+- https://arxiv.org/html/2604.16542v1
+- https://www.tspa.org/event/hateful-content-moderation-in-ai-challenges-opportunities-in-singapore-and-southeast-asia/
+- https://www.youtube.com/watch?v=5SpoSbY-1Cs
+- https://blog.ai.gov.sg/introducing-lionguard-2-multilingual-llm-guardrail-for-singapore/
+- https://www.truefoundry.com/docs/ai-gateway/tfy-content-moderation
+- https://www.facebook.com/GovInsider/posts/govtech-government-technology-agency-of-singapores-responsible-ai-team-has-launc/1319737473487164/
+- https://www.researchgate.net/publication/399603667_RAG-Guardrails_Integration_for_AI_Content_Control
+- https://www.alibabacloud.com/help/en/content-moderation/latest/billing-description
+- https://www.alibabacloud.com/help/en/content-moderation/latest/billing-overview
+- https://www.alibabacloud.com/help/en/content-moderation/latest/text-moderation-by-llm
+- https://www.alibabacloud.com/help/en/content-moderation/latest/untitled-document
+- https://www.alibabacloud.com/help/en/content-moderation/latest/activation-and-purchase
+- https://www.techzine.eu/news/infrastructure/145376/alibaba-cloud-opens-first-cloud-region-in-the-netherlands/
+- https://www.taiwannews.com.tw/en/news/6468044
+- https://www.facebook.com/alibabacloud/posts/how-do-you-secure-enterprises-in-the-age-of-ai-agentsexplore-how-the-rise-of-ai-/1579960870842666/
+- https://www.alibabacloud.com/help/en/agent-sandbox/mount-agenticfs-for-agent-sandbox-with-agent-identity
+- https://help.aliyun.com/en/agent-sandbox/clone-agent-sandbox-using-checkpoint
+- https://www.alibabacloud.com/help/en/agent-sandbox/upgrade-pre-warmed-pools-and-claimed-sandboxes
+- https://www.alibabacloud.com/help/en/agent-sandbox/inject-credentials-for-agent-sandbox-egress
+- https://help.aliyun.com/en/rds/developer-reference/api-rds-2014-08-15-describemaskingrules
+- https://www.alibabacloud.com/help/en/agent-sandbox/network-configuration/
+- https://help.aliyun.com/en/rds/developer-reference/api-rds-2014-08-15-describeaccountmaskingprivilege
+- https://www.alibabacloud.com/help/tr/agent-sandbox/build-a-custom-image-template
+- https://www.alibabacloud.com/help/es/agent-sandbox/quota-management
+- https://www.alibabacloud.com/help/tr/agent-sandbox/create-oss-volume
+- https://www.alibabacloud.com/en/press-room/alibaba-cloud-expands-global-infrastructure-and-ai?_p_lc=1
+- https://www.alibabagroup.com/document-1509741131389206528
+- https://www.facebook.com/theedgesingapore/posts/alibabas-global-cloud-network-spans-from-japan-to-southeast-asia-and-the-middle-/1564873848987420/
+- https://www.prnewswire.com/news-releases/alibaba-cloud-unveils-strategic-roadmap-for-international-business-301630528.html
+- https://www.linkedin.com/posts/alibaba-cloud-computing-company_1200-languages-one-vision-for-ai-inclusion-activity-7459436525798412288-VYiN
+- https://zilliz.com/all-regions
+- https://cloudian.com/guides/ai-infrastructure/milvus-vector-database-uses-architecture-quick-tutorial/
+- https://www.alizila.com/alibaba-cloud-expands-southeast-asian-footprint-with-new-data-centers/
+- https://www.cloudinfrastructuremap.com/
+- https://www.facebook.com/fb-answers/alibaba-cloud-singapore-availability-zones-2021/?locale=he_IL
+- https://www.alibabacloud.com/help/en/es/user-guide/open-service-area
+- https://www.elastic.co/about/press/elastic-and-alibaba-cloud-expand-partnership-to-deliver-alibaba-cloud-elasticsearch-globally
+- https://www.sdxcentral.com/news/alibaba-cloud-eyes-expansion-into-southeast-asia-with-new-products-partners/
+- https://www.alibabacloud.com/help/en/es/product-overview/comparison-between-alibaba-cloud-elasticsearch-clusters-and-self-managed-elasticsearch-clusters
+- https://www.alibabacloud.com/blog/alibaba-cloud-elasticsearch-whats-new-and-latest-features_597079
+- https://x.com/alibaba_cloud/status/1767465589931733020?lang=ar-x-fm
+- https://www.alibabacloud.com/blog/what-is-elasticsearch_601014
+- https://www.youtube.com/watch?v=C9EtncpnZ-o
+- https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/product-overview/pricing-1
+- https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/user-guide/analyticdb-postgresql-rds-postgresql-zero-etl
+- https://help.aliyun.com/en/analyticdb/analyticdb-for-postgresql/product-overview/2022
+- https://apsarastackdocument.oss-cn-hangzhou.aliyuncs.com/%E5%9B%BD%E9%99%85%E7%89%88%E6%96%87%E6%A1%A3/v3.18.6%E7%89%88%E6%9C%AC%E6%96%87%E6%A1%A3/%E4%BA%91%E5%8E%9F%E7%94%9F%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93%20AnalyticDB%20PostgreSQL%E7%89%88/Alibaba%20Cloud%20Apsara%20Stack%20V3.18.6%20AnalyticDB%20AnalyticDB%20for%20PostgreSQL%20User%20Guide%2020250616.pdf
+- https://www.geeksforgeeks.org/dbms/difference-between-alibaba-cloud-analyticdb-for-postgresql-and-amazon-redshift/
+- https://help.aliyun.com/en/analyticdb/analyticdb-for-postgresql/product-overview/analyticdb-for-postgresql-overview
+- https://www.postgresql.org/support/professional_hosting/asia/
+- https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/product-overview/selection-of-instance-types-and-specifications
+- https://www.alibabacloud.com/en/product/hologres?_p_lc=1
+- https://help.aliyun.com/en/hologres/product-overview/serverless-computing-new-region-announcement
+- https://alibaba-cloud.medium.com/real-time-marketing-data-analysis-based-on-hologres-flink-1ffb8ba192cd
+- https://www.c-sharpcorner.com/article/what-is-alibaba-cloud-hologres/?srsltid=AYCX9vIwPFPndoyZ3DZNOX2ICLOiyHYmnITtM8ONaNoKJG4ku2vic7I7
+- https://blogs.oracle.com/cloud-infrastructure/oracle-opens-second-cloud-region-in-singapore
+- https://www.researchgate.net/publication/344968457_Alibaba_hologres_a_cloud-native_service_for_hybrid_servinganalytical_processing
+- https://www.alibabacloud.com/help/en/milvus/product-overview/region-and-zone
+- https://www.youtube.com/watch?v=7ejr_ZzU9jw
+- https://www.incentro.com/en-SG/partners/alibaba-cloud
+- https://www.alibabacloud.com/help/en/emr/emr-serverless-spark/product-overview/cu-compute-resources-hybrid-billing
+- https://help.aliyun.com/en/user-center/product-overview/quickly-understand-the-billing-modes-of-alibaba-cloud-products
+- https://www.alibabacloud.com/blog/alibaba-cloud-savings-plans-more-flexible-than-subscription-and-more-cost-effective-than-pay-as-you-go_596969
+- https://www.alibabacloud.com/help/en/user-center/bill-view
+- https://zilliz.com/ai-faq/what-is-payasyougo-pricing-in-cloud-computing
+- https://www.alibabacloud.com/help/en/document_detail/259690.html
+- https://mofcloud.com/blog/
+- https://www.alibabacloud.com/help/doc-detail/2834046.html
+- https://help.aliyun.com/en/open-search/opensearch-opensource/
+- https://www.alibabacloud.com/en/news/product/internet-search-supported-by-llm-based-conversational-search-edition-kbd?_p_lc=1
+- https://www.alibabacloud.com/en/product/lindorm?_p_lc=1
+- https://www.alibabacloud.com/help/en/lindorm/developer-reference/api-hitsdb-2020-06-15-describeregions
+- https://www.alibabacloud.com/blog/alibaba-cloud-unveils-strategic-roadmap-for-international-business_599361
+- https://www.alibabacloud.com/help/en/lindorm/latest/manage-groups
+- https://www.alibabacloud.com/help/en/lindorm/product-overview/the-basic-concepts
+- https://resource.alibabacloud.com/webinar/detail.html?id=1467
+- https://www.economyinsights.com/p/cloud-providers-with-the-most-active-regions-worldwide
+- https://help.aliyun.com/en/document-mind/developer-reference/document-mind-endpoints
+- https://appinchina.co/a-guide-to-alibaba-cloud-in-china/
+- https://www.alizila.com/alibaba-cloud-launched-city-brain-2-0-hangzhou/
+- https://www.datacenters.com/alibaba-cloud-cn-hangzhou
+- https://www.facebook.com/fb-answers/alibaba-cloud-data-center-locations/
+- https://www.alibabacloud.com/en/product/polardb-for-postgresql?_p_lc=1
+- https://help.aliyun.com/en/polardb/polardb-for-postgresql/polarsearch-user-guide/
+- https://github.com/polardb/PolarDB-for-PostgreSQL
+- https://sourceforge.net/projects/polardb-for-postgresql.mirror/
+- https://pigsty.io/docs/pgsql/kernel/polardb/
+- https://dbdb.io/db/polardb
+- https://marketplace.microsoft.com/en-us/product/cloudimg1647283583153.polardb-postgresql-ubuntu-24-04
+- https://www.alibabacloud.com/blog/from-open-source-extension-to-production-grade-engine-a-new-paradigm-for-vector-capabilities-in-polardb-for-postgresql_603405
+- https://www.youtube.com/watch?v=4J_cpa6fbO0
+- https://news.ycombinator.com/item?id=27330342
+- https://www.alibabacloud.com/help/en/legal/latest/alibaba-cloud-international-website-vector-retrieval-service-service-level
+- https://www.alibabacloud.com/help/en/vrs/latest/what-is-vector-retrieval-service
+- https://help.aliyun.com/en/document_detail/2510232.html
+- https://www.alibabacloud.com/help/vrs/latest/product-billing
+- https://www.alibabacloud.com/help/id/legal/latest/alibaba-cloud-international-website-vector-retrieval-service-service-level.md
+- https://comparecloudcosts.com/methodology
+- https://www.alibabacloud.com/help/en/slb/application-load-balancer/supported-regions-and-zones
+- https://www.elastic.co/docs/reference/cloud/cloud-hosted/regions
+- https://learn.microsoft.com/en-us/azure/reliability/regions-list
+- https://simplebackups.com/tools/cloud-providers-regions
+- https://www.alibabacloud.com/help/en/asc/user-guide/agent-oop
+- https://help.aliyun.com/en/agentloop/user-guide/multimodal-evaluator
+- https://www.alibabacloud.com/help/en/eci/product-overview/regions-and-zones
+- https://www.alibabacloud.com/help/en/pai/langstudio-overview/
+- https://help.aliyun.com/en/cpfs/bmcpfs/product-overview/new-feature-release-record-1
+- https://www.alibabacloud.com/help/en/cloud-firewall/cloudfirewall/product-overview/supported-regions
+- https://help.aliyun.com/en/agentloop/code-evaluator
+- https://www.alibabacloud.com/help/en/agent-sandbox/persistence-storage.md
+- https://www.alibabacloud.com/help/en/model-studio/deepseek-v4-1-flash
+- https://www.alibabacloud.com/help/en/model-studio/model-pricing
+- https://www.alibabacloud.com/help/en/model-studio/deepseek-api
+- https://www.alibabacloud.com/help/en/model-studio/fun-asr-recorded-speech-recognition-java-sdk
+- https://api.alibabacloud.com/product/FCSandbox?tab=endpoints
+- https://www.alibabacloud.com/help/en/model-studio/error-code
+- https://www.alibabacloud.com/help/en/model-studio/get-api-key
+- https://help.aliyun.com/en/model-studio/qwen3-8-omni-flash
+- https://www.alibabacloud.com/help/en/milvus/user-guide/upgrade-a-single-zone-instance-to-a-multi-zone-instance
+- https://www.alibabacloud.com/help/en/slb/gateway-based-load-balancing-gwlb/product-overview/regions-and-zones-supported-by-gwlb
+- https://www.alibabacloud.com/help/en/pai/multimodal-data-management-and-usage
+- https://www.linkedin.com/posts/ekkarat-klinbubpa-322983a3_alibabacloud-ai-cloudcomputing-activity-7436671359222575104-Dr1h
+- https://www.alibabacloud.com/blog/603131
+- https://www.alibabacloud.com/help/es/dataworks/function-release-record
+- https://www.alibabacloud.com/help/tr/asc/developer-reference/api-aisc-2026-01-01-endpoint
+- https://www.alibabacloud.com/help/en/cms/cloudmonitor-1-0/developer-reference/api-arms-2019-08-08-endpoint
+- https://help.aliyun.com/en/model-studio/regions
+- https://www.alibabacloud.com/help/en/direct-mail/api-dm-2015-11-23-endpoint
+- https://www.alibabacloud.com/blog/alibaba-cloud-sase-2-0-upgrade-comprehensive-monitoring-of-agent-office-security_603047
+- https://www.alibabacloud.com/help/en/sms/developer-reference/api-dysmsapi-2018-05-01-endpoint
+- https://www.mobileworldlive.com/ai-cloud/alibaba-cloud-expands-agentic-ai-push-to-france/
+- https://www.alibabacloud.com/help/en/content-moderation/latest/text-moderation-multilingual-service
+- https://help.aliyun.com/en/document_detail/2933065.html
+- https://www.alibabacloud.com/help/en/content-moderation/latest/access-guide
+- https://www.alibabacloud.com/help/en/open-search/search-platform/getting-started/ai-getting-started
+- https://www.alibabacloud.com/help/en/open-search/search-platform/user-guide/get-service-call-address
+- https://www.alibabacloud.com/help/en/open-search/search-platform/product-overview/introduction-to-search-platform
+- https://www.alibabacloud.com/help/en/open-search/search-platform/user-guide/evaluation-task-management
+- https://www.infoai.com.tw/blog/alibaba-cloud-global-ai-deployment-vendor-evaluation
+- https://finance.yahoo.com/technology/ai/articles/alibaba-expanding-data-centers-europe-135032924.html
+- https://www.alibabacloud.com/help/en/model-studio/germany-frankfurt-global
+- https://help.aliyun.com/en/model-studio/model-pricing
+- https://resource.alibabacloud.com/webinar/detail.html?id=491&topic=
+- https://www.alibabacloud.com/help/en/security-center/user-guide/overview-2
+- https://help.aliyun.com/en/cms/cloudmonitor-2-0/instructions-for-using-the-reporting-address-of-opentelemetry-indicator
+- https://www.alibabacloud.com/help/en/model-studio/kimi-api
+- https://help.aliyun.com/en/maxcompute/open-storage-overview-1
+- https://www.alibabacloud.com/help/en/model-studio/qwen-omni
+- https://www.alibabacloud.com/help/en/polardb/polardb-for-mysql/user-guide/global-database-network
+- https://www.alibabacloud.com/help/tr/tablestore/table-store-service/product-overview/basic-concepts
+- https://www.alibabacloud.com/help/en/vpc/traffic-mirroring-overview/
+- https://www.alibabacloud.com/help/en/agentloop/agentloop-billing-overview
+- https://github.com/aliyun/alibabacloud-aiops-skills/blob/master/skills/aiml/agentloop/alibabacloud-agentloop-evaluation/SKILL.md
+- https://help.aliyun.com/en/agentloop/product-overview/what-is-agentloop
+- https://www.alibabacloud.com/help/en/agentloop/product-overview/agentloop-billing-overview.md
+- https://www.alibabacloud.com/help/en/agentloop/latest/agentloop-billing-overview
+- https://cloud.google.com/model-garden/pricing
+- https://help.aliyun.com/en/vpc/regions-that-support-vpc-features
+- https://www.alibabacloud.com/help/en/api-gateway/cloud-native-api-gateway/product-overview/regions
+- https://www.alibabacloud.com/help/en/acr/product-overview/supported-regions
+- https://www.alibabacloud.com/help/en/service-catalog/product-overview/supported-regions
+- https://iea.blob.core.windows.net/assets/de9dea13-b07d-42c5-a398-d1b3ae17d866/EnergyandAI.pdf
+- https://www.mycc.gov.my/sites/default/files/%5BBook%202%5D%20Draft%20final%20report%20(E-commerce%20retail%20marketplaces).pdf
+- https://www.mycc.gov.my/sites/default/files/%5BBook%204%5D%20Draft%20final%20report%20(OTA).pdf
+- https://alquilerpuntacana.jimdofree.com/2012/10/10/apartment-rentals-punta-cana-playa-bavaro-dominican-republic/
+- https://www.mycc.gov.my/sites/default/files/2025-03/Public_Interim%20report%20for%20Market%20Review%20on%20the%20Digital%20Economy%20Ecosystem%20under%20the%20Competition%20Act%202010.pdf
+- https://ebin.pub/smart-cities-for-technological-and-social-innovation-case-studies-current-trends-and-future-steps-0128188863-9780128188866.html
+- https://shinju.jimdofree.com/
+- https://www.alibabacloud.com/help/en/sls/what-is-log-service
+- https://www.alibabacloud.com/blog/plaintext-stays-put-logs-stay-useful-sensitive-data-protection-with-alibaba-cloud-observability_603543
+- https://www.alibabacloud.com/blog/602986
+- https://www.youtube.com/watch?v=RlCeKSBNO3g
+- https://www.alibabacloud.com/help/en/sls/release-notes
+- https://www.alibabacloud.com/blog/sls-copilot-in-practice-building-a-flexible-data-infrastructure-for-llm-applications-with-sls_602682
+- https://www.alibabacloud.com/blog/a-practical-guide-to-sls-data-masking-securing-sensitive-data-in-llm-applications_602775
+- https://www.devopsschool.com/tutorials/alibaba-cloud-simple-log-service-sls-tutorial-architecture-pricing-use-cases-and-hands-on-guide-for-migration-o-m-management/
+- https://www.alibabacloud.com/blog/achieve-operational-control-for-openclaw-with-alibaba-cloud-sls-one-click-integration_603034
+- https://skywork.ai/skypage/en/alibaba-cloud-observability-ai-gateway/1978710232358232064
+- https://help.aliyun.com/en/arms/product-overview/platform-upgrade-notification-that-arms-llm-application-monitoring-is-upgraded
+- https://www.alibabacloud.com/help/en/arms/llms.txt
+- https://www.alibabacloud.com/help/en/arms/product-overview/arms-application-monitoring-maintenance-and-upgrade-notification
+- https://www.guance.com/learn/articles/ai-alerting-platform-selection-2026?lang=en
+- https://help.aliyun.com/en/cms/cloudmonitor-2-0/integrate-ai-agent-observability-through-opentelemetry-obi
+- https://openclawai.io/blog
+- https://www.linkedin.com/posts/james-woodard_aws-news-blog-activity-7511190784906317827-Z2Cq
+- https://vmts.com.hk/zh-cn/insights/alibaba-ai-agent-observability-2026/
+- https://guptadeepak.com/tag/ai/
+- https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/feature-comparison-between-cloud-monitor-1-0-and-2-0
+- https://help.aliyun.com/en/cms/cloudmonitor-2-0/integration-center-of-cms-2-0/
+- https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/basic-concepts
+- https://www.alibabacloud.com/blog/cloud-resource-usage-monitoring-with-cloud-monitor_596489
+- https://opentelemetry.io/blog/2026/genai-observability/
+- https://www.alibabacloud.com/blog/603239
+- https://www.alibabacloud.com/help/en/agentloop/integrating-llm-applications-with-opentelemetry-genai-utils/
+- https://openobserve.ai/blog/opentelemetry-genai-semantic-conventions/
+- https://mlflow.org/docs/latest/genai/tracing/opentelemetry/genai-semconv/
+- https://greptime.com/blogs/2026-05-09-opentelemetry-genai-semantic-conventions
+- https://opentelemetry.io/blog/2025/ai-agent-observability/
+- https://decagon.ai/glossary/what-are-opentelemetry-genai-semantic-conventions
+- https://www.dash0.com/knowledge/opentelemetry-genai-semantic-conventions-explained
+- https://www.youtube.com/watch?v=RNaa_48LWBY
+- https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/free-product-templates
+- https://www.alibabacloud.com/customers/infron
+- https://www.linkedin.com/pulse/infron-alibaba-cloud-serving-open-source-models-globally-yxtxe
+- https://innfactory.ai/en/ai-models/qwen/
+- https://www.alibabacloud.com/help/en/mse/product-overview/feature-release-record
+- https://www.alibabacloud.com/help/en/waf/web-application-firewall-3-0/enable-waf-protection-for-aig-instance.md
+- https://www.itcaocao.com/signals
+- https://dig.watch/updates/alibaba-cloud-opens-ai-centre-in-singapore-to-drive-regional-innovation
+- https://www.alibabacloud.com/help/doc-detail/3049222.html
+- https://sgai.md/ecosystem/alibaba-cloud/
+- https://www.alibabacloud.com/help/en/cloudsso/developer-reference/api-cloudsso-2021-05-15-endpoint
+- https://aws.amazon.com/about-aws/whats-new/2025/10/amazon-bedrock-agentcore-available/
+- https://help.aliyun.com/en/model-studio/official-and-third-party-mcp
+- https://support.huaweicloud.com/intl/en-us/bestpractice-functiongraph/functiongraph_05_1216.html
+- https://learn.microsoft.com/en-us/azure/azure-functions/functions-mcp-tutorial
+- https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture
+- https://docs.azure.cn/en-us/azure-functions/scenario-mcp-apps
+- https://www.youtube.com/watch?v=dBSYt-vuEmA
+- https://developers.google.com/knowledge/reference/mcp
+- https://firebase.google.com/docs/ai-assistance/mcp-server
+- https://docs.cloud.google.com/bigquery/docs/use-bigquery-mcp
+- https://mcpservers.org/
+- https://mcp.so/
+- https://docs.cloud.google.com/generative-ai-app-builder/docs/reference/mcp
+- https://www.youtube.com/watch?v=Y9O9bNSOfXM
+- https://glama.ai/mcp/servers
+- https://github.com/mrkrsl/web-search-mcp
+- https://www.k2view.com/blog/awesome-mcp-servers
+- https://www.firecrawl.dev/blog/best-web-search-mcp
+- https://www.alibabacloud.com/en/product/table-store/pricing?_p_lc=1
+- https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/product-billing
+- https://www.alibabacloud.com/help/en/tablestore/table-store-service/product-overview/billable-items-of-search-index
+- https://help.aliyun.com/en/tablestore/memory-storage-service-sub-product-test/product-billing
+- https://www.alibabacloud.com/en/product/table-store?_p_lc=1
+- https://www.alibabacloud.com/help/ja/tablestore/memory-storage-service-sub-product-test/product-billing
+- https://www.alibabacloud.com/help/en/tablestore/table-store-service/product-overview/billing-overview/
+- https://www.alibabacloud.com/help/en/tablestore/table-store-service/product-overview/storage-usage
+- https://www.enterprisestorageforum.com/products/alibaba-cloud-storage/
+- https://www.reddit.com/r/elasticsearch/comments/fss8k6/aws_elasticsearch_vs_elastic_cloud_vs_alibaba/
+- https://www.linkedin.com/posts/elastic-co_elastic-cloud-serverless-activity-7489032138999275520-wvVR
+- https://www.alibabacloud.com/blog/migrating-from-aws-opensearch-to-alibaba-cloud-elasticsearch-a-step-by-step-guide_601072
+- https://landscape.chinaready.co/alternatives/amazon-opensearch-serverless
+- https://www.linkedin.com/posts/chinareadyco_aws-alibabacloud-tencentcloud-activity-7494048973570125825-sXf2
+- https://help.aliyun.com/en/agentrun/open-service-area
+- https://www.alibabacloud.com/help/es/agentrun/open-service-area
+- https://www.alibabacloud.com/help/tr/agentrun/open-service-area
+- https://www.alibabacloud.com/help/pt-br/agentrun/open-service-area
+- https://help.aliyun.com/en/api-gateway/cloud-native-api-gateway/product-overview/new-feature-release-record
+- https://help.aliyun.com/en/api-gateway/traditional-api-gateway/product-overview/dedicated-instance
+- https://privacywatch.wyrdwerk.com/
+- https://help.aliyun.com/en/cms/cloudmonitor-2-0/application-scenarios-and-service-opening-areas-of-the-data-delivery-function/
+- https://help.aliyun.com/en/cms/cloudlens-for-hologres-usage-restrictions
+- https://help.aliyun.com/en/clickhouse/product-overview/region-and-zone
+- https://help.aliyun.com/en/api-gateway/traditional-api-gateway/product-overview/instance-types
+- https://aws.amazon.com/s3/pricing/
+- https://cloud.google.com/bigtable/pricing
+- https://azure.microsoft.com/en-us/pricing/details/storage/blobs/
+- https://www.safespring.com/en/price/
+- https://www.enterprisestorageforum.com/cloud/aws-s3-pricing/
+- https://www.amazonaws.cn/en/s3/pricing/
+- https://www.singlestore.com/cloud-pricing/
+- https://xata.io/pricing
+- https://www.alibabacloud.com/de/campaign/mega-sale?_p_lc=1
+- https://github.com/ever-works/awesome-vector-databases/blob/master/details/alibaba-cloud-opensearch-vector-search.md
+- https://www.alibabacloud.com/help/en/open-search/scenarios.md
+- https://medium.com/@zzzeko2024/vector-search-using-alibaba-cloud-inference-api-and-semantic-text-4c5095b8abea
+- https://slashdot.org/software/comparison/Alibaba-Cloud-OpenSearch-vs-VectorDB/
+- https://apps.apple.com/us/app/amap-global/id461703208
+- https://play.google.com/store/apps/details?id=com.autonavi.minimap&hl=en_US
+- https://www.facebook.com/alibabagroupofficial/videos/check-out-how-amap-is-pioneering-aidriven-lifestyle-services/1626491851829358/
+- https://www.trip.com/guide/info/amap.html
+- https://www.modelscope.cn/mcp/servers/@amap/amap-maps
+- https://developers.google.com/maps/ai/maps-experience-agent-tools
+- https://www.anthropic.com/news/model-context-protocol
+- https://www.morningstar.com/news/pr-newswire/20260924cn55981/amap-launches-spatial-intelligence-open-platform-for-no-code-ai-agents-in-location-services
+- https://stadiamaps.com/location-for-ai/
+- https://www.alibabacloud.com/help/en/agentrun/agenrun-sandbox-upgrade-fc-cloud-sandbox-scheme
+- https://e2b.dev/
+- https://medium.com/coding-nexus/alibaba-just-open-sourced-the-sandbox-infrastructure-they-use-internally-e0c430172e9a
+- https://sandboxer.com/compare/alibaba-cloud-agent-sandbox
+- https://www.alibabacloud.com/help/en/agent-sandbox/code-interpreter-of-fc-agent-sandbox/
+- https://www.alibabacloud.com/help/en/ecs/user-guide/regions-and-zones
+- https://dgtlinfra.com/alibaba-cloud-data-center-locations/
+- https://help.aliyun.com/en/milvus/product-overview/announcements-and-updates/
+- https://slashdot.org/software/comparison/Alibaba-Cloud-OpenSearch-vs-Amazon-OpenSearch-Service/
+- https://www.alibabacloud.com/help/en/dataworks/user-guide/bind-opensearch-computing-resources
+- https://awsfundamentals.com/regions/service/amazon-opensearch-service
+- https://aws.amazon.com/about-aws/whats-new/2026/08/opensearch-ingestion-available-govcloud-regions/
+- https://www.alibabacloud.com/help/en/hologres/user-guide/supported-regions-and-zones
+- https://www.alibabacloud.com/blog/597880
+- https://www.alibabacloud.com/help/en/hologres/product-overview/subscription-1
+- https://www.alibabacloud.com/en/product/polardb?_p_lc=1
+- https://help.aliyun.com/en/polardb/polardb-for-postgresql/global-database-network
+- https://stackoverflow.com/questions/79895852/postgresql-polardb-pg-16-select-now-always-returns-asia-shanghai-timezone-vi
+- https://learn.microsoft.com/en-us/answers/questions/2119473/locate-postgresql-databases-exact-location
+- https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.Aurora_Fea_Regions_DB-eng.Feature.GlobalDatabase.html
+- https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/what-is-an-ai-gateway
+- https://www.alibabacloud.com/blog/sofa-ai-gateway-implementation_602602
+- https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/user-guide/managing-the-model-api
+- https://x.com/alibaba_cloud/status/1905177144084541667
+- https://apisix.apache.org/learning-center/mcp-protocol-ai-gateway/
+- https://developer.konghq.com/ai-gateway/entities/ai-mcp-server/
+- https://help.aliyun.com/en/document_detail/2872302.html
+- https://aws.amazon.com/blogs/machine-learning/integrating-amazon-bedrock-agentcore-with-slack/
+- https://www.youtube.com/watch?v=atWXM5lziY8
+- https://www.salesforce.com/blog/agentforce-mcp-integration-aws-agentcore/
+- https://joudwawad.medium.com/aws-bedrock-agentcore-deep-dive-6822e4071774
+- https://www.linkedin.com/posts/prajwalendra_cross-platform-a2a-salesforce-agentforce-activity-7460297809238474752-WHg6
+- https://help.aliyun.com/en/agentcore/api-agentcore-2026-08-04-listagentimchannels
+- https://next.api.alibabacloud.com/api/AgentCore/2026-08-04/ListSkills?RegionId=cn-hangzhou
+- https://next.api.alibabacloud.com/api-tools/sdk
+- https://error-center.alibabacloud.com/document/AgentExplorer/2026-03-17/SearchSkills
+- https://www.alibabacloud.com/help/en/agentrun/introduction-to-tools-and-skills
+- https://www.alibabacloud.com/blog/does-do-not-work-on-ai-agents-900-tests-with-agentrun-mcp-tool-hooks_603668
+- https://www.facebook.com/groups/developerkaki/posts/2434014983611067/
+- https://github.com/aliyun/alibabacloud-agent-toolkit
+- https://www.reddit.com/r/mcp/comments/1m1cwvr/i_built_a_platform_for_agents_to_automatically/
+- https://cloud.google.com/blog/products/ai-machine-learning/google-managed-mcp-servers-are-available-for-everyone
+- https://developers.zoom.us/docs/mcp/
+- https://github.com/wong2/awesome-mcp-servers
+- https://registry.modelcontextprotocol.io/
+- https://devblogs.microsoft.com/visualstudio/mcp-is-now-generally-available-in-visual-studio/
+- https://docs.cloud.google.com/mcp/supported-products
+- https://www.alibabacloud.com/help/en/functioncompute/what-is-function-compute
+- https://www.alibabacloud.com/help/en/functioncompute/release-notes-2025
+- https://www.alibabacloud.com/en/product/function-compute?_p_lc=1
+- https://www.alibabacloud.com/blog/%EF%BB%BFbuilding-serverless-applications-with-alibaba-cloud-function-compute_602684
+- https://www.alibabacloud.com/blog/597301
+- https://docs.opsramp.com/integrations/public-cloud/alibaba/supported-services/alibaba-function-compute/
+- https://www.alibabacloud.com/blog/602905
+- https://www.alibabacloud.com/help/en/redis/tair-semantic-caching-gateway-03/
+- https://www.reddit.com/r/Qwen_AI/comments/1s48o3e/question_very_high_token_charges_using_claude/
+- https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/cross-region-inference.html
+- https://medium.com/@adnanmasood/where-agents-live-part-2-amazon-bedrock-agentcore-on-aws-ee3c99381b87
+- https://serverlessland.com/blog/secure-ingress-connectivity-to-amazon-bedrock-agentcore-gateway-using-interface-vpc-endpoints---artificial-intelligence
+- https://unit42.paloaltonetworks.com/exploit-of-aws-agentcore-iam-god-mode/
+- https://towardsaws.com/on-amazon-bedrock-agentcore-gateway-11da5a1485de
+- https://hidekazu-konishi.com/entry/amazon_bedrock_agentcore_evaluations_practical_guide.html
+- https://www.pwc.com/us/en/technology/alliances/library/amazon-bedrock-agentcore-hands-on-guide.html
+- https://www.facebook.com/groups/DeepNetGroup/posts/2611851045874428/
+- https://builder.aws.com/build/workshops
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-createagentimchannel
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-getagentimchannel
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-updateagentimchannel
+- https://www.alibabacloud.com/help/en/agentcore/configure-dingtalk-account-integration.md
+- https://help.dingtalk.io/mail/activate-alibaba-enterprise-mail
+- https://www.youtube.com/watch?v=YmXszEVI-x8
+- https://www.alibabacloud.com/help/en/agentcore/overview-of-knowledge-base-connections.md
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-searchmemories.md
+- https://aws.amazon.com/blogs/machine-learning/amazon-bedrock-agentcore-memory-building-context-aware-agents/
+- https://builder.aws.com/content/31EAT7AFV2iDtQinwvN3OVuMCId/building-an-ai-powered-customer-support-assistant-with-amazon-bedrock-agentcore
+- https://repost.aws/questions/QUqNsrk5DARQyDTQpgGo222w/correct-role-for-agent-memory-to-access-a-model
+- https://www.alibabacloud.com/blog/introducing-the-new-full-stack-observability-in-simple-log-service_600928
+- https://www.alibabacloud.com/blog/one-command-equips-your-openclaw-with-an-x-ray-machine---alibaba-cloud-observability-makes-farming-lobsters-cheaper-and-safer_603039
+- https://www.alibabacloud.com/blog/601346
+- https://www.cloudzero.com/blog/ai-cost-observability/
+- https://www.guance.com/learn/articles/ai-observability-platform-selection-2026?lang=en
+- https://www.youtube.com/watch?v=sZSFE142dvU
+- https://www.alibabacloud.com/en/product/log-service?_p_lc=1
+- https://apsarastackdocument.oss-cn-hangzhou.aliyuncs.com/%E5%9B%BD%E9%99%85%E7%89%88%E6%96%87%E6%A1%A3/v3.18.6%E7%89%88%E6%9C%AC%E6%96%87%E6%A1%A3/AI%20%E7%BD%91%E5%85%B3/Alibaba%20Cloud%20Apsara%20Stack%20V3.18.6%20AI%20Gateway%20Product%20Introduction%2020260108.pdf
+- https://www.mulesoft.com/ai/what-is-ai-gateway
+- https://apsarastackdocument.oss-cn-hangzhou.aliyuncs.com/%E5%9B%BD%E9%99%85%E7%89%88%E6%96%87%E6%A1%A3/v3.20.0%E7%89%88%E6%9C%AC%E6%96%87%E6%A1%A3/AI%20%E7%BD%91%E5%85%B3/Alibaba%20Cloud%20Apsara%20Stack%20V3.20.0%20AI%20Gateway%20Product%20Introduction%2020260422.pdf
+- https://noise.getoto.net/tag/ai-gateway/
+- https://noise.getoto.net/tag/workers-ai/
+- https://www.alibabacloud.com/blog/602527
+- https://www.instagram.com/p/Db3ghVWlYv9/
+- https://ohmyopenagent.com/docs
+- https://de.linkedin.com/in/arnob-mahmud-05839655
+- https://www.scribd.com/document/903378895/Smart-Container-Manufacture
+- https://jawadhassan.dev/blog
+- https://www.whetstoneai.io/
+- https://www.instagram.com/p/DVJfhCWCOFa/?hl=de
+- https://ecorpit.com/sitemap/
+- https://www.instagram.com/hillary_onyeka_/
+- https://help.aliyun.com/en/api-gateway/ai-gateway/user-guide/managing-the-model-api
+- https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/use-cases/
+- https://www.youtube.com/watch?v=SxRKXfBsd1c
+- https://www.alibabacloud.com/blog/ack-gateway-with-ai-extension-intelligent-routing-practice-for-kubernetes-large-model-inference_602361
+- https://developer.konghq.com/cookbooks/model-based-routing/
+- https://intl.cloud.tencent.com/document/product/1310/81843
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-verifyconnector.md
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-updatemanagedagent.md
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-updateconnector
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-getmanagedagent
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-createmanagedagent
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-listmanagedagents
+- https://api.alibabacloud.com/document/AgentCore/2026-08-04/VerifyConnector
+- https://www.c1.ai/docs/baton/google-cloud-platform
+- https://www.elastic.co/docs/reference/integrations/gcp
+- https://www.youtube.com/watch?v=ZGElhJmN_8o
+- https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity-idp-google.html
+- https://github.com/aws-samples/sample-agent-interoperability
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-overview
+- https://auth0.com/blog/securing-amazon-bedrock-agentcore-agents-auth0-for-ai-agents/
+- https://nango.dev/blog/best-tools-to-trigger-ai-agents-from-email/
+- https://dev.to/aws-builders/can-google-adk-talk-to-amazon-bedrock-agentcore-runtime-a-cross-cloud-a2a-benchmark-53cp
+- https://caylent.com/blog/amazon-bedrock-agent-core-redefining-agent-infrastructure-as-undifferentiated-heavy-lifting
+- https://www.alibabacloud.com/help/en/ga/use-cases/ga-linked-cloud-firewall-for-regional-access-control-and-acceleration
+- https://www.alibabacloud.com/help/en/nas/developer-reference/api-nas-2017-06-26-endpoint
+- https://www.alibabacloud.com/help/en/eip/elastic-ip-address
+- https://www.alibabacloud.com/help/en/simple-application-server/use-cases/
+- https://www.morphllm.com/qwen-api
+- https://learn.microsoft.com/en-us/microsoft-copilot-studio/requirements-messages-management
+- https://push-based.io/article/github-copilot-ai-credits-the-billing-change-developers-should-notice
+- https://visualstudiomagazine.com/articles/2026/06/04/copilot-billing-shock-hits-developers.aspx
+- https://www.finout.io/blog/github-copilot-pricing-plans-hidden-costs-and-5-ways-to-control-them
+- https://seemoredata.io/blog/the-hidden-ai-agent-data-cost-on-your-stack/
+- https://www.digitalapplied.com/blog/github-copilot-ai-credits-billing-2026-cost-audit-playbook
+- https://docs.replit.com/billing/ai-billing
+- https://docs.gumloop.com/core-concepts/credits
+- https://www.alibabacloud.com/help/en/agent-sandbox/view-resource-usage.md
+- https://createos.sh/vs/alibaba-agentrun
+- https://www.alibabacloud.com/help/en/functioncompute/pay-as-you-go-of-fc-agent-sandbox
+- https://fly.io/learn/ai-sandbox-pricing/
+- https://www.agent37.com/pricing
+- https://help.aliyun.com/en/functioncompute/pay-as-you-go-of-fc-agent-sandbox
+- https://lizard.build/blog/cheapest-cloud-sandbox-ai-agents
+- https://www.beam.cloud/blog/e2b-pricing-explained
+- https://www.alibabacloud.com/help/en/agentbay/product-overview/agentbay-billing-instructions
+- https://www.alibabacloud.com/help/en/ecs/pay-as-you-go-1
+- https://help.aliyun.com/en/agentbay/product-overview/agentbay-pricing-adjustment-announcement
+- https://www.alibabacloud.com/help/en/aidbs/product-overview/billing-overview
+- https://baike.baidu.com/en/item/Alibaba%20Cloud%20AI%20Guardrails/1670178
+- https://help.aliyun.com/en/milvus/use-cases/build-content-safety-guardrail-with-data-inspection
+- https://omdia.tech.informa.com/om138206/on-the-radar-alibaba-cloud-champions-a-holistic-approach-to-ai-safety-and-security
+- https://www.alibabacloud.com/en/trust-center/security-compliance-practice?_p_lc=1
+- https://help.aliyun.com/en/agentloop/developer-reference/api-agentloop-2026-05-20-endpoint
+- https://www.alibabacloud.com/help/doc-detail/3041793.html
+- https://docs.aws.amazon.com/devopsagent/latest/userguide/about-aws-devops-agent-supported-regions.html
+- https://www.tencentcloud.com/document/product/236/8458
+- https://verl.readthedocs.io/en/latest/advance/agent_loop.html
+- https://modelavailability.com/platforms/aws/regions/ap-southeast-1
+- https://blogs.oracle.com/developers/what-is-the-ai-agent-loop-the-core-architecture-behind-autonomous-ai-systems
+- https://learn.microsoft.com/en-us/fabric/fundamentals/data-agent-consumption
+- https://getlago.com/blog/ai-billing-infrastructure
+- https://docs.replit.com/billing/about-usage-based-billing
+- https://explained.tines.com/en/articles/12801399-ai-usage-and-credits
+- https://www.revefi.com/blog/wait-my-snowflake-bill-did-what-the-hidden-cost-of-agentic-ai-in-snowflake
+- https://github.github.com/gh-aw/specs/ai-credits-specification/
+- https://www.alibabacloud.com/help/en/agentidentity/using-agent-identity-in-bailian-high-code
+- https://www.alibabacloud.com/help/doc-detail/3036577.html
+- https://www.alibabacloud.com/help/en/agent-sandbox/acs-agent-sandbox-security-best-practices
+- https://www.alibabacloud.com/en/product/identity-as-a-service-idaas?_p_lc=1
+- https://help.aliyun.com/en/agentidentity/using-agent-identity-in-agenrun
+- https://github.com/aliyun/agent-identity-dev-kit/blob/main/agent_identity_python_samples/fetch-sts-token_sample/README.md
+- https://www.alibabacloud.com/help/en/asc/user-guide/ai-red-teaming
+- https://ysecurity.io/blog/ai-agent-credential-inventory/
+- https://docs.paloaltonetworks.com/prisma-airs/new-features/by-date/prisma-airs/may-2026
+- https://docs.byteplus.com/es/docs/identity/Glossary
+- https://www.alibabacloud.com/help/en/security-center/feature-release-notes-2
+- https://www.alibabacloud.com/help/en/security-center/user-guide/enable-log-analysis
+- https://alibaba-cloud.medium.com/one-stop-management-for-cloud-security-alibaba-cloud-security-center-71bde121f90d
+- https://www.alibabacloud.com/help/en/security-center/functions-and-features
+- https://www.sentinelone.com/cybersecurity-101/cloud-security/alibaba-cloud-security/
+- https://createos.sh/vs/alibaba-ecs
+- https://www.alibabacloud.com/help/en/cs/product-overview/product-billing-rules
+- https://northflank.com/blog/ai-sandbox-pricing
+- https://www.reddit.com/r/AI_Agents/comments/1tg3i11/in_18_months_billing_for_ai_agents_will_look_like/
+- https://upstash.com/blog/ai-sandbox-pricing-active-cpu-vs-wall-clock
+- https://help.aliyun.com/en/cs/product-overview/billing/
+- https://www.developersdigest.tech/models/fine-tuning/alibaba-model-studio
+- https://vietnamnews.vn/media-outreach/1656172/alibaba-cloud-announces-new-availability-zones-and-global-investment-to-fuel-ai-innovation.html
+- https://www.computerweekly.com/news/366570512/Alibaba-Cloud-debuts-Model-Studio
+- https://rankllms.com/reviews/alibaba-model-studio-token-plan-review/
+- https://www.alibabacloud.com/help/en/model-studio/models
+- https://albertoroura.com/testing-alibaba-cloud-model-studio/
+- https://www.elastic.co/search-labs/blog/alibaba-cloud-ai-embeddings-reranking
+- https://help.aliyun.com/en/es/built-in-model-service-of-ai-search-open-platform
+- https://bigdataboutique.com/blog/ai-powered-search-with-elasticsearch
+- https://superlinked.com/blog/optimizing-rag-with-hybrid-search-reranking
+- https://www.alibabacloud.com/blog/elasticsearch-open-inference-api-adds-support-for-alibaba-cloud-ai-search_601634
+- https://help.aliyun.com/en/hologres/product-overview/pay-as-you-go
+- https://zilliz.com/pricing
+- https://cloudpricecalculators.com/alibaba-calculator/
+- https://www.alibabacloud.com/help/doc-detail/3064616.html
+- https://help.aliyun.com/en/cms/cloudmonitor-2-0/supported-regions
+- https://www.alibabacloud.com/help/id/agentidentity/what-is-agent-identity
+- https://www.usecarly.com/blog/agent-identity/
+- https://www.alibabacloud.com/help/es/agentidentity/what-is-agent-identity
+- https://help.aliyun.com/en/agentidentity/obtain-oauth-access-token
+- https://www.alibabacloud.com/help/zh/agentidentity/what-is-agent-identity
+- https://help.aliyun.com/en/agentidentity/inbound/
+- https://www.alibabacloud.com/help/en/asc/product-overview/what-is-the-agent-security-center
+- https://help.aliyun.com/en/asc/user-guide/ai-assets-1
+- https://www.alibabacloud.com/en/about/idc-catd-2026?_p_lc=1
+- https://www.linkedin.com/posts/alibabacloudglobal_ai-aiagent-security-activity-7465597917752438784-fcA0
+- https://learn.microsoft.com/en-us/azure/foundry/concepts/ai-red-teaming-agent
+- https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/what-is-an-agentloop
+- https://www.alibabacloud.com/blog/603177
+- https://www.alibabacloud.com/help/en/agentloop/core-concept
+- https://springdevpro.com/spring-ai-alibaba/observability/
+- https://aimultiple.com/agentic-monitoring
+- https://github.com/aliyun/hermes-tablestore-memory
+- https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/memory-storage-overview
+- https://help.aliyun.com/en/tablestore/memory-storage-service-sub-product-test/news-and-announcements
+- https://aws.amazon.com/marketplace/build-learn/ai-agent-learning-series/agent-memory-systems/
+- https://builder.aws.com/content/3BXrjn6hQRKef80t1exVag9W2xp/understanding-storage-memory-and-state-in-amazon-bedrock-agentcore
+- https://hermes-agent.nousresearch.com/docs/user-guide/features/memory
+- https://mem0.ai/library/integrations/build-persistent-memory-for-agentic-ai-applications-with-mem0-open-source-amazon-elasticache-for-valkey-and-amazon-neptune-analytics
+- https://www.certsafari.com/databricks/gen-ai-engineer-associate/learn/managed-agent-memory-stores-save-search-and-isolate-long-term-memory
+- https://contextual.ai/blog/document-parser-for-rag/
+- https://help.aliyun.com/en/analyticdb/analyticdb-for-postgresql/openapi-based-rag-applications-1
+- https://www.linkedin.com/posts/kamaljeetkharbanda_my-rag-journey-part-1document-parsing-activity-7363759611666939904-Rrqq
+- https://www.youtube.com/watch?v=uLrReyH5cu0
+- https://dev.to/aairom/inside-docling-factory-building-a-multimodal-rag-powerhouse-3m4a
+- https://www.reddit.com/r/LLMDevs/comments/1ef1abg/the_rag_engineers_guide_to_document_parsing_with/
+- https://www.nutrient.io/blog/multimodal-rag/
+- https://medium.com/walmartglobaltech/decoding-multimodal-rag-advanced-techniques-for-seamless-document-interaction-part-1-bbc0b07d4703
+- https://arxiv.org/html/2510.15253v2
+- https://www.alibabacloud.com/blog/the-complete-guide-to-hybrid-search-the-perfect-blend-of-full-text-and-vector-search_602921
+- https://www.lancedb.com/blog/hybrid-search-rag-for-real-life-production-grade-applications-e1e727b3965a
+- https://docs.singlestore.com/cloud/developer-resources/functional-extensions/hybrid-search-reranking-full-text-and-vector-search-results/
+- https://www.youtube.com/watch?v=_ZHM4wsUwPs
+- https://www.reddit.com/r/Rag/comments/1gd1hxu/how_are_you_guys_doing_hybrid_search_in_production/
+- https://ubuntu.com/blog/hybrid-search-and-reranking-a-deeper-look-at-rag
+- https://www.meilisearch.com/blog/hybrid-search-rag
+- https://supermemory.ai/blog/hybrid-search-guide/
+- https://ragflow.io/blog/what-infrastructure-capabilities-does-rag-need-beyond-hybrid-search
+- https://www.alibabacloud.com/help/en/polardb/polardb-for-postgresql/guidelines-for-using-polarsearch
+- https://help.aliyun.com/en/polardb/polardb-for-postgresql/polarsearch-dify-create-a-knowledge-base-on-the-cloud
+- https://www.yugabyte.com/key-concepts/using-postgresql-as-a-vector-database/
+- https://aws.amazon.com/video/watch/e8ebe5dadc7/
+- https://aws.amazon.com/blogs/database/supercharging-vector-search-performance-and-relevance-with-pgvector-0-8-0-on-amazon-aurora-postgresql/
+- https://www.tigerdata.com/blog/announcing-pg_vectorsearch-scalable-open-source-vector-search-postgresql
+- https://www.instaclustr.com/education/vector-database/pgvector-vs-opensearch-for-vector-databases-5-differences-and-how-to-choose/
+- https://northflank.com/blog/postgresql-vector-search-guide-with-pgvector
+- https://www.sthambh.com/blog/agentic-rag-enterprise-singapore-hongkong/
+- https://intl.cloud.tencent.com/ind/document/product/1294/76378
+- https://arxiv.org/html/2609.33315v1
+- https://deepeval.com/docs/metrics-agent-loop-detection
+- https://www.linkedin.com/pulse/mental-map-ai-agent-ecosystem-who-owns-loop-rohit-sharma-nmhtf
+- https://www.alibabacloud.com/help/en/model-studio/what-is-model-studio
+- https://docs.modelstudio.console.alibabacloud.com/
+- https://www.alibabacloud.com/blog/model-routing-explained-send-each-request-to-the-cheapest-model-that-passes_603612
+- https://docs.modelstudio.console.alibabacloud.com/en/model-studio/model-usage-statistics
+- https://www.therundown.ai/tools/qwen3-6-27b
+- https://www.alibabacloud.com/blog/603611
+- https://www.quora.com/How-can-I-create-a-model-training-using-Alibaba-Cloud-products-like-OSS-MaxCompute-DataWorks-and-Machine-Learning-Platform-for-AI
+- https://itbrief.asia/story/alibaba-cloud-unveils-new-ai-models-infrastructure-upgrades
+- https://www.alibabacloud.com/help/en/cms/cloudmonitor-1-0/support/appendix-3-endpoints-for-reporting-monitoring-data
+- https://www.alibabacloud.com/en/notice/update_revised_schedule_for_alibaba_cloud_network_infrastructure_upgrade_in_singapore_germany_frankfurt_and_uk_london_regions_337?_p_lc=1
+- https://slashdot.org/software/comparison/Alibaba-Cloud-vs-CloudMonitor/
+- https://aiven.io/docs/platform/reference/list_of_clouds
+- https://www.splunk.com/en_us/blog/learn/best-agent-observability-platforms.html
+- https://www.eqs-news.com/news/corporate/alibaba-cloud-unveils-advanced-agentic-ai-ecosystem-for-global-customers/a191d39b-db45-48ed-b194-9cce5071b556_en
+- https://www.facebook.com/alibabacloud/posts/alibaba-cloud-has-been-recognized-as-a-leader-in-omdias-agentic-ai-market-radara/1435826505256104/
+- https://www.groundcover.com/learn/ai-observability/ai-observability-tools
+- https://mlflow.org/top-5-agent-observability-tools/
+- https://nango.dev/blog/best-enterprise-grade-agent-api-integration-providers/
+- https://www.elsai.ai/foundry/arms
+- https://www.alibabacloud.com/help/en/polardb/polardb-for-mysql/user-guide/guidelines-for-using-polarsearch
+- https://help.aliyun.com/en/polardb/polardb-for-mysql/user-guide/polarsearch-dify-create-a-knowledge-base-on-the-cloud
+- https://www.alibabacloud.com/blog/603384
+- https://doc.polardbx.com/en/
+- https://asia.microfusion.cloud/cloud-solution/polar-db/
+- https://www.computerweekly.com/news/252433676/AWS-opens-third-availability-zone-in-Singapore
+- https://www.meilisearch.com/docs/capabilities/platform/infrastructure/regions
+- https://www.alibabacloud.com/blog/lindorm-alibaba-clouds-newest-cloud-native-multi-model-database_596269
+- https://www.alibabacloud.com/blog/introduction-to-alibaba-cloud-lindorm---a-cloud-native-multi-model-database-service_599538
+- https://www.gartner.com/reviews/product/lindorm
+- https://www.alibabacloud.com/help/en/lindorm/product-overview/architecture
+- https://baike.baidu.com/en/item/Cloud%20Native%20Multi-Model%20Database%20Lindorm/5983935
+- https://www.linkedin.com/posts/yanan-wu-8822449b_lindormmulti-model-databaseindustrial-iotdatabase-alibaba-activity-6977827191287943168-9oU2
+- https://mcpmarket.com/server/lindorm
+- https://github.com/alibabacloud-go/docmind-api-20220711
+- https://packagist.org/packages/alibabacloud/docmind-api-20220711
+- https://www.requesty.ai/models/alibaba
+- https://www.alibabacloud.com/help/en/open-search/search-platform/user-guide/building-knowledge-base-online-q-a-based-on-rag
+- https://www.alibabacloud.com/help/en/open-search/search-platform/user-guide/experience-center
+- https://www.alibabacloud.com/help/doc-detail/2785607.html
+- https://help.aliyun.com/en/open-search/search-platform/
+- https://docs.opensearch.org/latest/vector-search/ai-search/conversational-search/
+- https://builder.aws.com/content/3KNjANY7DHUjTKcxmx8WeOBhiT8/aws-mcp-server-now-in-6-new-regions
+- https://docs.livekit.io/deploy/admin/regions/endpoints/
+- https://docs.blaxel.ai/Infrastructure/Regions
+- https://cerebrium.ai/docs/deployments/multi-region-deployment
+- https://docs.cloud.google.com/agent-registry/locations
+- https://www.alibabacloud.com/help/en
+- https://www.alibabacloud.com/help/en/account/verify-your-identity-individual-account.md
+- https://www.alibabacloud.com/help/en/legal/latest/alibaba-cloud-international-website-privacy-policy
+- https://www.facebook.com/alibabacloud/posts/what-if-a-destination-film-could-start-with-documents-instead-of-storyboardswith/1504437818394972/
+- https://www.alibabacloud.com/help/en/oss/
+- https://github.com/AlibabaCloudDocs
+- https://www.alibabagroup.com/document-1490879613155409920
+- https://www.alibabacloud.com/help/en/agent-sandbox/use-kms-secret-api-key-credentials-with-credentialprovider
+- https://www.alibabacloud.com/help/en/cs/user-guide/storage-configuration/
+- https://www.alibabacloud.com/help/en/agentidentity/saml-identity-provider-management
+- https://www.alibabacloud.com/help/zh/agent-sandbox/acs-agent-sandbox-security-best-practices
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-convertmcptofreeedit
+- https://help.aliyun.com/en/document_detail/3059951.html
+- https://www.sourcesecurity.com/news/alibaba-cloud-ai-guardrails-boost-security-co-7261-ga-co-13828-ga-co-1716962886-ga.1750749066.html
+- https://www.alibabacloud.com/help/en/milvus/product-overview/ai-center-billing
+- https://getdeploying.com/alibaba-cloud
+- https://milvus.io/blog/how-to-cut-vector-database-costs-by-up-to-80-a-practical-milvus-optimization-guide.md
+- https://help.aliyun.com/en/milvus/product-overview/overdue-payments
+- https://www.alibabacloud.com/help/en/nat-gateway/nat-gateway-billing
+- https://azure.microsoft.com/en-us/pricing/details/storage/tables/
+- https://cloud.google.com/storage/pricing
+- https://docs.byteplus.com/en/docs/HBase/Billing_items_and_prices
+- https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-billing&locale=en
+- https://www.oracle.com/cloud/price-list/
+- https://docs.cloud.google.com/billing/docs/how-to/export-data-bigquery-tables/detailed-usage
+- https://www.alibabacloud.com/help/en/agentbay/agentbay-browseruse
+- https://www.alibabacloud.com/help/en/agentbay/developer-reference/mcp-computer-use/
+- https://news.aibase.com/news/20097
+- https://www.alibabacloud.com/help/en/sls/
+- https://camel.apache.org/components/next/alibaba-sls-component.html
+- https://github.com/aliyun/aliyun-sls-agent-skills
+- https://www.alibabacloud.com/blog/a-unified-solution-for-observability---make-sls-compatible-with-opentelemetry_597157
+- https://help.aliyun.com/zh/agentloop/product-overview/server-launch-regions-of-agentloop
+- https://www.alibabacloud.com/help/zh/agentloop/product-overview/server-launch-regions-of-agentloop
+- https://docs.temporal.io/evaluate/cloud/regions
+- https://help.aliyun.com/en/agentloop/
+- https://console.cloud.tencent.com/developer/region
+- https://higress.ai/en/blog/higress-mmse_awbbpb_grlu3hqq25wxbuxl/
+- https://sevencoloryun.com/blog/aliyun-singapore-server-complete-guide-2026/
+- https://www.alibabacloud.com/help/en/user-center/cost-breakdown
+- https://www.alibabacloud.com/help/en/hologres/product-overview/billing-overview
+- https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/developer-reference/api-cms-2024-03-30-endpoint
+- https://www.alibabacloud.com/help/en/functioncompute/service-endpoints
+- https://www.amazonaws.cn/en/new/2026/amazon-bedrock-agentcore-is-available/
+- https://www.aws-services.info/bedrock-agentcore.html
+- https://www.alibabacloud.com/help/en/model-studio/beijing-access-information
+- https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/limits-of-agent-sandbox
+- https://www.alibabacloud.com/help/en/agent-sandbox/build-and-manage-custom-templates-with-code
+- https://www.alibabacloud.com/help/en/agent-sandbox/getting-started/using-the-cloud-sandbox-via-the-sdk
+- https://www.alibabacloud.com/blog/one-click-openclaw-deployment-building-enterprise-grade-ai-agent-applications-with-acs-agent-sandbox_602980
+- https://www.alibabacloud.com/help/en/eventbridge/product-overview/what-is-eventbridge
+- https://www.alibabacloud.com/help/en/functioncompute/fc/configure-an-eventbridge-based-oss-trigger
+- https://www.alibabacloud.com/blog/alibaba-cloud-launches-wan-v2-1-a-new-generation-of-ai-video-generation-technology_599742
+- https://www.alibabacloud.com/help/en/functioncompute/best-practices-for-building-dingtalk-connectors
+- https://slashdot.org/software/p/Alibaba-Cloud-EventBridge/alternatives
+- https://help.aliyun.com/en/eventbridge/use-cases/build-custom-event-buses-for-saas-platforms
+- https://repost.aws/questions/QUOo47wM9BTDqB1wakOyftWA/eventbridge-and-glue-workflow
+- https://sourceforge.net/software/product/Alibaba-Cloud-EventBridge/alternatives
+- https://www.alibabacloud.com/blog/embrace-the-future-of-event-driven-architectures-with-alibaba-clouds-eventbridge_601199
+- https://www.youtube.com/watch?v=277kmdC626Q
+- https://www.alibabacloud.com/help/en/direct-mail/email-sending-faqs
+- https://stackoverflow.com/questions/51582792/receving-email-using-alibaba-cloud-direct-mail
+- https://www.alibabacloud.com/help/en/direct-mail/product-overview/directmail
+- https://www.alibabacloud.com/help/en/direct-mail/user-guide/overview
+- https://www.alibabacloud.com/help/en/direct-mail/api-dm-2015-11-23-overview
+- https://www.alibabacloud.com/blog/what-is-alibaba-cloud-directmail_593945
+- https://sourceforge.net/software/product/Alibaba-Cloud-Direct-Mail/alternatives
+- https://www.alibabacloud.com/help/en/direct-mail/faqs-about-receiving-replies
+- https://help.aliyun.com/en/direct-mail/getting-started/simplified-procedure-of-sending-by-api-and-smtp
+- https://www.youtube.com/watch?v=6XR9QRM1Cn4
+- https://www.alibabacloud.com/help/en/eventbridge/use-cases/automatically-trigger-an-http-api-operation-dingtalk-adding-member-information
+- https://www.youtube.com/watch?v=7_FL9_RbLMY&vl=en
+- https://www.alibabacloud.com/help/en/agentrun/agent-integration-dingtalk.md
+- https://help.aliyun.com/en/model-studio/add-an-ai-assistant-to-your-dingtalk
+- https://www.scmp.com/tech/article/3247831/alibabas-dingtalk-updates-workplace-collaboration-app-new-ai-agent-amid-growing-client-demand
+- https://www.alibabacloud.com/blog/alibaba%E2%80%99s-dingtalk-hits-700m-users-and-unveils-ai-agent-to-boost-workspace-productivity_600754
+- https://www.computerweekly.com/news/366640461/Alibaba-joins-AI-agent-race-with-Wukong-launch
+- https://www.alibabacloud.com/blog/setting-up-an-ai-chatbot-for-marketing-automation-with-alibaba-cloud-model-studio_603115
+- https://www.rapiddata.com/solutions/ai-agents/ai-workflow-automation-shanghai-china.html
+- https://www.alibabacloud.com/help/en/openapi/use-aliyun-mcp-proxy-agent-openapi-mcp-server
+- https://help.aliyun.com/en/openapi/user-guide/openapi-mcp-server-guide
+- https://baike.baidu.com/en/item/OpenAPI%20MCP%20Server/6729266
+- https://glama.ai/mcp/servers/ahmedselimmansor-ctrl/Alibaba_cloud_MCP_server/tools/aliyun_invoke_api
+- https://www.alibabacloud.com/help/en/ack/ack-managed-and-ack-dedicated/developer-reference/api-cs-2015-12-15-endpoint
+- https://www.alibabacloud.com/help/en/model-studio/base-url
+- https://help.aliyun.com/en/oss/user-guide/regions-and-endpoints
+- https://api.alibabacloud.com/api/Ga/2019-11-20/CreateCustomRoutingEndpointTrafficPolicies
+- https://www.alibabacloud.com/help/en/maxcompute/endpoints
+- https://www.alibabacloud.com/help/en/ack/distributed-cloud-container-platform-for-kubernetes/developer-reference/api-adcp-2022-01-01-endpoint
+- https://enabridge.ai/brief/26-08-03-0612
+- https://upstash.com/blog/ai-agent-sandbox-providers-compared-2026
+- https://help.aliyun.com/en/cs/user-guide/agent-sandbox/
+- https://www.langchain.com/resources/best-agent-sandboxes
+- https://www.daytona.io/dotfiles/new-regions-available-ai-sandboxes-in-multiple-locations
+- https://medium.com/@balajibal/agent-sandboxes-the-runtime-layer-for-enterprise-ai-agents-88f207ac5e2e
+- https://www.augmentcode.com/guides/agent-execution-sandbox
+- https://northflank.com/blog/how-to-sandbox-ai-agents
+- https://www.alibabacloud.com/help/es/milvus/product-overview/billing-item
+- https://www.alibabacloud.com/help/en/cen/product-overview/billing-rules
+- https://www.alibabacloud.com/en/product/content-delivery-network/pricing?_p_lc=1
+- https://www.alibabacloud.com/help/en/content-moderation/latest/detecting-agent-billing-schemes
+- https://www.cloudzero.com/blog/ai-cost-guardrails/
+- https://help.aliyun.com/en/skillsportal/learn-about-the-alibaba-cloud-agent-skills-portal
+- https://github.com/aliyun/data-agent-skill/blob/main/alibabacloud-data-agent-mcp-skill/README.md
+- https://cloud.google.com/blog/topics/developers-practitioners/level-up-your-agents-announcing-googles-official-skills-repository
+- https://composio.dev/content/top-hermes-agents-mcp-servers
+- https://hermes-agent.nousresearch.com/docs/reference/skills-catalog
+- https://docs.bailian.console.aliyun.com/en/model-studio/managed-agents-mcp
+- https://modelstudio.alibabacloud.com/cli/
+- https://help.aliyun.com/en/model-studio/cli/mcp-skill
+- https://github.com/modelstudioai/cli
+- https://cmcp.variflight.com/en/integrations/bailian/
+- https://cloud.google.com/discover/what-is-model-context-protocol
+- https://www.alibabacloud.com/blog/higress-has-been-selected-for-the-global-top-100-mcp-servers-list-%7C-mcpmarket-com_602219
+- https://www.fours.com/solutions/ai-marketplace-distribution/
+- https://help.aliyun.com/en/yunxiao/developer-reference/cloud-effect-mcp-tool-instructions
+- https://mcp.so/servers/alibaba-cloud-ops-mcp-server
+- https://www.alibabacloud.com/blog/602108
+- https://www.alibabacloud.com/help/en/agentrun/open-platform-introduction.md
+- https://www.alibabacloud.com/help/en/model-studio/rag-knowledge-base
+- https://www.forrester.com/blogs/alibabas-next-chapter-from-ai-native-to-agent-native/
+- https://www.alibabacloud.com/blog/openclaw-managed-solution-by-alibaba-cloud_602961
+- https://help.aliyun.com/en/agentrun/knowledge-base-integration-guide
+- https://www.youtube.com/watch?v=At_7kscp7PI
+- https://www.cybage.com/blog/context-and-memory-engineering-building-intelligent-ai-agents-that-learn-and-adapt
+- https://www.alibabacloud.com/help/en/dlf/dlf-1-0/developer-reference/api-datalake-2020-07-10-endpoint
+- https://help.aliyun.com/en/kms/key-management-service/developer-reference/api-kms-2016-01-20-endpoint
+- https://help.aliyun.com/en/analyticdb/analyticdb-for-postgresql/developer-reference/api-gpdb-2016-05-03-endpoint
+- https://help.aliyun.com/en/schedulerx/schedulerx-serverless/developer-reference/api-schedulerx2-2019-04-30-endpoint
+- https://www.alibabacloud.com/help/tr/resource-management/resource-center/developer-reference/api-resourcecenter-2022-12-01-endpoint
+- https://www.alibabacloud.com/help/en/agentcore/mirrored-cache
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-getworkspaceplugin.md
+- https://aws.amazon.com/blogs/aws/introducing-amazon-bedrock-agentcore-securely-deploy-and-operate-ai-agents-at-any-scale/
+- https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-updateworkspace
+- https://help.aliyun.com/en/agentcore/
+- https://x.com/alibaba_cloud/status/2109891282378297843
+- https://www.alibabacloud.com/help/en/ga/pay-by-data-transfer-1/
+- https://www.promptquorum.com/local-llms/alibaba-cloud-vs-tencent-cloud-gpu-ai-2026
+- https://cloudinsight.cc/en/blog/tencent-vs-alibaba-cloud-comparison
+- https://www.alibabacloud.com/help/en/model-studio/newly-released-models
+- https://help.aliyun.com/en/model-studio/newly-released-models
+- https://help.aliyun.com/en/tablestore/table-store-service/memory-storage-introduction
+- https://www.databricks.com/product/pricing
+- https://www.alibabacloud.com/help/en/emr/emr-serverless-spark/product-overview/compute-resources-pay-as-you-go
+- https://www.alibabacloud.com/help/en/agentbay/product-overview/new-user-trial-instructions
+- https://workos.com/blog/guardrails-ai-vs-workos-safety-validation-enterprise-authentication
+- https://www.united-codes.com/products/uc-ai/docs/guides/guardrails/budget/
+- https://trussed.ai/resources/ai-agent-guardrail-cost-per-call-a-practitioner-guide
+- https://www.folio3.com/ai/blog/best-ai-guardrails-platforms
+- https://www.splunk.com/en_us/blog/learn/best-ai-guardrail-platforms.html
+- https://www.retellai.com/learn/how-usage-based-pricing-works-for-ai-voice-agent-platforms
+- https://www.aimagicx.com/blog/ai-agent-spending-guardrails-budget-caps-2026
+- https://guardrail.tech/pricing/
+- https://builder.aws.com/content/3DG5AhVuXBxmEFKQG99tHMC0nFi/securing-agentic-ai-on-amazon-bedrock-agentcore-zero-trust-private-networking-and-identity-patterns
+- https://repost.aws/articles/ARsi7lQ4J4T2qfYJD5RYKUAQ/use-amazon-bedrock-agentcore-capabilities-from-your-existing-eks-agents-in-a-no-egress-vpc-irsa-privatelink
+- https://github.com/aws-samples/sample-bedrock-agentcore-waf-patterns/blob/main/README.md
+- https://techjacksolutions.com/ai-tools/aws/what-is-amazon-bedrock-agentcore/
+- https://registry.terraform.io/modules/LuisOsuna117/agentcore/aws/0.5.1
+- https://trendmicro.com/trendaivisiononecloudriskmanagement/knowledge-base/aws/BedrockAgentCore/protect-agentcore-runtime-with-vpc.html
+- https://help.aliyun.com/en/agentcore/agentcore-billing-instructions
+- https://aws.amazon.com/bedrock/agentcore/pricing/
+- https://www.alibabacloud.com/help/en/cdt/inter-region-data-transfers
+- https://cloudburn.io/blog/amazon-bedrock-agentcore-pricing
+- https://www.cipherprojects.com/blog/posts/amazon-bedrock-agentcore-pricing-2026/
+- https://builder.aws.com/content/3KC60kJzFVDfHVxJ5CNecLZVPmA/amazon-bedrock-agentcore-pricing-hidden-costs-that-bill-while-your-agent-idles
+- https://getdeploying.com/alibaba-cloud-vs-aws
+- https://www.alibabacloud.com/help/tr/agent-sandbox/product-overview/billing-overview
+- https://www.alibabacloud.com/help/en/dataworks/dataworks-data-agent-agent-billing
+- https://www.linkedin.com/pulse/where-run-ai-agents-layer-billing-limits-price-devinarayanan-wwalc
+- https://www.alibabacloud.com/help/doc-detail/3044400.html
+- https://cloudinsight.cc/en/blog/tencent-cloud-pricing-guide
+- https://skills.alibabacloud.com/skills/alibabacloud-agent-toolkit-install
+- https://www.alibabacloud.com/blog/alibaba-cloud-clawhub-skill-scan-security-metrics-across-30000-ai-agent-skills_602979
+- https://www.alibabacloud.com/help/en/agentcore/agentcore-management-skill.md
+- https://help.aliyun.com/en/skillsportal/quickly-use-alibaba-cloud-skills
+- https://www.alibabacloud.com/blog/skills-registry-public-beta-launches-building-a-private-skill-management-center-for-enterprises_603091
+- https://www.alibabacloud.com/help/en/content-moderation/latest/java-sdk-initialization
+- https://orca.security/resources/blog/what-is-alibaba-cloud-security/
+- https://www.youtube.com/watch?v=x2HenpowB4Y
+- https://www.coresite.com/marketplace/alibaba-cloud
+- https://www.alibabacloud.com/blog/your-databases-biggest-user-is-now-an-agent-%E2%80%94-and-that-changes-security_603709
+- https://www.alibabacloud.com/blog/603033
+- https://www.alibabacloud.com/help/en/api-gateway/traditional-api-gateway/product-overview/dedicated-instance
+- https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/ai-gateway-capacity-description
+- https://help.aliyun.com/en/api-gateway/ai-gateway-commercialization-announcement
+- https://learn.microsoft.com/en-us/azure/ai-gateway/overview
+- https://learn.microsoft.com/sr-cyrl-rs/azure/ai-gateway/concepts
+- https://www.alibabacloud.com/help/en/dms/data-agent-for-analytics/
+- https://help.aliyun.com/en/maxcompute/vpc-private-link-maxcompute
+- https://help.aliyun.com/en/maxcompute/user-guide/tiered-storage-configuration-optimization
+- https://learn.microsoft.com/en-us/azure/api-management/ai-gateway-manage-models-tools
+- https://www.alibabacloud.com/help/en/dataworks/user-guide/public-dataset-data-source
+- https://learn.microsoft.com/en-us/azure/api-management/ai-gateway-govern-secure-assets
+- https://www.alibabacloud.com/en/global-offices?_p_lc=1
+- https://www.alibabacloud.com/help/en/eip/pay-as-you-go/
+- https://www.alibabacloud.com/help/pt-br/epg/supported-regions-and-zones
+- https://help.aliyun.com/en/dlf/dlf-2-0/product-overview/additional-internal-network-bandwidth-billing
+- https://www.alibabagroup.com/en-US/document-1491227994172162048
+- https://www.alibabacloud.com/en/press-room/alibaba-cloud-unveils-roadmap-for-intl-business?_p_lc=1
+- https://help.aliyun.com/en/lindorm/use-cases/migrate-the-advertising-data-of-an-international-marketing-company-to-lindorm
+- https://www.alibabacloud.com/help/en/account/aliyun-vs-alibaba-cloud
+- https://www.alibabacloud.com/help/en/legal/latest/alibaba-cloud-international-website-product-terms-of-service-v-3-8-0
+- https://www.alibabagroup.com/document-1818465203679920128
+- https://docs.aws.amazon.com/global-infrastructure/latest/regions/aws-regions.html
+- https://www.outsystems.com/product-updates/new-cloud-regions
+- https://awslabs.github.io/sensitive-data-protection-on-aws/en/plan-deployment/regions/
+- https://www.pump.co/blog/aws-global-infrastructure/
+- https://techdocs.akamai.com/cloud-security/docs/supported-regions
+- https://docs.unqork.io/docs/cloud-service-providers-supported-regions
+- https://www.allthingsdistributed.com/2019/04/an-aws-region-is-coming-to-indonesia.html
+- https://cloud.google.com/about/locations
+- https://docs.cloud.google.com/compute/docs/regions-zones
+- https://www.oracle.com/cloud/public-cloud-regions/
+- https://cloud.ibm.com/docs/overview?topic=overview-locations&locale=en
+- https://www.tigerdata.com/docs/get-started/supported-regions
+- https://aws.amazon.com/about-aws/global-infrastructure/regions_az/
+- https://help.aliyun.com/zh/api-gateway/ai-gateway/developer-reference/api-apig-2024-03-27-endpoint-ai-gateway
+- https://ir.elastic.co/News--Events/news/news-details/2018/Elastic-and-Alibaba-Cloud-Expand-Partnership-to-Deliver-Alibaba-Cloud-Elasticsearch-Globally/default.aspx
+- https://www.alibabacloud.com/help/en/cloud-backup/product-overview/feature-availability-by-alibaba-cloud-region
+- https://help.aliyun.com/en/agentbay/agentbay-security-white-paper
+- https://mcpservers.org/servers/Michael98671/agentbay
+- https://skillsllm.com/skill/modelstudioai-cli
+- https://docs.cloudbase.net/en/ai/cloudbase-ai-toolkit/mcp-tools
+- https://www.modelscope.ai/mcp/servers/@jinzcdev/leetcode-mcp-server
+- https://qwen.readthedocs.io/en/latest/getting_started/concepts.html
+- https://jia.je/kb/en/software/coding_plan.html
+- https://www.singdata.com/documents/setup_cz_cli
+- https://skillfoxx.ru/en/cli/aliyun-model-studio-cli
+- https://www.seeed.cc/solutions/reference-designs/sensecraft_data_mcp/deploy
+- https://skywork.ai/skypage/en/unlocking-leetcode-ai-deep-dive/1978726743965736960
+- https://sovereignsky.no/datacenters/alibaba/
+- https://www.alibabacloud.com/help/en/asc/product-overview/billing-overview
+- https://www.alibabacloud.com/help/en/asc/product-overview/agent-security-center-defense-capabilities-official-commercial-billing-announcement
+- https://www.alibabacloud.com/blog/cloud-use-when-agents-start-using-the-cloud-for-real_603634
+- https://www.alibabacloud.com/blog/personal-agent-in-focus-dissecting-the-technical-challenges-of-247-operation_603682
+- https://www.facebook.com/thenewstack/posts/icymi-researchers-hid-a-message-for-rogue-ai-agents-probing-alibabas-amap-from-t/2030664568365727/
+- https://www.youtube.com/watch?v=2gFxY98TCzk
+- https://www.alibabacloud.com/help/en/openlake/data-lake-construction-dlf.md
+- https://help.aliyun.com/en/open-search/search-platform/getting-started/agentic-search-billing
+- https://www.alibabacloud.com/blog/603488
+- https://github.com/cinience/alicloud-skills/blob/main/README.md
+- https://www.cloudarchpro.com/guides/ai-infrastructure/generative-ai-project-lifecycle-alibaba-cloud/
+- https://www.alibabacloud.com/help/en/lindorm/user-guide/performance-white-paper
+- https://www.alibabacloud.com/blog/lindorm-tops-vectordbbench-performance-defining-new-heights-for-vector-retrieval_603106
+- https://netk5.com.cn/china-cloud-providers/
+- https://albertoroura.com/serving-european-traffic-to-china-alibaba-cloud-cdn-dcdn/
+- https://opper.ai/provider/alibaba
+- https://www.alibabacloud.com/help/en/lindorm/user-guide/enable-vector-engine
+- https://www.alibabagroup.com/en-US/document-1491579636423852032
+- https://www.alibabacloud.com/help/en/agentidentity/what-is-agent-identity
+- https://www.linkedin.com/pulse/explaining-oauth-delegation-behalf-agent-identity-ai-agents-posta-wpiwc
+- https://help.aliyun.com/en/agentidentity/oauth-credential-provider-management
+- https://help.aliyun.com/en/agentidentity/idaas-enterprise-services
+- https://www.alibabacloud.com/help/tc/agentidentity/what-is-agent-identity
+- https://github.com/oracle-devrel/oracle-ai-developer-hub/blob/main/notebooks/memory_context_engineering_agents.ipynb
+- https://weaviate.io/blog/context-engineering
+- https://jtanruan.medium.com/context-engineering-in-llm-based-agents-d670d6b439bc
+- https://www.reddit.com/r/Rag/comments/1n9680y/breaking_the_context_window_building_infinite/
+- https://mem0.ai/library/context-engineering/what-is-context-engineering-ai
+- https://komodor.com/blog/context-engineering-for-ai-agents/
+- https://joudawad.substack.com/p/context-engineering-guide-ai-agents
+- https://www.singlestore.com/blog/context-engineering-a-definitive-guide/
+- https://e2b.dev/resources/product
+- https://github.com/e2b-dev/e2b
+- https://e2b.dev/resources/best-code-execution-sandboxes-for-ai-agents
+- https://www.augmentcode.com/mcp/e2b-sdk
+- https://weaveintelligence.io/tools/e2b
+- https://modal.com/resources/best-code-execution-sandboxes-browser-use-agents
+- https://www.reddit.com/r/LocalLLaMA/comments/1c185zq/open_source_secure_code_interpreter_that_can_be/
+- https://rywalker.com/research/e2b
+- https://www.alibabacloud.com/help/en/content-moderation/latest/inspection-item-configuration
+- https://www.alibabacloud.com/en/news/product/opensearch-llm-based-conversational-search-edition-supports-agentic-rag-jto?_p_lc=1
+- https://medium.com/@zelal.gungordu/conversational-search-with-opensearch-8f8d9166faeb
+- https://opensearch.org/blog/opensearch-generative-ai/
+- https://eliatra.com/blog/revolutionizing-search-unveiling-conversational-search-in-opensearch/
+- https://www.focalcxm.com/beyond-keyword-search-agentic-conversational-search-amazon-opensearch/
+- https://docs.opensearch.org/latest/ml-commons-plugin/agents-tools/agents/conversational/
+- https://www.alibabacloud.com/help/en/security-center/developer-reference/api-sas-2018-12-03-endpoint
+- https://github.com/aliyun/alibabacloud-aiops-skills/blob/master/skills/aiml/docmind/alibabacloud-docmind-parse/SKILL.md
+- https://www.alibabacloud.com/help/en/vms/api-dyvmsapi-intl-2021-10-15-endpoint
+- https://ai-sdk.dev/providers/ai-sdk-providers/alibaba
+- https://www.alibabacloud.com/help/en/mns/product-overview/regions-and-endpoints
+- https://tech-insider.org/au/how-to-use-qwen-ai-2026/
+- https://www.alibabacloud.com/help/en/dataworks/user-guide/binding-lindorm-computing-resources
+- https://www.facebook.com/AlibabaCloudSEA/posts/-6-years-in-a-row-we-are-honored-to-announce-that-alibaba-cloud-has-been-recogni/882630677664833/
+- https://baike.baidu.com/en/item/Alibaba%20Cloud%20Computing%20Co.%20Ltd./998106
+- https://alicloud-common.oss-ap-southeast-1.aliyuncs.com/2022/Trust%20Center/Alibaba%20Cloud%20SOC%203%20Oct%201%2C%202023%20%E2%80%93%20Sep%2030%2C%202024.pdf
+- https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/resources/common_bandwidth_package
+- https://www.scribd.com/document/945067425/Azure-to-Alibaba-Cloud-Migration-Technical-Guide
+- https://www.alibabacloud.com/help/en/flink/realtime-flink/product-overview/pay-as-you-go
+- https://www.alibabacloud.com/help/en/slb/classic-load-balancer/product-overview/pay-as-you-go
+- https://www.usagepricing.com/blueprint/trivia
+- https://www.linuxfoundation.org/blog/linux-foundation-newsletter-september-2026
+- https://www.alibabacloud.com/help/en/model-studio/ssml-latex-user-guide
+- https://digitalmarket.world/content-en/success-stories/24_comparison-of-database-tools.html
+- https://apis.io/industries/data-analytics/
+- https://www.researchandmarkets.com/reports/5143092/digital-transformation-2021-5g-ai-big-data?srsltid=AYCX9vJ4p6X4Dmnl6fEsk-FOniYAQrMmIUKxLmI-SsL9W3PvD9U8RMKj
+- https://medium.com/@adnanmasood/rubric-based-evals-llm-as-a-judge-methodologies-and-empirical-validation-in-domain-context-71936b989e80
+- https://mastra.ai/articles/llm-evaluation
+- https://labelstud.io/learning-center/getting-started-with-llm-evaluation/
+- https://www.amazon.science/publications/enhancing-llm-as-a-judge-via-multi-agent-collaboration
+- https://aws.amazon.com/bedrock/evaluations/
+- https://talent500.com/blog/llm-evaluation/
+- https://www.linkedin.com/pulse/demystifying-llm-evaluation-mistakes-you-making-casey-west-wycke
+- https://www.premai.io/blog/llm-reliability-why-evaluation-matters-how-to-master-it/
+- https://leanware.co/insights/llm-evaluation-frameworks
+- https://www.alibabacloud.com/help/en/functioncompute/cloud-sandbox-new-billing-model-online-announcement?spm=a2c63.p38356.help-menu-2508973.d_0.62b31edd1nDFXm
+- https://www.alibabacloud.com/product/function-compute/pricing
+- https://artificialanalysis.ai/providers/alibaba_cloud
+- https://search.opentofu.org/provider/aliyun/alicloud/v1.280.0
+- https://next.api.alibabacloud.com/document/Ga/2019-11-20/DescribeRegions
+- https://apsarastackdocument.oss-cn-hangzhou.aliyuncs.com/%E5%9B%BD%E9%99%85%E7%89%88%E6%96%87%E6%A1%A3/v3.20.0%E7%89%88%E6%9C%AC%E6%96%87%E6%A1%A3/%E6%97%A5%E5%BF%97%E6%9C%8D%E5%8A%A1SLS/Alibaba%20Cloud%20Apsara%20Stack%20V3.20.0%20Log%20Service%20User%20Guide%2020260428.pdf
+- https://www.arthur.ai/column/ai-guardrails-reduce-hallucinations
+- https://medium.com/@virtualik/openai-guardrails-protecting-ai-applications-from-prompt-attacks-8b1cc97f3989
+- https://www.wiz.io/academy/ai-security/ai-guardrails
+- https://discuss.huggingface.co/t/looking-for-services-to-validate-user-queries-for-content-and-security/171801
+- https://www.youtube.com/watch?v=S4SHQw4VhCI
+- https://last9.io/blog/what-are-ai-guardrails/
+- https://www.checkpoint.com/cyber-hub/cyber-security/what-is-ai-security/what-are-ai-hallucinations/
+- https://www.paloaltonetworks.com/cyberpedia/what-is-a-prompt-injection-attack
+- https://orca.security/resources/blog/ai-guardrails/
+- https://www.reddit.com/r/LocalLLaMA/comments/1qyljr0/prompt_injection_is_killing_our_selfhosted_llm/
+- https://www.alibabacloud.com/help/en/lindorm/user-guide/create-and-release-instances
+- https://www.alibabacloud.com/help/en/ecs/user-guide/what-is-ecs
+- https://next.api.alibabacloud.com/document/hitsdb/2017-06-01/DescribeRegions
+- https://www.alibabacloud.com/help/en/ecs/developer-reference/api-ecs-2014-05-26-createdisk
+- https://github.com/google-gemini/gemini-cli/discussions/30028
+- https://www.alibabacloud.com/help/en/imm/user-guide/weboffice-plugin-ai
+- https://www.facebook.com/alibabacloud/videos/ai-can-do-more-than-generate-ideas-it-can-get-work-donediscover-how-agent-applic/4530527223888382/
+- https://www.youtube.com/watch?v=QmB2qxcQx88&vl=en-US
+- https://www.cloudquery.io/hub/export-data/alicloud/opensearch
+- https://www.alibabacloud.com/help/doc-detail/38952.html
+- https://www.alibabacloud.com/help/en/dlf/dlf-2-0/product-overview/compute-resource-fees
+- https://help.aliyun.com/en/document_detail/2980055.html
+- https://www.dynatrace.com/knowledge-base/ai-observability/
+- https://konghq.com/blog/learning-center/guide-to-ai-observability
+- https://www.logicmonitor.com/cloud/ai-monitoring
+- https://royce-fu.com/blog/oci-ai-ops-framework-for-cloud-operation-autonomous-resilience/
+- https://unityone.ai/observability/ai-observability/
+- https://help.aliyun.com/en/cms/cloudmonitor-2-0/
+- https://www.ibm.com/think/topics/ai-observability
+- https://grafana.com/products/cloud/ai-observability/
+- https://www.splunk.com/en_us/blog/observability/splunk-observability-ai-agent-monitoring-innovations.html
+- https://langwatch.ai/docs/integration/opentelemetry/guide
+- https://www.dash0.com/guides/teach-your-ai-coding-agent-opentelemetry
+- https://docs.fiddler.ai/integrations/agentic-ai/opentelemetry-integration
+- https://developers.redhat.com/articles/2026/04/06/distributed-tracing-agentic-workflows-opentelemetry
+- https://opentelemetry.io/blog/2023/testing-otel-demo/
+- https://kagent.dev/docs/kagent/0.x/observability/audit-prompts/
+- https://nango.dev/blog/opentelemetry-ai-agent-observability/
+- https://www.alibabacloud.com/blog/602608
+- https://github.com/agentscope-ai/agentscope-runtime
+- https://docs.api7.ai/ai-gateway/traffic-controls/guardrails/alibaba-cloud-ai-guardrails
+- https://mlflow.org/blog/gateway-guardrails/
+- https://help.aliyun.com/en/document_detail/3065212.html
+- https://www.alibabacloud.com/help/en/well-architected/cost-pillar
+- https://help.aliyun.com/en/cgc/user-guide/ai-governance-supported-check-items
+- https://www.alibabacloud.com/en/product?_p_lc=1
+- https://www.alibabacloud.com/help/en/well-architected/decision-framework-for-ai-architecture
+- https://www.alibabacloud.com/help/en/mse/user-guide/ai-token-current-limiting
+- https://www.alibabacloud.com/help/en/model-studio/rate-limit
+- https://developer.konghq.com/plugins/ai-rate-limiting-advanced/
+- https://higress.ai/en/docs/ai/scene-guide/token-management/
+- https://www.alibabacloud.com/help/doc-detail/3001594.html
+- https://www.alibabacloud.com/blog/603415
+- https://help.aliyun.com/en/model-studio/token-plan-personal-faq
+- https://www.alibabacloud.com/help/en/agent-sandbox/quota-management.md
+- https://www.alibabacloud.com/help/en/agentidentity/restrictions-on-use
+- https://www.alibabacloud.com/help/en/quota-center/product-overview/what-is-quota-center
+- https://help.aliyun.com/en/well-architected/understanding-cloud-service-quotas-and-limits
+- https://www.alibabacloud.com/help/en/nat-gateway/product-overview/nat-gateway-quotas
+- https://www.alibabacloud.com/help/en/vpc/understanding-vpc-quotas-in-alibaba-cloud
+- https://bettertoken.ai/en/blog/qwen-code-usage-limits-auth-quota/
+- https://www.alibabacloud.com/help/en/cen/user-guide/cen-quotas/
+- https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/openapi-based-rag-applications-1
+- https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/user-guide/use-the-graphrag-service
+- https://www.alibabacloud.com/help/analyticdb-for-postgresql/user-guide/what-is-rag-service
+- https://www.reddit.com/r/googlecloud/comments/1hsr8zw/alloydb_as_a_vector_database_for_document/
+- https://www.alibabacloud.com/blog/building-a-rag-pipeline-on-alibaba-cloud-with-vector-search_603155
+- https://www.alibabacloud.com/blog/rag-architecture-beyond-vector-search-%7C-hologres_603633
+- https://www.facebook.com/alibabacloud/posts/enterprise-rag-needs-more-than-vectors-hologres-unifies-4-retrieval-paths-in-one/1568377612000992/
+- https://help.aliyun.com/en/hologres/user-guide/rag-hologres-deepseek-pai-eas
+- https://www.alibabacloud.com/blog/using-sql-to-call-llms-hologres-%2B-model-studio-enables-data-developers-to-talk-directly-to-ai_602941
+- https://x.com/alibaba_cloud/status/2111064709042454814
+- https://www.alibabacloud.com/help/en/hologres/user-guide/best-practices-financial-multimodal-ai-data-analysis-and-retrieval-system
+- https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/session-memory
+- https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/agentscope-runtime-with-tablestore
+- https://mem0.ai/
+- https://aws.amazon.com/products/developer-tools/agent-toolkit-for-aws/
+- https://www.alibabacloud.com/help/en/model-studio/single-agent-application
+- https://qoder.com/marketplace?type=plugin
+- https://cloud.google.com/memorystore
+- https://docs.cloud.google.com/memorystore/docs/redis/regions
+- https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/memorystore_instance
+- https://docs.dynatrace.com/docs/ingest-from/google-cloud-platform-classic/gcp-integrations/gcp-supported-service-metrics-new/gcp-memorystore-monitoring
+- https://www.tencentcloud.com/document/product/1116/55074
+- https://cloudmonitor.ai/
+- https://apis.io/providers/google-cloud-memorystore/
+- https://docs.mem0.ai/components/llms/models/google-ai
+- https://www.alibabacloud.com/help/en/agent-sandbox/use-the-credentials-provider-to-configure-the-temporary-credentials-of-the-ram-role-sts
+- https://www.alibabacloud.com/help/en/cs/user-guide/inject-credentials-for-agent-sandbox-egress.md
+- https://help.aliyun.com/en/agentidentity/llms.txt
+- https://www.devopsschool.com/tutorials/alibaba-cloud-resource-access-management-ram-tutorial-architecture-pricing-use-cases-and-hands-on-guide-for-security/
+- https://docs.paloaltonetworks.com/prisma-airs/ai-agent-identity/agent-identity-security-configuration
+- https://www.alibabacloud.com/help/en/ack/ack-managed-and-ack-dedicated/user-guide/regions-and-zones-supported-by-alb
+- https://help.aliyun.com/en/asm/product-overview/supported-regions
+- https://www.alibabacloud.com/help/en/document_detail/2848491.html
+- https://www.alibabacloud.com/blog/602980
+- https://www.alibabacloud.com/help/en/functioncompute/supported-regions-of-fc-agent-sandbox
+- https://northflank.com/blog/platforms-ai-agent-sandboxes-customer-cloud
+- https://sls.aliyun.com/doc/en/
+- https://sls.aliyun.com/doc/en/intelligentom/fullstackintro.html
+- https://www.alibabacloud.com/help/en/sls/start-using-sls/
+- https://www.alibabacloud.com/help/en/sls/collection-of-alibaba-cloud-service-logs/
+- https://www.alibabacloud.com/help/en/maxcompute/mcmcp-service-remote-mcp-server
+- https://www.alibabacloud.com/help/en/edge-security-acceleration/esa/use-cases/launch-a-game-via-edge-routine-and-mcp-server
+- https://www.alibabacloud.com/help/en/agentrun/mcp-tool-hook-1.md
+- https://www.alibabacloud.com/help/en/functioncompute/regions
+- https://help.aliyun.com/en/maxcompute/user-guide/maxcompute-mcp/
+- https://help.aliyun.com/en/document-mind/product-overview/pay-as-you-go
+- https://www.alibabacloud.com/help/en/user-center/fund-account-overview
+- https://www.digitalapplied.com/blog/alibaba-token-plan-qwen-pricing-credits-agent-seats-2026
+- https://www.alibabacloud.com/help/en/model-studio/token-plan-overview
+- https://alibaba-cloud.medium.com/alibaba-cloud-savings-plans-cost-optimization-provided-by-cloud-native-c09f6495d1a5
+- https://www.alibabagroup.com/document-1715106160694001664
+- https://www.alibabacloud.com/help/en/open-search/developer-reference/api-opensearch-2017-12-25-endpoint
+- https://www.alibabacloud.com/help/doc-detail/464860.html
+- https://docs.opensearch.org/latest/api-reference/
+- https://github.com/aliyun/alibabacloud-opensearch-sdk
+- https://aws.amazon.com/about-aws/whats-new/2026/05/opensearch-ui-cross-region-data-access-domains/
+- https://help.aliyun.com/en/open-search/developer-reference/api-searchengine-2021-10-25-endpoint
+- https://help.aliyun.com/en/functioncompute/supported-regions-of-fc-agent-sandbox
+- https://help.aliyun.com/en/functioncompute/feature-release-log-for-fc-agent-sandbox-2026
+- https://www.alibabacloud.com/help/en/functioncompute/usage-constraints-of-fc-agent-sandbox
+- https://help.aliyun.com/en/functioncompute/usage-constraints-of-fc-agent-sandbox
+- https://www.alibabacloud.com/help/en/functioncompute/feature-release-log-for-fc-agent-sandbox-2026
+- https://www.alibabacloud.com/help/en/functioncompute/api-fcsandbox-2026-05-09-endpoint
+- https://help.aliyun.com/en/open-search/search-platform/product-overview/billing-methods-and-billing-items
+- https://help.aliyun.com/en/open-search/search-platform/product-overview/agentic-search-billing-instructions
+- https://www.openagi.news/tco/
+- https://docs.cloud.google.com/iam/quotas
+- https://help.aliyun.com/en/api-gateway/cloud-native-api-gateway/product-overview/regions
+- https://docs.helixops.ai/bin/IT-Operations-Management/Discovery/BMC-Discovery/Configipedia/Supported-cloud-providers/Discovering-Alibaba-Cloud/Alibaba-cloud-supported-regions/
+- https://www.alibabacloud.com/help/en/agentrun/aio-sandbox-1
+- https://www.alibabacloud.com/help/en/functioncompute/billing-overview-of-fc-agent-sandbox
+- https://www.msp360.com/resources/blog/alibaba-cloud-vs-aws/
+- https://arxiv.org/html/2502.02988v1
+- https://www.patronus.ai/llm-testing/llm-as-a-judge
+- https://www.alibabacloud.com/help/en/pai/activate-service-and-online-experience
+- https://www.ai21.com/glossary/foundational-llm/llm-as-a-judge/
+- https://montecarlo.ai/blog-llm-as-judge
+- https://www.comet.com/site/blog/llm-as-a-judge/
+- https://galileo.ai/blog/llm-as-a-judge-guide-evaluation
+- https://solace.com/blog/ai-agent-evaluation/
+- https://cloud.google.com/blog/topics/developers-practitioners/a-methodical-approach-to-agent-evaluation
+- https://mlflow.org/llm-evaluation
+- https://galileo.ai/blog/best-ai-agent-evaluation-platforms
+- https://montecarlo.ai/blog-ai-agent-evaluation
+- https://www.alibabacloud.com/help/en/cs/user-guide/use-kms-secret-api-key-credentials-with-credentialprovider
+- https://www.alibabacloud.com/help/doc-detail/3055758.html
+- https://www.alibabacloud.com/help/en/agent-sandbox/mount-agenticfs-for-agent-sandbox-with-agent-identity.md
+- https://help.aliyun.com/en/agentidentity/using-agent-identity-in-bailian-high-code
+- https://www.apizie.tech/category/cloud
+- https://www.linkedin.com/posts/coviant-software_azureblob-cloudsecurity-activity-7508170749786918912-JDHK
+- https://error-center.alibabacloud.com/api/AgentIdentity/2025-09-01/DeleteClientSecret
+- https://github.com/aliyun/alibabacloud-maxcompute-mcp-server
+- https://www.alibabacloud.com/help/en/maxcompute/user-guide/mcp-overview-and-access
+- https://docs.aws.amazon.com/general/latest/gr/aws-mcp.html
+- https://help.aliyun.com/en/maxcompute/endpoints
+- https://docs.databricks.com/aws/en/agents/mcp-tools/networking
+- https://docs.confluent.io/cloud/current/ai/ai-tools/managed-mcp-server.html
+- https://mcpmarket.com/server/maxcompute
+- https://docs.langchain.com/langsmith/server-mcp
+- https://www.alibabacloud.com/help/en/security-center/what-is-security-center
+- https://www.facebook.com/alibabacloud/posts/alibaba-cloud-launches-first-public-cloud-region-in-the-netherlands-located-in-a/1582247623947324/
+- https://www.alibabacloud.com/blog/security-new-features-in-august-and-september-2025%C2%A0_602594
+- https://www.alibabacloud.com/help/en/agentbay/support/management-points
+- https://www.datacenters.com/providers/alibaba-cloud-04967c11-f07a-4b84-befe-fb8e99b38658/locations/china
+- https://www.alibabacloud.com/blog/alibaba-cloud-expands-global-infrastructure-and-ai-portfolio-to-accelerate-enterprise-ai-adoption_603594
+- https://www.logicmonitor.com/press/logicmonitor-expands-in-southeast-asia-with-new-singapore-data-centre-boosting-observability-services-across-the-region
+- https://cloudmonitor.ai/2026/04/ai-cloud-observability-first-priority/
+- https://www.guance.com/en
+- https://www.sitecore.com/company/newsroom/press-releases/2026/03/sitecore-expands-sovereign-cloud-support-and-ai-capabilities-in-asia-with-deployment-of-sitecoreai
+- https://cloudchipr.com/blog/cloud-monitoring-tools
+- https://www.linkedin.com/posts/robert-pizzari-8437ab1_splunk-cisco-splunkgo-activity-7439038901043830786-s_d6
+- https://elest.io/open-source/hermes/resources/plans-and-pricing
+- https://www.alibabacloud.com/help/en/asc/user-guide/purchase-agent-security-center
+- https://help.aliyun.com/en/asc/getting-started/openclaw-fast-access
+- https://www.alibabacloud.com/help/en/asc/user-guide/access-agent-security-center
+- https://www.alibabacloud.com/help/en/asc/
+- https://www.alibabacloud.com/help/en/asc/use-cases/smart-protection-container-cluster-application
+- https://www.alibabacloud.com/blog/does-do-not-work-on-ai-agents-securing-mcp-tools-with-agentrun_603668
+- https://help.aliyun.com/en/asc/user-guide/agent-security-center-overview
+- https://www.alibabacloud.com/help/en/agentidentity/dingtalk
+- https://www.alibabacloud.com/help/en/agentidentity/secure-access-to-dingtalk-in-agent
+- https://www.alibabacloud.com/help/en/agentidentity/oauth-credential-provider-management.md
+- https://www.alibabacloud.com/help/en/agentidentity/identity-provider-management.md
+- https://www.alibabacloud.com/help/en/agentidentity/inbound.md
+- https://www.alibabacloud.com/help/en/sase/user-guide/connect-a-dingtalk-identity-source
+- https://help.aliyun.com/en/ram/use-idaas-to-synchronize-ldap-or-dingtalk-accounts-to-ram
+- https://help.aliyun.com/en/model-studio/faq-about-alibaba-cloud-model-studio
+- https://www.alibabacloud.com/help/en/model-studio/coding-plan-faq
+- https://mcpservers.org/tr/servers/uncoalesced/agent-wire
+- https://docs.modelstudio.console.alibabacloud.com/en/model-studio/pdf-understanding
+- https://www.reddit.com/r/ClaudeAI/comments/1t1o43w/i_gave_claude_code_a_002call_coworker_and_stopped/
+- https://www.braze.com/docs/user_guide/brazeai/mcp_server
+- https://faun.dev/toolbox/alibaba-cloud-vs-ibm-cloud/
+- https://mewcp.com/mcp/runwayml-mcp
+- https://github.com/AIAnytime/Awesome-MCP-Servers
+- https://www.alibabacloud.com/help/en/agentrun/tool-management/
+- https://www.marketplace.spglobal.com/en/solutions/alibaba-cloud-oss-(ef2a08a2-2f96-4a5b-978c-2aed94156e5f)
+- https://www.alibabacloud.com/blog/a-comprehensive-list-of-big-data-processing-tools_597139
+- https://alibaba-cloud.medium.com/security-and-monitoring-practices-alibaba-cloud-storage-solutions-part-1-3caf5782b9d1
+- https://www.alibabacloud.com/blog/secure-marketing-data-management-on-alibaba-cloud-best-practices-for-marketers_600796
+- https://github.com/aliyun/alibabacloud-observability-mcp-server/blob/master/README_EN.md
+- https://hackernoon.com/evaluating-alibaba-cloud-sls-as-an-incident-response-logging-architecture
+- https://www.alibabacloud.com/blog/vector-search-using-alibaba-cloud-inference-api-and-semantic-text_601936
+- https://www.youtube.com/watch?v=Uigd0namnc4
+- https://www.alibabacloud.com/blog/unlock-the-power-of-vector-search-alibaba-cloud-elasticsearch-with-the-aliyun-knn-plugin_601101
+- https://www.alibabacloud.com/help/en/agentloop/user-guide/audit-facts
+- https://help.aliyun.com/en/agentloop/user-guide/audit-access-guide
+- https://www.facebook.com/alibabacloud/posts/stuck-in-manual-agent-evals-alibaba-cloud-agentloop-builds-a-self-evolution-flyw/1469778651860889/
+- https://www.alibabacloud.com/help/doc-detail/3055994.html
+- https://www.alibabacloud.com/help/en/agentloop/audit-management
+- https://www.alibabacloud.com/help/tr/doc-detail/3042593.html
+- https://www.alibabacloud.com/blog/mcp-for-observability-2-0---six-practices-for-making-good-use-of-mcp_602423
+- https://help.aliyun.com/en/model-studio/custom-mcp
+- https://github.com/aliyun/alibaba-cloud-ops-mcp-server
+- https://www.alibabacloud.com/blog/practice-of-unified-management-and-intelligent-routing-of-mcp-services-in-enterprise-production-environments_602266
+- https://www.alibabacloud.com/help/en/lindorm/developer-reference/api-hitsdb-2020-06-15-createlindorminstance
+- https://www.alibabacloud.com/help/en/lindorm/user-guide/cold-storage/
+- https://help.aliyun.com/en/lindorm/user-guide/multi-az-basic-edition-deployment
+- https://www.alibabacloud.com/blog/start-hybrid-cloud-and-multi-cloud-with-alibaba-cloud-ack-one-part-two_599690
+- https://www.alibabacloud.com/help/en/maxcompute/lindorm-external-tables
+- https://www.alibabacloud.com/en/marketplace/salesforce?_p_lc=1
+- https://www.alibabacloud.com/help/en/sfoa/product-overview/difference-between-salesforce-crm-and-global-version-on-alibaba-cloud-spring-version-of-spring-26
+- https://www.salesforce.com/news/stories/sales-service-platform-alibaba-cloud/
+- https://www.alibabacloud.com/en/product/salesforce?_p_lc=1
+- https://www.grax.com/blog/salesforce-alibaba-cloud/
+- https://help.aliyun.com/en/sfoa/product-overview/differences-between-salesforce-crm-and-global-versions-on-alibaba-cloud-summer-26-summer-edition
+- https://www.facebook.com/alibabacloud/posts/-unlocking-the-future-of-ai-powered-crm-recap-of-the-alibaba-cloud-x-salesforce-/1091835562988535/
+- https://www.salesforce.com/partners/alibaba/
+- https://it-consultis.com/insights/salesforce-alibaba-cloud-china/
+- https://appexchange.salesforce.com/appxListingDetail?listingId=01375aef-b858-40af-962c-0e79a8d19a06
+- https://www.alibabacloud.com/help/en/pai/knowledge-base-management
+- https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/overview
+- https://www.alibabacloud.com/help/en/agentrun/knowledge-base-integration-guide
+- https://sailor.sh/blog/aws-ai-practitioner-bedrock-knowledge-bases-rag-pipeline-chunking-vector-stores-retrieval/
+- https://www.alibabacloud.com/blog/in-depth-exploration-of-the-rag-optimization-scheme-and-practice_601580
+- https://www.youtube.com/watch?v=cXpWpgmsm8Y
+- https://www.llamaindex.ai/llamacloud-index
+- https://www.alibabacloud.com/help/en/agentloop/faqs
+- https://www.alibabagroup.com/document-2016703577908576256
+- https://www.alibabacloud.com/help/en/cgc/user-guide/ai-governance-supported-check-items
+- https://www.alibabacloud.com/blog/602144
+- https://www.alibabacloud.com/help/en/functioncompute/trigger-overview
+- https://www.alibabacloud.com/blog/603585
+- https://help.aliyun.com/en/functioncompute/cloud-product-event-triggers-overview
+- https://www.alibabacloud.com/blog/from-models-to-agents-how-alibaba-cloud-qwen-is-reshaping-workplace-collaboration_603518
+- https://www.alibabacloud.com/help/en/functioncompute/configure-an-api-gateway-trigger
+- https://www.eesel.ai/blog/ai-customer-service-workflow
+- https://x.com/alibaba_cloud/status/2116039001698189664
+- https://www.alibabacloud.com/help/tr/model-studio/base-url
+- https://help.aliyun.com/en/dlf/dlf-2-0/developer-reference/service-access-point
+- https://skillselion.com/skills/aliyun/alibabacloud-aiops-skills/alibabacloud-maxcompute-migration-service
+- https://pypi.org/project/dashscope/2.0.1/
+- https://www.alibabacloud.com/help/en/agent-sandbox/mount-oss-storage-for-an-agent-sandbox
+- https://next.api.alibabacloud.com/api/AgentIdentity/2025-09-01/CreateTokenVault?tab=DEMO&lang=PYTHON&sdkStyle=dara&RegionId=cn-beijing
+- https://next.api.alibabacloud.com/document/AgentCore/2026-08-04/ListIdentityProviders
+- https://github.com/aliyun/alibabacloud-swift-sdk
+- https://www.alibabacloud.com/help/tr/agentidentity/using-agent-identity-in-bailian-high-code
+- https://grafana.com/docs/grafana-cloud/observe-and-act/monitor-applications/ai-observability/
+- https://newrelic.com/blog/ai/ai-in-observability
+- https://www.cloudzero.com/blog/ai-observability/
+- https://sciencelogic.com/solutions/ai-observability
+- https://www.apmdigest.com/hot-topic/ai-observability
+- https://www.contentmoderationapi.net/knowledge/integration-customization.php
+- https://github.com/aws/aws-sdk/issues/268
+- https://github.com/hashicorp/terraform-provider-aws/issues/33028
+- https://docs.aws.amazon.com/solutions/latest/clickstream-analytics-on-aws/supported-aws-regions.html
+- https://github.com/nextflow-io/nextflow/issues/6528
+- https://noise.getoto.net/2024/02/26/how-to-use-regional-aws-sts-endpoints/
+- https://docs.aws.amazon.com/global-accelerator/latest/api/API_EndpointGroup.html
+- https://github.com/boto/botocore/issues/1681
+- https://docs.aws.amazon.com/reference-architecture-diagrams/latest/content-moderation-compliance/content-moderation-compliance.html
+- https://help.aliyun.com/en/document_detail/2923687.html
+- https://help.aliyun.com/en/document_detail/3038556.html
+- https://help.aliyun.com/en/document_detail/2925843.html
+- https://help.aliyun.com/en/document_detail/2873212.html
+- https://help.aliyun.com/en/document_detail/2977210.html
+- https://help.aliyun.com/en/document_detail/3062575.html
+- https://help.aliyun.com/en/document_detail/2878233.html
+- https://www.ema.ai/additional-blogs/addition-blogs/building-ai-agents-agent-loop
+- https://www.alibabacloud.com/help/pt-br/asc/user-guide/agent-oop
+- https://tovren.com/coreweave-continuous-agent-improvement-production-loop/
+- https://au.linkedin.com/in/cyharyanto
+- https://www.w3.org/calendar/tpac2026/breakout-sessions/
+- https://egisai.co/integrations
+- https://www.alibabacloud.com/help/es/asc/user-guide/agent-oop
+- https://tokenscost.com/providers
+- https://datanorth.ai/blog/ai-guardrails-preventing-hallucinations-pii-leaks-and-prompt-injections
+- https://pangea.cloud/blog/ai-guard-malicious-prompt-detection-best-practices/
+- https://www.rapiddata.com/solutions/ai-agents/enterprise-ai-integration-shanghai-china.html
+- https://arxiv.org/html/2506.19676v3
+- https://apis.io/industries/cybersecurity/
+- https://sg.linkedin.com/in/allen-zhou-cfa
+- https://www.alibabacloud.com/help/tr/tablestore/memory-storage-service-sub-product-test/rag-based-on-dify-and-tablestore
+- https://mirrors.aliyun.com/pypi/simple/
+- https://awesome-pi.site/extensions/
+- https://www.alibabacloud.com/en/product/edge-node-service/pricing?_p_lc=1
+- https://www.alibabacloud.com/help/en/pai/product-overview/ai-computing-resource-billing-description
+- https://comparecloudcosts.com/docs
+- https://www.alibabacloud.com/help/en/maxcompute/computing-pricing-pay-as-you-go
+- https://www.solo.io/topics/api-gateway/pricing
+- https://aws.amazon.com/api-gateway/pricing/
+- https://azure.microsoft.com/en-us/pricing/details/api-management/
+- https://zuplo.com/learning-center/api-gateway-pricing-comparison-2026
+- https://api7.ai/learning-center/api-gateway-guide/api-gateway-pricing-cost-optimization
+- https://www.gravitee.io/api-gateway-pricing-guide
+- https://www.alibabacloud.com/blog/alibaba-cloud-brings-full-stack-ai-ecosystem-to-global-customers-for-the-agentic-era_603186
+- https://www.youtube.com/watch?v=v5wwZhpsATA
+- https://thepaypers.com/payments/news/alibaba-cloud-launches-agentic-ai-ecosystem-for-global-customers
+- https://www.alibabacloud.com/en/developer/agentic-ai-agent-competition?_p_lc=1
+- https://www.facebook.com/alibabacloud/videos/alibaba-cloud-singapore-at-atxenterprise-2026-ai-cloud-and-data-innovation/1388429546671739/
+- https://www.alibabacloud.com/en/press-room/alibaba-cloud-expands-european-footprint-with-two?_p_lc=1
+- https://www.alibabacloud.com/en/press-room?_p_lc=1
+- https://www.facebook.com/alibabacloud/posts/what-does-it-take-for-data-infrastructure-to-empower-the-next-wave-of-agentic-ai/1579949287510491/
+- https://www.linkedin.com/posts/mideastinfo_alibaba-cloud-unveils-advanced-agentic-ai-activity-7467902760882192384-YY0e
+- https://www.alibabacloud.com/en/press-room/alibaba-announces-comprehensive-full-stack-ai?_p_lc=1
+- https://www.facebook.com/alibabacloud/posts/alibaba-cloud-is-proud-to-announce-the-launch-of-our-new-public-cloud-region-in-/1448701347301953/
+- https://www.alibabacloud.com/en/spring-2025?_p_lc=1
+- https://www.instagram.com/p/DHSYhlMxskQ/
+- https://www.linkedin.com/posts/febriaroo_hi-all-thrilled-to-announce-the-alibaba-activity-7307291136790867968-0lYk
+- https://www.alibabacloud.com/en/press-room/alibaba-cloud-celebrates-10-years-in-singapore?_p_lc=1
+- https://docs.cloud.google.com/generative-ai-app-builder/docs/parse-chunk-documents
+- https://www.linkedin.com/pulse/trustworthy-ai-answers-scale-rag-search-chunking-indexing-nishant-m-v-nh1of
+- https://www.alibabacloud.com/blog/alibaba-cloud-unveils-agentic-soc-an-enterprise-grade-ai-agent-driven-security-operations-platform_603015
+- https://www.sinchew.com.my/news/20260526/mysinchew/7536103
+- https://vir.com.vn/alibaba-cloud-accelerates-global-ai-adoption-across-industries-148470.html
+- https://www.alibabacloud.com/tc/press-room/alibaba-cloud-unveil-advanced-agentic-ai-ecosystem?_p_lc=1
+- https://www.alibabacloud.com/blog/friday-blog---week-30---understanding-network-traffic-costs---part-2_598154
+- https://www.facebook.com/euronewsnext/videos/alibabas-ai-push-reaches-deeper-into-europe-with-new-cloud-regions-and-data-cent/1975828543098858/
+- https://www.alibabacloud.com/blog/ai-gateway-introduces-credits-metering-%26-quota-capability-making-consumer-usage-measurable-and-constrainable_603415
+- https://www.facebook.com/alibabacloud/posts/-ai-gateway-now-supports-credits-based-metering-quotas-unified-metric-cross-mode/1499055908933163/
+- https://www.linkedin.com/posts/alibaba-cloud-computing-company_aigateway-llmops-finops-activity-7490325320428978177-fBRU
+- https://help.aliyun.com/en/api-gateway/consumer-quotas-management
+- https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/developer-reference/api-apig-2024-03-27-getgatewayquotarule
+- https://www.reddit.com/r/Qwen_AI/comments/1v2khid/anyone_using_alibabaqwens_18_token_plan_daily_how/
+- https://www.alibabacloud.com/blog/one-key-one-cli-%E2%80%94-manage-your-alibaba-cloud-model-studio-token-plan-from-terminal-or-ai-agent_603453
+- https://www.alibabacloud.com/blog/602565

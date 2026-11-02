@@ -1,0 +1,964 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "Anthropic defines workflows as systems where LLMs and tools are orchestrated through predefined code paths.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "workflow definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c2",
+      "claim": "Anthropic defines agents as systems where LLMs dynamically direct their own processes and tool usage, maintaining control over how they accomplish tasks.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "agent definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c3",
+      "claim": "OpenAI defines agents as systems that independently accomplish tasks on your behalf.",
+      "url": "https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf",
+      "topic": "agent definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c4",
+      "claim": "AWS Well-Architected Agentic AI Lens frames orchestration patterns as a spectrum from static workflows to dynamic graph orchestration.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/definitions.html",
+      "topic": "orchestration spectrum",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c5",
+      "claim": "12-Factor Agents recommends owning control flow by keeping if/while logic in code while letting the model choose actions.",
+      "url": "https://github.com/humanlayer/12-factor-agents",
+      "topic": "control flow pattern",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c6",
+      "claim": "Anthropic recommends finding the simplest solution possible and only increasing complexity when needed.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "start simple recommendation",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c7",
+      "claim": "Google Cloud Architecture Center publishes a 3-step selection process for agentic AI design patterns.",
+      "url": "https://docs.cloud.google.com/architecture/choose-design-pattern-agentic-ai-system",
+      "topic": "selection process",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c8",
+      "claim": "Cognition's 2026 revision states multi-agent works in a narrow class where one main loop carries state and subagents are stateless workers with narrow scope.",
+      "url": "https://cognition.com/blog/multi-agents-working",
+      "topic": "multi-agent constraint",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c9",
+      "claim": "Anthropic reports that agents use approximately 4x more tokens than a chat interaction.",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "topic": "token economics single agent",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c10",
+      "claim": "Anthropic reports that multi-agent systems use approximately 15x more tokens than a chat interaction.",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "topic": "token economics multi agent",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c11",
+      "claim": "A Claude Opus 4 lead agent with Claude Sonnet 4 subagents outperformed single-agent Claude Opus 4 by 90.2% on Anthropic's internal research eval.",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "topic": "performance metric",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c12",
+      "claim": "McKinsey estimates that agentic tasks can consume roughly 1,000x more tokens than single-turn reasoning/chat.",
+      "url": "https://www.mckinsey.com/capabilities/quantumblack/our-insights/is-that-ai-agent-worth-it-agentic-economics-and-the-modern-operating-model",
+      "topic": "token consumption estimate",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c13",
+      "claim": "Anthropic identifies failure classes in emerging multiagent systems including conformity, epistemic failures, and incompatible goals.",
+      "url": "https://www.anthropic.com/research/multiagent-systems",
+      "topic": "failure classes",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c14",
+      "claim": "Anthropic defines prompt chaining as decomposing a task into a sequence of steps where each LLM call processes the output of the previous one.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "prompt chaining definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c15",
+      "claim": "AWS describes prompt chaining as breaking complex tasks into sequential LLM steps enabling structured reasoning and control.",
+      "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/workflow-for-prompt-chaining.html",
+      "topic": "prompt chaining definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c16",
+      "claim": "Google ADK's SequentialAgent executes its sub-agents in the order they are specified in a list.",
+      "url": "https://adk.dev/agents/workflow-agents/sequential-agents/",
+      "topic": "ADK sequential agent",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c17",
+      "claim": "AWS Prescriptive Guidance documents a prompt chaining saga pattern involving compensating transactions for multi-step writes.",
+      "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/prompt-chaining-saga-patterns.html",
+      "topic": "saga pattern",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c18",
+      "claim": "Anthropic defines routing as classifying an input and directing it to a specialised follow-up task or handler.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "routing definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c19",
+      "claim": "AWS Well-Architected best practice AGENTCOST02 assigns routine classification and formatting to cost-efficient models and reserves premium models for reasoning.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost02.html",
+      "topic": "model tiering",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c20",
+      "claim": "OpenAI's guardrail taxonomy includes a relevance classifier that flags off-topic queries as a first-class guardrail layer.",
+      "url": "https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf",
+      "topic": "guardrail types",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c21",
+      "claim": "Anthropic defines parallelization sectioning as breaking a task into independent subtasks run in parallel.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "parallelization sectioning",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c22",
+      "claim": "Anthropic defines parallelization voting as running the same task multiple times to get diverse samples.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "parallelization voting",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c23",
+      "claim": "Google ADK's ParallelAgent runs sub-agents concurrently potentially reducing total research time significantly compared to sequential execution.",
+      "url": "https://adk.dev/agents/workflow-agents/parallel-agents/",
+      "topic": "ADK parallel agent",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c24",
+      "claim": "In Google ADK, all parallel children access the same shared session.state.",
+      "url": "https://adk.dev/agents/custom-agents/",
+      "topic": "ADK shared state",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c25",
+      "claim": "LLMCompiler reports latency speedup up to 3.7x, cost savings up to 6.7x, and accuracy improvement of ~9% vs ReAct.",
+      "url": "https://arxiv.org/abs/2312.04511",
+      "topic": "LLMCompiler metrics",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c26",
+      "claim": "Anthropic's research system reported up to 90% reduction in research time on complex queries using 3-5 parallel subagents making 3+ parallel tool calls (confirmed only in secondary summaries).",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "topic": "research time reduction",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c27",
+      "claim": "Anthropic defines orchestrator-workers as a workflow where a central LLM dynamically breaks down tasks, delegates them to worker LLMs, and synthesizes their results.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "orchestrator-workers definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c28",
+      "claim": "Google Cloud defines hierarchical task decomposition as an implementation of the coordinator pattern where a top-level parent agent receives a task and decomposes it.",
+      "url": "https://docs.cloud.google.com/architecture/choose-design-pattern-agentic-ai-system",
+      "topic": "hierarchical decomposition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c29",
+      "claim": "Microsoft Agent Framework supports magentic plan review via .with_plan_review() or MagenticHumanInterventionKind.PLAN_REVIEW.",
+      "url": "https://learn.microsoft.com/en-us/python/api/agent-framework-core/agent_framework?view=agent-framework-python-latest",
+      "topic": "magentic plan review",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c30",
+      "claim": "Anthropic defines evaluator-optimizer as a workflow where one LLM call generates a response while another provides evaluation and feedback in a loop.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "evaluator-optimizer definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c31",
+      "claim": "Google Cloud splits evaluator-optimizer into two named patterns: review and critique, and iterative refinement.",
+      "url": "https://docs.cloud.google.com/architecture/choose-design-pattern-agentic-ai-system",
+      "topic": "google cloud patterns",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c32",
+      "claim": "Microsoft Azure defines maker-checker loop as one agent creating or proposing something and another agent checking it, explicitly stating it is a specific type of group chat orchestration.",
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns",
+      "topic": "maker-checker definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c33",
+      "claim": "Google ADK's LoopAgent repeatedly executes its sub-agents for a specified number of iterations or until a termination condition is met.",
+      "url": "https://adk.dev/agents/workflow-agents/loop-agents/",
+      "topic": "ADK loop agent",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c34",
+      "claim": "Reflexion agents verbally reflect on task feedback signals and maintain their own reflective text in an episodic memory buffer.",
+      "url": "https://arxiv.org/abs/2303.11366",
+      "topic": "reflexion definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c35",
+      "claim": "MAST classifies multi-agent failures into specification issues, inter-agent misalignment, and task verification categories.",
+      "url": "https://arxiv.org/abs/2503.13657",
+      "topic": "MAST taxonomy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c36",
+      "claim": "The MAST study reports failure distribution as specification ~41.8%, inter-agent misalignment ~36.9%, and task verification ~21.3% (secondary-only source).",
+      "url": "https://tessary.ai/answers/failure-modes/how-do-multi-agent-systems-actually-fail",
+      "topic": "MAST distribution",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c37",
+      "claim": "The OpenReview record for MAST notes the extended taxonomy has 16 modes across three categories.",
+      "url": "https://openreview.net/forum?id=fAjbYBmonr",
+      "topic": "MAST mode count",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c38",
+      "claim": "The NeurIPS record for MAST notes the taxonomy has 14 modes.",
+      "url": "https://neurips.cc/virtual/2025/122442",
+      "topic": "MAST mode count",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c39",
+      "claim": "OpenAI defines decentralized handoff pattern as agents handing off workflow execution to one another.",
+      "url": "https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf",
+      "topic": "handoff definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c40",
+      "claim": "Azure lists infinite handoff loops as a risk in handoff orchestration.",
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns",
+      "topic": "handoff risks",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c41",
+      "claim": "Google ADK implements handoffs as the LLM emitting a transfer_to_agent function call.",
+      "url": "https://adk.dev/agents/custom-agents/",
+      "topic": "ADK transfer",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c42",
+      "claim": "OpenAI defines the manager pattern as a manager agent coordinating specialist agents where agents serve as tools for other agents.",
+      "url": "https://openai.com/business/guides-and-resources/a-practical-guide-to-building-ai-agents/",
+      "topic": "manager pattern",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c43",
+      "claim": "Google Cloud defines the swarm pattern as using a dispatcher agent to route a user request to a collaborative group of specialized agents.",
+      "url": "https://docs.cloud.google.com/architecture/choose-design-pattern-agentic-ai-system",
+      "topic": "swarm pattern",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c44",
+      "claim": "LangChain's handoff design requires choosing a context filtering strategy regarding conversation history.",
+      "url": "https://docs.langchain.com/oss/python/langchain/multi-agent/handoffs",
+      "topic": "context filtering",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c45",
+      "claim": "AWS Well-Architected includes a best practice 'Optimize multi-agent collaboration cost through efficient handoff patterns'.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentops06.html",
+      "topic": "handoff cost optimization",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c46",
+      "claim": "Microsoft Agent Framework allows agents in a handoff workflow to use tools that require human approval before they run.",
+      "url": "https://learn.microsoft.com/en-us/agent-framework/workflows/orchestrations/handoff",
+      "topic": "handoff HITL",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c47",
+      "claim": "Azure defines group chat orchestration as a collaborative conversation among multiple agents coordinated by an orchestrator determining speaker selection.",
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns",
+      "topic": "group chat definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c48",
+      "claim": "AutoGen's group chat manager keeps issuing RequestToSpeak until a termination condition is reached.",
+      "url": "https://microsoft.github.io/autogen/stable//user-guide/core-user-guide/design-patterns/group-chat.html",
+      "topic": "AutoGen termination",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c49",
+      "claim": "Academic multiagent debate involves multiple model instances proposing answers, reading each other's responses, and revising over rounds.",
+      "url": "https://arxiv.org/abs/2305.14325",
+      "topic": "debate definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c50",
+      "claim": "Azure defines magentic orchestration as also known as dynamic orchestration, task-ledger-based orchestration, or adaptive planning.",
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/ai-agent-design-patterns",
+      "topic": "magentic aliases",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c51",
+      "claim": "Magentic-One paper describes an Orchestrator agent creating a plan, delegating tasks, and tracking progress towards the goal with dynamic replanning.",
+      "url": "https://arxiv.org/abs/2411.04468",
+      "topic": "Magentic-One definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c52",
+      "claim": "Magentic-One uses an outer loop for the Task Ledger and an inner loop for the Progress Ledger.",
+      "url": "https://microsoft.github.io/autogen/stable//reference/python/autogen_ext.teams.magentic_one.html",
+      "topic": "Magentic ledgers",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c53",
+      "claim": "AutoGen documentation states that without a termination condition, the group chat will run indefinitely.",
+      "url": "https://microsoft.github.io/autogen/stable//reference/python/autogen_agentchat.teams.html",
+      "topic": "termination requirement",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c54",
+      "claim": "Microsoft Agent Framework magentic builder allows a reviewer to approve, request revisions, or reject the plan.",
+      "url": "https://learn.microsoft.com/en-us/python/api/agent-framework-core/agent_framework.magenticbuilder?view=agent-framework-python-latest",
+      "topic": "magentic HITL options",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c55",
+      "claim": "Google Cloud defines the human-in-the-loop pattern as improving safety and reliability by inserting human judgment into critical decision points within the workflow.",
+      "url": "https://docs.cloud.google.com/architecture/choose-design-pattern-agentic-ai-system",
+      "topic": "HITL definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c56",
+      "claim": "LangChain HITL middleware supports approve, edit, and reject with feedback actions.",
+      "url": "https://docs.langchain.com/oss/python/langchain/human-in-the-loop",
+      "topic": "HITL actions",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c57",
+      "claim": "LangGraph saves graph state using its persistence layer and waits indefinitely until execution is resumed when an interrupt is triggered.",
+      "url": "https://docs.langchain.com/oss/python/langgraph/interrupts",
+      "topic": "LangGraph interrupts",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c58",
+      "claim": "Temporal provides Durable Execution allowing a Workflow to resume automatically after a crash, network timeout, or multi-day wait for a human approval.",
+      "url": "https://docs.temporal.io/ai",
+      "topic": "durable execution",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c59",
+      "claim": "AWS Well-Architected recommends Risk-tiered approval matching the level of human review to the risk and reversibility of each agent action.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentsec04-bp02.html",
+      "topic": "risk-tiered approval",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c60",
+      "claim": "AWS ambient agents expose notify, question, and review HITL patterns surfaced through an ask_human tool.",
+      "url": "https://aws.amazon.com/blogs/machine-learning/building-ambient-agents-with-amazon-bedrock-agentcore-from-event-driven-signals-to-human-in-the-loop-workflows/",
+      "topic": "ambient HITL modes",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c61",
+      "claim": "Agentic RAG survey defines architectures including single-agent (router), multi-agent, hierarchical, corrective (CRAG), adaptive, and graph-based RAG.",
+      "url": "https://arxiv.org/html/2501.09136v4",
+      "topic": "agentic RAG taxonomy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c62",
+      "claim": "LangChain implements ideas from Self-RAG and CRAG using document grading and query rewriting loops.",
+      "url": "https://www.langchain.com/blog/agentic-rag-with-langgraph",
+      "topic": "Self-RAG CRAG",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c63",
+      "claim": "LangChain defines ambient agents as agents that respond to signals and run tasks simultaneously, triggered by events rather than a human prompt.",
+      "url": "https://www.langchain.com/blog/introducing-ambient-agents",
+      "topic": "ambient agents",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c64",
+      "claim": "AWS notes that AWS Step Functions can orchestrate workflows but cannot reason.",
+      "url": "https://aws.amazon.com/blogs/machine-learning/building-ambient-agents-with-amazon-bedrock-agentcore-from-event-driven-signals-to-human-in-the-loop-workflows/",
+      "topic": "Step Functions limitation",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c65",
+      "claim": "Anthropic's long-running harness pattern uses an initializer agent that writes a feature list/state file plus an incremental worker agent that makes progress across many context windows.",
+      "url": "https://www.anthropic.com/research/effective-harnesses-for-long-running-agents",
+      "topic": "long-running harness",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c66",
+      "claim": "Gemini Deep Research agent autonomously plans, executes, and synthesizes multi-step research tasks to produce detailed, cited reports.",
+      "url": "https://ai.google.dev/gemini-api/docs/deep-research",
+      "topic": "Gemini deep research",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c67",
+      "claim": "OpenAI's Deep Research was trained using end-to-end reinforcement learning on hard browsing and reasoning tasks.",
+      "url": "https://openai.com/index/introducing-deep-research/",
+      "topic": "OpenAI deep research training",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c68",
+      "claim": "Anthropic's Research feature uses tools to create parallel agents that search and read, requiring flexibility to pivot or explore tangential connections.",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "topic": "Anthropic research architecture",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c69",
+      "claim": "Deep research products allow users to edit the research plan before execution.",
+      "url": "https://ai.google.dev/gemini-api/docs/deep-research",
+      "topic": "deep research HITL",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c70",
+      "claim": "ReAct papers define agents generating both reasoning traces and task-specific actions in an interleaved manner.",
+      "url": "https://arxiv.org/abs/2210.03629",
+      "topic": "ReAct definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c71",
+      "claim": "OpenAI Agents SDK runner handles the agent loop and handoffs.",
+      "url": "https://developers.openai.com/api/docs/guides/agents",
+      "topic": "OpenAI runner",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c72",
+      "claim": "Anthropic reports that tool definitions and results can sometimes consume 50,000+ tokens before work starts.",
+      "url": "https://www.anthropic.com/research/code-execution-with-mcp",
+      "topic": "tool token cost",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c73",
+      "claim": "Plan-and-Solve prompting divides the entire task into smaller subtasks via a plan, then carries out the subtasks according to the plan.",
+      "url": "https://arxiv.org/abs/2305.04091",
+      "topic": "plan-and-solve definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c74",
+      "claim": "LLMCompiler variant generates a DAG of tasks with inter-dependencies dispatched by a Task Fetching Unit.",
+      "url": "https://arxiv.org/html/2312.04511v1",
+      "topic": "LLMCompiler structure",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c75",
+      "claim": "LangChain's Deep Agents harness productises the planner as a write_todos-style planning tool plus a virtual filesystem and subagent spawning.",
+      "url": "https://docs.langchain.com/oss/python/deepagents/overview",
+      "topic": "Deep Agents features",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c76",
+      "claim": "Anthropic's multiagent research system mitigates delegation issues by teaching the orchestrator clear objective, output format, tool/source guidance and task boundaries.",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "topic": "delegation mitigation",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c77",
+      "claim": "Anthropic recommends scaling effort to query complexity to prevent agents from misjudging how many workers a query deserves.",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "topic": "effort scaling",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c78",
+      "claim": "Anthropic recommends starting wide then narrowing down because agents default to too-narrow searches.",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "topic": "search strategy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c79",
+      "claim": "AWS Prescriptive Guidance defines evaluator reflect-refine loops where feedback is applied by reinvoking the generator with an embedded critique or sending feedback to a specialized refiner.",
+      "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/evaluator-reflect-refine-loop-patterns.html",
+      "topic": "reflect-refine loop",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c80",
+      "claim": "No hyperscaler or model lab publishes a complete cross-pattern decision tree (unconfirmed absence).",
+      "url": null,
+      "topic": "decision tree availability",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c81",
+      "claim": "Machine Learning Mastery publishes a decision-tree approach for choosing agentic design patterns.",
+      "url": "https://machinelearningmastery.com/choosing-the-right-agentic-design-pattern-a-decision-tree-approach/",
+      "topic": "practitioner decision tree",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c82",
+      "claim": "Anthropic suggests developers start by using LLM APIs directly as many patterns can be implemented in a few lines of code.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "API direct usage",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c83",
+      "claim": "OpenAI guide states a single agent can handle many tasks by incrementally adding tools, keeping complexity manageable.",
+      "url": "https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf",
+      "topic": "single agent scalability",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c84",
+      "claim": "Microsoft Cloud Adoption Framework criteria for single agents include well-defined problem domains with predictable workflows.",
+      "url": "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ai-agents/single-agent-multiple-agents",
+      "topic": "single agent criteria",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c85",
+      "claim": "Cognition blog 'Don't Build Multi-Agents' serves as a counter-position to premature multi-agent adoption.",
+      "url": "https://cognition.com/blog/dont-build-multi-agents",
+      "topic": "counter-position",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c86",
+      "claim": "AWS Well-Architected Agentic AI Lens includes a cost pillar with best practices for tiered model selection.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost02-bp01.html",
+      "topic": "AWS cost lens",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c87",
+      "claim": "Google Cloud Architecture Center provides per-pattern cost notes in its design pattern catalogue.",
+      "url": "https://docs.cloud.google.com/architecture/choose-design-pattern-agentic-ai-system",
+      "topic": "Google cost notes",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c88",
+      "claim": "Anthropic's effective context engineering page discusses compaction, note-taking, and sub-agents for managing finite attention budget.",
+      "url": "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents",
+      "topic": "context management",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c89",
+      "claim": "Anthropic recommends just-in-time retrieval of identifiers rather than bulk preloading to protect context window.",
+      "url": "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents",
+      "topic": "just-in-time retrieval",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c90",
+      "claim": "OpenAI Agents SDK docs describe needs_approval interruptions that must be resumed.",
+      "url": "https://openai.github.io/openai-agents-python/human_in_the_loop/",
+      "topic": "SDK approvals",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c91",
+      "claim": "Microsoft Agent Framework gates function tools requiring approval.",
+      "url": "https://learn.microsoft.com/en-us/agent-framework/agents/tools/tool-approval",
+      "topic": "MS tool approval",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c92",
+      "claim": "AWS Prescriptive Guidance maps agent patterns to AWS services including Bedrock, Lambda, Step Functions and EventBridge.",
+      "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/workflow-orchestration-agents.html",
+      "topic": "AWS service mapping",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c93",
+      "claim": "GitHub sample repo exists for building ambient agents on Amazon Bedrock AgentCore.",
+      "url": "https://github.com/aws-samples/sample-ambient-agents-on-agentcore",
+      "topic": "AWS sample repo",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c94",
+      "claim": "Paper 'Patterns and problems in emerging multiagent systems' is attributed to Anthropic and reported as published ~2026-08-13 (secondary-only date confirmation).",
+      "url": "https://shamylmansoor.com/blog/multi-agent-ai-systems-coordination-problems/",
+      "topic": "paper publication date",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c95",
+      "claim": "Cognition's follow-up on multi-agents working is dated 2026-04-22.",
+      "url": "https://cognition.com/blog/multi-agents-working",
+      "topic": "blog post date",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c96",
+      "claim": "Report confirms no contradiction with facts verified on 2026-10-31 about Alibaba Cloud Model Studio / AgentRun / AgentLoop.",
+      "url": null,
+      "topic": "Alibaba contradiction check",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c97",
+      "claim": "Report states nothing in this brief touches Alibaba Cloud products.",
+      "url": null,
+      "topic": "Alibaba scope exclusion",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c98",
+      "claim": "LangGraph restates the workflow vs agent split defining workflows as having predetermined code paths.",
+      "url": "https://docs.langchain.com/oss/python/langgraph/workflows-agents",
+      "topic": "LangGraph definition",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c99",
+      "claim": "Anthropic trade rule states agentic systems often trade latency and cost for better task performance.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "trade-off rule",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c100",
+      "claim": "Anthropic states optimizing single LLM calls with retrieval and in-context examples is usually enough for many applications.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "default simplicity",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c101",
+      "claim": "Anthropic states agents are used for open-ended problems where required number of steps is difficult or impossible to predict.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "agent use case",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c102",
+      "claim": "OpenAI defines a workflow as a sequence of steps that must be executed to meet the user's goal.",
+      "url": "https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf",
+      "topic": "workflow definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c103",
+      "claim": "12-Factor Agents factor 'Contact humans with tool calls' is recommended for escalation.",
+      "url": "https://www.humanlayer.dev/blog/12-factor-agents",
+      "topic": "human contact factor",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c104",
+      "claim": "Google Cloud selection process starts from requirements like task complexity, latency expectations, cost budget, and need for human involvement.",
+      "url": "https://docs.cloud.google.com/architecture/choose-design-pattern-agentic-ai-system",
+      "topic": "selection inputs",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c105",
+      "claim": "AWS names multiplicative overhead in multi-agent coordination due to reasoning cycles.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost01.html",
+      "topic": "coordination overhead",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c106",
+      "claim": "Google Cloud states coordinator pattern results in more model calls than a single-agent system.",
+      "url": "https://docs.cloud.google.com/architecture/choose-design-pattern-agentic-ai-system",
+      "topic": "coordinator cost",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c107",
+      "claim": "Anthropic's implicit ladder goes from augmented LLM to workflow patterns to autonomous agents.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "complexity ladder",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c108",
+      "claim": "Suggested tree indicates prompt chaining applies when steps are linear and each step needs the previous.",
+      "url": null,
+      "topic": "synthesis tree",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c109",
+      "claim": "Suggested tree indicates routing applies for distinct input categories.",
+      "url": null,
+      "topic": "synthesis tree",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c110",
+      "claim": "Suggested tree indicates parallelization applies for independent subtasks or consensus needs.",
+      "url": null,
+      "topic": "synthesis tree",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c111",
+      "claim": "Suggested tree indicates orchestrator-workers applies when subtasks are not known until runtime.",
+      "url": null,
+      "topic": "synthesis tree",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c112",
+      "claim": "Suggested tree indicates evaluator-optimizer applies when clear eval criteria exist and refinement pays.",
+      "url": null,
+      "topic": "synthesis tree",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c113",
+      "claim": "Suggested tree indicates ReAct tool loop applies when steps are unknown and model must decide path.",
+      "url": null,
+      "topic": "synthesis tree",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c114",
+      "claim": "Suggested tree indicates plan-and-execute applies for long horizon, many tools, or cost-sensitive tasks.",
+      "url": null,
+      "topic": "synthesis tree",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c115",
+      "claim": "Suggested tree indicates subagents under ONE stateful loop apply when one context cannot hold the task.",
+      "url": null,
+      "topic": "synthesis tree",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c116",
+      "claim": "Suggested tree indicates group chat or debate applies when peers need to challenge each other.",
+      "url": null,
+      "topic": "synthesis tree",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c117",
+      "claim": "Suggested tree indicates handoffs or swarm apply when a specialist emerges mid-conversation.",
+      "url": null,
+      "topic": "synthesis tree",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c118",
+      "claim": "Suggested tree indicates magentic applies when no known recipe exists and planning/replanning is needed.",
+      "url": null,
+      "topic": "synthesis tree",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c119",
+      "claim": "Suggested tree indicates agentic RAG applies when grounding is needed.",
+      "url": null,
+      "topic": "synthesis tree",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c120",
+      "claim": "Suggested tree indicates event-driven durable execution applies for tasks triggered by events/schedules that are long-running.",
+      "url": null,
+      "topic": "synthesis tree",
+      "kind": "general",
+      "weight": "low"
+    }
+  ]
+}

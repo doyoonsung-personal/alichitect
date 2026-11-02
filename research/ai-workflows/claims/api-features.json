@@ -1,0 +1,668 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "Model Studio's international regions are Beijing, Virginia, Singapore, Tokyo, Frankfurt, and Hong Kong (no Seoul).",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/what-is-model-studio",
+      "topic": "model studio regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c2",
+      "claim": "qwen3.8-max is priced at $2 per 1M input tokens and $6 per 1M output tokens for the International scope.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen3.8-max price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c3",
+      "claim": "Access to Agent/Workflow/Knowledge base/Application-Calling pages in Singapore is restricted to users who created applications before April 21, 2025.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/application-introduction",
+      "topic": "singapore app restriction",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c4",
+      "claim": "Model Studio publishes four text-generation interfaces: OpenAI-compatible Chat Completions, OpenAI-compatible Responses, Anthropic-compatible Messages API, and DashScope.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-api-reference/",
+      "topic": "api surfaces",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c5",
+      "claim": "The Responses API has a context limit where max input is approximately 80% of the model's window to reserve room for built-in tool calls and reasoning.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-openai-responses",
+      "topic": "responses api context limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c6",
+      "claim": "The Assistant API is deprecated.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/quick-start-of-assistant-api",
+      "topic": "assistant api status",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c7",
+      "claim": "DashScope Python SDK requires Python version 3.9 or higher.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/install-sdk",
+      "topic": "sdk requirements",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c8",
+      "claim": "A DashScope SDK Expert CLI assistant is built into the dashscope Python SDK version 1.27.3 or later, but this feature is China site only.",
+      "url": "https://help.aliyun.com/en/model-studio/dashscope-sdk-expert",
+      "topic": "dashscope sdk expert cli",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c9",
+      "claim": "The workspace-specific OpenAI-compatible base URL format for Singapore is https://{WorkspaceId}.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope",
+      "topic": "singapore endpoint url",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c10",
+      "claim": "API keys are region-bound; calling a region's base URL requires a key created in that specific region.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope",
+      "topic": "api key region binding",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c11",
+      "claim": "Workspace-dedicated domains exist only for Beijing, Singapore, and Hong Kong.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/compatibility-with-openai-responses-api",
+      "topic": "workspace dedicated domains",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c12",
+      "claim": "The legacy DashScope domain stops receiving new features after September 30, 2026.",
+      "url": "https://help.aliyun.com/en/model-studio/regions",
+      "topic": "legacy domain sunset",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c13",
+      "claim": "kimi-k3 does not support the parallel_tool_calls parameter to control whether calls are parallel.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-function-calling",
+      "topic": "kimi-k3 parallel tools",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c14",
+      "claim": "Qwen series models do not support tool_choice=\"required\".",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-function-calling",
+      "topic": "qwen tool choice required",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c15",
+      "claim": "The Qwen-Omni-Realtime series supports neither the tool_choice nor parallel_tool_calls parameters.",
+      "url": "https://help.aliyun.com/zh/model-studio/qwen-function-calling",
+      "topic": "omni realtime params",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c16",
+      "claim": "Guidance recommends providing no more than 20 tools to the main model for optimal accuracy.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-function-calling",
+      "topic": "tool count recommendation",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c17",
+      "claim": "Structured Output JSON Schema mode supported models include Qwen3.8-Max series and Qwen3.8-Flash series.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-structured-output",
+      "topic": "structured output models",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c18",
+      "claim": "It is unconfirmed whether the JSON Schema mode in Structured Output uses strict grammar-constrained decoding or best-effort prompt-level enforcement.",
+      "url": null,
+      "topic": "json schema strictness",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c19",
+      "claim": "Built-in tools are exposed through the Responses API tools array.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/web-extractor",
+      "topic": "built-in tools exposure",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c20",
+      "claim": "Response output items from built-in tools are typed as web_search_call, web_extractor_call, image_search_call, function_call, and mcp_call.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/retrieve-a-response",
+      "topic": "response item types",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c21",
+      "claim": "The web_search tool costs $10.00 per 1,000 calls in the Singapore region.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/web-search",
+      "topic": "web search price singapore",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c22",
+      "claim": "kimi-k3 supports web search only via the Responses API web_search tool, not via enable_search.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/web-search",
+      "topic": "kimi-k3 web search method",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c23",
+      "claim": "qwen3.8-omni-flash supports only the web_search tool among built-in options.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/web-search",
+      "topic": "omni flash web search",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c24",
+      "claim": "The web_extractor tool must be used together with web_search.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/web-extractor",
+      "topic": "web extractor dependency",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c25",
+      "claim": "The web_extractor tool is free for a limited time.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/web-extractor",
+      "topic": "web extractor price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c26",
+      "claim": "The code_interpreter tool is free for a limited time but increases token consumption.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-code-interpreter",
+      "topic": "code interpreter price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c27",
+      "claim": "The t2i_search tool costs $8 per 1,000 calls in Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/web-search-image.md",
+      "topic": "t2i search price singapore",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c28",
+      "claim": "The t2i_search tool costs $3.44 per 1,000 calls in Beijing.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/web-search-image.md",
+      "topic": "t2i search price beijing",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c29",
+      "claim": "The image_search tool doc states $8.00 per 1,000 calls, but the region label was truncated, leaving the region unconfirmed.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/image-search",
+      "topic": "image search price region",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c30",
+      "claim": "The file_search tool requires vector_store_ids and currently supports only one knowledge base ID.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-openai-responses",
+      "topic": "file search kb limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c31",
+      "claim": "Tablestore Knowledge Storage Service offers serverless RAG with up to 100M documents per KB by default.",
+      "url": "https://www.alibabacloud.com/help/en/tablestore/table-store-service/knowledge-storage-introduction",
+      "topic": "tablestore kb limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c32",
+      "claim": "A Model Studio savings plan does not cover embedding/rerank fees incurred through Knowledge Base.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/savings-plan-and-resource-package",
+      "topic": "savings plan coverage",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c33",
+      "claim": "For Token Plan/Coding Plan harness tools, web search is billed at CNY 29 per 1,000 calls after free calls, but this pricing info is China site only.",
+      "url": "https://help.aliyun.com/en/model-studio/web-search",
+      "topic": "token plan web search price",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c34",
+      "claim": "Remote MCP servers can be called directly via the Responses API mcp tool using an SSE endpoint.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/mcp",
+      "topic": "remote mcp support",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c35",
+      "claim": "International availability of a hosted MCP marketplace or Model-Studio-hosted MCP servers is unconfirmed; evidence suggests it is China site only.",
+      "url": "https://help.aliyun.com/en/model-studio/mcp-introduction",
+      "topic": "mcp marketplace intl",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c36",
+      "claim": "Implicit cache-served input tokens are typically billed at 20% of the standard input token price.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/context-cache",
+      "topic": "implicit cache discount",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c37",
+      "claim": "Explicit cache creation costs a 25% surcharge over standard input price, and each subsequent hit saves 90%.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/explicit-cache-guide",
+      "topic": "explicit cache pricing",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c38",
+      "claim": "The minimum length for implicit cache hits is 1,024 tokens, except for Zhipu-deployed GLM models which require 512 tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/context-cache",
+      "topic": "implicit cache min length",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c39",
+      "claim": "Explicit cache requires a minimum of 1,024 tokens of cached content and allows a maximum of 4 cache markers per request.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/explicit-cache-guide",
+      "topic": "explicit cache limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c40",
+      "claim": "There is no published TTL for implicit cache; hits depend on cache generation and other factors.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/context-cache",
+      "topic": "implicit cache ttl",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c41",
+      "claim": "Explicit cache has a TTL of 5 minutes, automatically renewed on each hit.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/explicit-cache-guide",
+      "topic": "explicit cache ttl",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c42",
+      "claim": "Cache discount and batch discount cannot apply simultaneously.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "discount stacking",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c43",
+      "claim": "Batch API inference is discounted to 50% of the real-time inference price for both input and output tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/batch-inference",
+      "topic": "batch api discount",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c44",
+      "claim": "Batch API is supported only in China (Beijing) and Singapore regions.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/batch-inference",
+      "topic": "batch api regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c45",
+      "claim": "Batch API scale limits are up to 50,000 requests per file and max 500 MB per file.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/batch-inference",
+      "topic": "batch api file limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c46",
+      "claim": "Each JSON line in a Batch API file must be ≤ 6 MB.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/batch-interfaces-compatible-with-openai",
+      "topic": "batch api line limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c47",
+      "claim": "Batch API requests are not subject to real-time rate limiting.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/rate-limit",
+      "topic": "batch api rate limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c48",
+      "claim": "The official turnaround SLA number for Batch API is unconfirmed.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/batch-interfaces-compatible-with-openai",
+      "topic": "batch api sla",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c49",
+      "claim": "Free quota for Batch API is valid for 90 days.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "free quota validity",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c50",
+      "claim": "Thinking content is billed as Output Tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+      "topic": "thinking billing",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c51",
+      "claim": "The thinking_budget parameter sets the maximum number of tokens for the reasoning process.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+      "topic": "thinking budget param",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c52",
+      "claim": "Accepted values for reasoning_effort levels (low, medium, xhigh) are unconfirmed on alibabacloud.com.",
+      "url": "https://huggingface.co/Qwen/Qwen3.8-27B/discussions/113",
+      "topic": "reasoning effort values",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c53",
+      "claim": "Rate limits are applied at the Alibaba Cloud account level, aggregating usage across all RAM users, workspaces, and API keys.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/rate-limit",
+      "topic": "rate limit aggregation",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c54",
+      "claim": "HTTP 429 indicates rate limiting, while HTTP 403 indicates quota exhaustion.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/rate-limit",
+      "topic": "error codes rate vs quota",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c55",
+      "claim": "qwen3.8-max and qwen3.8-flash have fixed limits of 30,000 RPM and 5,000,000 TPM under Global scope.",
+      "url": "https://www.alibabacloud.com/help/fr/model-studio/rate-limit",
+      "topic": "global scope limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c56",
+      "claim": "qwen3.8-max and qwen3.8-flash use Dynamic Rate Limiting under International/Singapore scope.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/rate-limit",
+      "topic": "international dynamic limits",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c57",
+      "claim": "Dynamic rate limiting tiers are based on monthly spend: Tier 1 ≤ $8,000; Tier 2 $8,000–$140,000; Tier 3 > $140,000.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/quota-management",
+      "topic": "dynamic limit tiers",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c58",
+      "claim": "Temporary TPM quota increases in the console take effect immediately and last 30 days, according to third-party reports (unconfirmed officially).",
+      "url": "https://therouter.ai/blog/ai-api-rate-limit-comparison-2026/",
+      "topic": "temp quota duration",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c59",
+      "claim": "Model Studio runs content-safety moderation inline with inference.",
+      "url": "https://www.alibabacloud.com/help/fr/model-studio/data-retention-policy",
+      "topic": "moderation inline",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c60",
+      "claim": "Blocked content returns HTTP 400 with error code DataInspectionFailed (DashScope) or data_inspection_failed (OpenAI-compatible).",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/error-code",
+      "topic": "moderation error code",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c61",
+      "claim": "There is no documented off switch for platform-level Green Net inspection; it is treated as always on.",
+      "url": null,
+      "topic": "moderation off switch",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c62",
+      "claim": "AI Guardrails is a separate, customer-configurable layer available in Asia Pacific SE 1 (Singapore).",
+      "url": "https://www.alibabacloud.com/en/product/content-moderation/pricing?_p_lc=1",
+      "topic": "ai guardrails region",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c63",
+      "claim": "Alibaba Cloud will never use customer data for model training.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/privacy-notice",
+      "topic": "data training policy",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c64",
+      "claim": "Default retention for user prompts and responses is no longer than 30 days unless required by law.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/data-retention-policy",
+      "topic": "default data retention",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c65",
+      "claim": "Zero Data Retention (ZDR) is available to enterprise customers of Alibaba Cloud International Site at the workspace level.",
+      "url": "https://www.alibabacloud.com/help/id/model-studio/data-retention-policy",
+      "topic": "zdr availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c66",
+      "claim": "The ZDR approval process involving an account manager and needs assessment is unconfirmed on official pages.",
+      "url": "https://www.developersdigest.tech/models/data-retention/qwen",
+      "topic": "zdr approval process",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c67",
+      "claim": "Singapore region uses the International deployment scope, storing request data in that region.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/singapore-regional-access-information",
+      "topic": "singapore data location",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c68",
+      "claim": "Model Studio has achieved SOC 2 compliance with an unqualified opinion.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/privacy-notice",
+      "topic": "model studio soc2",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c69",
+      "claim": "Model-Studio-level ISO 27001/27017/27018 scope is unconfirmed; only platform-level certifications are listed.",
+      "url": "https://www.alibabacloud.com/en/trust-center/compliance?_p_lc=1",
+      "topic": "iso certification scope",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c70",
+      "claim": "PrivateLink access for Model Studio is documented for China (Beijing) and China (Hong Kong) only.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/access-model-studio-through-privatelink",
+      "topic": "privatelink regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c71",
+      "claim": "A single Model Studio workspace cannot span geographic regions.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/permission-management-overview",
+      "topic": "workspace region scope",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c72",
+      "claim": "Up to 50 API keys are allowed per account per region, and a primary account can have up to 20 workspaces.",
+      "url": "https://help.aliyun.com/en/model-studio/get-api-key",
+      "topic": "api key workspace limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c73",
+      "claim": "RAM users can view only the API keys in the workspaces they have joined.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/get-api-key",
+      "topic": "ram key visibility",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c74",
+      "claim": "Advanced administrative permissions for RAM users were withdrawn in a permission system upgrade notice.",
+      "url": "https://www.alibabacloud.com/en/notice/model_studio_upgrade_of_permission_system_558?_p_lc=1",
+      "topic": "ram admin rights change",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c75",
+      "claim": "Cost bills can be broken down by API Key ID and workspace ID.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/bill-query-and-cost-management",
+      "topic": "cost breakdown granularity",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c76",
+      "claim": "The Assistant API migration path is to the Responses API.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/event-streaming.md",
+      "topic": "assistant migration target",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c77",
+      "claim": "No shutdown date is published for Model Studio's Assistant API (unconfirmed).",
+      "url": null,
+      "topic": "assistant shutdown date",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c78",
+      "claim": "Application Calling API uses POST https://dashscope-intl.aliyuncs.com/api/v1/apps/{APP_ID}/completion for Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/application-calling-guide",
+      "topic": "app calling endpoint",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c79",
+      "claim": "To manage and call applications in a specific workspace via API, APP ID and Workspace ID must be set at the same time.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/permission-management-overview",
+      "topic": "app id workspace pairing",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c80",
+      "claim": "New requests sent through the same APP_ID after publishing use the new version's configuration.",
+      "url": "https://help.aliyun.com/en/model-studio/agent-and-workflow-application-api-reference",
+      "topic": "app versioning behavior",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c81",
+      "claim": "Fine-tuning is available in Singapore among international regions.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/regions",
+      "topic": "fine tuning regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c82",
+      "claim": "Free quota is 1M tokens per eligible model for 90 days, applicable only in Singapore region with International deployment scope.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/new-free-quota",
+      "topic": "free quota details",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c83",
+      "claim": "Non-Singapore web_search per-strategy prices (turbo/max/agent/agent_max) are unconfirmed for Virginia, Frankfurt, Tokyo, and Hong Kong.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/web-search",
+      "topic": "web search other regions",
+      "kind": "alibaba",
+      "weight": "medium"
+    }
+  ]
+}

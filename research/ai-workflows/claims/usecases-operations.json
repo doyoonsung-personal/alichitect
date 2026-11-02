@@ -1,0 +1,964 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "qwen3.8-max is priced at $2 per 1M input tokens and $6 per 1M output tokens for the International deployment scope in Singapore.",
+      "url": "https://www.alibabacloud.com/en/campaign/ai-landing-page-token?_p_lc=1",
+      "topic": "qwen3.8-max price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c2",
+      "claim": "The qwen3.8-max model card shows a price of $1.65 input / $4.951 output, which corresponds to the Global deployment scope.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+      "topic": "qwen3.8-max price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c3",
+      "claim": "qwen3.8-flash is priced at $0.15 input / $0.47 output for the International scope and $0.113/$0.382 for the Global scope.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen3.8-flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c4",
+      "claim": "Model Studio no-code agent/workflow apps and knowledge bases are limited to accounts that created Singapore apps before 2025-04-21.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/single-agent-application",
+      "topic": "Model Studio availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c5",
+      "claim": "AgentRun's only international endpoint for core services is Singapore (ap-southeast-1).",
+      "url": "https://www.alibabacloud.com/help/doc-detail/3049222.html",
+      "topic": "AgentRun regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c6",
+      "claim": "AgentRun Open Platform is available in China (Hong Kong) and Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/open-platform-introduction.md",
+      "topic": "AgentRun Open Platform regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c7",
+      "claim": "FC Agent Sandbox API/SDK is available in China (Hong Kong), Singapore, and US regions.",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/supported-regions-of-fc-agent-sandbox",
+      "topic": "FC Agent Sandbox regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c8",
+      "claim": "AgentCore is a separate product with Building, Governance, and Execution layers supporting multi-agent and human-in-the-loop collaboration.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-product-overview",
+      "topic": "AgentCore existence",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c9",
+      "claim": "AgentCore uses CU-based billing where 1 vCPU·s = 1 CU and 1 GB·s = 0.5 CU, with a reference price of USD 0.00001/CU in China (Shanghai).",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-billing-instructions",
+      "topic": "AgentCore billing",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c10",
+      "claim": "AgentTeams has been migrated into AgentCore.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentteams-has-been-migrated-to-agentcore",
+      "topic": "AgentTeams status",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c11",
+      "claim": "Model Studio serves third-party models including DeepSeek, Kimi, and GLM internationally.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/what-is-model-studio",
+      "topic": "Model Studio third-party models",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c12",
+      "claim": "qwen3.8-flash supports multimodal inputs and has a native 1M-token context window.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-8-flash",
+      "topic": "qwen3.8-flash capabilities",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c13",
+      "claim": "qwen3.8-max has a 1M context window, thinking mode, and full tool ecosystem support.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+      "topic": "qwen3.8-max capabilities",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c14",
+      "claim": "The price for qwen3-coder-flash is unconfirmed as the model page does not surface a clean number.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-coder-flash",
+      "topic": "qwen3-coder-flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c15",
+      "claim": "qwen3.5-ocr is priced at $0.069 input / $0.275 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-5-ocr",
+      "topic": "qwen3.5-ocr price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c16",
+      "claim": "text-embedding-v4 supports 8,192 tokens per text and batches of 10.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/text-embedding-v4",
+      "topic": "text-embedding-v4 limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c17",
+      "claim": "Embedding prices range from $0.036/$0.072 to $0.09 depending on model and scope, requiring console verification.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/embedding",
+      "topic": "Embedding prices",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c18",
+      "claim": "qwen3-rerank and qwen3-vl-rerank are priced between $0.069–$0.10 per 1M text input, but the specific Singapore price is unconfirmed.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-rerank",
+      "topic": "Rerank prices",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c19",
+      "claim": "Fun ASR models support 31+ languages.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/asr-model",
+      "topic": "ASR language support",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c20",
+      "claim": "Batch inference costs 50% of real-time input and output prices where supported.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Batch inference discount",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c21",
+      "claim": "Context cache creation costs approximately 125% of standard input price, while cache hits cost approximately 10%.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/context-cache",
+      "topic": "Context cache pricing",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c22",
+      "claim": "Free quota provides 1M tokens per model, valid for 90 days, only for Singapore region with International deployment scope.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/new-free-quota",
+      "topic": "Free quota terms",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c23",
+      "claim": "Model Studio never uses customer data for model training and has a SOC 2 report available.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/privacy-notice",
+      "topic": "Data privacy policy",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c24",
+      "claim": "PrivateLink private endpoints for Model Studio are available only in China (Beijing) and China (Hong Kong).",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/access-model-studio-through-privatelink",
+      "topic": "PrivateLink regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c25",
+      "claim": "EventBridge rules can trigger Function Compute, RocketMQ, and DingTalk.",
+      "url": "https://www.alibabacloud.com/help/en/eventbridge/product-overview/what-is-eventbridge",
+      "topic": "EventBridge integrations",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c26",
+      "claim": "Function Compute triggers include HTTP, timer, OSS, CloudMonitor, ActionTrail, MNS, and EventBridge.",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/trigger-overview",
+      "topic": "FC triggers",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c27",
+      "claim": "No managed inbound email ingestion service was found for Alibaba Cloud international regions; customers must wire external webhooks.",
+      "url": null,
+      "topic": "Inbound email availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c28",
+      "claim": "AgentRun AgentRuntime supports Python, Node, and Java.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/what-is-agentrun",
+      "topic": "AgentRun runtimes",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c29",
+      "claim": "AgentRun sandbox runtime supports 50+ languages.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/what-is-agentrun",
+      "topic": "AgentRun sandbox languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c30",
+      "claim": "ACS Agent Sandbox offers MicroVM isolation, hibernation/wake, and checkpoint/clone features, but documentation is marked China site only.",
+      "url": "https://help.aliyun.com/en/cs/user-guide/agent-sandbox/",
+      "topic": "ACS Agent Sandbox features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c31",
+      "claim": "AgentBay provides browser/desktop automation and is deployed in Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/agentbay/product-overview/what-is-eds-agentbay",
+      "topic": "AgentBay availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c32",
+      "claim": "ACK + ack-dify component supports building customized AI Q&A assistants based on Dify.",
+      "url": "https://www.alibabacloud.com/help/en/ack/cloud-native-ai-suite/use-cases/building-customized-ai-question-and-answer-assistant-based-on-dify",
+      "topic": "ACK Dify support",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c33",
+      "claim": "ACS serverless K8s became available for international customers since January 2025.",
+      "url": "https://www.alibabacloud.com/en/press-room/acs-for-international-customers-to-revolutionize?_p_lc=1",
+      "topic": "ACS international launch",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c34",
+      "claim": "ACS S-class vCPU billing rate is 0.00000038 USD/s.",
+      "url": "https://www.alibabacloud.com/help/en/cs/product-overview/product-billing-rules",
+      "topic": "ACS billing rate",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c35",
+      "claim": "PAI-EAS supports one-click LLM deployment for Qwen and DeepSeek models.",
+      "url": "https://www.alibabacloud.com/help/en/pai/deploy-an-llm/",
+      "topic": "PAI-EAS capabilities",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c36",
+      "claim": "AnalyticDB for PostgreSQL offers RAG OpenAPI and GraphRAG service.",
+      "url": "https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/openapi-based-rag-applications-1",
+      "topic": "ADB-PG RAG features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c37",
+      "claim": "OpenSearch provides LLM-Based Conversational Search and Agentic Search products.",
+      "url": "https://www.alibabacloud.com/en/product/opensearch?_p_lc=1",
+      "topic": "OpenSearch AI features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c38",
+      "claim": "AI Gateway acts as a unified proxy for LLM APIs and MCP servers with MCP gateway management.",
+      "url": "https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/user-guide/mcp-gateway-management",
+      "topic": "AI Gateway MCP support",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c39",
+      "claim": "DataWorks Data Agent is Generally Available (GA).",
+      "url": "https://www.alibabacloud.com/blog/announcing-dataworks-data-agent-meet-your-ai-agent-for-data_603187",
+      "topic": "DataWorks GA status",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c40",
+      "claim": "SLS Copilot enables NL→SQL over logs.",
+      "url": "https://www.alibabacloud.com/help/en/sls/copilot-automatic-generation-of-ai-assisted-sql-statements",
+      "topic": "SLS Copilot feature",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c41",
+      "claim": "SLS MCP server documentation is marked China site only.",
+      "url": "https://help.aliyun.com/en/sls/sls-mcp-server",
+      "topic": "SLS MCP availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c42",
+      "claim": "AgentLoop provides full-stack observability, auditing, evaluation, and experimentation for agents.",
+      "url": "https://www.alibabacloud.com/help/en/agentloop/product-overview/what-is-agentloop",
+      "topic": "AgentLoop features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c43",
+      "claim": "AgentLoop international region is Hong Kong.",
+      "url": "https://www.alibabacloud.com/help/en/agentloop/product-overview/what-is-agentloop",
+      "topic": "AgentLoop regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c44",
+      "claim": "AI Guardrails (formerly Content Moderation) can be activated one-click through Model Studio and integrates with AI Gateway and WAF.",
+      "url": "https://www.alibabacloud.com/en/product/ai_guardrails?_p_lc=1",
+      "topic": "AI Guardrails integration",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c45",
+      "claim": "DirectMail supports transactional, notification, and batch email with per-email billing.",
+      "url": "https://www.alibabacloud.com/en/product/directmail/pricing?_p_lc=1",
+      "topic": "DirectMail billing",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c46",
+      "claim": "Qoder is an agentic coding platform connecting to Model Studio.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qoder-agent",
+      "topic": "Qoder existence",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c47",
+      "claim": "Alibaba Cloud is named a Challenger in the 2026 Gartner MQ for Enterprise AI Coding Agents and #1 in APAC.",
+      "url": "https://www.alibabacloud.com/en/about/gartner-aica-2026?_p_lc=1",
+      "topic": "Gartner MQ ranking",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c48",
+      "claim": "Over 100k Alibaba employees use Qoder.",
+      "url": "https://www.alibabacloud.com/en/about/gartner-aica-2026?_p_lc=1",
+      "topic": "Qoder adoption",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c49",
+      "claim": "Qoder Code Review Agent docs are marked China site only.",
+      "url": "https://help.aliyun.com/en/lingma/code-review-agent",
+      "topic": "Qoder Docs availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c50",
+      "claim": "Alibaba Cloud's customer service agent design write-up reports a self-service resolution rate >10% higher than traditional approaches (vendor-reported).",
+      "url": "https://www.alibabacloud.com/blog/alibaba-cloud-customer-service-agent-thoughts-design-and-practices-from-concept-to-implementation_601555",
+      "topic": "CS Agent metrics",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c51",
+      "claim": "Anthropic recommends starting with the simplest workflow pattern that works among prompt chaining, routing, parallelization, orchestrator-workers, and evaluator-optimizer.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "Anthropic patterns",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c52",
+      "claim": "OpenAI's agent guide recommends single-agent with tools first, multi-agent only when necessary, plus explicit guardrails and human-approval points.",
+      "url": "https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf",
+      "topic": "OpenAI patterns",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c53",
+      "claim": "LangGraph provides an 'interrupt' primitive for pause-before-tool-call with approve/edit-args/reject options.",
+      "url": "https://docs.langchain.com/oss/python/langgraph/interrupts",
+      "topic": "LangGraph HITL",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c54",
+      "claim": "OpenAI Agents SDK notes that tool guardrails do not apply to handoff calls.",
+      "url": "https://openai.github.io/openai-agents-python/guardrails/",
+      "topic": "OpenAI SDK limitations",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c55",
+      "claim": "Agents use approximately 4x the tokens of a chat for the same task, and multi-agent systems use approximately 15x.",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "topic": "Token usage multipliers",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c56",
+      "claim": "Exposing tools as code APIs executed in a sandbox reduced token usage by 98.7% (150,000 to 2,000 tokens) in one Anthropic workflow.",
+      "url": "https://www.anthropic.com/research/code-execution-with-mcp",
+      "topic": "Code execution efficiency",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c57",
+      "claim": "Cloudflare reports 99.9% input-token reduction with 'Code Mode'.",
+      "url": "https://blog.cloudflare.com/code-mode-mcp",
+      "topic": "Cloudflare metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c58",
+      "claim": "McKinsey states value requires both scale and automation potential, and token cost is not the whole cost.",
+      "url": "https://www.mckinsey.com/capabilities/quantumblack/our-insights/where-ai-agents-pay-off-a-practical-guide-to-the-economics-of-agentic-workflows",
+      "topic": "McKinsey economics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c59",
+      "claim": "McKinsey State of AI 2026 reports 80% see individual productivity gains but only 37% report positive EBIT impact.",
+      "url": "https://www.mckinsey.com/capabilities/people-and-organization/our-insights/ai-is-changing-work-now-it-has-to-change-the-organization",
+      "topic": "McKinsey stats",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c60",
+      "claim": "Gartner predicts >40% of agentic AI projects will be cancelled by end-2027 due to cost, unclear value, and weak risk controls.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027",
+      "topic": "Gartner cancellation forecast",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c61",
+      "claim": "Gartner predicts 70% of enterprises will abandon agentic AI built by vendor forward-deployed engineering by 2028.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2026-09-29-gartner-predicts-70-percent-of-enterprises-will-abandon-agentic-ai-built-by-vendor-forward-deployed-engineering-by-2028",
+      "topic": "Gartner abandonment forecast",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c62",
+      "claim": "Only 18% of teams reach production and 10% reach >=90% task success, per secondary summaries of Alibaba's AI Agent Handbook (unconfirmed against README).",
+      "url": "https://hermes-ai.net/news/alibaba-cloud-s-ai-agent-handbook-reveals-only-10-hit-90-task-success/",
+      "topic": "Handbook stats",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c63",
+      "claim": "Microsoft Graph findMeetingTimes API is used for calendar scheduling.",
+      "url": "https://learn.microsoft.com/en-us/graph/api/user-findmeetingtimes?view=graph-rest-1.0",
+      "topic": "MS Graph API",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c64",
+      "claim": "Google Calendar events.insert API is used for booking meetings.",
+      "url": "https://developers.google.com/workspace/calendar/api/v3/reference/events/insert",
+      "topic": "Google Calendar API",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c65",
+      "claim": "EU AI Act lists AI for recruitment/selection as Annex III high-risk.",
+      "url": "https://artificialintelligenceact.eu/annex/3/",
+      "topic": "EU AI Act classification",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c66",
+      "claim": "EU AI Act Article 6 high-risk obligations apply from 2 December 2027.",
+      "url": "https://artificialintelligenceact.eu/article/6/",
+      "topic": "EU AI Act dates",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c67",
+      "claim": "NYC Local Law 144 requires an independent bias audit within the last year for automated employment decision tools.",
+      "url": "https://www.nyc.gov/site/dca/about/automated-employment-decision-tools.page",
+      "topic": "NYC LL144 requirements",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c68",
+      "claim": "MTE retrieval-based screeners favoured White-associated names in 85.1% of cases and female-associated names in only 11.1%.",
+      "url": "https://arxiv.org/html/2407.20371v3",
+      "topic": "Bias study metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c69",
+      "claim": "Mobley v. Workday court treated the vendor as a potential Title VII 'agent' and allowed discrimination claims to proceed.",
+      "url": "https://www.reuters.com/legal/government/these-workers-say-an-ai-hiring-platform-discriminated-against-them-who-should-2026-09-21/",
+      "topic": "Legal precedent",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c70",
+      "claim": "EEOC settled with iTutorGroup for $365,000 regarding discriminatory hiring software.",
+      "url": "https://www.eeoc.gov/newsroom/itutorgroup-pay-365000-settle-eeoc-discriminatory-hiring-suit",
+      "topic": "EEOC settlement",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c71",
+      "claim": "Korea PIPA Art. 37-2 gives data subjects the right to refuse fully automated decisions with material impact.",
+      "url": "https://www.kimchang.com/en/insights/detail.kc?sch_section=4&idx=29898",
+      "topic": "Korea PIPA rights",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c72",
+      "claim": "Korea's AI Basic Act took effect on 22 Jan 2026.",
+      "url": "https://www.kimchang.com/en/insights/detail.kc?sch_section=4&idx=33805",
+      "topic": "Korea AI Act date",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c73",
+      "claim": "Singapore PDPC issued Advisory Guidelines on personal data in AI recommendation/decision systems on 1 Mar 2024.",
+      "url": "https://www.pdpc.gov.sg/-/media/files/pdpc/pdf-files/advisory-guidelines/advisory-guidelines-on-the-use-of-personal-data-in-ai-recommendation-and-decision-systems.pdf",
+      "topic": "Singapore PDPC guidelines",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c74",
+      "claim": "IMDA Model AI Governance Framework for Agentic AI was updated to v1.5 on 20 May 2026.",
+      "url": "https://www.insideglobaltech.com/2026-06-18/singapore-updates-model-ai-governance-framework-for-agentic-ai/",
+      "topic": "IMDA framework version",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c75",
+      "claim": "Nestlé saved $3M annually and eliminated ~8,000 hours/month of scheduling admin with conversational hiring AI (Workday vendor story).",
+      "url": "https://www.workday.com/en-us/customer-stories/i-p/nestle-saves-millions-annually-conversational-ai.html",
+      "topic": "Nestlé ROI",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c76",
+      "claim": "Paradox clients save 35,000 hours/year on interview scheduling and recruiters save 7 hours/week (vendor stories).",
+      "url": "https://www.paradox.ai/clients-stories",
+      "topic": "Paradox ROI",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c77",
+      "claim": "H-E-B reduced time-to-hire from 29 to 17 days with automated scheduling (HireVue vendor blog).",
+      "url": "https://www.hirevue.com/blog/hiring/for-a-shorter-time-to-hire-try-automated-scheduling",
+      "topic": "H-E-B metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c78",
+      "claim": "Eightfold case study reports a 35% reduction in average time-to-fill.",
+      "url": "https://eightfold.ai/wp-content/uploads/Building_on_ATS_with_AI_A_Case_Study.pdf",
+      "topic": "Eightfold metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c79",
+      "claim": "SHRM 2025 benchmarking reports non-executive cost per hire average of $5,475.",
+      "url": "https://www.shrm.org/about/press-room/shrm-releases-2025-benchmarking-reports--how-does-your-organizat",
+      "topic": "Cost per hire baseline",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c80",
+      "claim": "Workday Illuminate Recruiter Agent/Talent Acquisition agents are planned for GA early 2026.",
+      "url": "https://newsroom.workday.com/2025-05-19-Workday-Unveils-Next-Generation-of-Illuminate-Agents-to-Transform-HR-and-Finance-Operations",
+      "topic": "Workday GA timeline",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c81",
+      "claim": "Forrester TEI of ServiceNow HR Service Delivery reports 77,000+ hours saved and up to 15 minutes saved per tier-1 request.",
+      "url": "https://tei.forrester.com/go/servicenow/hrservicedeliveryexecutivesummary/",
+      "topic": "ServiceNow ROI",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c82",
+      "claim": "Forrester TEI of Glean reports 141% ROI over 3 years and 106 hours saved per user.",
+      "url": "https://tei.forrester.com/go/Glean/workAIplatform/",
+      "topic": "Glean ROI",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c83",
+      "claim": "Forrester TEI of Microsoft 365 Copilot reports new-hire onboarding time reduced by up to 25% and 9 hours/user/month saved.",
+      "url": "https://tei.forrester.com/go/microsoft/M365Copilot/",
+      "topic": "M365 Copilot ROI",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c84",
+      "claim": "Moveworks reports BambooHR cut helpdesk tickets 30% with an AI HR assistant.",
+      "url": "https://www.moveworks.com/us/en/resources/blog/bamboohr-ai-customer-story",
+      "topic": "BambooHR metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c85",
+      "claim": "Moveworks reports Broadcom achieved up to 88% autonomous resolution in HR case management.",
+      "url": "https://www.moveworks.com/us/en/resources/blog/hr-case-management-with-ai-examples",
+      "topic": "Broadcom metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c86",
+      "claim": "IBM watsonx Orchestrate offers prebuilt HR agents integrated with Workday.",
+      "url": "https://www.ibm.com/products/watsonx-orchestrate/ai-agent-for-hr",
+      "topic": "IBM WatsonX features",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c87",
+      "claim": "AI Singapore built SEA-LION for 11 SEA languages to address quality gaps in Western-centric models.",
+      "url": "https://sea-lion.ai/about/",
+      "topic": "SEA-LION purpose",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c88",
+      "claim": "Microsoft's IT Helpdesk Copilot Studio template includes answering policy questions and checking ticket status.",
+      "url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/template-it-helpdesk",
+      "topic": "MS Copilot Template",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c89",
+      "claim": "Atlassian Rovo agents in JSM have per-resolution pricing.",
+      "url": "https://www.atlassian.com/blog/jira-service-management/rovo-agents-service-desk-instant-resolution",
+      "topic": "Atlassian Pricing",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c90",
+      "claim": "OWASP Top 10 for Agentic Applications 2026 includes ASI02 Tool Misuse and ASI03 Identity & Privilege Abuse.",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "topic": "OWASP Categories",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c91",
+      "claim": "AWS documents the pattern of propagating requesting employee permissions rather than using a service account for AgentCore Identity/OAuth token exchange.",
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity-overview.html",
+      "topic": "AWS Identity Pattern",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c92",
+      "claim": "Equinix routed requests to the right expert with 96% accuracy using Moveworks (vendor reported).",
+      "url": "https://www.moveworks.com/us/en/customers",
+      "topic": "Equinix metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c93",
+      "claim": "Freshworks reports 66% of Freddy AI Agent users see reduced workload and 77% decrease in resolution time with Copilot.",
+      "url": "https://www.freshworks.com/freshservice/ai-itsm/",
+      "topic": "Freshworks metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c94",
+      "claim": "Freshworks cites 40-60% deflection across Freddy AI Agent customer base and prices AI Agent at $49 per 100 sessions.",
+      "url": "https://servicedeskagents.com/vs-freshservice/",
+      "topic": "Freshworks Pricing",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c95",
+      "claim": "Thrive achieved 73% first-contact resolution using ServiceNow AI agents (customer-reported).",
+      "url": "https://newsroom.servicenow.com/press-releases/details/2026/Thrive-scales-customer-experience-with-ServiceNow-AI-achieving-73-first-contact-resolution/default.aspx",
+      "topic": "Thrive metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c96",
+      "claim": "Atlassian charges $1.00 per AI agent resolution with a system limit of 250,000 resolutions/month.",
+      "url": "https://support.atlassian.com/customer-service-management/docs/manage-usage-for-ai-agent-resolutions/",
+      "topic": "Atlassian Resolution Price",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c97",
+      "claim": "Salesforce reports teams resolve 50% of inquiries autonomously and Agentforce handled 4.3M inquiries with 70% resolved without human.",
+      "url": "https://www.salesforce.com/agentforce/metrics/",
+      "topic": "Salesforce Metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c98",
+      "claim": "Intercom Fin AI Agent has an average resolution rate of 76% across 12,000+ customers (vendor).",
+      "url": "https://fin.ai/learn/fin-vs-ada",
+      "topic": "Fin Metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c99",
+      "claim": "Gartner predicts agentic AI will autonomously resolve 80% of common customer-service issues by 2029.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2025-03-05-gartner-predicts-agentic-ai-will-autonomously-resolve-80-percent-of-common-customer-service-issues-without-human-intervention-by-20290",
+      "topic": "Gartner CS Forecast",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c100",
+      "claim": "Gartner predicts 50% of organizations planning AI-driven service workforce cuts will abandon those plans by 2027.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2025-06-10-gartner-predicts-50-percent-of-organizations-will-abandon-plans-to-reduce-customer-service-workforce-due-to-ai",
+      "topic": "Gartner Workforce Forecast",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c101",
+      "claim": "HDI benchmarking reports IT helpdesk cost per ticket ranges from $6 to $40+ in North America.",
+      "url": "https://www.thinkhdi.com/library/supportworld/metrics",
+      "topic": "IT Ticket Cost Baseline",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c102",
+      "claim": "Azure SRE Agent provides automated incident triage and scheduled ops.",
+      "url": "https://learn.microsoft.com/en-us/azure/sre-agent/overview",
+      "topic": "Azure SRE Agent",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c103",
+      "claim": "Datadog Bits Investigation identifies root causes 90% faster (vendor reported).",
+      "url": "https://www.datadoghq.com/product/ai/bits-investigation/",
+      "topic": "Datadog Metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c104",
+      "claim": "AWS DevOps Agent preview customers report up to 75% lower MTTR, 80% faster investigations, and 94% root-cause accuracy (vendor reported).",
+      "url": "https://aws.amazon.com/blogs/devops/leverage-agentic-ai-for-autonomous-incident-response-with-aws-devops-agent/",
+      "topic": "AWS DevOps Agent Metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c105",
+      "claim": "AWS DevOps Agent GA was reported in April 2026.",
+      "url": "https://www.infoq.com/news/2026/04/aws-devops-agent-ga/",
+      "topic": "AWS DevOps Agent GA",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c106",
+      "claim": "RCACopilot is an LLM-based on-call system deployed for Microsoft cloud incidents.",
+      "url": "https://arxiv.org/pdf/2305.15778",
+      "topic": "RCACopilot Existence",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c107",
+      "claim": "Snowflake Cortex Analyst reaches >90% text-to-SQL accuracy in real BI scenarios with a semantic model.",
+      "url": "https://www.snowflake.com/en/blog/engineering/cortex-analyst-text-to-sql-accuracy-bi/",
+      "topic": "Snowflake Accuracy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c108",
+      "claim": "Spider 2.0 benchmark was solved at 21.3% by strong agents vs 91.2% on Spider 1.0.",
+      "url": "https://spider2-sql.github.io/",
+      "topic": "Spider Benchmark Scores",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c109",
+      "claim": "CIDR 2026 analysis found annotation error rates of 52.8% (BIRD) and 66.1% (Spider 2.0-Snow).",
+      "url": "https://www.vldb.org/cidrdb/papers/2026/p5-jin.pdf",
+      "topic": "Benchmark Annotation Errors",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c110",
+      "claim": "Databricks ships Benchmarks + Request Review in AI/BI Genie.",
+      "url": "https://docs.databricks.com/aws/en/genie-agents/monitor",
+      "topic": "Databricks Features",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c111",
+      "claim": "ICSE 2025 study found 73.8% of automated review comments were resolved, but PR closure duration increased from 5h52m to 8h20m.",
+      "url": "https://arxiv.org/abs/2412.18531",
+      "topic": "Code Review Study Metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c112",
+      "claim": "Atlassian ICSE 2026 evaluation found RovoDev Code Reviewer code resolution rate 38.70% vs 44.45% for humans, and 30.8% reduction in median PR time.",
+      "url": "https://dl.acm.org/doi/10.1145/3786583.3786851",
+      "topic": "Atlassian Review Metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c113",
+      "claim": "GitHub Copilot code review went GA after 1M+ developers used the preview.",
+      "url": "https://github.blog/changelog/2025-04-04-copilot-code-review-now-generally-available/",
+      "topic": "GitHub Copilot GA",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c114",
+      "claim": "An independent study found Copilot code review had a low success rate at identifying known security vulnerabilities.",
+      "url": "https://arxiv.org/html/2509.13650v1",
+      "topic": "Copilot Security Limitations",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c115",
+      "claim": "CodeRabbit study found AI-authored changes produced 10.83 issues/PR vs 6.45 for human-only PRs.",
+      "url": "https://www.coderabbit.ai/blog/state-of-ai-vs-human-code-generation-report",
+      "topic": "CodeRabbit Metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c116",
+      "claim": "ByteDance's BitsAI-CR describes production LLM code review at scale.",
+      "url": "https://arxiv.org/html/2501.15134v1",
+      "topic": "BitsAI-CR Existence",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c117",
+      "claim": "Gartner predicts 60% of supply-chain disruptions will be resolved without human intervention by 2031.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2026-03-18-gartner-predicts-60-percent-of-supply-chain-disruptions-will-be-resolved-without-human-intervention-by-2031",
+      "topic": "Gartner Supply Chain Forecast",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c118",
+      "claim": "Gartner predicts only 5% of organizations will make even 10% of supply-chain planning decisions autonomously by 2030.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2026-09-24-gartner-predicts-only-5-percent-of-organizations-will-make-at-least-10-percent-of-supply-chain-planning-decisions-autonomously-by-2030",
+      "topic": "Gartner Planning Autonomy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c119",
+      "claim": "Spending on supply-chain software with agentic AI grows from <$2B (2025) to $53B by 2030 (secondary source, unconfirmed).",
+      "url": "https://www.facebook.com/munayyergroup/posts/1608743051040882/",
+      "topic": "Supply Chain Spend Forecast",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c120",
+      "claim": "IBM IBV reports 57% of executives expect agentic AI to make proactive recommendations by 2026.",
+      "url": "https://www.ibm.com/thought-leadership/institute-business-value/en-us/report/supply-chain-ai-automation-oracle",
+      "topic": "IBM Executive Survey",
+      "kind": "general",
+      "weight": "medium"
+    }
+  ]
+}

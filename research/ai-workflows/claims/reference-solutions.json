@@ -1,0 +1,628 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "PAI-LangStudio is officially retired on March 9, 2027 at 16:00.",
+      "url": "https://www.alibabacloud.com/help/en/pai/product-overview/pai-langstudio-feature-retirement-and-migration-guide",
+      "topic": "PAI-LangStudio retirement",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c2",
+      "claim": "AgentCore product overview lists Singapore (ap-southeast-1) as a supported region alongside China regions.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-product-overview",
+      "topic": "AgentCore regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c3",
+      "claim": "AgentRun Open Platform (FunAgent) is available in the China (Hong Kong) and Singapore regions.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/open-platform-introduction.md",
+      "topic": "AgentRun Open Platform regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c4",
+      "claim": "Only users who created Alibaba Cloud Model Studio applications in the Singapore region before April 21, 2025 can access certain features (application gate).",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/rag-knowledge-base",
+      "topic": "Model Studio application gate",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c5",
+      "claim": "The Technical Solutions catalog includes 'Build a private Q&A app with RAGFlow', 'Multimodal data extraction', and 'Deploy Dify and build AI applications'.",
+      "url": "https://www.alibabacloud.com/en/solution/tech-solution/",
+      "topic": "Technical Solutions catalog",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c6",
+      "claim": "RAGFlow technical solution page exists at URL https://www.alibabacloud.com/solution/tech-solution-deploy/2926764.",
+      "url": "https://www.alibabacloud.com/solution/tech-solution-deploy/2926764",
+      "topic": "RAGFlow tech solution URL",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c7",
+      "claim": "Dify technical solution uses Container Service for Kubernetes (ACK) and supports versions like v1.11.4.",
+      "url": "https://www.alibabacloud.com/en/solution/tech-solution/rapidly-deploy-dify-to-accelerate-ai-application-development",
+      "topic": "Dify tech solution products",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c8",
+      "claim": "Agency Agents solution features 232 specialized agents across 16 domains.",
+      "url": "https://www.alibabacloud.com/en/solution/tech-solution/agency-agents/3044083",
+      "topic": "Agency Agents metrics",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c9",
+      "claim": "QwenPaw (formerly CoPaw) is an open-source personal AI assistant from the AgentScope team deployable on ECS.",
+      "url": "https://www.alibabacloud.com/en/solution/tech-solution/copaw",
+      "topic": "QwenPaw existence",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c10",
+      "claim": "HiClaw is the open-source Team edition of OpenClaw from Alibaba Cloud, using a Manager Agent to orchestrate Worker agents.",
+      "url": "https://www.alibabacloud.com/tc/solution/tech-solution/hiclaw",
+      "topic": "HiClaw definition",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c11",
+      "claim": "DeepSeek Harness is an open-source AI Agent framework by DeepSeek supporting Web UI and CLI modes, deployable on ECS with Model Studio.",
+      "url": "https://www.alibabacloud.com/tc/solution/tech-solution/deepseek-harness",
+      "topic": "DeepSeek Harness existence",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c12",
+      "claim": "OpenClaw is available as an application image on Simple Application Server (SAS) under MIT license.",
+      "url": "https://www.alibabacloud.com/help/en/simple-application-server/use-cases/quickly-deploy-and-use-openclaw",
+      "topic": "OpenClaw SAS availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c13",
+      "claim": "Blog states OpenClaw pricing on Simple Application Server is as little as USD $8/month.",
+      "url": "https://www.alibabacloud.com/blog/openclaw-launches-on-alibaba-cloud-simple-application-server_602845",
+      "topic": "OpenClaw price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c14",
+      "claim": "Intelligent Speech Interaction is currently available in Mandarin Chinese, Cantonese Chinese, English, Japanese, Korean, French and Indonesian.",
+      "url": "https://www.alibabacloud.com/en/product/intelligent-speech-interaction",
+      "topic": "Speech interaction languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c15",
+      "claim": "Real-time audio/video conversations use qwen3.8-omni-flash-realtime model.",
+      "url": "https://www.alibabacloud.com/en/solutions/ai-application/real-time-interaction",
+      "topic": "Real-time model ID",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c16",
+      "claim": "Non-real-time audio output uses qwen3.5-omni-plus model.",
+      "url": "https://www.alibabacloud.com/en/solutions/ai-application/real-time-interaction",
+      "topic": "Non-real-time model ID",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c17",
+      "claim": "Real-time conversational AI billing example for Chinese mainland agent is USD 0.28 for 20 minutes ($0.014/minute).",
+      "url": "https://www.alibabacloud.com/help/en/ims/real-time-conversational-ai-standard-billing",
+      "topic": "IMS real-time billing",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c18",
+      "claim": "Alibaba Cloud Intelligent Contact Center (AICCS) is China site only.",
+      "url": "https://help.aliyun.com/en/aiccs/product-overview/what-is-artificial-intelligence-cloud-call-service",
+      "topic": "AICCS availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c19",
+      "claim": "RAG solution guide uses Model Studio, Compute Nest, and AnalyticDB for PostgreSQL.",
+      "url": "https://www.alibabacloud.com/en/solutions/generative-ai/rag",
+      "topic": "RAG solution products",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c20",
+      "claim": "Smart Studio was announced at Apsara 2026 as one of three new AI solutions for international businesses.",
+      "url": "https://www.alibabacloud.com/en/solutions/smart-studio",
+      "topic": "Smart Studio announcement",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c21",
+      "claim": "QwenWork International Edition supports Google Workspace integration.",
+      "url": "https://www.alibabacloud.com/help/en/qwenwork/",
+      "topic": "QwenWork features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c22",
+      "claim": "Agentic Computer (JVS) is built on Elastic Desktop Service (EDS).",
+      "url": "https://www.alibabacloud.com/product/jvs",
+      "topic": "Agentic Computer substrate",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c23",
+      "claim": "Agentic Mobile is built on Cloud Phone (ECP).",
+      "url": "https://www.alibabacloud.com/en/campaign/agenticmobile",
+      "topic": "Agentic Mobile substrate",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c24",
+      "claim": "Customer service agent blog claims self-service resolution rate is over 10% higher than traditional approach.",
+      "url": "https://www.alibabacloud.com/blog/alibaba-cloud-customer-service-agent-thoughts-design-and-practices-from-concept-to-implementation_601555",
+      "topic": "CS agent metric",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c25",
+      "claim": "WeChat Official Account AI customer service tutorial is China site only.",
+      "url": "https://help.aliyun.com/en/model-studio/add-an-ai-assistant-to-your-wechat-in-10-minutes",
+      "topic": "WeChat tutorial availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c26",
+      "claim": "Zero-code knowledge Q&A application doc recommends Qwen-Plus / Qwen-Plus-Latest models.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/build-knowledge-base-qa-assistant-without-coding",
+      "topic": "KB QA model recommendation",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c27",
+      "claim": "AI Search Open Platform is available in Shanghai and Frankfurt regions only.",
+      "url": "https://www.alibabacloud.com/help/en/open-search/search-platform/product-overview/introduction-to-search-platform",
+      "topic": "AI Search regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c28",
+      "claim": "Document Mind is China site only.",
+      "url": "https://help.aliyun.com/en/document-mind/product-overview/product-introduction/",
+      "topic": "Document Mind availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c29",
+      "claim": "Qwen-OCR extracts text and structured data from scanned documents, tables, and receipts.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-vl-ocr",
+      "topic": "Qwen-OCR capabilities",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c30",
+      "claim": "Marketing chatbot blog describes creating an Agent Application in Model Studio as Step 1.",
+      "url": "https://www.alibabacloud.com/blog/setting-up-an-ai-chatbot-for-marketing-automation-with-alibaba-cloud-model-studio_603115",
+      "topic": "Marketing chatbot steps",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c31",
+      "claim": "Shopping guide tutorials are China site only.",
+      "url": "https://help.aliyun.com/en/model-studio/create-an-ai-shopping-assistant",
+      "topic": "Shopping guide availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c32",
+      "claim": "Proactive AI shopping assistant tutorial is China site only.",
+      "url": "https://help.aliyun.com/en/functioncompute/build-an-ai-shopping-assistant",
+      "topic": "Proactive shopping assistant availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c33",
+      "claim": "Quick BI Smart Q allows natural language interaction to build custom AI analytics assistants.",
+      "url": "https://www.alibabacloud.com/help/en/quick-bi/user-guide/smartq",
+      "topic": "Quick BI Smart Q feature",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c34",
+      "claim": "ADBAgent allows saving analysis workflows as reusable Skills.",
+      "url": "https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-mysql/adbagent/",
+      "topic": "ADBAgent features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c35",
+      "claim": "ADB-PG Data Agent provides read-only query analysis and DBA read-only diagnostics.",
+      "url": "https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/data-agent/",
+      "topic": "ADB-PG Data Agent capabilities",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c36",
+      "claim": "Official MCP server for AnalyticDB PG enables AI Agents to retrieve metadata and execute SQL operations.",
+      "url": "https://github.com/aliyun/alibabacloud-adbpg-mcp-server",
+      "topic": "ADBPG MCP server",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c37",
+      "claim": "Qoder has completed SOC 2 Type II examination covering Security, Availability, and Confidentiality Trust Services Categories.",
+      "url": "https://www.alibabacloud.com/blog/qoder-completes-independent-soc-2-type-ii-examination_603516",
+      "topic": "Qoder security compliance",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c38",
+      "claim": "Qoder Experts Mode breaks down tasks and assembles an expert team for execution.",
+      "url": "https://www.alibabacloud.com/blog/ai-coding-enters-the-agent-teamwork-era-introducing-qoder-experts-mode_603406",
+      "topic": "Qoder Experts Mode",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c39",
+      "claim": "Model Studio Coding Plan price is $50/month with quota up to 6,000 requests per 5 hours.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/coding-plan",
+      "topic": "Coding Plan price/quota",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c40",
+      "claim": "Claude Code template on Function Compute executes commands within a sandbox.",
+      "url": "https://www.alibabacloud.com/help/doc-detail/3047403.html",
+      "topic": "FC Claude Code sandbox",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c41",
+      "claim": "AgentCore covers building, governing, and executing enterprise AI agents through three core modules.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-product-overview",
+      "topic": "AgentCore scope",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c42",
+      "claim": "Agentic SOC uses a layered multi-agent architecture with a Team Leader coordinating agents.",
+      "url": "https://www.alibabacloud.com/help/en/security-center/user-guide/agentic-soc-agent-architecture",
+      "topic": "Agentic SOC architecture",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c43",
+      "claim": "Auto-planning multi-agent system with Assistant API tutorial is China site only.",
+      "url": "https://help.aliyun.com/en/model-studio/use-multi-agent-to-query-alibaba-cloud-resource-information",
+      "topic": "Assistant API tutorial availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c44",
+      "claim": "AgentRun runtime supports Python, Node.js, and Java; sandbox runtime supports 50+ languages.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/what-is-agentrun",
+      "topic": "AgentRun language support",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c45",
+      "claim": "Agent Sandbox Container Edition requires installing add-ons and creating a warm pool in ACS cluster.",
+      "url": "https://www.alibabacloud.com/help/en/agent-sandbox/quick-start1/",
+      "topic": "Agent Sandbox setup",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c46",
+      "claim": "AgentBay provides secure isolated execution environments spanning Windows, Linux, Android, Web Browsers, and Code interpreters.",
+      "url": "https://arxiv.org/html/2512.04367v1",
+      "topic": "AgentBay environments",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c47",
+      "claim": "ReN3 case study claims 40% lower inference costs and 30% higher output quality using Qwen models.",
+      "url": "https://www.alibabacloud.com/en/customers/ren3",
+      "topic": "ReN3 metrics",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c48",
+      "claim": "PT Cerita Inovasi Kopi Indonesia case study claims projected efficiency gains of 30–50% using QwenWork.",
+      "url": "https://www.alibabacloud.com/en/customers/pt-cerita-inovasi-kopi-indonesia",
+      "topic": "CIK metrics",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c49",
+      "claim": "Lion Parcel case study mentions automated OCR extraction for printed and handwritten Delivery Orders using Qwen-VL-Plus.",
+      "url": "https://www.alibabacloud.com/customers/lion-parcel",
+      "topic": "Lion Parcel usage",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c50",
+      "claim": "TIGEREYE case study snippet does not enumerate specific products used.",
+      "url": "https://www.alibabacloud.com/en/customers/tigereye",
+      "topic": "TIGEREYE details",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c51",
+      "claim": "Hamilton case study headline claims 80% reduction in manual review time but is not confirmed on alibabacloud.com.",
+      "url": "https://www.casestudies.com/company/alibaba-cloud/case-study/hamilton-cuts-manual-review-time-by-80-with-alibaba-cloud",
+      "topic": "Hamilton metrics verification",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c52",
+      "claim": "Ignite Vision case study claims screening cut from hours to minutes across millions of KOL profiles.",
+      "url": "https://www.alibabacloud.com/customers/ignitevision",
+      "topic": "Ignite Vision metrics",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c53",
+      "claim": "ZenCreator case study claims 1M+ generations monthly serving 1.5M+ creators.",
+      "url": "https://www.alibabacloud.com/en/customers/zencreator",
+      "topic": "ZenCreator metrics",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c54",
+      "claim": "TrueFoundry case study identifies Qwen as founding model partner for TrueForge.",
+      "url": "https://www.alibabacloud.com/en/customers/truefoundry",
+      "topic": "TrueFoundry partnership",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c55",
+      "claim": "Akool case study claims 40–60% cost reduction and support for 180+ languages.",
+      "url": "https://www.alibabagroup.com/en-US/ai-governance/success-cases",
+      "topic": "Akool metrics",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c56",
+      "claim": "EaseMate case study claims rapid user acquisition and reduced operational risks qualitatively.",
+      "url": "https://www.alibabacloud.com/en/customers/easemate",
+      "topic": "EaseMate results",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c57",
+      "claim": "AstraZeneca case study claims adverse event report accuracy increased from 90% to 95%.",
+      "url": "https://www.alibabacloud.com/en/customers/astrazeneca",
+      "topic": "AstraZeneca metrics",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c58",
+      "claim": "PRO-NET case study mentions developing internal chatbot using Model Studio.",
+      "url": "https://www.alibabacloud.com/en/press-room/alibaba-cloud-accelerates-worldwide-ai-innovation",
+      "topic": "PRO-NET usage",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c59",
+      "claim": "Agrinesia case study claims seamless migration with zero data loss.",
+      "url": "https://www.alibabacloud.com/customers/agrinesia",
+      "topic": "Agrinesia metrics",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c60",
+      "claim": "Kimi (Moonshot AI) runs its AI agent on ACK + ACS infrastructure.",
+      "url": "https://www.alibabacloud.com/blog/deep-dive-how-kimis-ai-agent-runs-on-alibaba-cloud_602942",
+      "topic": "Kimi infrastructure",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c61",
+      "claim": "No Korea, Middle East or continental-Europe agentic-AI case study with a named customer was found.",
+      "url": null,
+      "topic": "Case study gaps",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c62",
+      "claim": "Aliyun AI Agent Handbook repo defines sections for Architecture, Building, Runtime, Governance, Optimization, and Practice.",
+      "url": "https://github.com/aliyun/ai-agent-handbook/blob/main/README_EN.md",
+      "topic": "Handbook structure",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c63",
+      "claim": "Aliyun AI Agent Handbook chapters are currently written in Chinese; English README is a guide not a translation.",
+      "url": "https://github.com/aliyun/ai-agent-handbook/blob/main/README_EN.md",
+      "topic": "Handbook language status",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c64",
+      "claim": "Secondary coverage claims Aliyun AI Agent Handbook has 30 chapters, while README sums to 29.",
+      "url": "https://hermes-ai.net/news/alibaba-cloud-s-ai-agent-handbook-reveals-only-10-hit-90-task-success/",
+      "topic": "Handbook chapter count discrepancy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c65",
+      "claim": "Enterprise agent blog series canonical loop is User → Intent → Planning → Knowledge → Tools → Execution → Validation → Response.",
+      "url": "https://www.alibabacloud.com/blog/designing-enterprise-ai-agent-architectures-with-alibaba-cloud_603528",
+      "topic": "Agent architecture loop",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c66",
+      "claim": "Guardrails service in Model Studio bills per token for input and output checks.",
+      "url": "https://www.alibabacloud.com/blog/should-this-workflow-be-an-agent-a-three-question-test-before-you-build_603614",
+      "topic": "Guardrails billing",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c67",
+      "claim": "SA playbook blog suggests baseline goals like 95% accuracy on standard grounded FAQs.",
+      "url": "https://www.alibabacloud.com/blog/603651",
+      "topic": "SA baseline metrics",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c68",
+      "claim": "Cost tiering for multi-agent coordinator is China site only.",
+      "url": "https://help.aliyun.com/en/model-studio/managed-agents-cost-tiering",
+      "topic": "Cost tiering availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c69",
+      "claim": "Agent SPM builds a cross-cloud Agent Asset Map.",
+      "url": "https://www.alibabacloud.com/blog/alibaba-cloud-al-agent-security-solution%E2%80%94%E2%80%94security-risks-and-mitigations-for-enterprise-ai-agent-adoption_603175",
+      "topic": "Agent SPM feature",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c70",
+      "claim": "Well-Architected AI decision framework recommends self-hosting only if GPU utilization can be maintained above 60%.",
+      "url": "https://www.alibabacloud.com/help/en/well-architected/decision-framework-for-ai-architecture",
+      "topic": "Self-hosting threshold",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c71",
+      "claim": "Spring AI Alibaba Admin supports visualized Agent development, observability, evaluation, and MCP management.",
+      "url": "https://github.com/alibaba/spring-ai-alibaba",
+      "topic": "Spring AI Alibaba Admin features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c72",
+      "claim": "AgentScope 2.0 spans full agent lifecycle including runtime hosting, memory, evaluation, and fine-tuning.",
+      "url": "https://github.com/agentscope-ai/agentscope",
+      "topic": "AgentScope 2.0 scope",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c73",
+      "claim": "Higress supports WAF and authentication strategies including key-auth, hmac-auth, jwt-auth, basic-auth, oidc.",
+      "url": "https://github.com/higress-group/higress",
+      "topic": "Higress security features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c74",
+      "claim": "Qwen-Agent framework capabilities include instruction following, tool usage, planning, and memory.",
+      "url": "https://www.alibabacloud.com/en/solutions/generative-ai/qwen",
+      "topic": "Qwen-Agent capabilities",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c75",
+      "claim": "Agent Skills portal allows discovery and installation of cloud operation skills for AI agents.",
+      "url": "https://www.alibabacloud.com/help/en/skillsportal/learn-about-the-alibaba-cloud-agent-skills-portal",
+      "topic": "Agent Skills portal",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c76",
+      "claim": "Region support for every Technical Solution in Table A is unconfirmed.",
+      "url": null,
+      "topic": "Tech solution regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c77",
+      "claim": "AgentCore complete region list is truncated in snippets; full list needs console verification.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-product-overview",
+      "topic": "AgentCore region list completeness",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c78",
+      "claim": "Whether an English page exists for HiClaw and DeepSeek Harness tech solutions is unconfirmed.",
+      "url": null,
+      "topic": "Solution localization",
+      "kind": "alibaba",
+      "weight": "medium"
+    }
+  ]
+}

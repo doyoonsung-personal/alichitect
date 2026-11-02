@@ -1,0 +1,484 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "Model Studio's price list is keyed on (model, deployment scope) with values such as International and Global.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen3.8-max pricing structure",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c2",
+      "claim": "qwen3.8-max price in International scope (Singapore) is $2.00 input / $6.00 output with cache-hit input at $0.25.",
+      "url": "https://click.alibabacloud.com/m/20000002957/",
+      "topic": "qwen3.8-max international price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c3",
+      "claim": "qwen3.8-max price in Global scope (US Virginia) is $1.65 input / $4.951 output with implicit cache at $0.206.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+      "topic": "qwen3.8-max global price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c4",
+      "claim": "qwen3.8-flash price in International scope (Singapore) is $0.15 input / $0.47 output with cache-hit input at $0.016.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen3.8-flash international price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c5",
+      "claim": "qwen3.8-flash price in Global scope (US Virginia) is $0.113 input / $0.382 output with implicit cache at $0.014.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-8-flash",
+      "topic": "qwen3.8-flash global price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c6",
+      "claim": "qwen3.7-plus price in International scope is $0.40 input / $1.60 output.",
+      "url": "https://artificialanalysis.ai/models/qwen3-7-plus",
+      "topic": "qwen3.7-plus international price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c7",
+      "claim": "qwen3.7-plus price in Global scope is $0.276 input / $1.101 output with batch input at $0.143.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus",
+      "topic": "qwen3.7-plus global price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c8",
+      "claim": "text-embedding-v4 price is $0.072 per 1M text input tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/text-embedding-v4",
+      "topic": "text-embedding-v4 price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c9",
+      "claim": "qwen3-rerank price is $0.10 per 1M tokens in the International scope.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen3-rerank price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c10",
+      "claim": "Tiered models bill the whole request at the tier set by total input tokens of that request.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "tiered billing logic",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c11",
+      "claim": "Free quota is 1M tokens per model, valid for 90 days, Singapore only.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/new-free-quota",
+      "topic": "free quota details",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c12",
+      "claim": "Batch inference is priced at 50% of real-time price.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/batch-inference",
+      "topic": "batch inference discount",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c13",
+      "claim": "Batch and cache discounts cannot stack.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "discount stacking rule",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c14",
+      "claim": "Qwen tokenizer estimates 1 token ≈ 3–4 characters for English text.",
+      "url": "https://qwen.readthedocs.io/en/latest/getting_started/concepts.html",
+      "topic": "token estimation english",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c15",
+      "claim": "Qwen tokenizer estimates 1 token ≈ 1.5–1.8 characters for Chinese text.",
+      "url": "https://qwen.readthedocs.io/en/latest/getting_started/concepts.html",
+      "topic": "token estimation chinese",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c16",
+      "claim": "Thinking content is billed as Output Tokens on Model Studio.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+      "topic": "thinking token billing",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c17",
+      "claim": "System prompts must be ≥1,024 tokens to be cacheable on Model Studio.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/context-cache",
+      "topic": "cache minimum size",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c18",
+      "claim": "Anthropic states tool definitions + results can consume 50,000+ tokens before an agent starts.",
+      "url": "https://www.anthropic.com/research/advanced-tool-use",
+      "topic": "anthropic tool overhead",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c19",
+      "claim": "CloudZero reports a support-resolution example costing $0.132 per task with 12 calls.",
+      "url": "https://www.cloudzero.com/blog/ai-agent-cost/",
+      "topic": "cloudzero cost example",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c20",
+      "claim": "An arXiv study found agentic coding tasks average 4.17M tokens with input:output ratio of 154:1.",
+      "url": "https://arxiv.org/abs/2604.22750",
+      "topic": "agentic coding token stats",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c21",
+      "claim": "Agents use approximately 4x more tokens than chat interactions according to Anthropic.",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "topic": "agent vs chat multiplier",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c22",
+      "claim": "Multi-agent systems use approximately 15x more tokens than chat interactions according to Anthropic.",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "topic": "multi-agent vs chat multiplier",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c23",
+      "claim": "LangGraph recursion_limit default is 25 and raises GraphRecursionError.",
+      "url": "https://reference.langchain.com/python/langchain-core/runnables/config/RunnableConfig/recursion_limit",
+      "topic": "langgraph recursion limit",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c24",
+      "claim": "OpenAI Agents SDK max_turns default value is unconfirmed but third parties say 5 or 10.",
+      "url": "https://openai.github.io/openai-agents-python/running_agents/",
+      "topic": "openai agents sdk turns",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c25",
+      "claim": "Alibaba Cloud AI Gateway offers credits-based metering and quotas.",
+      "url": "https://www.alibabacloud.com/blog/603415",
+      "topic": "ai gateway credits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c26",
+      "claim": "Model Studio limits are applied by RPM and TPM at the primary-account level.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/rate-limit",
+      "topic": "model studio rate limits",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c27",
+      "claim": "AgentRun offers a cost-saving mode and Token quotas.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/open-platform-introduction.md",
+      "topic": "agent run features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c28",
+      "claim": "Implicit context cache input is typically billed at 20% of the standard input token price.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/context-cache",
+      "topic": "implicit cache discount",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c29",
+      "claim": "Explicit cache creation is billed at 125% of standard input price.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/explicit-cache-guide",
+      "topic": "explicit cache creation cost",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c30",
+      "claim": "Explicit cache hits are billed at 10% of standard input price.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/explicit-cache-guide",
+      "topic": "explicit cache hit cost",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c31",
+      "claim": "Explicit cache TTL is 5 minutes and auto-renews on each hit.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/explicit-cache-guide",
+      "topic": "explicit cache ttl",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c32",
+      "claim": "qwen3.8-max Throughput Reservation price is $16.63 per 10k TPM·hour input.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/tpm-reservation-billing",
+      "topic": "qwen3.8-max ptu price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c33",
+      "claim": "Anthropic prompt caching write is 1.25x base input for 5-min TTL.",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "topic": "anthropic cache write cost",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c34",
+      "claim": "OpenAI prompt caching discounted cached-input rate is up to 95% off.",
+      "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
+      "topic": "openai cache discount",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c35",
+      "claim": "Google Gemini 2.5+ has a 90% discount on cached tokens.",
+      "url": "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/context-cache/context-cache-overview",
+      "topic": "google gemini cache discount",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c36",
+      "claim": "FrugalGPT matches best single LLM with up to 98% cost reduction.",
+      "url": "https://arxiv.org/abs/2305.05176",
+      "topic": "frugalgpt savings",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c37",
+      "claim": "RouteLLM achieves >85% cost reduction on MT Bench at matched quality.",
+      "url": "https://www.lmsys.org/blog/2024-07-01-routellm/",
+      "topic": "routellm savings",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c38",
+      "claim": "Function Compute Tier 1 price is USD 0.000020/CU.",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/pay-as-you-go-billing-methods",
+      "topic": "function compute price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c39",
+      "claim": "Function Compute conversion factor is 0.15 CU/(GB·s).",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/billing-overview-of-fc",
+      "topic": "function compute cu factors",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c40",
+      "claim": "FC Agent Sandbox disk price is 0.00025308 USD/GiB/hour outside mainland China.",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/pay-as-you-go-of-fc-agent-sandbox",
+      "topic": "fc sandbox disk price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c41",
+      "claim": "Agent Sandbox reference price in Chinese mainland Economy class is USD 0.0000026/vCPU·second.",
+      "url": "https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/billing-overview",
+      "topic": "agent sandbox vcpu price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c42",
+      "claim": "ACK Pro cluster management fee is USD 0.09 per cluster per hour.",
+      "url": "https://www.alibabacloud.com/help/en/ack/ack-managed-and-ack-dedicated/product-overview/cluster-management-fee",
+      "topic": "ack pro cluster fee",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c43",
+      "claim": "AgentCore reference price is USD 0.00001 per Compute CU stated for China Shanghai.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-billing-instructions",
+      "topic": "agentcore cu price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c44",
+      "claim": "AgentCore billing started on 2026-09-18 00:00 UTC+8.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-billing-activation",
+      "topic": "agentcore start date",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c45",
+      "claim": "AgentLoop price is USD 0.0016/AI credit.",
+      "url": "https://www.alibabacloud.com/help/en/agentloop/agentloop-billing-overview",
+      "topic": "agentloop credit price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c46",
+      "claim": "AgentLoop price is USD 0.00014 per execution.",
+      "url": "https://www.alibabacloud.com/help/en/agentloop/agentloop-billing-overview",
+      "topic": "agentloop execution price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c47",
+      "claim": "AnalyticDB for PostgreSQL Serverless pro price is USD 0.036485/CU/hour.",
+      "url": "https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/product-overview/billable-items",
+      "topic": "adb pg serverless price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c48",
+      "claim": "Hologres Singapore price is USD 0.066604/CU/hour.",
+      "url": "https://www.alibabacloud.com/help/en/hologres/product-overview/pay-as-you-go",
+      "topic": "hologres singapore price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c49",
+      "claim": "Cloud-native API Gateway instance price example is USD 0.291 per hour.",
+      "url": "https://www.alibabacloud.com/help/en/api-gateway/cloud-native-api-gateway/product-overview/billing-overview",
+      "topic": "api gateway instance price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c50",
+      "claim": "Simple Log Service read/write traffic price is USD 0.045/GB.",
+      "url": "https://www.alibabacloud.com/en/product/log-service/pricing",
+      "topic": "sls read write price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c51",
+      "claim": "OSS Standard LRS storage price is USD 0.0173/GB-month.",
+      "url": "https://www.alibabacloud.com/help/en/oss/storage-fees",
+      "topic": "oss storage price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c52",
+      "claim": "EventBridge price is USD 0.82 per 1M published events.",
+      "url": "https://www.alibabacloud.com/help/en/eventbridge/product-overview/billing-of-event-buses",
+      "topic": "eventbridge price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c53",
+      "claim": "Direct Mail price is USD 0.29 per 1,000 emails.",
+      "url": "https://www.alibabacloud.com/help/en/direct-mail/billing-methods",
+      "topic": "direct mail price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c54",
+      "claim": "Model Studio Managed Agents session runtime fee is CNY 0.5/hour (China site only).",
+      "url": "https://help.aliyun.com/en/model-studio/managed-agents-billing",
+      "topic": "managed agents fee china",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c55",
+      "claim": "Artificial Analysis measures Qwen3.8 Max TTFT at 3.10 s.",
+      "url": "https://artificialanalysis.ai/models/comparisons/qwen3-8-max-vs-qwen3-8-max-0803",
+      "topic": "qwen3.8 max ttft",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c56",
+      "claim": "Artificial Analysis measures Qwen3.7 Plus output speed at 57.1 t/s.",
+      "url": "https://artificialanalysis.ai/models/qwen3-7-plus",
+      "topic": "qwen3.7 plus speed",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c57",
+      "claim": "Anthropic Research feature parallel subagents cut research time by up to 90%.",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "topic": "anthropic parallel speedup",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c58",
+      "claim": "Milvus Vector Retrieval Service unit prices are unconfirmed from public pages.",
+      "url": "https://www.alibabacloud.com/help/en/milvus/product-overview/billing-item",
+      "topic": "milvus price status",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c59",
+      "claim": "AgentRun unit prices are unconfirmed; no public rate card found.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/what-is-agentrun",
+      "topic": "agentrun price status",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c60",
+      "claim": "AgentCore Singapore unit price is unconfirmed.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-billing-instructions",
+      "topic": "agentcore sg price status",
+      "kind": "alibaba",
+      "weight": "high"
+    }
+  ]
+}

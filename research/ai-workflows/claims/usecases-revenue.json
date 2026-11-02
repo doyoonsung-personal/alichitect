@@ -1,0 +1,924 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "No-code agent/workflow apps and knowledge base in Model Studio are limited to accounts that created Singapore applications before April 21, 2025.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/single-agent-application",
+      "topic": "Model Studio SG access limit",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c2",
+      "claim": "qwen3.8-max is priced at $2 per 1M input tokens and $6 per 1M output tokens in the Singapore region.",
+      "url": "https://www.alibabacloud.com/en/campaign/ai-landing-page-token?_p_lc=1",
+      "topic": "qwen3.8-max price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c3",
+      "claim": "Model Studio international regions include Singapore, Virginia, Frankfurt, Tokyo, and Hong Kong, but not Seoul.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/what-is-model-studio",
+      "topic": "Model Studio regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c4",
+      "claim": "US (Virginia) supports Global and US deployment scopes, while Germany (Frankfurt) supports Global and EU scopes.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/regions",
+      "topic": "Deployment scopes",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c5",
+      "claim": "Fine-tuning API is stated by a third party as only available in the Singapore region for the international site (unconfirmed on official page).",
+      "url": "https://www.developersdigest.tech/models/fine-tuning/alibaba-model-studio",
+      "topic": "Fine-tuning region",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c6",
+      "claim": "AgentLoop international availability is confirmed for Hong Kong only via quickstart region picker.",
+      "url": "https://www.alibabacloud.com/help/en/agentloop/agentloop-quickstart-whole-process-practice",
+      "topic": "AgentLoop region",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c7",
+      "claim": "AI Search Open Platform is available only in China (Shanghai) and Germany (Frankfurt) regions.",
+      "url": "https://www.alibabacloud.com/help/en/open-search/search-platform/getting-started/ai-getting-started",
+      "topic": "AI Search regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c8",
+      "claim": "qwen3.8-flash is priced at $0.15 per 1M input tokens and $0.47 per 1M output tokens.",
+      "url": "https://qwen.ai/blog?id=qwen3.8-flash-next",
+      "topic": "qwen3.8-flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c9",
+      "claim": "Qwen-Max (older flagship) is listed at $1.65 per 1M input tokens and $4.95 per 1M output tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen-Max price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c10",
+      "claim": "qwen-mt-plus is priced at $0.259 per 1M input tokens and $0.775 per 1M output tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen-mt-plus price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c11",
+      "claim": "qwen-mt-lite is priced at $0.086 per 1M input tokens (output price unconfirmed).",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen-mt-lite price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c12",
+      "claim": "text-embedding-v4 is priced at $0.07 per 1M tokens for International usage.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Embedding price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c13",
+      "claim": "gte-rerank-v2 is priced at $0.115 per text input.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Rerank price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c14",
+      "claim": "qwen-audio-3.1-asr-flash is priced at $0.113 per 1M input tokens and $0.382 per 1M output tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "ASR token price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c15",
+      "claim": "qwen-audio-3.0-asr-flash is priced at $0.00003 per second.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "ASR time price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c16",
+      "claim": "Qwen-OCR shows a 1k tier price of $0.002750 per image (other tiers unconfirmed).",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "OCR price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c17",
+      "claim": "qwen-image-2.0 series is priced at $0.10 for 1K, $0.16 for 2K, and $0.24 for 4K images.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Image gen price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c18",
+      "claim": "wan3.0-video is priced at $0.05/s for 480P and $0.10/s for 720P; a 30-second 1080P clip costs $6.00.",
+      "url": "https://www.alibabacloud.com/blog/wan3-0-30-second-ai-video-generation-from-any-input_603452",
+      "topic": "Video gen price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c19",
+      "claim": "Batch inference prices both input and output tokens at 50% of the real-time inference price.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/batch-inference",
+      "topic": "Batch discount",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c20",
+      "claim": "Context cache bills the cached portion of input at typically 20% of the standard input token price.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/context-cache",
+      "topic": "Cache discount",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c21",
+      "claim": "First activation of Model Studio (Singapore) grants a per-model free quota, typically 1,000,000 tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/new-free-quota",
+      "topic": "Free quota",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c22",
+      "claim": "Token Plan for Individual starts at $6/month early-bird.",
+      "url": "https://www.alibabacloud.com/blog/model-studio-token-plan-for-individual-one-subscription-for-every-ai-model-up-to-3x-more-value_603426",
+      "topic": "Token Plan price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c23",
+      "claim": "Savings plans / Token Plan do not cover tool calls, context cache, batch inference, fine-tuning or model deployment.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/savings-plan-and-resource-package",
+      "topic": "Plan exclusions",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c24",
+      "claim": "DirectMail has an initial daily quota of 2,000 emails, adjusted by sender reputation.",
+      "url": "https://www.alibabacloud.com/help/en/direct-mail/product-overview/limits",
+      "topic": "DirectMail quota",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c25",
+      "claim": "Function Compute is priced at $0.00001668 per GB-second.",
+      "url": "https://www.alibabacloud.com/product/function-compute/pricing",
+      "topic": "FC price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c26",
+      "claim": "OSS Standard LRS storage is priced at $0.0173 per GB-month with 0–5GB free.",
+      "url": "https://www.alibabacloud.com/help/en/oss/storage-fees",
+      "topic": "OSS price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c27",
+      "claim": "MaxCompute model computing service is available internationally only in Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/maxcompute/purchasing-and-using-the-maxcompute-ai-inference-service",
+      "topic": "MaxCompute region",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c28",
+      "claim": "Chat App Message Service includes WhatsApp, Messenger, Viber, LINE, Telegram, Instagram, and SMS.",
+      "url": "https://www.alibabacloud.com/help/en/chatapp/product-overview/what-is-chatapp-message-service",
+      "topic": "ChatApp channels",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c29",
+      "claim": "LINE messages via Chat App Message Service are currently free of message fees.",
+      "url": "https://www.alibabacloud.com/help/en/chatapp/product-overview/chatapp-message-service-pricing",
+      "topic": "LINE fee status",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c30",
+      "claim": "Aidge (Alibaba International Digital Commerce) supports 100+ language pairs for multimodal translation.",
+      "url": "https://www.alibabacloud.com/help/en/aidge/interface-overview/",
+      "topic": "Aidge languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c31",
+      "claim": "Aidge Text Translation is listed at $15.00 per million characters.",
+      "url": "https://www.aidge.com/develop",
+      "topic": "Aidge price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c32",
+      "claim": "Microsoft Sales Research Agent outperformed Claude Sonnet 4.5 by 13 points and ChatGPT-5 by 24.1 points on Sales Bench.",
+      "url": "https://www.microsoft.com/en-us/dynamics-365/blog/it-professional/2025-10-21/sales-research-bench/",
+      "topic": "MSFT Bench scores",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c33",
+      "claim": "Forrester TEI of Microsoft 365 Copilot reports +2.7% qualified opportunities and +2.5% win rate.",
+      "url": "https://tei.forrester.com/go/microsoft/M365Copilot/",
+      "topic": "MSFT Copilot ROI",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c34",
+      "claim": "Salesforce Agentforce pricing benchmark is $2 per conversation.",
+      "url": "https://www.salesforce.com/agentforce/pricing/",
+      "topic": "Agentforce price",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c35",
+      "claim": "Microsoft Sales Qualification Agent went GA Oct 25, 2025, including 1,000 Copilot Credits per Dynamics 365 Sales Premium license.",
+      "url": "https://www.schneider.im/microsoft-dynamics-365-ai-agent-capabilities-and-licensing/",
+      "topic": "MSFT Agent licensing",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c36",
+      "claim": "Gartner predicts AI agents will outnumber sellers 10:1 by 2028.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2026-07-28-gartner-predicts-ai-agents-will-outnumber-sellers-10-to-1-by-2028-yet-fewer-than-40-percent-of-sellers-will-say-agents-improved-productivity",
+      "topic": "Gartner prediction",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c37",
+      "claim": "IBM State of Salesforce 2025-2026 report states 69% of organisations cite poor data quality as leading AI adoption barrier.",
+      "url": "https://www.ibm.com/thought-leadership/institute-business-value/en-us/report/state-of-salesforce-2025",
+      "topic": "IBM Data stats",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c38",
+      "claim": "Gartner predicts >40% of agentic AI projects will be cancelled by end-2027.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027",
+      "topic": "Gartner cancellation",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c39",
+      "claim": "Conveyor markets its security questionnaire agent at 98% accuracy.",
+      "url": "https://www.conveyor.com/ai-agents-for-security-reviews",
+      "topic": "Conveyor accuracy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c40",
+      "claim": "Forrester TEI of Loopio reports benefits PV $6.05M, NPV $4.74M, and ROI 415%.",
+      "url": "https://www.nfold.com/wp-content/uploads/2024/11/Forrester-Loopio-report-2023.pdf",
+      "topic": "Loopio ROI",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c41",
+      "claim": "Responsive claims responses are 80% faster.",
+      "url": "https://www.responsive.io/product/ai",
+      "topic": "Responsive speed",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c42",
+      "claim": "Tribble.ai states average enterprise RFP takes 20 to 30 hours of cumulative effort.",
+      "url": "https://tribble.ai/blog/rfp-response-time-ai-agents/",
+      "topic": "RFP effort baseline",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c43",
+      "claim": "Workmate blog cites Loopio survey finding proposal submissions up 9% with team size flat at 8.",
+      "url": "https://www.workmate.com/blog/ai-agents-for-proposal-teams-rfp-volume-is-up-headcount-isnt",
+      "topic": "Proposal volume stats",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c44",
+      "claim": "Gilardi et al. found ChatGPT's zero-shot sentiment accuracy exceeded crowd workers by ~25 percentage points.",
+      "url": "https://www.pnas.org/doi/10.1073/pnas.2305016120",
+      "topic": "LLM Sentiment accuracy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c45",
+      "claim": "Sprinklr case study reports a global beverage company resolves 75% of Instagram DMs in under a minute.",
+      "url": "https://www.sprinklr.com/stories/",
+      "topic": "Sprinklr resolution rate",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c46",
+      "claim": "Yotpo reports brands enabling AI Review Summary see a 5.4% increase in conversion.",
+      "url": "https://www.yotpo.com/blog/ai-review-summary/",
+      "topic": "Yotpo conversion lift",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c47",
+      "claim": "Bazaarvoice reports a 144% lift in conversion rate when shoppers engage with reviews.",
+      "url": "https://www.bazaarvoice.com/blog/how-review-syndication-expands-your-reach-and-strengthens-pdp-performance/",
+      "topic": "Bazaarvoice conversion lift",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c48",
+      "claim": "Amazon states more than 1.3 million sellers have used AI-powered listing tools generating >70% of required attributes.",
+      "url": "https://sellercentral.amazon.com/seller-forums/discussions/t/93e24323-36e8-4080-a004-1a1c324be8d0",
+      "topic": "Amazon AI adoption",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c49",
+      "claim": "Amazon reports sellers using Gen AI tools see a 40% increase in overall listing quality.",
+      "url": "https://www.aboutamazon.com/news/innovation-at-amazon/amazon-generative-ai-seller-growth-shopping-experience",
+      "topic": "Amazon quality lift",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c50",
+      "claim": "Instacart PARSE engineering evidence reports multi-modal extraction delivered ~10% higher recall than text-only.",
+      "url": "https://tech.instacart.com/multi-modal-catalog-attribute-extraction-platform-at-instacart-b9228754a527",
+      "topic": "Instacart recall lift",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c51",
+      "claim": "Alibaba International Aidge toolkit is used by half a million merchants with daily API calls exceeding 50 million.",
+      "url": "https://www.alizila.com/alibaba-international-aidge-ai-toolkit-adopted-half-million-merchants/",
+      "topic": "Aidge scale",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c52",
+      "claim": "DeepL Forrester TEI reports 345% ROI and €2.79M efficiency savings.",
+      "url": "https://www.deepl.com/en/blog/deepl-forrester-tei-study-overview",
+      "topic": "DeepL ROI",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c53",
+      "claim": "Writer Forrester TEI reports 333% ROI and $12.02M NPV.",
+      "url": "https://writer.com/blog/forrester-tei-findings/",
+      "topic": "Writer ROI",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c54",
+      "claim": "Salesforce State of Marketing 2026 reports 75% of marketers have adopted AI.",
+      "url": "https://www.salesforce.com/news/stories/state-of-marketing-2026/",
+      "topic": "SFDC Marketing AI adoption",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c55",
+      "claim": "HubSpot 2026 State of Marketing reports 80% of marketers use AI for content creation.",
+      "url": "https://www.hubspot.com/state-of-marketing",
+      "topic": "HubSpot AI usage",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c56",
+      "claim": "South Korea AI Basic Act is effective 22 Jan 2026, requiring notification and labelling for generative AI outputs.",
+      "url": "https://fpf.org/blog/south-koreas-new-ai-framework-act-a-balancing-act-between-innovation-and-regulation/",
+      "topic": "Korea AI Act",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c57",
+      "claim": "South Korea PIPA Article 37-2 allows data subjects to refuse fully automated decisions affecting their rights.",
+      "url": "https://aicura.app/frameworks/korea-pipa-automated-decisions/",
+      "topic": "Korea PIPA",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c58",
+      "claim": "Amended South Korea PIPA introduces administrative fines up to 10% of total revenue.",
+      "url": "https://www.legal500.com/intelligence/south-korea/privacy/amendments-to-koreas-personal-information-protection-act-turnover-based-fines-ceo-accountability-and-earlier-breach-notification",
+      "topic": "Korea PIPA penalties",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c59",
+      "claim": "Singapore PDPC Advisory Guidelines on Use of Personal Data in Generative AI were issued 20 Jul 2026.",
+      "url": "https://www.pdpc.gov.sg/organisations/regulations-decisions/regulatory-guidance/advisory-guidelines-on-use-of-personal-data-in-generative-ai",
+      "topic": "SG PDPC Guidelines",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c60",
+      "claim": "Japan AI Promotion Act passed 28 May 2025 and came into full force 1 Sep 2025.",
+      "url": "https://www.twobirds.com/en/capabilities/artificial-intelligence/ai-legal-services/ai-regulatory-horizon-tracker/japan",
+      "topic": "Japan AI Law",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c61",
+      "claim": "Vietnam AI Law No. 134/2025/QH15 is effective 1 Mar 2026, being the first standalone binding AI law in Southeast Asia.",
+      "url": "https://www.tilleke.com/insights/a-closer-look-at-vietnams-new-ai-law-what-it-means-for-ai-businesses/",
+      "topic": "Vietnam AI Law",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c62",
+      "claim": "Indonesia PDP Law sanctions are fully enforceable from 16 Oct 2024 with fines up to 2% of annual revenue.",
+      "url": "https://schinderlawfirm.com/blog/sanctions-and-compliance-with-indonesias-personal-data-protection-law-uu-pdp-by-october-16-2024/",
+      "topic": "Indonesia PDP Law",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c63",
+      "claim": "Thailand PDPA transfers require explicit consent or BCRs as no adequacy-designated countries exist to date.",
+      "url": "https://securiti.ai/thailand-cross-border-personal-data-transfer-overview/",
+      "topic": "Thailand PDPA transfers",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c64",
+      "claim": "EU AI Act is applicable from 2 Aug 2026 with transparency obligations since Aug 2026.",
+      "url": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+      "topic": "EU AI Act timeline",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c65",
+      "claim": "China Measures for Labelling of AI-Generated Synthetic Content are effective 1 Sep 2025.",
+      "url": "https://regulations.ai/regulations/RAI-CN-NA-CONTENT-2025",
+      "topic": "China Labeling Rules",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c66",
+      "claim": "MIT report cited by Fortune states 95% of enterprise GenAI pilots deliver zero return.",
+      "url": "https://fortune.com/2025-08-18/mit-report-95-percent-generative-ai-pilots-at-companies-failing-cfo/",
+      "topic": "GenAI pilot failure",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c67",
+      "claim": "Gartner predicts 40% of enterprise apps will feature task-specific AI agents by 2026.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2025-08-26-gartner-predicts-40-percent-of-enterprise-apps-will-feature-task-specific-ai-agents-by-2026-up-from-less-than-5-percent-in-2025",
+      "topic": "Gartner agent penetration",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c68",
+      "claim": "Gartner predicts 80% of common service issues resolved autonomously by 2029.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2025-03-05-gartner-predicts-agentic-ai-will-autonomously-resolve-80-percent-of-common-customer-service-issues-without-human-intervention-by-20290",
+      "topic": "Gartner service deflection",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c69",
+      "claim": "Gartner predicts 60% of brands will use agentic AI for 1:1 interactions by 2028.",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2026-01-15-gartner-predicts-60-percent-of-brands-will-use-agentic-ai-to-deliver-streamlined-one-to-one-interactions-by-2028",
+      "topic": "Gartner marketing AI",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c70",
+      "claim": "ReN3 case study reports 40% lower inference cost and 30% higher output quality on Qwen.",
+      "url": "https://www.alibabacloud.com/en/customers/ren3?_p_lc=1",
+      "topic": "ReN3 metrics",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c71",
+      "claim": "ZenCreator runs >1M AI image/video generations per month on Model Studio.",
+      "url": "https://www.alibabacloud.com/en/customers?_p_lc=1",
+      "topic": "ZenCreator volume",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c72",
+      "claim": "Omdia named Alibaba Cloud a Market Leader in Agentic AI report.",
+      "url": "https://www.alibabacloud.com/en/press-room/alibaba-cloud-named-a-leader-in-omdia-latest-agent?_p_lc=1",
+      "topic": "Omdia ranking",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c73",
+      "claim": "Anthropic recommends starting with workflows using patterns like prompt chaining, routing, and parallelization.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "Anthropic patterns",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c74",
+      "claim": "OpenAI guide states guardrails are critical at every stage from input filtering to human-in-the-loop.",
+      "url": "https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf",
+      "topic": "OpenAI guardrails",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c75",
+      "claim": "Simon Willison defines 'lethal trifecta' as private data + untrusted content + external sending capability.",
+      "url": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+      "topic": "Lethal trifecta",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c76",
+      "claim": "OWASP lists Excessive Agency as LLM06:2025 risk.",
+      "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "topic": "OWASP Risk",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c77",
+      "claim": "NIST AI 600-1 lists Confabulation as the top GAI risk.",
+      "url": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf",
+      "topic": "NIST Risk",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c78",
+      "claim": "Salesforce Einstein Trust Layer features include masking, toxicity detection, audit trail, and zero data retention.",
+      "url": "https://developer.salesforce.com/docs/ai/agentforce/guide/trust.html",
+      "topic": "Salesforce Trust Layer",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c79",
+      "claim": "Microsoft Work Trend Index states 70% of Copilot users said they were more productive.",
+      "url": "https://www.microsoft.com/en-us/worklab/work-trend-index/copilots-earliest-users-teach-us-about-generative-ai-at-work",
+      "topic": "MSFT Productivity stat",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c80",
+      "claim": "Salesforce State of Sales reports 83% of sales teams using AI saw revenue growth vs 66% not using AI.",
+      "url": "https://www.salesforce.com/marketing/marketing-statistics/",
+      "topic": "Salesforce Revenue stat",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c81",
+      "claim": "DeepL/Regina Corso survey reports 96% of marketers reported positive ROI from localisation.",
+      "url": "https://www.deepl.com/en/blog/navigating-localization-challenges-report",
+      "topic": "DeepL Marketer ROI",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c82",
+      "claim": "CSA Research frames 2026 as the year AI maturity becomes the differentiator in post-localization era.",
+      "url": "https://csa-research.com/l/blog/article/ai-and-global-content-predictions-for-2026",
+      "topic": "CSA Prediction",
+      "kind": "general",
+      "weight": "low"
+    },
+    {
+      "id": "c83",
+      "claim": "Talkwalker positions targeted sentiment analysis in 192 languages.",
+      "url": "https://www.talkwalker.com/products/bluesilkai",
+      "topic": "Talkwalker Languages",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c84",
+      "claim": "Brandwatch Listen covers over 100 million online sources.",
+      "url": "https://www.brandwatch.com/social-media-glossary/social-listening/",
+      "topic": "Brandwatch Scale",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c85",
+      "claim": "Amazon ships AI-generated review highlights as a standard shopper feature.",
+      "url": "https://www.aboutamazon.com/news/amazon-ai/amazon-improves-customer-reviews-with-generative-ai",
+      "topic": "Amazon Review Highlights",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c86",
+      "claim": "Shopify exposes AI attribute classification against its Standard Product Taxonomy as a default feature.",
+      "url": "https://www.linkedin.com/posts/shopify_new-standard-product-taxonomy-with-shopify-activity-7224819853088493569-wMQA",
+      "topic": "Shopify Taxonomy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c87",
+      "claim": "Qwen-MT covers 92 languages including Chinese, English, Japanese, Korean, French, Spanish, German, Thai, Indonesian, Vietnamese, and Arabic.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/machine-translation",
+      "topic": "Qwen-MT Languages",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c88",
+      "claim": "Qwen-SEA-LION-v4 is built on Qwen3-32B and ranked top of SEA-HELM for sub-200B open models.",
+      "url": "https://sea-lion.ai/blog/announcing-qwen-sea-lion-v4-4b-8b-additional-vision-language-models-for-southeast-asia/",
+      "topic": "Qwen-SEA-LION Rank",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c89",
+      "claim": "Qwen3-TTS covers 10 languages including Japanese and Korean.",
+      "url": "https://github.com/QwenLM/Qwen3-TTS",
+      "topic": "Qwen3-TTS Languages",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c90",
+      "claim": "Qwen-Audio-3.0-TTS preset voices span 16 languages.",
+      "url": "https://www.alibabacloud.com/blog/qwen-audio-3-0-tts-more-multilingual-easier-to-direct_603379",
+      "topic": "Qwen-Audio-TTS Languages",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c91",
+      "claim": "Open Qwen3-ASR covers 30 languages and 22 Chinese dialects.",
+      "url": "https://qwen.ai/blog?id=qwen3asr",
+      "topic": "Qwen3-ASR Languages",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c92",
+      "claim": "WhatsApp has >3.3B MAU as of January 2026.",
+      "url": "https://www.infobip.com/blog/whatsapp-statistics",
+      "topic": "WhatsApp MAU",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c93",
+      "claim": "KakaoTalk has 54.27M global MAU (Q2 2025).",
+      "url": "https://sinch.com/blog/most-popular-messaging-apps-by-country/",
+      "topic": "KakaoTalk MAU",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c94",
+      "claim": "Zalo has 77.6M MAU, representing >87% of people in Vietnam.",
+      "url": "https://adamconnell.me/popular-messaging-apps/",
+      "topic": "Zalo MAU",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c95",
+      "claim": "LINE has 55M+ users in Thailand.",
+      "url": "https://www.sobot.io/blog/best-omnichannel-customer-service-platforms-in-southeast-asia-2026/",
+      "topic": "LINE Users TH",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c96",
+      "claim": "Braze reports 47% of marketers include WhatsApp/LINE/KakaoTalk in engagement strategy.",
+      "url": "https://www.braze.com/resources/articles/cross-channel-customer-engagement-is-rapidly-evolving-and-so-should-your-brand",
+      "topic": "Braze Strategy Stat",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c97",
+      "claim": "Model Studio PrivateLink is documented for Beijing + HK only (not re-verified in this pass).",
+      "url": null,
+      "topic": "PrivateLink Regions",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c98",
+      "claim": "AgentRun only international endpoint is Singapore (consistent but not independently confirmed).",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/access-agenrun-resources-through-privatelink-intranet",
+      "topic": "AgentRun Endpoint",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c99",
+      "claim": "Multimodal embedding v1 price is unconfirmed.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/multimodal-embedding-api-reference",
+      "topic": "MM Embed Price",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c100",
+      "claim": "image-erase-completion description is unconfirmed.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/image-erase-completion",
+      "topic": "Image Erase Desc",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c101",
+      "claim": "Qwen-Long token price is unconfirmed.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-long",
+      "topic": "Qwen Long Price",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c102",
+      "claim": "Qwen-VL family current Singapore per-1M-token prices are unconfirmed due to truncated snippets.",
+      "url": null,
+      "topic": "Qwen VL Prices",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c103",
+      "claim": "Whether Model Studio evaluation features are exposed on the international site is unconfirmed.",
+      "url": "https://help.aliyun.com/en/model-studio/what-is-model-studio",
+      "topic": "Eval Availability",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c104",
+      "claim": "HubSpot's '67% of marketing teams save 10+ hours/week' figure is unconfirmed.",
+      "url": "https://hubspot-state-of-marketing-2026.replit.app/",
+      "topic": "HubSpot Hours Stat",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c105",
+      "claim": "McKinsey's 'up to 80% time savings on security questionnaires' is unconfirmed (secondary citation).",
+      "url": "https://www.arphie.ai/blog/best-ai-tools-security-questionnaire-automation",
+      "topic": "McKinsey Time Savings",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c106",
+      "claim": "Zalo integration in Alibaba Cloud Chat App Message Service is unconfirmed (not in documented list).",
+      "url": null,
+      "topic": "Zalo Integration",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c107",
+      "claim": "Published accuracy figure for sentiment analysis in Thai/Vietnamese/Indonesian is unconfirmed.",
+      "url": null,
+      "topic": "Sentiment Accuracy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c108",
+      "claim": "Recording consent jurisdiction rules are unconfirmed (no single global source found).",
+      "url": null,
+      "topic": "Consent Rules",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c109",
+      "claim": "Evidence of lift for over-personalisation reading as surveillance is unconfirmed.",
+      "url": null,
+      "topic": "Personalisation Lift",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c110",
+      "claim": "Code-switched text (Taglish/Singlish) sentiment accuracy figures are unconfirmed.",
+      "url": null,
+      "topic": "Code-Switch Accuracy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c111",
+      "claim": "Fake-audit scandal in AI compliance automation is secondary/unverified.",
+      "url": "https://tech-insider.org/vanta-vs-drata-vs-delve-compliance-automation-2026/",
+      "topic": "Compliance Scandal",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c112",
+      "claim": "Sidekick 38% and Magic 29% Shopify adoption figures are secondary/unconfirmed.",
+      "url": "https://www.digitalapplied.com/blog/shopify-statistics-2026-platform-growth-data",
+      "topic": "Shopify Adoption",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c113",
+      "claim": "Thai/Vietnamese/Indonesian ASR coverage for Qwen models is unconfirmed.",
+      "url": null,
+      "topic": "ASR Coverage",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c114",
+      "claim": "Conversion between audio seconds and tokens for qwen-audio-3.1-asr-flash is unconfirmed.",
+      "url": null,
+      "topic": "Audio Token Conv",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c115",
+      "claim": "DirectMail email cost per unit is unconfirmed (quota-limited not per-unit in snippet).",
+      "url": null,
+      "topic": "DirectMail Cost",
+      "kind": "alibaba",
+      "weight": "medium"
+    }
+  ]
+}

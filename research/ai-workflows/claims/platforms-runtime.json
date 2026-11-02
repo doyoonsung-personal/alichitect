@@ -1,0 +1,612 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "Model Studio agent/workflow app API calls are restricted to accounts that created Singapore apps before 2025-04-21.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/application-introduction",
+      "topic": "model studio api restriction",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c2",
+      "claim": "Model Studio international regions include Singapore, Virginia, Frankfurt, Tokyo, and Hong Kong (plus Beijing).",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/regions",
+      "topic": "model studio regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c3",
+      "claim": "Model Studio PrivateLink is available only in Beijing and Hong Kong.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/access-model-studio-through-privatelink",
+      "topic": "model studio privatelink",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c4",
+      "claim": "AI Search Open Platform is available only in Shanghai and Frankfurt.",
+      "url": "https://www.alibabacloud.com/help/en/open-search/search-platform/getting-started/ai-getting-started",
+      "topic": "ai search open platform regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c5",
+      "claim": "AgentLoop internationally is available only in Hong Kong.",
+      "url": "https://www.alibabacloud.com/help/en/agentloop/agentloop-quickstart-whole-process-practice",
+      "topic": "agentloop international availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c6",
+      "claim": "AgentRun's only international region is Singapore.",
+      "url": "https://help.aliyun.com/en/agentrun/open-service-area",
+      "topic": "agentrun regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c7",
+      "claim": "qwen3.8-max pricing in Singapore is $2 per million input tokens and $6 per million output tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen3.8-max price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c8",
+      "claim": "AgentTeams no longer exists as a product and has been migrated into AgentCore.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentteams-has-been-migrated-to-agentcore",
+      "topic": "agentteams migration",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c9",
+      "claim": "AgentCore's API version is 2026-08-04.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-overview.md",
+      "topic": "agentcore api version",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c10",
+      "claim": "AgentCore is available in the Singapore region (ap-southeast-1).",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-product-overview",
+      "topic": "agentcore singapore availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c11",
+      "claim": "The AgentCore endpoint for Singapore is agentcore.ap-southeast-1.aliyuncs.com (China site only).",
+      "url": "https://help.aliyun.com/en/agentcore/api-agentcore-2026-08-04-endpoint",
+      "topic": "agentcore endpoint",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c12",
+      "claim": "AgentCore started billing on 2026-09-18 00:00 (UTC+8) and is currently in public preview.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-billing-activation",
+      "topic": "agentcore billing status",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c13",
+      "claim": "CloudFlow's new version billing started on 2025-10-10.",
+      "url": "https://www.alibabacloud.com/help/en/serverless-workflow/latest/billing-overview",
+      "topic": "cloudflow billing start date",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c14",
+      "claim": "AgentRun Flow can import Dify and n8n DSLs and serve Dify Workflow / Dify Chatflow protocols.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/api-agentrun-2025-09-10-convertflowdsl.md",
+      "topic": "agentrun dify support",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c15",
+      "claim": "CAP / Function AI is China-site-only.",
+      "url": null,
+      "topic": "cap function ai availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c16",
+      "claim": "AgentCore supports three IM channels: DINGTALK, FEISHU (Lark), and WECOM.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-createagentimchannel",
+      "topic": "agentcore im channels",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c17",
+      "claim": "No Slack, Microsoft Teams, WhatsApp, LINE or Telegram connector is documented for AgentCore.",
+      "url": null,
+      "topic": "agentcore missing channels",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c18",
+      "claim": "A dedicated 'pause-for-approval' primitive is not documented in AgentCore.",
+      "url": null,
+      "topic": "agentcore approval gate",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c19",
+      "claim": "AgentCore Image Cache feature is in public preview and free during preview.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/mirrored-cache",
+      "topic": "agentcore image cache",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c20",
+      "claim": "AgentCore CU conversion is 1 vCPU × 1 s = 1 CU; 1 GB memory × 1 s = 0.5 CU.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-billing-instructions",
+      "topic": "agentcore cu conversion",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c21",
+      "claim": "AgentCore reference price is USD 0.00001 per Compute CU in China (Shanghai).",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-billing-instructions",
+      "topic": "agentcore cu price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c22",
+      "claim": "AgentCore collaboration control plane is currently CNY 0 during a limited-time free period.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/acentcore-collaboration-control-face-exemption-description",
+      "topic": "agentcore control plane price",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c23",
+      "claim": "AgentRun Quick Creation allows creating an agent using a visual configuration interface without programming experience.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/quickly-create-agent-no-code",
+      "topic": "agentrun no code",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c24",
+      "claim": "AgentRun integrates with LangChain, AgentScope, CrewAI, and Google ADK frameworks.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/what-is-agentrun",
+      "topic": "agentrun frameworks",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c25",
+      "claim": "LangGraph is not named in AgentRun's supported framework list.",
+      "url": null,
+      "topic": "agentrun langgraph absence",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c26",
+      "claim": "AgentRun exposes Native, OpenAI-compatible, Dify Workflow, and Dify Chatflow protocols.",
+      "url": "https://www.alibabacloud.com/help/doc-detail/3049290.html",
+      "topic": "agentrun protocols",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c27",
+      "claim": "AgentRun Sandbox types include Code Interpreter and Browser Use.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/what-is-agentrun",
+      "topic": "agentrun sandbox types",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c28",
+      "claim": "AgentRun model proxy is built on the open source LiteLLM project.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/large-language-model-1.md",
+      "topic": "agentrun litellm",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c29",
+      "claim": "If pay-as-you-go model is chosen in AgentRun, Model Studio bills directly.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/topic-funclaw.md",
+      "topic": "agentrun billing flow",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c30",
+      "claim": "AgentRun MCP Tool Hooks allow pre/post tool-call interception.",
+      "url": "https://www.alibabacloud.com/blog/does-do-not-work-on-ai-agents-900-tests-with-agentrun-mcp-tool-hooks_603668",
+      "topic": "agentrun mcp hooks",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c31",
+      "claim": "Tablestore Memory Storage Service is live in China (Hong Kong) and Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/news-and-announcements",
+      "topic": "tablestore memory regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c32",
+      "claim": "AgentRun supports knowledge base integration with Alibaba Cloud Model Studio and RAGFlow.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/knowledge-base-integration-guide",
+      "topic": "agentrun rag integrations",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c33",
+      "claim": "AgentRun observability is based on OpenTelemetry.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/what-is-agentrun",
+      "topic": "agentrun otel",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c34",
+      "claim": "AgentRun Open Platform (FunAgent) supports DingTalk, Lark, WeCom, and personal WeChat channels.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/open-platform-introduction.md",
+      "topic": "agentrun open platform channels",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c35",
+      "claim": "Function Compute supports a running duration of up to 86,400 seconds (24 hours).",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/fc/user-guide/offline-asynchronous-task-scenario",
+      "topic": "fc timeout limit",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c36",
+      "claim": "Tesla-series GPU regions for Function Compute include Singapore and US (Virginia).",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/instance-types-and-specifications",
+      "topic": "fc gpu regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c37",
+      "claim": "Ada-series GPU regions for Function Compute include Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/instance-types-and-specifications",
+      "topic": "fc ada gpu regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c38",
+      "claim": "Function Compute resident resource pools exist in US (Virginia), Germany (Frankfurt) and Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/resident-resource-pool",
+      "topic": "fc resident pools regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c39",
+      "claim": "Function Compute resident pool disk price is USD 0.21/GB/month.",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/resident-resource-pool",
+      "topic": "fc resident disk price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c40",
+      "claim": "No inbound-email (IMAP/SMTP) trigger exists for Function Compute.",
+      "url": null,
+      "topic": "fc email trigger absence",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c41",
+      "claim": "DirectMail is send-only and its EventBridge source acs.dm emits outbound events.",
+      "url": "https://www.alibabacloud.com/help/en/eventbridge/user-guide/alibaba-cloud-service-event-sources",
+      "topic": "directmail event direction",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c42",
+      "claim": "FC CU conversion factors are vCPU 1 CU/(vCPU·s) and memory 0.5 CU/(GB·s).",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/billing-overview-of-fc",
+      "topic": "fc cu conversion",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c43",
+      "claim": "Published tier-1 FC unit price was USD 0.000020/CU (discounted USD 0.0000160/CU) for Aug 2024-Aug 2025.",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/product-changes-changes-of-billable-items-resource-plans-and-trial-quota-of-function-compute",
+      "topic": "fc cu price historical",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c44",
+      "claim": "Function Compute default concurrency is 300 instances per region per account.",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/limits-of-usage",
+      "topic": "fc concurrency limit",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c45",
+      "claim": "Function Compute code-package size is larger than 100 MB in Singapore, Japan (Tokyo), US (Virginia), and Germany (Frankfurt).",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/limits-of-usage",
+      "topic": "fc package size regions",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c46",
+      "claim": "Max 50 EventBridge-based OSS triggers allowed for Function Compute.",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/fc/configure-an-eventbridge-based-oss-trigger",
+      "topic": "fc oss trigger limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c47",
+      "claim": "CloudFlow API endpoints follow {region-id}.fnf.aliyuncs.com and include ap-southeast-1.fnf.aliyuncs.com.",
+      "url": "https://www.alibabacloud.com/help/doc-detail/2782151.html",
+      "topic": "cloudflow endpoints",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c48",
+      "claim": "CloudFlow Standard mode max execution duration is 1 year.",
+      "url": "https://help.aliyun.com/en/document_detail/2504569.html",
+      "topic": "cloudflow standard duration",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c49",
+      "claim": "CloudFlow Express mode max execution duration is 5 minutes.",
+      "url": "https://help.aliyun.com/en/document_detail/2504569.html",
+      "topic": "cloudflow express duration",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c50",
+      "claim": "CloudFlow supports waitForCallback pattern for human approval steps.",
+      "url": "https://www.alibabacloud.com/help/en/serverless-workflow/latest/perform-callbacks-on-asynchronous-tasks",
+      "topic": "cloudflow wait callback",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c51",
+      "claim": "CloudFlow parallel step can have a maximum of 100 branches.",
+      "url": "https://www.alibabacloud.com/help/en/serverless-workflow/latest/parallel-steps",
+      "topic": "cloudflow parallel limit",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c52",
+      "claim": "CloudFlow task-step timeoutSeconds max/default is 86,400.",
+      "url": "https://www.alibabacloud.com/help/en/serverless-workflow/latest/task-steps",
+      "topic": "cloudflow timeout",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c53",
+      "claim": "CloudFlow free quota is 5,000 free step transitions per month per account.",
+      "url": "https://www.alibabacloud.com/help/en/serverless-workflow/latest/billing-billing",
+      "topic": "cloudflow free tier",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c54",
+      "claim": "CloudFlow unit price is USD 0.25 per 10,000 step transitions.",
+      "url": "https://www.alibabacloud.com/help/en/serverless-workflow/latest/billing-billing",
+      "topic": "cloudflow price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c55",
+      "claim": "One CloudFlow page states first 1000 transitions free monthly, contradicting the 5,000 figure.",
+      "url": "https://www.alibabacloud.com/help/en/serverless-workflow/latest/serverless-workflow-billing",
+      "topic": "cloudflow free tier discrepancy",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c56",
+      "claim": "CloudFlow Maximum number of flows is 10,000.",
+      "url": "https://www.alibabacloud.com/help/en/serverless-workflow/latest/limits",
+      "topic": "cloudflow flow limit",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c57",
+      "claim": "EventBridge Singapore (ap-southeast-1) is listed as a service region.",
+      "url": "https://www.alibabacloud.com/help/en/eventbridge/product-overview/supported-regions",
+      "topic": "eventbridge singapore",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c58",
+      "claim": "EventBridge rule limit is max 5 event targets per rule.",
+      "url": "https://www.alibabacloud.com/help/en/eventbridge/user-guide/manage-event-rules",
+      "topic": "eventbridge rule limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c59",
+      "claim": "Simple Message Queue (SMQ) Singapore (ap-southeast-1) supports Queue, HTTP server, SMS, Direct...",
+      "url": "https://www.alibabacloud.com/help/en/mns/product-overview/regions-and-endpoints",
+      "topic": "smq singapore features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c60",
+      "claim": "SMQ provides 20 million free requests per month per account.",
+      "url": "https://www.alibabacloud.com/help/en/mns/product-overview/billing-overview",
+      "topic": "smq free tier",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c61",
+      "claim": "ApsaraMQ for RocketMQ 5.x is available in ap-southeast-1 Singapore.",
+      "url": "https://help.aliyun.com/en/apsaramq-for-rocketmq/cloud-message-queue-rocketmq-5-x-series/product-overview/supported-regions",
+      "topic": "rocketmq 5x singapore",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c62",
+      "claim": "Dify on ACK ships from the ACK App Marketplace.",
+      "url": "https://www.alibabacloud.com/help/en/ack/cloud-native-ai-suite/use-cases/building-customized-ai-question-and-answer-assistant-based-on-dify",
+      "topic": "dify ack marketplace",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c63",
+      "claim": "ACK does not provide workflow scheduling for Dify; XXL-JOB is recommended.",
+      "url": "https://help.aliyun.com/en/ack/cloud-native-ai-suite/use-cases/scheduling-a-dify-workflow-via-xxl-job",
+      "topic": "dify ack scheduling",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c64",
+      "claim": "Dify on PAI-EAS requires all resources to be in the same region and VPC as the PAI-EAS service.",
+      "url": "https://www.alibabacloud.com/help/en/pai/deploy-dify",
+      "topic": "dify pai vpc constraint",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c65",
+      "claim": "PAI LangStudio workflow applications include nodes for flow control, LLMs, agents, data retrieval, document parsing, speech recognition, and Python.",
+      "url": "https://www.alibabacloud.com/help/en/pai/node-reference",
+      "topic": "pai langstudio nodes",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c66",
+      "claim": "AgentScope Runtime supports serverless deployment on Alibaba Cloud Function Compute.",
+      "url": "https://github.com/agentscope-ai/agentscope-runtime",
+      "topic": "agentscope fc support",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c67",
+      "claim": "Spring AI Alibaba Graph supports interrupting workflow execution at specific points for human-in-the-loop.",
+      "url": "https://github.com/alibaba/spring-ai-alibaba/blob/main/spring-ai-alibaba-graph-core/README.md",
+      "topic": "spring ai hitl",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c68",
+      "claim": "Qwen-Agent has CVE-2026-82275 unauthenticated arbitrary file read vulnerability in versions <= 0.0.34.",
+      "url": "https://www.ionix.io/threat-center/cve-2026-82275/",
+      "topic": "qwen agent cve",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c69",
+      "claim": "Agent Sandbox instance concurrency limit is 200 per sandbox, not adjustable.",
+      "url": "https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/limits-of-agent-sandbox",
+      "topic": "agent sandbox limit",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c70",
+      "claim": "AgentBay offers a free trial coupon of 100 points.",
+      "url": "https://www.alibabacloud.com/en/product/agentbay?_p_lc=1",
+      "topic": "agentbay free trial",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c71",
+      "claim": "Agentic Computer (JVS) Standard tier costs USD 75.45/mo for 1,600 credits.",
+      "url": "https://www.alibabacloud.com/help/en/jvs/agentic-computer-billing-instructions",
+      "topic": "agentic computer standard price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c72",
+      "claim": "Agentic Computer (JVS) Premium tier costs USD 139.53/mo for 4,000 credits.",
+      "url": "https://www.alibabacloud.com/help/en/jvs/agentic-computer-billing-instructions",
+      "topic": "agentic computer premium price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c73",
+      "claim": "AI Gateway Serverless edition public preview is China-only.",
+      "url": "https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/announcement-new-serverless-version-of-the-ai-gateway-now-in-public-beta",
+      "topic": "ai gateway serverless region",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c74",
+      "claim": "DashVector supports US (Virginia) and Singapore regions.",
+      "url": "https://www.alibabacloud.com/help/en/vrs/latest/opening-service",
+      "topic": "dashvector regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c75",
+      "claim": "DirectMail pricing is USD 0.29 per 1,000 messages.",
+      "url": "https://www.alibabacloud.com/en/product/directmail/pricing?_p_lc=1",
+      "topic": "directmail price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c76",
+      "claim": "DirectMail initial daily quota is 2,000 emails.",
+      "url": "https://www.alibabacloud.com/help/en/direct-mail/product-overview/limits",
+      "topic": "directmail quota",
+      "kind": "alibaba",
+      "weight": "high"
+    }
+  ]
+}

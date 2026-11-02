@@ -1,0 +1,948 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "The international region list for Model Studio includes Singapore, US (Virginia), Germany (Frankfurt), Japan (Tokyo), and China (Hong Kong).",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/regions",
+      "topic": "Model Studio regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c2",
+      "claim": "Singapore uses the International deployment scope.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/singapore-regional-access-information",
+      "topic": "Singapore scope",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c3",
+      "claim": "Batch pricing is 50% of the real-time price for both input and output tokens on supported models.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Batch pricing rule",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c4",
+      "claim": "Context cache discounts apply to input tokens only and cannot be combined with batch discounts.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Cache discount rules",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c5",
+      "claim": "Tiered pricing selects a tier based on total input tokens in the request, billing all tokens at that tier.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Tiered pricing logic",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c6",
+      "claim": "Image token formula for vision models is `tokens = h × w / (32 × 32) + 2`.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/vision-model/",
+      "topic": "Vision token formula",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c7",
+      "claim": "Most vision models accept up to 16 million pixels per image.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/vision-model/",
+      "topic": "Vision pixel limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c8",
+      "claim": "Audio shorter than 1 second is billed as 25 tokens in the Beijing table.",
+      "url": "https://help.aliyun.com/zh/model-studio/model-pricing",
+      "topic": "Beijing audio billing",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c9",
+      "claim": "Free quota is eligible only for models in the Singapore region with service deployment scope set to International.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/new-free-quota",
+      "topic": "Free quota eligibility",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c10",
+      "claim": "Standard free quota is typically 1,000,000 tokens per model, valid for 90 days.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/new-free-quota",
+      "topic": "Free quota amount",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c11",
+      "claim": "`qwen-audio-3.1-asr-flash` Singapore price is $0.15 input / $0.47 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-audio-3-1-asr-flash",
+      "topic": "Qwen Audio ASR Flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c12",
+      "claim": "`qwen3-vl-plus` has a context window of 262,144 tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-vl-plus",
+      "topic": "Qwen3 VL Plus context",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c13",
+      "claim": "`qwen3-vl-plus` max input is 260,096 tokens and max output is 32,768 tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-vl-plus",
+      "topic": "Qwen3 VL Plus limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c14",
+      "claim": "`qwen3-vl-plus` thinking-mode max input is 258,048 tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-vl-plus",
+      "topic": "Qwen3 VL Plus thinking limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c15",
+      "claim": "`qwen3-vl-plus` Singapore price for 0<Token≤32K is $0.20 input / $1.60 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-vl-plus",
+      "topic": "Qwen3 VL Plus price tier 1",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c16",
+      "claim": "`qwen3-vl-plus` Singapore price for 32K–128K tokens is $0.30 input / $2.40 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-vl-plus",
+      "topic": "Qwen3 VL Plus price tier 2",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c17",
+      "claim": "`qwen3-vl-plus` Singapore price for 128K–256K tokens is $0.60 input / $4.80 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-vl-plus",
+      "topic": "Qwen3 VL Plus price tier 3",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c18",
+      "claim": "`qwen3-vl-flash` has a context window of 262,144 tokens.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-vl-flash",
+      "topic": "Qwen3 VL Flash context",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c19",
+      "claim": "`qwen3-vl-flash` max input is 260,096 tokens and max output is 32,768 tokens.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-vl-flash",
+      "topic": "Qwen3 VL Flash limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c20",
+      "claim": "`qwen3-vl-flash` Singapore price starts from $0.05 input / $0.40 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/en/campaign/ai-landing-page-token?_p_lc=1",
+      "topic": "Qwen3 VL Flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c21",
+      "claim": "`qwen3-vl-flash` top of range price is $0.12 input / $0.96 output per 1M tokens.",
+      "url": "https://www.morphllm.com/qwen-api",
+      "topic": "Qwen3 VL Flash max price",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c22",
+      "claim": "`qwen3.7-plus` supports a 1M context window and videos up to 2 hours.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/vision-model/",
+      "topic": "Qwen3.7 Plus capabilities",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c23",
+      "claim": "`qwen3.7-plus` Singapore price for 0<Token≤256K is $0.40 input / $1.60 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen3.7 Plus price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c24",
+      "claim": "`qwen3.7-flash` Singapore price for 0<Token≤32K is $0.030 input / $0.130 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen3.7 Flash price tier 1",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c25",
+      "claim": "`qwen3.7-flash` Singapore price for 32K–256K is $0.100 input / $0.400 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen3.7 Flash price tier 2",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c26",
+      "claim": "`qwen3.7-flash` Singapore price for 256K–1M is $0.200 input / $0.800 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen3.7 Flash price tier 3",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c27",
+      "claim": "`qwen3.8-flash` International price is $0.15 input / $0.016 cache-hit / $0.47 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen3.8 Flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c28",
+      "claim": "`gui-plus` is listed in the international Vision model list but its price is unconfirmed.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-list-visual-understanding/",
+      "topic": "GUI Plus availability",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c29",
+      "claim": "`qwen-vl-ocr` max input is 30,000 tokens and max output is 8,192 tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwenvl-ocr",
+      "topic": "Qwen VL OCR limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c30",
+      "claim": "`qwen-vl-ocr` context window is 38,192 tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwenvl-ocr",
+      "topic": "Qwen VL OCR context",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c31",
+      "claim": "`qwen-vl-ocr` requires image width and height > 10 px and aspect ratio not exceeding 200:1 or 1:200.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-vl-ocr",
+      "topic": "Qwen VL OCR constraints",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c32",
+      "claim": "`qwen-vl-ocr` Singapore price is $0.07 input / $0.16 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen VL OCR price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c33",
+      "claim": "`qwen-vl-ocr` Global-scope price is $0.043 input / $0.072 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen VL OCR Global price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c34",
+      "claim": "`qwen3.5-ocr` is available only in China (Beijing) and not sellable to international customers.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen3.5 OCR region",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c35",
+      "claim": "`qwen3.5-ocr` China (Beijing) price is $0.069 input / $0.275 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen3.5 OCR price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c36",
+      "claim": "`qwen3.8-omni-flash` supports text, image, audio, and video inputs but outputs text only.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-omni-flash",
+      "topic": "Qwen3.8 Omni Flash I/O",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c37",
+      "claim": "`qwen3.8-omni-flash` has a 1M context window.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/omni/",
+      "topic": "Qwen3.8 Omni Flash context",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c38",
+      "claim": "`qwen3.8-omni-flash` supports audio up to 3 hours and video up to 2 hours for content analysis.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/omni/",
+      "topic": "Qwen3.8 Omni Flash media limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c39",
+      "claim": "`qwen3.8-omni-flash` Singapore price is $0.15 input / $0.016 cache-hit / $0.47 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen3.8 Omni Flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c40",
+      "claim": "`qwen3.5-omni-plus` max input is 196,608 tokens and max output is 65,536 tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-5-omni-plus.md",
+      "topic": "Qwen3.5 Omni Plus limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c41",
+      "claim": "`qwen3.5-omni-plus` supports audio ≤3 hours and video ≤1 hour per request.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/omni/",
+      "topic": "Qwen3.5 Omni Plus media limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c42",
+      "claim": "`qwen3.5-omni-plus` Singapore price is $1.40 text/image/video in, $11 audio in, $8.30 text out, $44 audio out per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen3.5 Omni Plus price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c43",
+      "claim": "`qwen3.5-omni-flash` Singapore price is $0.40 text/image/video in, $3.00 audio in, $2.20 text out, $11.90 audio out per 1M tokens.",
+      "url": "https://www.alibabacloud.com/en/campaign/ai-landing-page-token?_p_lc=1",
+      "topic": "Qwen3.5 Omni Flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c44",
+      "claim": "`qwen3-omni-flash` is HTTP only and does not support WebSocket.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/omni/",
+      "topic": "Qwen3 Omni Flash protocol",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c45",
+      "claim": "Qwen-Omni-Realtime is accessed through WebSocket or WebRTC.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/realtime",
+      "topic": "Omni Realtime access",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c46",
+      "claim": "`qwen3.8-omni-flash-realtime` has a total input token limit of 196,608 per session.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/client-events",
+      "topic": "Omni Realtime session limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c47",
+      "claim": "`qwen3.8-omni-flash-realtime` rate limit is 60 RPM / 2,000,000 TPM in Beijing and Singapore.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-8-omni-flash-realtime",
+      "topic": "Omni Realtime rate limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c48",
+      "claim": "`qwen3.8-omni-flash-realtime` Beijing price is $0.212 text/image/video in, $0.848 audio in, $0.636 text out, $1.696 audio out per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Omni Realtime Beijing price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c49",
+      "claim": "`qwen3.8-omni-flash-realtime` bills both audio and corresponding text at their respective output rates.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Omni Realtime billing quirk",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c50",
+      "claim": "`qwen3.5-omni-plus-realtime` International price is $2.1 / $16.5 / $12.4 per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Omni Plus Realtime Intl price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c51",
+      "claim": "`qwen3.5-omni-plus-realtime` rate limit is 60 RPM / 100,000 TPM.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/rate-limit",
+      "topic": "Omni Plus Realtime rate limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c52",
+      "claim": "`qwen3.5-omni-plus-realtime` bills only the audio; corresponding text is not charged.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Omni Plus Realtime billing",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c53",
+      "claim": "`qwen3.5-omni-flash-realtime` International price is $0.55 / $4.50 / $3.30 / $17.70 per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Omni Flash Realtime Intl price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c54",
+      "claim": "`qwen-audio-3.1-realtime-flash` rate limit is 60 RPM / 100,000 TPM.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-audio-3-1-realtime-flash",
+      "topic": "Audio Realtime Flash rate limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c55",
+      "claim": "`qwen-audio-3.1-realtime-flash` Singapore price is $0.23 text in / $0.93 audio in / $0.70 text out / $1.87 audio out per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Audio Realtime Flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c56",
+      "claim": "`qwen-audio-3.1-realtime-plus` rate limit is 60 RPM / 100,000 TPM.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-audio-3-1-realtime-plus",
+      "topic": "Audio Realtime Plus rate limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c57",
+      "claim": "`qwen-audio-3.1-realtime-plus` Singapore price is $0.80 / $6.40 / $6.40 / $24.00 per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Audio Realtime Plus price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c58",
+      "claim": "`qwen3.8-livetranslate-flash-realtime` Beijing price is $5.653 / $0.466 / $14.133 / $22.613 per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "LiveTranslate Beijing price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c59",
+      "claim": "Singapore realtime base URL is `wss://dashscope-intl.aliyuncs.com/api-ws/v1/realtime?model=<model>`.",
+      "url": "https://qwen.ai/blog?id=qwen3.8-omni-flash",
+      "topic": "Singapore WS endpoint",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c60",
+      "claim": "China (Beijing) realtime base URLs include `wss://dashscope.aliyuncs.com/api-ws/v1/realtime`.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/realtime",
+      "topic": "Beijing WS endpoint",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c61",
+      "claim": "Workspace-dedicated Singapore endpoint is `wss://{WorkspaceId}.ap-southeast-1.maas.aliyuncs.com/api-ws/v1/realtime`.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-api-via-dashscope",
+      "topic": "Workspace WS endpoint",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c62",
+      "claim": "`/api-ws/v1/realtime` is session-based while `/api-ws/v1/inference` is task-based.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/realtime-websocket-overview",
+      "topic": "WS API types",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c63",
+      "claim": "The first client event for realtime WebSocket must be `session.update`.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/client-events",
+      "topic": "WS handshake event",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c64",
+      "claim": "`qwen-audio-3.1-asr-flash` family is optimized for Indonesian, Japanese, Thai, Filipino, Vietnamese, Korean, and Malay.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-audio-3-1-asr-flash-message",
+      "topic": "ASR Flash languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c65",
+      "claim": "`qwen-audio-3.1-asr-flash-filetrans` supports files ≤2 GB and ≤12 hours per file.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/non-realtime-speech-recognition-user-guide",
+      "topic": "ASR Filetrans limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c66",
+      "claim": "`qwen-audio-3.1-asr-flash-filetrans` Singapore price is $0.15 input / $0.47 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-audio-3-1-asr-flash-filetrans",
+      "topic": "ASR Filetrans price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c67",
+      "claim": "`qwen-audio-3.1-asr-flash-streaming` Beijing price is $0.848 input / $0.636 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-audio-3-1-asr-flash-streaming",
+      "topic": "ASR Streaming Beijing price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c68",
+      "claim": "`qwen3-asr-flash` supports 11 languages including Arabic, Chinese, English, French, German, Italian, Japanese, Korean, Portuguese, Spanish.",
+      "url": "https://qwen.ai/blog?id=41e4c0f6175f9b004a03a07e42343eaaf48329e7",
+      "topic": "Qwen3 ASR languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c69",
+      "claim": "`qwen3-asr-flash` International price is $0.000035 per second.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen3 ASR price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c70",
+      "claim": "`qwen3-asr-flash-realtime` International price is $0.000090 per second with a free quota of 36,000 seconds.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen3 ASR Realtime price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c71",
+      "claim": "`fun-asr` supports speaker diarization and languages including English, Japanese, Korean, Vietnamese, Thai, Indonesian, Malay, Filipino, Hindi, Arabic.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/fun-asr",
+      "topic": "Fun ASR features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c72",
+      "claim": "`fun-asr` multilingual variant has a limit of 5 minutes / 2 GB.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/asr-model",
+      "topic": "Fun ASR limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c73",
+      "claim": "`fun-asr-realtime` price is $0.000047 per second.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/fun-asr-realtime",
+      "topic": "Fun ASR Realtime price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c74",
+      "claim": "`fun-asr-mtl` supports 31+ languages.",
+      "url": "https://www.alibabacloud.com/help/doc-detail/3044658.html",
+      "topic": "Fun ASR MTL languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c75",
+      "claim": "`paraformer-v2` price is $0.000012 per second.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Paraformer V2 price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c76",
+      "claim": "Paraformer is an older-generation ASR model family recommended for migration to Fun-ASR or Qwen-ASR.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/asr-model",
+      "topic": "Paraformer status",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c77",
+      "claim": "`qwen-audio-3.1-tts-flash` supports streaming speech synthesis and languages including Japanese, Korean, French, German, Portuguese, Italian, Vietnamese, Indonesian.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-audio-3-1-tts-flash",
+      "topic": "TTS Flash features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c78",
+      "claim": "`qwen-audio-3.1-tts-flash` price is $0.23 input / $1.87 output per 1M tokens.",
+      "url": "https://www.developersdigest.tech/models/speech/alibaba",
+      "topic": "TTS Flash price",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c79",
+      "claim": "`qwen-audio-3.1-tts-plus` price is $0.30 per 10,000 characters.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "TTS Plus price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c80",
+      "claim": "`qwen-audio-3.0-tts-plus` price is $0.20 per 10,000 characters.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "TTS 3.0 Plus price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c81",
+      "claim": "`qwen-audio-3.0-tts-flash` price is $0.15 per 10,000 characters.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "TTS 3.0 Flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c82",
+      "claim": "`qwen3-tts-flash` supports 10 languages excluding Thai, Vietnamese, Indonesian, and Malay.",
+      "url": "https://www.alibabacloud.com/blog/qwen3-tts-family-is-now-open-sourced-voice-design-clone-and-generation_602826",
+      "topic": "Qwen3 TTS languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c83",
+      "claim": "`qwen3-tts-flash` price is $0.10 per 10,000 characters with a free quota of 110,000 characters.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen3 TTS price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c84",
+      "claim": "`cosyvoice-v3-plus` supports Chinese, English, French, German, Japanese, Korean, Russian, Portuguese, Thai, Indonesian, Vietnamese.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/realtime-tts-user-guide",
+      "topic": "CosyVoice V3 languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c85",
+      "claim": "`cosyvoice-v3-plus` price is $0.26 per 10,000 characters.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "CosyVoice V3 price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c86",
+      "claim": "`cosyvoice-v3-flash` price is $0.13 per 10,000 characters.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "CosyVoice Flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c87",
+      "claim": "`cosyvoice-v3.5-plus` is currently available only in the Beijing region.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/ssml-latex-user-guide",
+      "topic": "CosyVoice 3.5 Region",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c88",
+      "claim": "`cosyvoice-v3.5-flash` is available only in the Beijing region.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/cosyvoice-v3-5-flash",
+      "topic": "CosyVoice 3.5 Flash Region",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c89",
+      "claim": "Voice cloning via `qwen-voice-enrollment` costs $0.01 per voice clone with a cap of 1,000 voices per account.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Voice Clone cost",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c90",
+      "claim": "Voice creation for Qwen-Audio-TTS, Qwen-Audio-Realtime, and CosyVoice is free.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/voice-cloning-user-guide",
+      "topic": "Voice Creation free",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c91",
+      "claim": "Account cap for custom voices is 1,000, shared between cloning and design.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/voice-design-user-guide",
+      "topic": "Custom Voice cap",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c92",
+      "claim": "Multilingual and premium voices are available in Beijing and Singapore, but other regions have reduced lists.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-audio-tts-voice-list",
+      "topic": "Voice availability regions",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c93",
+      "claim": "`text-embedding-v4` supports user-defined dimensions from 64 to 2048.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/text-embedding-v4",
+      "topic": "Embedding V4 dims",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c94",
+      "claim": "`text-embedding-v4` max input is 8,192 tokens per text.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/embedding",
+      "topic": "Embedding V4 limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c95",
+      "claim": "`text-embedding-v4` Singapore price is $0.07 per 1M input tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Embedding V4 price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c96",
+      "claim": "`qwen3.7-text-embedding` supports customizable dimensions from 256 to 2560.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-text-embedding",
+      "topic": "Qwen3.7 Embedding dims",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c97",
+      "claim": "`qwen3.7-text-embedding` max input length is 131,072 tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-text-embedding",
+      "topic": "Qwen3.7 Embedding limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c98",
+      "claim": "Text embedding models are OpenAI-compatible.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/embedding-interfaces-compatible-with-openai",
+      "topic": "Embedding compatibility",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c99",
+      "claim": "Multimodal embedding models do NOT support the OpenAI-compatible API.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/embedding-interfaces-compatible-with-openai",
+      "topic": "Multimodal Embedding compat",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c100",
+      "claim": "`qwen3-vl-embedding` supports dimensions 256–2560 and fused embeddings.",
+      "url": "https://help.aliyun.com/en/model-studio/embedding-rerank-model/",
+      "topic": "VL Embedding features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c101",
+      "claim": "`qwen3-vl-embedding` price is $0.258 for image/video and $0.10 for text per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "VL Embedding price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c102",
+      "claim": "`tongyi-embedding-vision-plus` has 1152 dimensions and a 1,024 token limit.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/embedding",
+      "topic": "Tongyi Vision Embedding specs",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c103",
+      "claim": "`tongyi-embedding-vision-plus` price is $0.09 per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Tongyi Vision Embedding price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c104",
+      "claim": "`multimodal-embedding-v1` generates separate vectors per input and is legacy.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/rag-knowledge-base",
+      "topic": "Multimodal Embedding V1 type",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c105",
+      "claim": "`qwen3-rerank` supports 100+ languages and up to 500 documents per query.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-rerank",
+      "topic": "Qwen3 Rerank specs",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c106",
+      "claim": "`qwen3-rerank` Singapore price is $0.10 per 1M input tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen3 Rerank price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c107",
+      "claim": "`gte-rerank` model will be discontinued on May 30, 2026.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/text-rerank-api",
+      "topic": "GTE Rerank retirement",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c108",
+      "claim": "`qwen-image-3.0-pro` supports negative prompts and up to 6 outputs per call.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/image-model/",
+      "topic": "Qwen Image Pro features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c109",
+      "claim": "`qwen-image-3.0-pro` price is $0.003 per input image and $0.04 per output image at 1K resolution.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen Image Pro price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c110",
+      "claim": "`qwen-image-3.0-pro` price is $0.075 per output image at 2K resolution.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen Image Pro 2K price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c111",
+      "claim": "`qwen-image-2.1-pro` price is $0.04 per image.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen Image 2.1 Pro price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c112",
+      "claim": "`qwen-image-2.1-turbo` price is $0.016 per image.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen Image Turbo price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c113",
+      "claim": "`wan2.7-image-pro` price is $0.075 per image.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Wan Image Pro price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c114",
+      "claim": "`wan2.7-image` price is $0.03 per image.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Wan Image price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c115",
+      "claim": "`wan3.0-video` supports up to 30 seconds per generation at 30 fps.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/wan3-video-generation-guide",
+      "topic": "Wan3 Video limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c116",
+      "claim": "`wan3.0-video` price is $0.05 (480P), $0.10 (720P), $0.20 (1080P) per output second.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Wan3 Video price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c117",
+      "claim": "`wan3.0-video-prime` price is $0.068 (480P), $0.14 (720P), $0.28 (1080P) per output second.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Wan3 Prime price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c118",
+      "claim": "`happyhorse-1.0-t2v` price is $0.07 (480P), $0.14 (720P), $0.18 (1080P) per output second.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "HappyHorse price",
+      "kind": "alibaba",
+      "weight": "high"
+    }
+  ]
+}

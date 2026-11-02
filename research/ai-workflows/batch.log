@@ -1,0 +1,35 @@
+[qwen-research] api-features · 3318267 in (3057536 cached) · 35891 out (12723 reasoning) · 234 searches · 1219 sources · $1.5012 · 24.8 min -> research/ai-workflows/qwen/api-features.md
+[qwen-research] models-text · 3846797 in (3556864 cached) · 44174 out (18934 reasoning) · 234 searches · 818 sources · $1.7341 · 29.3 min -> research/ai-workflows/qwen/models-text.md
+[qwen-research] models-multimodal: no result within 30 min; retrying in 15 s
+[qwen-research] platforms-runtime: no result within 30 min; retrying in 15 s
+exit 127
+--- restart 15:42:40
+[qwen-research] reference-solutions · 3340045 in (3077504 cached) · 40294 out (17343 reasoning) · 229 searches · 1142 sources · $1.5362 · 25.0 min -> research/ai-workflows/qwen/reference-solutions.md
+[qwen-research] patterns · 2320659 in (2090752 cached) · 49155 out (17340 reasoning) · 186 searches · 1218 sources · $1.2774 · 29.8 min -> research/ai-workflows/qwen/patterns.md
+[qwen-research] platforms-runtime · 4044341 in (3741952 cached) · 44114 out (16475 reasoning) · 283 searches · 1661 sources · $1.8050 · 31.8 min -> research/ai-workflows/qwen/platforms-runtime.md
+[qwen-research] platforms-tools · 4561505 in (4237184 cached) · 53975 out (27779 reasoning) · 308 searches · 1677 sources · $2.0318 · 34.2 min -> research/ai-workflows/qwen/platforms-tools.md
+[qwen-research] models-multimodal · 4506945 in (4182656 cached) · 77446 out (49769 reasoning) · 234 searches · 778 sources · $2.1589 · 43.1 min -> research/ai-workflows/qwen/models-multimodal.md
+[qwen-research] production-practices · 1319681 in (1141504 cached) · 39922 out (16088 reasoning) · 155 searches · 1285 sources · $0.8813 · 22.0 min -> research/ai-workflows/qwen/production-practices.md
+[qwen-research] usecases-revenue: network: terminated; retrying in 15 s
+[qwen-research] usecases-service: network: terminated; retrying in 15 s
+[qwen-research] usecases-documents: network: terminated; retrying in 15 s
+[qwen-research] diagram-notation: network: terminated; retrying in 15 s
+[qwen-research] usecases-operations: network: terminated; retrying in 15 s
+[qwen-research] usecases-revenue · 1939664 in (1713920 cached) · 46092 out (16292 reasoning) · 188 searches · 1446 sources · $1.1565 · 28.3 min -> research/ai-workflows/qwen/usecases-revenue.md
+[qwen-research] usecases-operations · 1893201 in (1675776 cached) · 58374 out (27395 reasoning) · 180 searches · 1532 sources · $1.2040 · 31.0 min -> research/ai-workflows/qwen/usecases-operations.md
+[qwen-research] usecases-service: response failed: {"message":"The request processing has failed due to some unknown error.","code":"server_error"}; retrying in 30 s
+[qwen-research] usecases-documents: response failed: {"message":"The request processing has failed due to some unknown error.","code":"server_error"}; retrying in 30 s
+[qwen-research] diagram-notation · 2873794 in (2561408 cached) · 62487 out (23368 reasoning) · 199 searches · 1276 sources · $1.6400 · 34.9 min -> research/ai-workflows/qwen/diagram-notation.md
+[qwen-research] cost-sizing · 2415974 in (2176384 cached) · 49485 out (27406 reasoning) · 193 searches · 1081 sources · $1.3202 · 31.4 min -> research/ai-workflows/qwen/cost-sizing.md
+[qwen-research] presales: network: terminated; retrying in 15 s
+[qwen-research] usecases-service · 3131033 in (2739712 cached) · 59091 out (22143 reasoning) · 243 searches · 1756 sources · $1.8221 · 34.5 min -> research/ai-workflows/qwen/usecases-service.md
+[qwen-research] usecases-documents: response failed: {"message":"The request processing has failed due to some unknown error.","code":"server_error"}; retrying in 60 s
+[qwen-research] presales · 1681033 in (1497216 cached) · 31040 out (13645 reasoning) · 149 searches · 1128 sources · $0.9282 · 19.1 min -> research/ai-workflows/qwen/presales.md
+[qwen-research] usecases-documents: response failed: {"message":"The request processing has failed due to some unknown error.","code":"server_error"}; retrying in 120 s
+[qwen-research] usecases-documents failed: response failed: {"message":"The request processing has failed due to some unknown error.","code":"server_error"}
+[qwen-research] batch done: 12 ok, 2 skipped (output exists), 1 failed, token cost $17.762
+exit 1
+--- retry documents 19:36:19
+[qwen-research] usecases-documents: response failed: {"message":"The request processing has failed due to some unknown error.","code":"server_error"}; retrying in 15 s
+[qwen-research] usecases-documents: response failed: {"message":"The request processing has failed due to some unknown error.","code":"server_error"}; retrying in 30 s
+[qwen-research] usecases-documents: stream ended without a result; retrying in 60 s

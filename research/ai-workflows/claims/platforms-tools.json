@@ -1,0 +1,828 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "AgentLoop supports the Singapore region (ap-southeast-1) with endpoint agentloop.ap-southeast-1.aliyuncs.com.",
+      "url": "https://www.alibabacloud.com/help/zh/agentloop/product-overview/server-launch-regions-of-agentloop",
+      "topic": "AgentLoop regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c2",
+      "claim": "AgentRun's only international supported region is Singapore (ap-southeast-1).",
+      "url": "https://help.aliyun.com/en/agentrun/open-service-area",
+      "topic": "AgentRun regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c3",
+      "claim": "AgentCore is currently available only in China regions (Hangzhou, Beijing, Shenzhen) and has no international endpoints.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-product-overview",
+      "topic": "AgentCore availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c4",
+      "claim": "Model Studio international regions include Singapore, Virginia, Frankfurt, Tokyo, and Hong Kong.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/regions",
+      "topic": "Model Studio regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c5",
+      "claim": "AI Search Open Platform is available only in China (Shanghai) and Germany (Frankfurt).",
+      "url": "https://www.alibabacloud.com/help/en/open-search/search-platform/user-guide/get-service-call-address",
+      "topic": "AI Search Open Platform regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c6",
+      "claim": "FC Agent Sandbox supports regions including Singapore, US (Virginia), US (Silicon Valley), and China (Hong Kong).",
+      "url": "https://help.aliyun.com/en/functioncompute/supported-regions-of-fc-agent-sandbox",
+      "topic": "FC Agent Sandbox regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c7",
+      "claim": "Alibaba Cloud opened its Netherlands (Amsterdam) region and announced bringing ACS Agent Sandbox and AI Security Guardrails 2.0 there.",
+      "url": "https://www.alibabacloud.com/press-room/first-public-cloud-region-in-the-netherlands",
+      "topic": "Netherlands region launch",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c8",
+      "claim": "AI Gateway is a unified proxy for LLM APIs and MCP Servers, serving as the commercial form of Higress AI gateway.",
+      "url": "https://www.alibabacloud.com/help/en/api-gateway/product-overview/",
+      "topic": "AI Gateway definition",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c9",
+      "claim": "AI Gateway supports MCP server proxying with security authentication, observability, and rate-limiting.",
+      "url": "https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/user-guide/mcp-gateway-management",
+      "topic": "AI Gateway MCP support",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c10",
+      "claim": "AI Gateway allows migrating RESTful APIs to MCP services using SSE and Streamable HTTP protocols.",
+      "url": "https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/getting-started/mcp-service-management",
+      "topic": "REST to MCP conversion",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c11",
+      "claim": "The test domain for AI Gateway REST-to-MCP conversion is capped at 1,000 calls per day.",
+      "url": "https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/getting-started/mcp-service-management",
+      "topic": "AI Gateway test limit",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c12",
+      "claim": "AI Gateway intelligent routing uses semantic analysis to route requests to the best-fit model.",
+      "url": "https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/user-guide/managing-the-model-api",
+      "topic": "AI Gateway routing",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c13",
+      "claim": "Higress supports protocol conversion for over 100 models and model-level fallback.",
+      "url": "https://higress.ai/en/docs/ai/scene-guide/multi-proxy/",
+      "topic": "Higress capabilities",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c14",
+      "claim": "AI Gateway consumer quota rules support Token and Credits dimensions with daily, weekly, or monthly resets.",
+      "url": "https://help.aliyun.com/en/api-gateway/consumer-quotas-management",
+      "topic": "AI Gateway quotas",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c15",
+      "claim": "AI Gateway semantic caching combines Redis-based precise cache and DashVector semantic cache.",
+      "url": "https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/user-guide/ai-cache-1",
+      "topic": "AI Gateway caching",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c16",
+      "claim": "AI Gateway integrates Alibaba Cloud AI Security Guardrails to detect prompt injection and jailbreak attacks via WAF 3.0.",
+      "url": "https://www.alibabacloud.com/help/en/waf/web-application-firewall-3-0/ai-application-protection/",
+      "topic": "AI Gateway security integration",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c17",
+      "claim": "AI Gateway Serverless edition is in public preview only in mainland China regions and Hong Kong.",
+      "url": "https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/announcement-new-serverless-version-of-the-ai-gateway-now-in-public-beta",
+      "topic": "AI Gateway Serverless status",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c18",
+      "claim": "AI Gateway Serverless edition becomes commercial from 2026-09-01.",
+      "url": "https://help.aliyun.com/en/api-gateway/ai-gateway-commercialization-announcement",
+      "topic": "AI Gateway Serverless GA date",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c19",
+      "claim": "Dedicated AI Gateway instance pricing includes an example data-processing rate of USD 0.005/GB.",
+      "url": "https://www.alibabacloud.com/help/en/api-gateway/cloud-native-api-gateway/product-overview/billing-overview",
+      "topic": "AI Gateway dedicated price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c20",
+      "claim": "The apigw.small.x1 dedicated AI Gateway instance costs USD 0.291/hour.",
+      "url": "https://www.alibabacloud.com/help/en/api-gateway/cloud-native-api-gateway/product-overview/billing-overview",
+      "topic": "AI Gateway instance price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c21",
+      "claim": "Dedicated AI Gateway instances provide a 99.99% SLA.",
+      "url": "https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/ai-gateway-capacity-description",
+      "topic": "AI Gateway SLA",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c22",
+      "claim": "New Serverless AI Gateway fees are waived during preview; only inbound Internet traffic is billed via CDT.",
+      "url": "https://www.alibabacloud.com/help/en/api-gateway/ai-gateway/product-overview/announcement-new-serverless-version-of-the-ai-gateway-now-in-public-beta",
+      "topic": "AI Gateway Serverless pricing",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c23",
+      "claim": "Alibaba Cloud hosts an official remote MCP service with the international endpoint https://api.alibabacloud.com/mcp.",
+      "url": "https://github.com/aliyun/alibabacloud-api-mcp-server/blob/main/README-EN.md",
+      "topic": "OpenAPI MCP Server endpoint",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c24",
+      "claim": "The Alibaba Cloud OpenAPI MCP Server Core Edition includes 15 built-in tools for API calls and orchestration.",
+      "url": "https://www.alibabacloud.com/help/en/openapi/user-guide/openapi-mcp-server-core-tool-guide",
+      "topic": "MCP Core tools count",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c25",
+      "claim": "The Cloud Agent Catalog converts capabilities across more than 60 cloud products into Skill-based, MCP-compatible assets.",
+      "url": "https://www.alibabacloud.com/en/press-room/alibaba-cloud-unveil-advanced-agentic-ai-ecosystem?_p_lc=1",
+      "topic": "Cloud Agent Catalog scope",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c26",
+      "claim": "AgentRun Tool Marketplace provides pre-built Skills, MCP tools, and Function Call tools.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/tool-market",
+      "topic": "AgentRun Tool Marketplace",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c27",
+      "claim": "AgentBay exposes Computer Use sandboxed Linux/Windows sessions via MCP.",
+      "url": "https://www.alibabacloud.com/help/en/agentbay/developer-reference/mcp-computer-use/",
+      "topic": "AgentBay MCP exposure",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c28",
+      "claim": "Model Studio MCP capabilities are currently available only to China site (aliyun.com) accounts.",
+      "url": "https://help.aliyun.com/en/model-studio/cli/mcp-skill",
+      "topic": "Model Studio MCP gating",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c29",
+      "claim": "MaxCompute offers a remote MCP server (MCMCP) with public endpoints in specific service regions.",
+      "url": "https://www.alibabacloud.com/help/en/maxcompute/mcmcp-service-remote-mcp-server",
+      "topic": "MaxCompute MCP existence",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c30",
+      "claim": "The DMS MCP server supports more than 40 data sources and NL2SQL capabilities.",
+      "url": "https://mcpservers.org/servers/aliyun/alibabacloud-dms-mcp-server",
+      "topic": "DMS MCP features",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c31",
+      "claim": "The Data Agent MCP skill includes 18 data_agent_* tools.",
+      "url": "https://github.com/aliyun/data-agent-skill/blob/main/alibabacloud-data-agent-mcp-skill/README.md",
+      "topic": "Data Agent tool count",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c32",
+      "claim": "Function Compute is documented as an ideal runtime for hosting MCP services on the cloud.",
+      "url": "https://help.aliyun.com/en/functioncompute/mcp-service-introduction/",
+      "topic": "FC as MCP host",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c33",
+      "claim": "AgentCore establishes knowledge base connections and exposes retrieval tools through the Model Context Protocol.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/overview-of-knowledge-base-connections.md",
+      "topic": "AgentCore KB MCP",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c34",
+      "claim": "Vector Retrieval Service for Milvus is available in Singapore (Zones B, C) and Germany (Frankfurt) (Zones A, B).",
+      "url": "https://www.alibabacloud.com/help/en/milvus/product-overview/region-and-zone",
+      "topic": "Milvus regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c35",
+      "claim": "Milvus AI Center bills model invocations (tokens/images) allowing embedding to be done in-service.",
+      "url": "https://www.alibabacloud.com/help/en/milvus/product-overview/ai-center-billing",
+      "topic": "Milvus AI Center billing",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c36",
+      "claim": "OpenSearch Vector Search Edition has a Singapore endpoint searchengine.ap-southeast-1.aliyuncs.com.",
+      "url": "https://help.aliyun.com/en/open-search/developer-reference/api-searchengine-2021-10-25-endpoint",
+      "topic": "OpenSearch SG endpoint",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c37",
+      "claim": "OpenSearch LLM-Based Conversational Search Edition supports Agentic RAG capability.",
+      "url": "https://www.alibabacloud.com/en/news/product/opensearch-llm-based-conversational-search-edition-supports-agentic-rag-jto?_p_lc=1",
+      "topic": "OpenSearch Agentic RAG",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c38",
+      "claim": "Alibaba Cloud Elasticsearch includes an Inference API exposing AI Search embedding/rerank/sparse-vector/completion models.",
+      "url": "https://www.alibabacloud.com/blog/mastering-vector-search-how-alibaba-cloud%E2%80%99s-inference-api-enhances-elasticsearch%C2%A0_602005",
+      "topic": "ES Inference API",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c39",
+      "claim": "AnalyticDB for PostgreSQL vector search is priced in regions including Singapore, Malaysia, Indonesia, Thailand, Germany, UK, US (Virginia), and US (Silicon Valley).",
+      "url": "https://www.alibabacloud.com/help/en/analyticdb/analyticdb-for-postgresql/product-overview/pricing-1",
+      "topic": "ADB PG vector regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c40",
+      "claim": "AnalyticDB for PostgreSQL offers a RAG Service that handles document ingestion, embedding, hybrid search, and reranking.",
+      "url": "https://www.alibabacloud.com/help/analyticdb-for-postgresql/user-guide/what-is-rag-service",
+      "topic": "ADB PG RAG Service",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c41",
+      "claim": "Hologres pay-as-you-go compute in Singapore costs USD 0.066604/CU/hour.",
+      "url": "https://www.alibabacloud.com/help/en/hologres/product-overview/pay-as-you-go",
+      "topic": "Hologres SG compute price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c42",
+      "claim": "Hologres storage in Singapore costs USD 0.000379/GB/hour.",
+      "url": "https://www.alibabacloud.com/help/en/hologres/product-overview/pay-as-you-go",
+      "topic": "Hologres SG storage price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c43",
+      "claim": "PolarSearch (PolarDB for MySQL) lists availability in Singapore Zone A/B, Japan (Tokyo), South Korea (Seoul), and Germany (Frankfurt).",
+      "url": "https://www.alibabacloud.com/help/en/polardb/polardb-for-mysql/user-guide/guidelines-for-using-polarsearch",
+      "topic": "PolarSearch regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c44",
+      "claim": "Lindorm multi-zone Basic Edition listing includes Seoul, Tokyo, Singapore, Kuala Lumpur, Jakarta, and Bangkok.",
+      "url": "https://help.aliyun.com/en/lindorm/user-guide/multi-az-basic-edition-deployment",
+      "topic": "Lindorm regions",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c45",
+      "claim": "DashVector is available only in US (Virginia) and Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/vrs/latest/opening-service",
+      "topic": "DashVector regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c46",
+      "claim": "Tablestore Knowledge Storage manages document parsing, chunking, embedding, indexing, and retrieval.",
+      "url": "https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/overview",
+      "topic": "Tablestore KS features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c47",
+      "claim": "Tablestore Memory/Knowledge Storage service is available in China (Shanghai), China (Shenzhen), China (Hong Kong), and Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/news-and-announcements",
+      "topic": "Tablestore Memory regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c48",
+      "claim": "Document Mind (DocMind) endpoints are documented only for China (Hangzhou) docmind-api.cn-hangzhou.aliyuncs.com.",
+      "url": "https://help.aliyun.com/en/document-mind/developer-reference/document-mind-endpoints",
+      "topic": "DocMind regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c49",
+      "claim": "Document Mind V2 API has a 100,000-credit daily free quota and charges 50 credits per page.",
+      "url": "https://help.aliyun.com/en/document-mind/product-overview/pay-as-you-go",
+      "topic": "DocMind pricing",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c50",
+      "claim": "PAI regions include Singapore, Kuala Lumpur, Jakarta, Tokyo, Frankfurt, Silicon Valley, and Virginia.",
+      "url": "https://www.alibabacloud.com/help/en/pai/product-overview/regions-and-zones",
+      "topic": "PAI regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c51",
+      "claim": "AI-Native Database Service (AIDBS) Basic Edition is free of charge.",
+      "url": "https://www.alibabacloud.com/help/en/aidbs/product-overview/billing-overview",
+      "topic": "AIDBS pricing",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c52",
+      "claim": "AgentRun supports knowledge base integration with Alibaba Cloud Model Studio and RAGFlow.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/knowledge-base-integration-guide",
+      "topic": "AgentRun KB integration",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c53",
+      "claim": "Tablestore Memory Storage supports short-term messages, long-term structured memory, file memory, and memory consolidation ('Dream').",
+      "url": "https://www.alibabacloud.com/help/en/tablestore/table-store-service/memory-storage-introduction",
+      "topic": "Tablestore Memory types",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c54",
+      "claim": "Tablestore Memory Storage international billing shows CNY 0.002 per 10,000 long-term-memory entries per hour.",
+      "url": "https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/product-billing",
+      "topic": "Tablestore LT memory price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c55",
+      "claim": "Tablestore Memory Storage international billing shows CNY 0.00004 per 10,000 short-term entries per hour.",
+      "url": "https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/product-billing",
+      "topic": "Tablestore ST memory price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c56",
+      "claim": "AgentRun integrates Tablestore to provide session history and long-term memory types.",
+      "url": "https://www.alibabacloud.com/help/en/tablestore/memory-storage-service-sub-product-test/agentrun-tablestore-memory",
+      "topic": "AgentRun memory integration",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c57",
+      "claim": "AgentCore MemoryStore SearchMemories API retrieves long-term memory based on semantics.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/api-agentcore-2026-08-04-searchmemories.md",
+      "topic": "AgentCore Memory API",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c58",
+      "claim": "CloudMonitor 2.0 serves non-China regions from the Singapore region group.",
+      "url": "https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/what-is-cloud-monitor-2-0",
+      "topic": "CMS 2.0 SG serving",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c59",
+      "claim": "CloudMonitor 2.0 Memory module includes a Mem0-compatible SDK for zero-cost migration.",
+      "url": "https://www.alibabacloud.com/help/en/cms/cloudmonitor-2-0/memory-module-overview",
+      "topic": "CMS 2.0 Mem0 compat",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c60",
+      "claim": "Tair Semantic Cache acts as an application access layer between AI applications and model services.",
+      "url": "https://www.alibabacloud.com/help/en/redis/tair-ai-gateway-semantic-caching",
+      "topic": "Tair Semantic Cache role",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c61",
+      "claim": "PolarDB for PostgreSQL offers Mem0/MemOS compatible memory management.",
+      "url": "https://www.alibabacloud.com/blog/polardb-one-stop-memory-management-launched-empowering-ai-agents-with-persistent-cross-session-memory_603109",
+      "topic": "PolarDB Mem0 compat",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c62",
+      "claim": "Agent Sandbox Flash Edition is compatible with the E2B SDK.",
+      "url": "https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/agent-sandbox-overview",
+      "topic": "Agent Sandbox E2B compat",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c63",
+      "claim": "Agent Sandbox Flash Edition regions include Asia Pacific SE 1 (Singapore), Malaysia (Johor), and US (Virginia).",
+      "url": "https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/open-service-area",
+      "topic": "Agent Sandbox Flash regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c64",
+      "claim": "Agent Sandbox Economy vCPU class is billed at USD 0.0000026 per second.",
+      "url": "https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/billing-overview",
+      "topic": "Agent Sandbox Econ vCPU price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c65",
+      "claim": "Agent Sandbox Default vCPU class is billed at USD 0.0000034 per second.",
+      "url": "https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/billing-overview",
+      "topic": "Agent Sandbox Def vCPU price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c66",
+      "claim": "Agent Sandbox memory is billed at USD 0.00000128 per GiB per second.",
+      "url": "https://www.alibabacloud.com/help/en/agent-sandbox/product-overview/billing-overview",
+      "topic": "Agent Sandbox mem price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c67",
+      "claim": "Agent Sandbox Container Edition runs in ACS clusters and supports scenarios like Code Interpreter and Browser Use.",
+      "url": "https://www.alibabacloud.com/help/en/agent-sandbox/create-an-agent-sandbox",
+      "topic": "Agent Sandbox Container Ed",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c68",
+      "claim": "ACS Agent Sandbox example cost for 2 vCPU and 8 GiB over 3,300 seconds is approximately USD 0.05.",
+      "url": "https://www.alibabacloud.com/help/en/cs/product-overview/product-billing-rules",
+      "topic": "ACS Sandbox example cost",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c69",
+      "claim": "AgentRun AIO Sandbox provides web automation, code execution, file processing, and interactive terminal in one image.",
+      "url": "https://www.alibabacloud.com/help/en/agentrun/aio-sandbox-1",
+      "topic": "AgentRun AIO Sandbox",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c70",
+      "claim": "AgentBay is deployed in Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/agentbay/support/faq",
+      "topic": "AgentBay SG deployment",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c71",
+      "claim": "AgentBay Pro plan costs USD 149/month.",
+      "url": "https://www.alibabacloud.com/help/en/agentbay/product-overview/agentbay-billing-instructions",
+      "topic": "AgentBay Pro price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c72",
+      "claim": "AgentBay Credit unit price is USD 0.0267 per Credit.",
+      "url": "https://www.alibabacloud.com/help/en/agentbay/product-overview/agentbay-billing-instructions",
+      "topic": "AgentBay credit price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c73",
+      "claim": "AgentBay new-user trial includes 100 free points.",
+      "url": "https://www.alibabacloud.com/help/en/agentbay/product-overview/new-user-trial-instructions",
+      "topic": "AgentBay trial points",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c74",
+      "claim": "AgentBay pricing model change took effect on 2026-05-18.",
+      "url": "https://help.aliyun.com/en/agentbay/product-overview/agentbay-pricing-adjustment-announcement",
+      "topic": "AgentBay price change date",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c75",
+      "claim": "AI Guardrails console supports China East 2 (Shanghai), China (Hong Kong), Singapore, Germany (Frankfurt), and US (Virginia).",
+      "url": "https://www.alibabacloud.com/help/en/content-moderation/latest/what-is-ai-security-barrier",
+      "topic": "AI Guardrails regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c76",
+      "claim": "AI Guardrails Singapore API endpoint is green-cip.ap-southeast-1.aliyuncs.com.",
+      "url": "https://www.alibabacloud.com/help/en/content-moderation/latest/product-overview",
+      "topic": "AI Guardrails SG endpoint",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c77",
+      "claim": "AI Guardrails API access costs USD 6 per 10,000 calls.",
+      "url": "https://www.alibabacloud.com/help/en/content-moderation/latest/billing-overview",
+      "topic": "AI Guardrails call price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c78",
+      "claim": "Custom AI Guardrails detection Agent costs USD 8 per 10,000 calls.",
+      "url": "https://www.alibabacloud.com/help/en/content-moderation/latest/detecting-agent-billing-schemes",
+      "topic": "AI Guardrails agent price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c79",
+      "claim": "Content Moderation text moderation starts from USD 0.50 per 1,000 text tasks.",
+      "url": "https://www.alibabacloud.com/en/product/content-moderation/pricing?_p_lc=1",
+      "topic": "Content Mod text price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c80",
+      "claim": "Content Moderation standard image moderation costs USD 0.6 per 1,000 calls.",
+      "url": "https://www.alibabacloud.com/en/product/content-moderation/pricing?_p_lc=1",
+      "topic": "Content Mod image price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c81",
+      "claim": "Content Moderation multilingual text moderation 2.0 with translation is available only in Singapore.",
+      "url": "https://www.alibabacloud.com/help/en/content-moderation/latest/text-moderation-enhanced-multilingual-service-api",
+      "topic": "Content Mod translation region",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c82",
+      "claim": "Voice Moderation 2.0 in Singapore supports 35 languages.",
+      "url": "https://www.alibabacloud.com/help/en/content-moderation/latest/speech-audit-multilingual-service",
+      "topic": "Voice Mod language count",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c83",
+      "claim": "Agent Security Center (ASC) is in comprehensive public preview.",
+      "url": "https://www.alibabacloud.com/help/en/asc/product-overview/what-is-the-agent-security-center",
+      "topic": "ASC status",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c84",
+      "claim": "Agent Security Center defense seat fee is USD 0.0574 per seat per hour.",
+      "url": "https://www.alibabacloud.com/help/en/asc/product-overview/billing-overview",
+      "topic": "ASC seat price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c85",
+      "claim": "Agent Security Center provides 300 free Credits per seat per day.",
+      "url": "https://www.alibabacloud.com/help/en/asc/product-overview/billing-overview",
+      "topic": "ASC free credits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c86",
+      "claim": "Agent Security Center log storage costs USD 0.3 per TB per hour.",
+      "url": "https://www.alibabacloud.com/help/en/asc/product-overview/billing-overview",
+      "topic": "ASC log storage price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c87",
+      "claim": "Agent Identity provides workload identities bound to RAM roles and Token Vault for credential storage.",
+      "url": "https://www.alibabacloud.com/help/en/agentidentity/what-is-agent-identity",
+      "topic": "Agent Identity features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c88",
+      "claim": "Agent Identity inbound user pools support OIDC IdPs including DingTalk, WeChat, Lark, Entra ID, Okta, and Ping Identity.",
+      "url": "https://www.alibabacloud.com/help/en/agentidentity/inbound.md",
+      "topic": "Agent Identity IdPs",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c89",
+      "claim": "Agent Identity quotas include 1,000 WorkloadIdentities and 50 OAuth2/APIKey credential providers.",
+      "url": "https://www.alibabacloud.com/help/en/agentidentity/restrictions-on-use",
+      "topic": "Agent Identity quotas",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c90",
+      "claim": "IDaaS EIAM supports the Singapore region.",
+      "url": "https://www.alibabacloud.com/en/product/identity-as-a-service-idaas?_p_lc=1",
+      "topic": "IDaaS SG support",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c91",
+      "claim": "AgentLoop evaluation includes Agent-as-a-Judge and evaluates RAG retrieval results and tool calling.",
+      "url": "https://www.alibabacloud.com/help/en/agentloop/product-overview/what-is-agentloop",
+      "topic": "AgentLoop eval capabilities",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c92",
+      "claim": "AgentLoop AI credits cost USD 0.0016 per credit.",
+      "url": "https://www.alibabacloud.com/help/en/agentloop/agentloop-billing-overview",
+      "topic": "AgentLoop credit price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c93",
+      "claim": "AgentLoop dataset storage costs USD 0.0000055 per entry per day.",
+      "url": "https://www.alibabacloud.com/help/en/agentloop/agentloop-billing-overview",
+      "topic": "AgentLoop storage price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c94",
+      "claim": "AgentLoop execution count costs USD 0.00014 per execution.",
+      "url": "https://www.alibabacloud.com/help/en/agentloop/agentloop-billing-overview",
+      "topic": "AgentLoop exec price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c95",
+      "claim": "ARMS LLM Application Monitoring is renamed to AI Agent Observability and routed to Cloud Monitor 2.0.",
+      "url": "https://www.alibabacloud.com/help/en/arms/product-overview/platform-upgrade-notification-that-arms-llm-application-monitoring-is-upgraded",
+      "topic": "ARMS rename",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c96",
+      "claim": "Simple Log Service (SLS) provides one-click onboarding for agent logs via Integration Center.",
+      "url": "https://www.alibabacloud.com/help/en/sls/what-is-log-service",
+      "topic": "SLS agent onboarding",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c97",
+      "claim": "Model Studio Model Evaluation supports LLM-as-judge numeric and classification scoring.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-evaluation-intl",
+      "topic": "Model Studio Eval types",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c98",
+      "claim": "PAI ModelEval evaluates large language models on specific or general-purpose scenarios.",
+      "url": "https://www.alibabacloud.com/help/en/pai/modeleval/",
+      "topic": "PAI ModelEval",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c99",
+      "claim": "AgentCore configures account integration with platforms such as DingTalk, WeChat, and Lark.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-product-overview",
+      "topic": "AgentCore IM channels",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c100",
+      "claim": "Direct Mail is an outbound email service and does not provide inbound email or an enterprise mailbox.",
+      "url": "https://www.alibabacloud.com/help/en/direct-mail/faqs-about-receiving-replies",
+      "topic": "Direct Mail inbound",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c101",
+      "claim": "Salesforce on Alibaba Cloud is exclusive to customers in China.",
+      "url": "https://www.alibabacloud.com/en/product/salesforce?_p_lc=1",
+      "topic": "Salesforce Ali Cloud region",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c102",
+      "claim": "Agent Identity supports creating OAuth 2.0 credential providers pointing to DingTalk or Lark.",
+      "url": "https://www.alibabacloud.com/help/en/agentidentity/oauth-credential-provider-management.md",
+      "topic": "Agent Identity OAuth",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c103",
+      "claim": "AgentCore Connectors integrate other Agents into AgentCore, with QoderCLI Connector being the only documented type.",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/manage-connectors",
+      "topic": "AgentCore Connectors",
+      "kind": "alibaba",
+      "weight": "medium"
+    }
+  ]
+}

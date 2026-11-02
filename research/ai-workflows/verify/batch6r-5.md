@@ -1,0 +1,40 @@
+| id | verdict | evidence | correct value | page checked |
+|---|---|---|---|---|
+| useope-24 | confirmed | “Public cloud: China (Beijing) and China (Hong Kong).” | | [PrivateLink](https://www.alibabacloud.com/help/en/model-studio/access-model-studio-through-privatelink) |
+| useser-7 | confirmed | “Public cloud: China (Beijing) and China (Hong Kong).” | | [PrivateLink](https://www.alibabacloud.com/help/en/model-studio/access-model-studio-through-privatelink) |
+| userev-5 | corrected | “only available in the Singapore region” | The cited fine-tuning API restriction is officially confirmed; remove “unconfirmed on official page.” | [Fine-tuning API](https://www.alibabacloud.com/help/en/model-studio/create-fine-tuning-job-api) |
+| useser-8 | confirmed | Supported-region table lists Hangzhou, Shanghai, and Hong Kong only. | | [AgentLoop regions](https://www.alibabacloud.com/help/en/agentloop/product-overview/server-launch-regions-of-agentloop) |
+| useser-67 | confirmed | “391%”; “<6 months” | | [Forrester TEI](https://tei.forrester.com/go/polyAI/PolyAITEI/) |
+| cossiz-48 | confirmed | Singapore compute row: USD 0.066604/CU/hour; pay-as-you-go. | | [Hologres pricing](https://www.alibabacloud.com/help/en/hologres/product-overview/pay-as-you-go) |
+| pre-37 | confirmed | “tiered discounts of up to 47% off” — China-site, CNY-denominated plan; multiple regions, including Singapore. | | [Savings plans](https://help.aliyun.com/en/model-studio/savings-plan-and-resource-package) |
+| pre-30 | corrected | “or is reasonably necessary to ensure the security of Alibaba Cloud Model Studio services” | Default inference retention is ≤30 days, with legal **and service-security** exceptions; stateful features have separate retention. | [Retention policy](https://docs.modelstudio.console.alibabacloud.com/en/model-studio/data-retention-policy) |
+| pre-31 | confirmed | Non-ZDR models remain callable from ZDR workspaces and follow standard retention. | | [Retention policy](https://docs.modelstudio.console.alibabacloud.com/en/model-studio/data-retention-policy) |
+| useope-5 | confirmed | Singapore (ap-southeast-1) is the only non-mainland region listed; the page lists regions rather than endpoint hostnames. | | [AgentRun regions](https://www.alibabacloud.com/help/en/agentrun/open-service-area) |
+| useser-35 | confirmed | International (Singapore) and EU rows: $0.15 input/$0.47 output per million tokens, requests ≤1M input tokens. | | [Official model pricing](https://www.alibabacloud.com/help/en/model-studio/model-pricing) |
+| dianot-31 | confirmed | “Adds and retrieves memories on a memory store within a workflow.” China-site documentation; international availability is not established here. | | [Memory node](https://help.aliyun.com/en/model-studio/workflow/memory-node) |
+| cossiz-36 | confirmed | “match the performance of the best individual LLM (e.g. GPT-4) with up to 98% cost reduction” | | [FrugalGPT abstract](https://arxiv.org/abs/2305.05176) |
+| userev-28 | confirmed | “WhatsApp, Messenger, Instagram, Viber, LINE, Telegram, SMS, and email” | | [CAMS overview](https://www.alibabacloud.com/help/en/chatapp/product-overview/what-is-chatapp-message-service) |
+| useser-24 | confirmed | “One API connects WhatsApp, Viber, Messenger, Instagram, LINE, and Telegram” | | [CAMS overview](https://www.alibabacloud.com/help/en/chatapp/product-overview/what-is-chatapp-message-service) |
+| userev-60 | confirmed | “Establishment: 28th May, 2025. Partial enforcement: 4th June, 2025. Full enforcement: 1st September 2025.” | | [Japan Cabinet Office overview](https://www8.cao.go.jp/cstp/ai/ai_hou_gaiyou_en.pdf) |
+| useope-19 | corrected | Language support varies by version; 8K realtime models list Chinese only. | Main Fun-ASR variants list 30 languages plus Chinese dialects/accents; the February realtime snapshot supports Chinese, English, Japanese. | [ASR models](https://www.alibabacloud.com/help/en/model-studio/asr-model) |
+| useser-46 | confirmed | “We suggest that developers start by using LLM APIs directly” | | [Anthropic agent guidance](https://www.anthropic.com/research/building-effective-agents) |
+| dianot-36 | confirmed | “running the same workflow steps on each element sequentially or in parallel” | | [Dify Iteration](https://docs.dify.ai/en/cloud/use-dify/nodes/iteration) |
+| pre-5 | unavailable | Live retrieval returned navigation only, without article text; the permitted official-source search found no relevant statement. | | [CNBC article](https://www.cnbc.com/2026-06-09/alibaba-baidu-byd-named-on-pentagons-china-military-list-.html) |
+| useope-23 | confirmed | Privacy notice states no training and SOC 2 compliance; Trust Center says SOC reports are available to customers. | | [Privacy notice](https://www.alibabacloud.com/help/en/model-studio/privacy-notice); [SOC 2](https://www.alibabacloud.com/en/trust-center/soc2?_p_lc=1) |
+| pre-118 | confirmed | “will never use your data for model training” | | [Privacy notice](https://www.alibabacloud.com/help/en/model-studio/privacy-notice) |
+| userev-41 | confirmed | “Respond 80% faster with Responsive AI agents” | | [Responsive AI](https://www.responsive.io/product/ai) |
+| useser-23 | contradicted | International workflow documentation explicitly includes “Parameter extraction.” | Also documented for eligible Singapore users; Application Development access requires applications created before April 21, 2025. | [International workflow documentation](https://www.alibabacloud.com/help/en/model-studio/workflow-application) |
+| dianot-8 | confirmed | “officially retired on March 9, 2027 at 16:00” | | [LangStudio retirement](https://www.alibabacloud.com/help/en/pai/product-overview/pai-langstudio-feature-retirement-and-migration-guide) |
+| cossiz-19 | confirmed | “Across 12 calls: 36,000 input + 6,000 output tokens = $0.132 in tokens” | | [CloudZero example](https://www.cloudzero.com/blog/ai-agent-cost/) |
+
+- Singapore is absent from both the [Model Studio PrivateLink](https://www.alibabacloud.com/help/en/model-studio/access-model-studio-through-privatelink) and [AgentLoop](https://www.alibabacloud.com/help/en/agentloop/product-overview/server-launch-regions-of-agentloop) region lists.
+- Singapore workflow access is restricted to existing users meeting the April 21, 2025 cutoff; the page calls these preview features. Do not present them as generally available to new international customers. [Workflow documentation](https://www.alibabacloud.com/help/en/model-studio/workflow-application)
+- ZDR requires an account-manager assessment. It excludes application orchestration, RAG, batch inference, Playground, and stateful Responses API sessions; flagged safety content can be retained for up to two years. [Retention policy](https://docs.modelstudio.console.alibabacloud.com/en/model-studio/data-retention-policy)
+- The privacy notice’s absolute “never” wording differs from the retention policy’s “Without your separate consent” qualification. Preserve that distinction in customer-facing assurances. [Retention policy](https://docs.modelstudio.console.alibabacloud.com/en/model-studio/data-retention-policy)
+- Qwen3.8-Flash’s **Global** price is $0.113 input/$0.382 output per million tokens, distinct from **International** and **EU** pricing. [Pricing](https://www.alibabacloud.com/help/en/model-studio/model-pricing)
+- The China-site 47% maximum requires specific commitment terms, payment method, and model category. Plans are region-specific; the CNY offer does not establish international-account eligibility. [Savings plans](https://help.aliyun.com/en/model-studio/savings-plan-and-resource-package)
+- Hologres’s quoted rate covers compute; storage and applicable replication traffic are separate charges. [Hologres pricing](https://www.alibabacloud.com/help/en/hologres/product-overview/pay-as-you-go)
+- CloudZero’s $0.132 example is token cost, not a complete operational cost including tools and infrastructure. [CloudZero example](https://www.cloudzero.com/blog/ai-agent-cost/)
+
+Codex session ID: 01a19bd4-b2a0-78a2-83a0-16da54012f24
+Resume in Codex: codex resume 01a19bd4-b2a0-78a2-83a0-16da54012f24

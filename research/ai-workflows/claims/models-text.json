@@ -1,0 +1,612 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "Singapore region uses the International deployment scope, which includes global nodes outside the Chinese mainland.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/singapore-regional-access-information",
+      "topic": "deployment scope singapore",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c2",
+      "claim": "In China (Hong Kong), Japan (Tokyo) and Germany (Frankfurt), users must call from a workspace whose deployment scope is Global.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/web-search",
+      "topic": "deployment scope hk jp de",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c3",
+      "claim": "US (Virginia) supports both Global and US deployment scopes.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/regions",
+      "topic": "deployment scope us virginia",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c4",
+      "claim": "Model Studio regions include China (Beijing), US (Virginia), Singapore, Japan (Tokyo), Germany (Frankfurt), and China (Hong Kong).",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/what-is-model-studio",
+      "topic": "model studio regions list",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c5",
+      "claim": "Each Model Studio region has its own endpoint, API key, and model list that cannot be mixed.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/get-api-key",
+      "topic": "region isolation",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c6",
+      "claim": "qwen3.8-max price at Scope: International (Singapore) is $2 input / $6 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max ; https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen3.8-max intl price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c7",
+      "claim": "qwen3.8-max price on Global-scope rows is $1.65 input / $4.951 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen3.8-max global price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c8",
+      "claim": "qwen3.8-flash price at Scope: International is $0.15 input / $0.47 output per 1M tokens.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-8-flash",
+      "topic": "qwen3.8-flash intl price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c9",
+      "claim": "qwen3.8-flash price on Global-scope rows is $0.113 input / $0.382 output per 1M tokens.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-8-flash",
+      "topic": "qwen3.8-flash global price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c10",
+      "claim": "Free quota is only available for models in Singapore with deployment scope set to International.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/new-free-quota",
+      "topic": "free quota eligibility",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c11",
+      "claim": "The qwen3.8-max endpoint was upgraded effective September 5, 2026 (UTC+8).",
+      "url": "https://www.alibabacloud.com/en/notice/model_studio_update_notice_for_qwen38max_models_863?_p_lc=1",
+      "topic": "qwen3.8-max upgrade date",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c12",
+      "claim": "qwen3.8-max-0902 is an upgraded snapshot of qwen3.8-max released on 2026-09-02.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/newly-released-models",
+      "topic": "qwen3.8-max-0902 status",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c13",
+      "claim": "qwen3-coder-flash is currently equivalent to the snapshot qwen3-coder-flash-2025-07-28.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen3-coder-flash alias",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c14",
+      "claim": "qwen3.7-plus is currently equivalent to the snapshot qwen3.7-plus-2026-05-26.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen3.7-plus alias",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c15",
+      "claim": "Stable or latest versions have more lenient rate limiting than dated snapshot versions.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/rate-limit",
+      "topic": "rate limit guidance",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c16",
+      "claim": "qwen-plus-latest belongs to the Qwen3 series, not the Qwen3.5 or Qwen3.7 series.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/faq-about-alibaba-cloud-model-studio",
+      "topic": "qwen-plus-latest series",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c17",
+      "claim": "Model Studio labels qwen3.8-max as 'Complex reasoning and coding'.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/models",
+      "topic": "qwen3.8-max label",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c18",
+      "claim": "Model Studio labels qwen3.7-plus as 'Balanced performance, speed, and cost'.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/models",
+      "topic": "qwen3.7-plus label",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c19",
+      "claim": "Model Studio labels qwen3.8-flash as 'Fast and cost-effective'.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/models",
+      "topic": "qwen3.8-flash label",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c20",
+      "claim": "qwen3.8-max has a context window of 1,000,000 tokens and max output of 131,072 tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+      "topic": "qwen3.8-max limits",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c21",
+      "claim": "qwen3.8-max implicit-cache input price is $0.25 and explicit-cache creation price is $2.50 per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+      "topic": "qwen3.8-max cache price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c22",
+      "claim": "qwen3.8-max is GA and widely available from 2026-08-03.",
+      "url": "https://www.alibabacloud.com/blog/alibaba-unveils-qwen3-8-max-its-largest-and-most-capable-flagship-model-to-date_603420",
+      "topic": "qwen3.8-max ga date",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c23",
+      "claim": "qwen3.8-max free quota is 1,000,000 tokens valid for 90 days, Singapore only.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/new-free-quota",
+      "topic": "qwen3.8-max free quota",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c24",
+      "claim": "qwen3.7-max price at Scope: International is $2.5 input / $7.5 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max",
+      "topic": "qwen3.7-max intl price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c25",
+      "claim": "qwen3.7-max implicit cache input price is $0.50 and explicit creation is $3.125 per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-max",
+      "topic": "qwen3.7-max cache price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c26",
+      "claim": "qwen3.7-plus price for input <=256K is $0.4 input / $1.6 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus",
+      "topic": "qwen3.7-plus low tier price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c27",
+      "claim": "qwen3.7-plus price for input >256K up to 1M is $1.2 input / $4.8 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus",
+      "topic": "qwen3.7-plus high tier price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c28",
+      "claim": "qwen3.7-plus page shows a 'Limited-time 20% off' label.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-7-plus",
+      "topic": "qwen3.7-plus discount",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c29",
+      "claim": "qwen3.8-flash has a context window of 1,000,000 tokens and max output of 131,072 tokens in thinking mode.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-8-flash",
+      "topic": "qwen3.8-flash limits",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c30",
+      "claim": "qwen3.8-flash implicit cache input price is $0.016 and explicit creation is $0.177 per 1M tokens.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-8-flash",
+      "topic": "qwen3.8-flash cache price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c31",
+      "claim": "qwen3.8-flash is GA and was released around 2026-08-26/27.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/qwen3-8-flash",
+      "topic": "qwen3.8-flash ga date",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c32",
+      "claim": "qwen3.7-flash lowest tier price is $0.03 input / $0.13 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen3.7-flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c33",
+      "claim": "qwen-plus rolling alias price for input <=256k is $0.4 input / $1.2 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-plus",
+      "topic": "qwen-plus price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c34",
+      "claim": "qwen-plus has a max output of 32,768 tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-plus",
+      "topic": "qwen-plus max output",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c35",
+      "claim": "qwen-flash rolling alias price is $0.05 input / $0.40 output per 1M tokens up to 256K input.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-flash",
+      "topic": "qwen-flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c36",
+      "claim": "qwen3.5-plus price for input <=256k is $0.4 input / $2.4 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-5-plus",
+      "topic": "qwen3.5-plus price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c37",
+      "claim": "There is no qwen3.8-plus model id in the international pay-as-you-go list.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-list-text-generation/",
+      "topic": "qwen3.8-plus existence",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c38",
+      "claim": "qwen3.8-max-preview is reported as Token Plan only and unconfirmed against official pages.",
+      "url": "https://wavespeed.ai/blog/ai-models/qwen3-8-api/",
+      "topic": "qwen3.8-max-preview status",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c39",
+      "claim": "qwen3.8-max-prime is recorded as no longer offered on Model Studio from 2026-10-21.",
+      "url": "https://jia.je/kb/en/software/coding_plan.html",
+      "topic": "qwen3.8-max-prime status",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c40",
+      "claim": "Thinking content is billed by Output Token, and some hybrid thinking models have different prices in thinking and non-thinking modes.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/deep-thinking",
+      "topic": "thinking billing rule",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c41",
+      "claim": "When the model emits its thinking process, all output tokens are billed at the thinking-mode output price.",
+      "url": "https://www.alibabacloud.com/help/en/well-architected/cost-pillar",
+      "topic": "thinking cost guidance",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c42",
+      "claim": "Json mode response is not supported when enable_thinking is true.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/error-code",
+      "topic": "json thinking conflict",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c43",
+      "claim": "qwen3.8-max Max Input Length (Thinking Mode) is 983,616 and Max Output Length (Thinking Mode) is 131,072.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-8-max",
+      "topic": "qwen3.8-max thinking limits",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c44",
+      "claim": "qwen3-coder-plus was retired on 2026-10-10 and replaced by qwen3.7-plus.",
+      "url": "https://therouter.ai/news/dashscope-qwen-native-model-retirement-october-2026-routing/",
+      "topic": "qwen3-coder-plus retirement",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c45",
+      "claim": "qwen3-coder-flash price for 0<Token<=32K is $0.3 input / $1.5 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen3-coder-flash",
+      "topic": "qwen3-coder-flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c46",
+      "claim": "qwen-long has a context window of 10,000,000 tokens and max output of 8,192 tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwen-long",
+      "topic": "qwen-long limits",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c47",
+      "claim": "qwen-long does not support thinking, function calling, built-in tools, or structured output.",
+      "url": "https://docs.modelstudio.console.alibabacloud.com/en/model-studio/text-generation-model",
+      "topic": "qwen-long capabilities",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c48",
+      "claim": "qwen3.8-2.4t-a95b is priced identically to hosted qwen3.8-max at $2.00 input / $6.00 output.",
+      "url": "https://seminal.ai/reference/models/alibaba-qwen-qwen3-8-2-4t-a95b/",
+      "topic": "open weight flagship price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c49",
+      "claim": "qwen3.8-27b price for 0<Token<=256K is $0.5 input / $3 output (non-thinking/thinking) per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen3.8-27b price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c50",
+      "claim": "qwen3.6-35b-a3b price for 0<Token<=256K is $0.375 input / $2.25 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen3.6-35b-a3b price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c51",
+      "claim": "Hosted Qwen3 open-weight ids like qwen3-235b-a22b are reported retired on 2026-10-10.",
+      "url": "https://try-qwen-ai.com/updates/model-deprecations/",
+      "topic": "qwen3 open weights retirement",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c52",
+      "claim": "Nine DeepSeek model IDs plus glm-4.6 and glm-4.7 were retired on October 10, 2026.",
+      "url": "https://puppyip.com/en/resources/alibaba-model-studio-deepseek-model-delisting-migration-guide",
+      "topic": "third party retirement oct 2026",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c53",
+      "claim": "deepseek-v4-pro price at Scope: International is $2.400 input / $4.800 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "deepseek-v4-pro price",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c54",
+      "claim": "kimi-k3 pricing-page row is $2.827 input / $14.133 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "kimi-k3 price",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c55",
+      "claim": "glm-5.3 price at Singapore Scope: International is $1.4 input / $4.4 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/glm-5-3",
+      "topic": "glm-5.3 price",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c56",
+      "claim": "Qwen-MT supports 92 languages including Chinese, English, Japanese, Korean, French, Spanish, German, Thai, Indonesian, Vietnamese, and Arabic.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/machine-translation",
+      "topic": "qwen-mt languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c57",
+      "claim": "qwen-mt-plus price at Scope: International is $2.46 input / $7.37 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen-mt-plus intl price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c58",
+      "claim": "qwen-mt-flash price at Scope: International is $0.16 input / $0.49 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen-mt-flash intl price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c59",
+      "claim": "qwen-mt-lite price at Scope: International is $0.12 input / $0.36 output per 1M tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen-mt-lite intl price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c60",
+      "claim": "qwen-mt-uni is not found on the international site and is China site only.",
+      "url": "https://help.aliyun.com/en/model-studio/qwen-mt-uni",
+      "topic": "qwen-mt-uni availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c61",
+      "claim": "Model Studio will decommission legacy models listed in notice id=2217 on January 19, 2027.",
+      "url": "https://www.alibabacloud.com/en/notice/detail?_p_lc=1&id=2217",
+      "topic": "jan 2027 deprecation",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c62",
+      "claim": "Notice id=1841 confirms decommissioning of qwen-turbo, qwen-vl-plus, qwq-plus, and qvq-max on October 10, 2026.",
+      "url": "https://www.alibabacloud.com/notice/detail?_p_lc=1&id=1841",
+      "topic": "oct 2026 deprecation ids",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c63",
+      "claim": "gte-rerank was deprecated on May 30, 2026, with migration to qwen3-rerank recommended.",
+      "url": "https://www.alibabacloud.com/notice/detail?_p_lc=1&id=1873",
+      "topic": "gte-rerank deprecation",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c64",
+      "claim": "Implicit cache hits are typically billed at 20% of the standard input token price.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/context-cache",
+      "topic": "implicit cache discount",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c65",
+      "claim": "Explicit-cache creation tokens are typically billed at 125% of the standard input token price.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/context-cache",
+      "topic": "explicit cache creation cost",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c66",
+      "claim": "Cached content must be at least 1024 tokens for both implicit and explicit caching.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/explicit-cache-guide",
+      "topic": "cache min tokens",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c67",
+      "claim": "Explicit-cache TTL is 5 minutes, automatically renewed on each hit.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/explicit-cache-guide",
+      "topic": "explicit cache ttl",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c68",
+      "claim": "Calls made using the OpenAI-compatible Batch (file input) method are not eligible for cache discounts.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/context-cache",
+      "topic": "batch cache exclusion",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c69",
+      "claim": "Context cache and batch discounts cannot apply simultaneously.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "discount stacking",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c70",
+      "claim": "Batch inference unit price for both input and output tokens is 50% of the real-time inference price.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/batch-inference",
+      "topic": "batch discount rate",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c71",
+      "claim": "Batch inference is scoped to Singapore only.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/batch-inference",
+      "topic": "batch region scope",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c72",
+      "claim": "Maximum context tokens per request for batch inference is 256K for qwen3.8-max, qwen3.8-flash, qwen3.7-max, and qwen3.7-plus.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/batch-inference",
+      "topic": "batch context cap",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c73",
+      "claim": "New user free quota validity period changed to 90 days starting September 8, 3:00 UTC.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/new-free-quota-validity-adjustment",
+      "topic": "free quota validity change",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c74",
+      "claim": "An Alibaba Cloud account and its RAM users share a single free quota.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/new-free-quota",
+      "topic": "free quota sharing",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c75",
+      "claim": "Models qwen3.6-35b-a3b, qwen3.6-27b, and qwen3.8-27b have no free quota.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "no free quota models",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c76",
+      "claim": "Tiered models bill all tokens in a request at the tier determined by that request's total input tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "tiered billing logic",
+      "kind": "alibaba",
+      "weight": "high"
+    }
+  ]
+}

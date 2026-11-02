@@ -22,6 +22,7 @@ The user's Model Studio key costs the user nothing; Claude time does. Send routi
 - **Verify every Qwen output before using it:** run the tests, validate JSON against the schema, and spot-check facts. Qwen's own knowledge of current Alibaba products is stale (it recommended Tongyi Lingma and never Qoder), so give it facts from `research/` or the catalog rather than asking it to recall them.
 
 - **Web lookups go to Qwen first.** Run `node tools/qwen/search.ts --query "..."`; it answers from Model Studio's built-in web search and lists the source URLs. Then open the cited page to verify each load-bearing fact before using it. Results lean towards the China site (aliyun.com), so confirm international availability on alibabacloud.com.
+- **Research spanning many sources goes to `tools/qwen/research.ts`.** It runs the Responses API at reasoning effort xhigh with web search, as the 8AI news routine does. A brief takes 5–20 minutes, so run batches in the background. It re-asks Qwen when it answered without searching, and marks truncated answers. Verify its reports the same way: check the cited pages for every load-bearing fact.
 
 ```bash
 node tools/qwen/ask.ts --prompt-file task.md --files src/a.ts,src/b.ts --out draft.ts --code
@@ -29,6 +30,8 @@ node tools/qwen/ask.ts --model qwen3.8-flash --json --prompt "..."
 node tools/qwen/ask.ts --batch tasks.jsonl --out-dir out/ --concurrency 4
 node tools/qwen/ask.ts --usage
 node tools/qwen/search.ts --query "Is Agent Sandbox part of ACS?" --json --out notes.json
+node tools/qwen/research.ts --prompt-file brief.md --out report.md [--effort xhigh] [--min-searches 3]
+node tools/qwen/research.ts --batch briefs.jsonl --concurrency 4   # lines: id, prompt or promptFile, out, effort, minSearches
 ```
 
 - **Defaults:** `qwen3.8-max`, thinking off, streamed, with retries.

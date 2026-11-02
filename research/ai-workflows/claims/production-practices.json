@@ -1,0 +1,804 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "Anthropic's Tool Search Tool reports an 85% reduction in token usage while maintaining access to the full tool library.",
+      "url": "https://www.anthropic.com/research/advanced-tool-use",
+      "topic": "Tool Search Token Reduction",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c2",
+      "claim": "Anthropic's code-execution-with-MCP example demonstrates a reduction from 150,000 to 2,000 tokens, representing a 98.7% saving.",
+      "url": "https://www.anthropic.com/research/code-execution-with-mcp",
+      "topic": "Code Execution Token Saving",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c3",
+      "claim": "Anthropic's Programmatic Tool Calling reports a reduction from 43,588 to 27,297 tokens (−37%) on complex research tasks.",
+      "url": "https://www.anthropic.com/research/advanced-tool-use",
+      "topic": "Programmatic Tool Calling Tokens",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c4",
+      "claim": "Anthropic's worked example shows that concise tool responses excluding IDs use approximately one-third (~⅓) of the tokens compared to verbose responses.",
+      "url": "https://www.anthropic.com/research/writing-tools-for-agents",
+      "topic": "Concise Tool Response Tokens",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c5",
+      "claim": "MCP defines machine-readable metadata hints including `readOnlyHint`, `destructiveHint`, `idempotentHint`, and `openWorldHint`.",
+      "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/",
+      "topic": "MCP Tool Annotations",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c6",
+      "claim": "In MCP, a tool with no annotations is assumed by default to be non-read-only, potentially destructive, and non-idempotent.",
+      "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/",
+      "topic": "MCP Default Security Assumptions",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c7",
+      "claim": "Anthropic's prompt caching pricing states that cache reads cost 0.1x the standard input price.",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "topic": "Claude Cache Read Price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c8",
+      "claim": "Anthropic's prompt caching pricing states that 5-minute cache writes cost 1.25x the standard input price.",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "topic": "Claude Cache Write Price (5min)",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c9",
+      "claim": "Anthropic's prompt caching pricing states that 1-hour cache writes cost 2x the standard input price.",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "topic": "Claude Cache Write Price (1hr)",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c10",
+      "claim": "Anthropic recommends creating cache prefixes in the order: tools, then system, then messages.",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "topic": "Claude Cache Prefix Order",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c11",
+      "claim": "In Anthropic's red team testing, a direct prompt injection succeeded 24 times out of 25 retries against model-layer controls.",
+      "url": "https://www.anthropic.com/research/how-we-contain-claude",
+      "topic": "Prompt Injection Success Rate",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c12",
+      "claim": "OS-level containment for Claude Code resulted in an 84% reduction in permission prompts.",
+      "url": "https://www.anthropic.com/research/how-we-contain-claude",
+      "topic": "Permission Prompt Reduction",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c13",
+      "claim": "Anthropic telemetry indicates users approved approximately 93% of permission prompts in per-action control models.",
+      "url": "https://www.anthropic.com/research/how-we-contain-claude",
+      "topic": "User Approval Rate",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c14",
+      "claim": "AWS Well-Architected Agentic AI Lens consists of 150 best practices across 41 questions and 6 pillars.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html",
+      "topic": "AWS Agentic AI Lens Structure",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c15",
+      "claim": "AWS Best Practice AGENTSEC03-BP03 requires implementing least privilege with dynamic boundaries for agent IAM roles.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentsec03-bp03.html",
+      "topic": "AWS Agent Least Privilege",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c16",
+      "claim": "AWS Best Practice AGENTREL06-BP04 mandates implementing idempotent task execution to ensure safe retries.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentrel06-bp04.html",
+      "topic": "AWS Idempotent Task Execution",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c17",
+      "claim": "AWS Best Practice GENREL03-BP02 requires implementing timeout mechanisms to reduce blocking failures in agentic workflows.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/genrel03-bp02.html",
+      "topic": "AWS GenAI Timeouts",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c18",
+      "claim": "OWASP Top 10 for Agentic Applications 2026 lists ASI01 as 'Agent Goal Hijack'.",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "topic": "OWASP ASI01 Definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c19",
+      "claim": "OWASP Top 10 for Agentic Applications 2026 lists ASI06 as 'Memory & Context Poisoning'.",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "topic": "OWASP ASI06 Definition",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c20",
+      "claim": "OWASP LLM01:2025 mitigations include constraining model behavior, validating output formats, and enforcing privilege control.",
+      "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+      "topic": "OWASP LLM01 Mitigations",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c21",
+      "claim": "OWASP LLM06:2025 mitigations include limiting extensions to the minimum necessary and implementing rate-limiting.",
+      "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "topic": "OWASP LLM06 Mitigations",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c22",
+      "claim": "EU AI Act Article 12 legally requires high-risk AI systems to allow for automatic recording of events (logs) over the lifetime of the system.",
+      "url": "https://artificialintelligenceact.eu/article/12/",
+      "topic": "EU AI Act Logging Requirement",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c23",
+      "claim": "EU AI Act Article 14 legally requires high-risk AI systems to be designed so they can be effectively overseen by natural persons.",
+      "url": "https://artificialintelligenceact.eu/article/14/",
+      "topic": "EU AI Act Oversight Requirement",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c24",
+      "claim": "NIST AI RMF 1.0 Core is composed of four functions: govern, map, measure, and manage.",
+      "url": "https://nvlpubs.nist.gov/nistpubs/ai/nist.ai.100-1.pdf",
+      "topic": "NIST AI RMF Functions",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c25",
+      "claim": "OpenAI Batch API offers asynchronous groups of requests with 50% lower costs compared to real-time processing.",
+      "url": "https://developers.openai.com/api/docs/guides/batch",
+      "topic": "OpenAI Batch Discount",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c26",
+      "claim": "Anthropic Message Batches offer a 50 percent discount on all usage (input, output, special tokens).",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "topic": "Claude Batch Discount",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c27",
+      "claim": "Vertex AI context caching bills cached tokens at 10% of standard input cost for supported Gemini 2.5+ models.",
+      "url": "https://cloud.google.com/blog/products/ai-machine-learning/vertex-ai-context-caching",
+      "topic": "Gemini Cache Price",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c28",
+      "claim": "AWS Bedrock prompt caching can reduce input token costs by up to 90 percent when repeatedly sending the same context.",
+      "url": "https://aws.amazon.com/blogs/machine-learning/optimizing-cost-and-latency-with-amazon-bedrock-prompt-caching/",
+      "topic": "Bedrock Cache Savings",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c29",
+      "claim": "FrugalGPT paper claims a cascade approach can match the performance of GPT-4 with up to 98% cost reduction.",
+      "url": "https://arxiv.org/abs/2305.05176",
+      "topic": "FrugalGPT Cost Reduction",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c30",
+      "claim": "Anthropic states that agents typically use about 4x more tokens than chat interactions.",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "topic": "Agent Token Multiplier (Single)",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c31",
+      "claim": "Anthropic states that multi-agent systems use about 15x more tokens than chats.",
+      "url": "https://www.anthropic.com/research/multi-agent-research-system",
+      "topic": "Agent Token Multiplier (Multi)",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c32",
+      "claim": "LangGraph's `recursion_limit` parameter defaults to 25 steps.",
+      "url": "https://reference.langchain.com/python/langchain-core/runnables/config/RunnableConfig/recursion_limit",
+      "topic": "LangGraph Recursion Limit",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c33",
+      "claim": "The OpenAI Agents SDK raises a `MaxTurnsExceeded` exception if the `max_turns` limit is exceeded.",
+      "url": "https://openai.github.io/openai-agents-python/running_agents/",
+      "topic": "OpenAI Max Turns Exception",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c34",
+      "claim": "Microsoft Azure Prompt Shields detects 'User Prompt attacks' and 'Document attacks'.",
+      "url": "https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/jailbreak-detection",
+      "topic": "Azure Prompt Shields Features",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c35",
+      "claim": "NeMo Guardrails defines five rail types including Input rails and Output rails.",
+      "url": "https://docs.nvidia.com/nemo/guardrails/about-nemo-guardrails-library/rail-types",
+      "topic": "NeMo Rail Types",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c36",
+      "claim": "Stripe recommends using a unique key in the `Idempotency-Key` header for outbound write calls.",
+      "url": "https://docs.stripe.com/api/idempotent_requests",
+      "topic": "Stripe Idempotency Key",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c37",
+      "claim": "LiteLLM falls back to another model group if a call fails after `num_retries` are exhausted.",
+      "url": "https://docs.litellm.ai/docs/proxy/reliability",
+      "topic": "LiteLLM Fallback Behavior",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c38",
+      "claim": "Temporal supports durable execution where a workflow resumes automatically after a crash or multi-day wait for a human.",
+      "url": "https://docs.temporal.io/ai",
+      "topic": "Temporal Durable Execution",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c39",
+      "claim": "Restate durably persists every LLM call, tool execution, and routing decision.",
+      "url": "https://docs.restate.dev/ai/patterns/durable-agents",
+      "topic": "Restate Persistence",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c40",
+      "claim": "AWS Lambda durable functions can execute for up to one year while maintaining progress despite failures.",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html",
+      "topic": "Lambda Durable Function Duration",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c41",
+      "claim": "Anthropic recommends starting evaluation with 20–50 tasks taken from real failures.",
+      "url": "https://www.anthropic.com/research/demystifying-evals-for-ai-agents",
+      "topic": "Anthropic Eval Task Count",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c42",
+      "claim": "pass@k measures the likelihood that an agent gets at least one correct solution in k attempts.",
+      "url": "https://www.anthropic.com/research/demystifying-evals-for-ai-agents",
+      "topic": "Pass@K Definition",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c43",
+      "claim": "Google's Gen AI evaluation service provides metrics for both trajectory evaluation and final response evaluation in one call.",
+      "url": "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/evaluation-agents",
+      "topic": "Google Eval Metrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c44",
+      "claim": "Microsoft Foundry Agent Service GA note states that running a test suite before shipping is not a production quality strategy.",
+      "url": "https://devblogs.microsoft.com/foundry/foundry-agent-service-ga/",
+      "topic": "MS Foundry Continuous Eval",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c45",
+      "claim": "OpenTelemetry defines span conventions for model calls, embeddings, retrieval, memory operations, tool execution and agent invocation.",
+      "url": "https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-agent-spans.md",
+      "topic": "OTel GenAI Semconv",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c46",
+      "claim": "MLflow Tracing records inputs, outputs, latency, and token usage of each step.",
+      "url": "https://mlflow.org/docs/latest/genai/tracing/",
+      "topic": "MLflow Tracing Data",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c47",
+      "claim": "Intercom defines a 'resolution' for Fin AI Agent as counted when the customer confirms the answer or does not come back following the last answer.",
+      "url": "https://www.intercom.com/help/en/articles/8205718-fin-ai-agent-outcomes",
+      "topic": "Intercom Resolution Definition",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c48",
+      "claim": "OpenAI is deprecating its hosted Evals platform in favor of the Evals API.",
+      "url": "https://developers.openai.com/api/docs/guides/evals",
+      "topic": "OpenAI Evals Deprecation",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c49",
+      "claim": "NVIDIA evaluation demonstrates that page-level chunking is the most effective chunking strategy for RAG.",
+      "url": "https://developer.nvidia.com/blog/finding-the-best-chunking-strategy-for-accurate-ai-responses/",
+      "topic": "NVIDIA Chunking Strategy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c50",
+      "claim": "HyDE method first zero-shot instructs an instruction-following language model to generate a hypothetical document which is then embedded for retrieval.",
+      "url": "https://arxiv.org/abs/2212.10496",
+      "topic": "HyDE Methodology",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c51",
+      "claim": "BEIR benchmark leverages a selection of 18 publicly available datasets from diverse text retrieval tasks.",
+      "url": "https://arxiv.org/abs/2104.08663",
+      "topic": "BEIR Dataset Count",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c52",
+      "claim": "RAGAS Faithfulness metric measures how factually consistent a response is with the retrieved context (0–1 scale).",
+      "url": "https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/",
+      "topic": "RAGAS Faithfulness Metric",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c53",
+      "claim": "AWS Bedrock model invocation logging must be explicitly enabled per account/region and writes to S3 or CloudWatch Logs.",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-invocation-logging.html",
+      "topic": "Bedrock Invocation Logging",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c54",
+      "claim": "AWS Best Practice AGENTSEC05-BP01 requires comprehensive logging and decision artifact storage.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentsec05.html",
+      "topic": "AWS Decision Artifacts",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c55",
+      "claim": "NIST AI 600-1 identifies 12 Generative AI-specific risks including confabulation, data privacy and information integrity.",
+      "url": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf",
+      "topic": "NIST GenAI Risk Count",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c56",
+      "claim": "LangSmith allows marking stable versions of prompts (e.g., v1, v2) for version control.",
+      "url": "https://docs.langchain.com/langsmith/manage-prompts",
+      "topic": "LangSmith Versioning",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c57",
+      "claim": "Microsoft Responsible AI Standard v2 requires completing an Impact Assessment early in the system's development.",
+      "url": "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/microsoft/final/en-us/microsoft-brand/documents/Microsoft-Responsible-AI-Standard-General-Requirements.pdf",
+      "topic": "MS RAI Impact Assessment",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c58",
+      "claim": "Google Cloud documents separate data residency commitments for storage and ML processing locations.",
+      "url": "https://docs.cloud.google.com/gemini-enterprise-agent-platform/resources/data-residency",
+      "topic": "Google Data Residency",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c59",
+      "claim": "Salesforce Agentforce Topics contain Actions and Instructions that define the agent's scope.",
+      "url": "https://trailhead.salesforce.com/content/learn/modules/trusted-agentic-ai/explore-agentforce-guardrails-and-trust-patterns",
+      "topic": "Salesforce Agent Scope",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c60",
+      "claim": "The report notes that nothing surfaced in this research contradicts pre-verified Alibaba facts regarding Model Studio / AgentRun / AgentLoop pricing or region facts.",
+      "url": null,
+      "topic": "Alibaba Fact Verification Status",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c61",
+      "claim": "Simon Willison coined the term 'lethal trifecta' referring to private data + untrusted content + external communication.",
+      "url": "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/",
+      "topic": "Lethal Trifecta Origin",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c62",
+      "claim": "CaMeL creates a protective system layer around the LLM relying on capabilities to prevent exfiltration of private data.",
+      "url": "https://arxiv.org/abs/2503.18813",
+      "topic": "CaMeL Architecture",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c63",
+      "claim": "MemGPT proposes an OS-inspired tiered memory architecture with main context vs external context paging.",
+      "url": "https://arxiv.org/abs/2310.08560",
+      "topic": "MemGPT Memory Hierarchy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c64",
+      "claim": "Chroma's 'Context Rot' research finds that model performance degrades significantly with increasing input length even on trivial tasks.",
+      "url": "https://www.trychroma.com/research/context-rot",
+      "topic": "Context Rot Performance",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c65",
+      "claim": "Anthropic describes 'progressive disclosure' as the core design principle making Agent Skills flexible and scalable.",
+      "url": "https://www.anthropic.com/research/equipping-agents-for-the-real-world-with-agent-skills",
+      "topic": "Agent Skills Principle",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c66",
+      "claim": "Anthropic's canonical definition of context engineering is finding the smallest possible set of high-signal tokens that maximize the likelihood of some desired outcome.",
+      "url": "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents",
+      "topic": "Context Engineering Definition",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c67",
+      "claim": "LangGraph distinguishes between 'checkpointers' for short-term memory and 'stores' for long-term memory.",
+      "url": "https://docs.langchain.com/oss/python/langgraph/persistence",
+      "topic": "LangGraph Memory Types",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c68",
+      "claim": "Anthropic states that sub-agent architectures provide a way around context limitations by returning only summaries.",
+      "url": "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents",
+      "topic": "Sub-agent Context Isolation",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c69",
+      "claim": "OpenAI Structured Outputs ensures schema adherence, whereas JSON mode only ensures valid JSON is produced.",
+      "url": "https://developers.openai.com/api/docs/guides/structured-outputs",
+      "topic": "OpenAI Structured Outputs",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c70",
+      "claim": "OpenAI Prompt Caching is enabled by default for supported OpenAI models.",
+      "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
+      "topic": "OpenAI Default Caching",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c71",
+      "claim": "OpenAI Agents SDK guardrails can signal a tripwire causing the runner to immediately raise an exception if input/output fails.",
+      "url": "https://openai.github.io/openai-agents-python/guardrails/",
+      "topic": "OpenAI Guardrail Tripwires",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c72",
+      "claim": "Microsoft Presidio provides fast identification and anonymization modules for private entities in text and images.",
+      "url": "https://microsoft.github.io/presidio/",
+      "topic": "Presidio PII Detection",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c73",
+      "claim": "Bedrock Guardrails contextual grounding detects and filters hallucinations when a reference source and user query are present.",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-contextual-grounding-check.html",
+      "topic": "Bedrock Grounding Check",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c74",
+      "claim": "Anthropic Citations API lets the model cite specific sentences and passages that inform the answer.",
+      "url": "https://claude.com/resources/articles/introducing-citations-api",
+      "topic": "Claude Citations API",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c75",
+      "claim": "Cohere Rerank passes only the most relevant documents into the RAG pipeline to reduce token use and latency.",
+      "url": "https://cohere.com/rerank",
+      "topic": "Cohere Rerank Benefit",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c76",
+      "claim": "Elasticsearch Reciprocal Rank Fusion (RRF) combines multiple result sets with different relevance indicators into a single result set.",
+      "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion",
+      "topic": "Elasticsearch RRF",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c77",
+      "claim": "Google Hybrid Search combines semantic and keyword search to provide higher search quality.",
+      "url": "https://docs.cloud.google.com/gemini-enterprise-agent-platform/build/vector-search/about-hybrid-search",
+      "topic": "Google Hybrid Search",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c78",
+      "claim": "Pinecone supports narrowing search results with metadata filter expressions such as `$eq`, `$in`, `$gt`, and `$and`.",
+      "url": "https://docs.pinecone.io/guides/search/filter-by-metadata",
+      "topic": "Pinecone Metadata Filters",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c79",
+      "claim": "Unstructured notes that staleness arises when updates in source systems do not propagate to the index.",
+      "url": "https://unstructured.io/insights/rag-pipeline-challenges-from-data-ingestion-to-retrieval",
+      "topic": "RAG Staleness Cause",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c80",
+      "claim": "AWS Best Practice AGENTCOST02-BP01 requires architecting tiered model selection for cost-performance optimization.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost02-bp01.html",
+      "topic": "AWS Tiered Model Selection",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c81",
+      "claim": "AWS Best Practice AGENTCOST02-BP03 recommends semantic caching to help prevent redundant invocations.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost02-bp03.html",
+      "topic": "AWS Semantic Caching",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c82",
+      "claim": "AWS Best Practice AGENTPERF06-BP01 states that parallel tool execution and result caching reduce reasoning loop latency.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentperf06-bp01.html",
+      "topic": "AWS Parallel Tool Execution",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c83",
+      "claim": "OpenAI function calling allows setting `parallel_tool_calls` to false to prevent the model from calling multiple functions in a single turn.",
+      "url": "https://developers.openai.com/api/docs/guides/function-calling",
+      "topic": "OpenAI Parallel Calls Toggle",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c84",
+      "claim": "OpenAI reasoning guide states that the `reasoning.effort` parameter guides how much the model thinks, with values like `none`.",
+      "url": "https://developers.openai.com/api/docs/guides/reasoning",
+      "topic": "OpenAI Reasoning Effort",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c85",
+      "claim": "GPT-5 cookbook states that minimal reasoning minimizes latency and speeds time-to-first-token.",
+      "url": "https://developers.openai.com/cookbook/examples/gpt-5/gpt-5_new_params_and_tools",
+      "topic": "GPT-5 Minimal Reasoning",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c86",
+      "claim": "AWS Builders' Library recommends adding exponential backoff with jitter to client retries to avoid alignment of retries.",
+      "url": "https://builder.aws.com/content/3EumjoZascWd1oZiEgL8ORlv3qE/timeouts-retries-and-backoff-with-jitter",
+      "topic": "AWS Backoff Jitter",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c87",
+      "claim": "Claude API returns a 429 error with a retry-after header when rate limits are exceeded.",
+      "url": "https://support.claude.com/en/articles/8243635-our-approach-to-rate-limits-for-the-claude-api",
+      "topic": "Claude Rate Limit Error",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c88",
+      "claim": "LangGraph interrupts allow pausing graph execution at specific points to wait for external input.",
+      "url": "https://docs.langchain.com/oss/python/langgraph/interrupts",
+      "topic": "LangGraph Interrupts",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c89",
+      "claim": "AWS Best Practice AGENTSEC04-BP02 requires reviewers to receive enough context to make informed decisions within a defined time.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentsec04-bp02.html",
+      "topic": "AWS Reviewer Context",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c90",
+      "claim": "AWS Best Practice AGENTSEC04-BP02 requires logging human approval decisions with timestamps and reviewer identities.",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentsec04-bp02.html",
+      "topic": "AWS Approval Logging",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c91",
+      "claim": "Claude Agent SDK `allowed_tools` acts as a permission allowlist where listed tools are auto-approved.",
+      "url": "https://github.com/anthropics/claude-agent-sdk-python",
+      "topic": "Claude Allowed Tools",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c92",
+      "claim": "Diagrid analysis argues that LangGraph/CrewAI/ADK durability features break down under real production conditions.",
+      "url": "https://www.diagrid.io/blog/checkpoints-are-not-durable-execution-why-langgraph-crewai-google-adk-and-others-fall-short-for-production-agent-workflows",
+      "topic": "Diagrid Durability Critique",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c93",
+      "claim": "Anthropic advises finding the simplest solution possible and only increasing complexity when needed, including not building agentic systems at all.",
+      "url": "https://www.anthropic.com/research/building-effective-agents",
+      "topic": "Anthropic Simplicity Advice",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c94",
+      "claim": "MDPI Algorithms paper 'Too Many Tools, Too Much Confusion?' finds that longer per-tool text can reduce effective tool selection.",
+      "url": "https://www.mdpi.com/1999-4893/19/6/447",
+      "topic": "Tool Description Length Tradeoff",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c95",
+      "claim": "AccessAllGPT research documented a bypass where a synthetic tool declared `readOnlyHint=true` still wrote to disk.",
+      "url": "https://www.accessallgpt.com/research/mcp-tool-annotations-permission-boundary",
+      "topic": "MCP Annotation Bypass",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c96",
+      "claim": "Microsoft Foundry documents `tool_choice` configuration and tool-security guidance as named best practices for Agent Service.",
+      "url": "https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/tool-best-practice",
+      "topic": "MS Foundry Tool Config",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c97",
+      "claim": "ArXiv paper 'Design Patterns for Securing LLM Agents' proposes six patterns giving provable resistance to components of injection.",
+      "url": "https://arxiv.org/abs/2506.08837",
+      "topic": "Securing LLM Agents Patterns",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c98",
+      "claim": "OWASP AI Agent Security Cheat Sheet baseline includes least privilege on all tools and validation of all external inputs.",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/AI_Agent_Security_Cheat_Sheet.html",
+      "topic": "OWASP Agent Cheat Sheet",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c99",
+      "claim": "RouteLLM routers dynamically select between a stronger and a weaker LLM during inference to optimize cost/quality trade-off.",
+      "url": "https://arxiv.org/abs/2406.18665",
+      "topic": "RouteLLM Dynamic Selection",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c100",
+      "claim": "The report marks the RouteLLM 'up to 85% cost reduction' figure as unconfirmed in primary snippets.",
+      "url": "https://arxiv.org/abs/2406.18665",
+      "topic": "RouteLLM Cost Figure Status",
+      "kind": "general",
+      "weight": "medium"
+    }
+  ]
+}

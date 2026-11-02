@@ -1,0 +1,30 @@
+| id | verdict | evidence | correct value | page checked |
+|---|---|---|---|---|
+| userev-32 | confirmed | Author paper reports both margins on a 100-point composite score; cited Microsoft URL failed to load. | | [Research paper](https://arxiv.org/abs/2602.17017) |
+| userev-47 | confirmed | “when shoppers engage with reviews, there is a 144% lift in conversion rate” | | [Bazaarvoice](https://www.bazaarvoice.com/blog/how-review-syndication-expands-your-reach-and-strengthens-pdp-performance/) |
+| useope-41 | not on page | No “China site only” notice appears in the retrieved page. China-domain hosting alone does not establish exclusivity. | | [SLS MCP Server](https://help.aliyun.com/en/sls/sls-mcp-server) |
+| useope-30 | not on page | All listed capabilities appear, but no “China site only” notice appears in the retrieved page. | | [Agent Sandbox](https://help.aliyun.com/en/cs/user-guide/agent-sandbox/) |
+| useser-13 | confirmed | “On May 26, Alibaba Cloud officially launched Qwen Cloud for the global market in Singapore.” Article dated 2026. | | [Launch announcement](https://www.alibabacloud.com/blog/alibaba-cloud-launches-qwen-cloud-for-global-markets_603191) |
+| useser-32 | contradicted | “Currently supported regions: China (Beijing), China (Shanghai), China (Hangzhou), China (Shenzhen), China (Hong Kong), and Singapore.” | Singapore is explicitly supported. | [Knowledge Storage](https://www.alibabacloud.com/help/en/tablestore/table-store-service/knowledge-storage-introduction) |
+| useser-74 | corrected | The control group used existing interventions; comparison with Khan Academy alone came from previous studies. NBER page returned 403. | No direct randomized Khanmigo-versus-Khan-Academy-alone comparison. Reported gains resembled earlier practice-only studies, with low Khanmigo usage. | [Hechinger](https://hechingerreport.org/proof-points-khanmigo-math-ai-tutor/); [Khan Academy](https://blog.khanacademy.org/what-i-found-compelling-in-a-new-randomized-trial-of-khan-academy-in-math-intervention/) |
+| useser-51 | confirmed | Glossary confirms 76%; official Intercom article additionally confirms more than 12,000 teams. | | [Intercom](https://www.intercom.com/blog/from-resolutions-to-outcomes-evolving-how-fin-delivers-value) |
+| dianot-1 | confirmed | Official timeline lists June 3, 2026 deprecation announcement and November 30, 2026 scheduled shutdown. | | [OpenAI deprecations](https://developers.openai.com/api/docs/deprecations) |
+| dianot-29 | confirmed | “The Agent Group node enables you to compose multiple published agent applications into a coordinated group.” | | [Agent Group](https://help.aliyun.com/en/model-studio/workflow/agent-group-node); [International documentation](https://www.alibabacloud.com/help/en/model-studio/workflow-application/) |
+| dianot-22 | confirmed | Under Set state: “Define global variables for use across the workflow.” | | [Node reference](https://developers.openai.com/api/docs/guides/node-reference) |
+| cossiz-6 | confirmed | International/Singapore list prices: $0.40 input/$1.60 output per million tokens, for requests with ≤256K input tokens. | | [Official model pricing](https://www.alibabacloud.com/help/en/model-studio/model-pricing) |
+| cossiz-50 | confirmed | Pay-by-feature read/write traffic: $0.045/GB at standard regional rates, including Singapore; regional exceptions apply. | | [SLS pricing](https://www.alibabacloud.com/en/product/log-service/pricing) |
+| cossiz-34 | confirmed | “Pay the model’s reduced cached-input rate for reused tokens, discounted up to 95%.” No regional pricing scope specified. | | [Prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching) |
+| pre-26 | corrected | “no rate limiting within the guaranteed quota” | PTU deployment reserves TPM capacity; the guarantee applies only within the purchased quota, not universally across dedicated deployment. | [Dedicated deployment](https://www.alibabacloud.com/help/en/model-studio/model-deployment-introduction) |
+| pre-11 | confirmed | “In June 2026, the Commission has adopted a proposal for the Cloud and AI Development Act (CADA)” | | [European Commission](https://digital-strategy.ec.europa.eu/en/policies/cloud-computing) |
+
+- **Singapore workflow access is restricted:** only customers who created Model Studio applications there before April 21, 2025 can access Application Development; its features remain preview. [Source](https://www.alibabacloud.com/help/en/model-studio/workflow-application/)
+- **Qwen pricing needs a context tier:** International requests above 256K input tokens cost $1.20 input/$4.80 output per million tokens. The alias also advertises a limited-time 20% discount. [Source](https://www.alibabacloud.com/help/en/model-studio/model-pricing)
+- **SLS’s $0.045 rate is not universal:** Netherlands is 1.1× standard; Saudi Arabia and Brazil 1.2×; Heyuan Automotive Compliance dedicated cloud 1.3×. [Source](https://www.alibabacloud.com/en/product/log-service/pricing)
+- **Agent Sandbox remains public preview**, with CPU and memory configurations only; its cited page does not establish Singapore availability. [Source](https://help.aliyun.com/en/cs/user-guide/agent-sandbox/)
+- **China-domain documentation is insufficient evidence of China-only availability.** Neither cited SLS nor Sandbox page displayed the claimed restriction in the retrieved text. [SLS](https://help.aliyun.com/en/sls/sls-mcp-server), [Sandbox](https://help.aliyun.com/en/cs/user-guide/agent-sandbox/)
+- **Agent Builder’s shutdown does not include ChatKit:** OpenAI explicitly says ChatKit remains available. [Source](https://developers.openai.com/api/docs/guides/agent-builder)
+- **Sales benchmark margins have a narrow scope:** one 200-question run on a customized enterprise schema, dated October 19, 2025. [Source](https://arxiv.org/abs/2602.17017)
+- **CADA is an adopted proposal**, not evidence that the proposed Act is already enacted law. [Source](https://digital-strategy.ec.europa.eu/en/policies/cloud-computing)
+
+Codex session ID: 01a19bd8-60e3-70e2-b942-2e51b1db1590
+Resume in Codex: codex resume 01a19bd8-60e3-70e2-b942-2e51b1db1590
