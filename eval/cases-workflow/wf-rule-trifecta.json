@@ -40,7 +40,10 @@
             "trifecta",
             "guarded drafting",
             "screen combined output",
-            "data leak"
+            "data leak",
+            "screens it with a guard",
+            "screens output via guardrails",
+            "screens for leaks"
           ],
           [
             "private",

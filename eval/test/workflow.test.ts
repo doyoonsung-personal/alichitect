@@ -97,6 +97,50 @@ test('task alternatives accept combined review or verification but still require
   assert.ok(failures(g, { tasksAny: [['check', 'review'], ['extract']] }).length);
 });
 
+test('PDF parser tools satisfy extraction without inferring capabilities from labels or agent tool fields', () => {
+  const g = approved();
+  g.nodes.parser = n('parser', 'tool', { on: 'draft', tool: 'pdf_parse', effect: 'read' });
+  assert.deepEqual(failures(g, { tasks: ['extract'] }), []);
+  for (const change of [{ tool: 'mcp', label: 'Extract invoice' }, { kind: 'agent', tool: 'pdf_parse' }] as const) {
+    Object.assign(g.nodes.parser, change);
+    assert.ok(failures(g, { tasks: ['extract'] }).some((a) => a.name === 'workflow task extract'));
+  }
+});
+
+test('effect alternatives preserve the declared approval policy and do not infer effects from labels', () => {
+  const e: WorkflowExpect = { effectsAny: [['write', 'pay']] };
+  assert.ok(failures(approved(), e).length);
+  for (const effect of ['write', 'pay'] as const) {
+    const g = approved(); g.nodes.send.effect = effect; g.nodes.send.approval = 'required';
+    const before = structuredClone(g);
+    assert.deepEqual(failures(g, e), []);
+    assert.deepEqual(g, before);
+    g.edges.bypass = edge('draft', 'send');
+    assert.ok(failures(g, e).some((a) => a.name.includes('every path')));
+  }
+  const g = approved(); g.nodes.send.label = 'Apply coupon and pay';
+  assert.ok(failures(g, e).some((a) => a.name === 'workflow effect write|pay'));
+  assert.ok(failures(g, { effectsAny: [['send'], ['pay']] }).length);
+});
+
+test('channel and safety mentions accept equivalent explanations but still reject missing explanations', () => {
+  const cases = loadCases(path.join(EVAL_DIR, 'cases-workflow'));
+  for (const [id, texts, missing] of [
+    ['phone', ['Customer carrier supplies the line.', 'Customer-provided phone ingress.'], 'IMS supplies voice media.'],
+    ['slack', ['Slack uses FC webhook ingress.', 'Slack webhook into Function Compute.'], 'Native Slack connector.'],
+    ['trifecta', ['Private report: screens it with a guard.', 'Private report: screens output via guardrails.',
+      'Private report: screens for leaks.'], 'Public pages and private records are emailed.'],
+  ] as const) {
+    const item = cases.find((c) => c.id === `wf-rule-${id}`)!;
+    for (const text of texts) {
+      const v = view(); v.says = [text];
+      assert.ok(evaluateTurn(v, item.turns[0], 'en', names, catalog).filter((a) => a.type === 'mention').every((a) => a.pass));
+    }
+    const v = view(); v.says = [missing];
+    assert.ok(evaluateTurn(v, item.turns[0], 'en', names, catalog).some((a) => a.type === 'mention' && !a.pass));
+  }
+});
+
 test('rule wording accepts natural gate and safety explanations without removing the mention requirement', () => {
   const cases = loadCases(path.join(EVAL_DIR, 'cases-workflow'));
   for (const id of ['wf-rule-agentbay', 'wf-rule-agentrun-lowcode', 'wf-rule-knowledge-base']) {
@@ -268,7 +312,8 @@ test('all 32 canonical fixtures validate and satisfy their conservative one-turn
 test('case validation rejects workflow typos, unknown tasks, tiers, products and malformed groups', () => {
   for (const workflow of [{ kind: ['trigger'] }, { tiers: { classify: ['huge'] } }, { tasks: ['draft'] },
     { products: [[]] }, { products: [['unknown']] }, { runtimes: ['fc'] }, { approvals: 'yes' }, { noWarnings: ['typo'] },
-    { tasksAny: [] }, { tasksAny: [[]] }, { tasksAny: ['check'] }, { tasksAny: [['draft']] }, null]) {
+    { tasksAny: [] }, { tasksAny: [[]] }, { tasksAny: ['check'] }, { tasksAny: [['draft']] },
+    { effectsAny: [] }, { effectsAny: [[]] }, { effectsAny: ['write'] }, { effectsAny: [['draft']] }, null]) {
     const bad = { ...c, turns: [{ ask: 'x', expect: { workflow } }] } as unknown as EvalCase;
     assert.ok(checkCases([bad], catalog).length, JSON.stringify(workflow));
   }

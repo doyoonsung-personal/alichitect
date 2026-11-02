@@ -26,7 +26,7 @@ test('workflow prompt is byte-stable with identical inputs and freshly loaded ta
 
 test('workflow prompt has a pinned budget band below 15,000 estimated tokens', () => {
   const tokens = estimateTokens(prompt);
-  assert.ok(tokens >= 8750 && tokens < 9250, `Workflow prompt grew or lost content: ${tokens} estimated tokens`);
+  assert.ok(tokens >= 9500 && tokens < 10000, `Workflow prompt grew or lost content: ${tokens} estimated tokens`);
   assert.ok(tokens < 15000);
 });
 
@@ -262,6 +262,58 @@ test('support-email example has no cloud ops and replays without warn, error or 
   assert.equal(wf.edges['approve-closed'].outcome, 'reject');
   assert.equal(wf.edges['approve-draft'].outcome, 'edit');
   assert.equal(wf.edges['approve-draft'].to, 'draft');
+});
+
+test('compact approval, loop, takeover and voice examples replay with their stated context', () => {
+  const fragment = (heading: string): Array<Record<string, unknown>> => {
+    const lines = prompt.split('\n');
+    const start = lines.findIndex((line) => line.startsWith(heading));
+    assert.ok(start >= 0, heading);
+    const ops: Array<Record<string, unknown>> = [];
+    for (const line of lines.slice(start + 1)) {
+      if (!line.startsWith('{')) break;
+      ops.push(JSON.parse(line));
+    }
+    assert.ok(ops.length, heading);
+    return ops;
+  };
+  const step = (id: string, kind: string, extra = {}) => ({ t: 'step', id, kind, label: id, ...extra });
+  const link = (from: string, to: string, extra = {}) => ({ t: 'link', id: `${from}-${to}`, from, to, ...extra });
+  const approval = fragment('Approval example');
+  for (const effect of ['send', 'publish', 'pay', 'delete', 'admin', 'decide']) {
+    const action = approval.map((op) => op.t === 'step' && op.id === 'deliver' ? { ...op, effect } : op);
+    replay([
+      step('in', 'trigger'), step('draft', 'ai', { task: 'generate', ai: 'qwen3.7-plus' }),
+      step('quality', 'decide'), step('failed', 'end'), step('rejected', 'end'), step('end', 'end'),
+      ...action, link('in', 'draft'), link('draft', 'quality'), link('quality', 'approve', { kind: 'branch', label: 'Ready' }),
+      ...fragment('Loop example'), link('deliver', 'end'),
+    ]);
+  }
+  replay([
+    step('in', 'trigger', { untrusted: true }),
+    step('voice', 'ai', { task: 'generate', ai: 'qwen-audio-3.1-realtime-flash' }),
+    step('guard', 'guard', { product: 'ai-guardrails' }), step('confidence', 'decide'), step('end', 'end'),
+    ...fragment('Voice reply example'), ...fragment('Takeover example'),
+    link('in', 'voice'), link('voice', 'guard'), link('guard', 'confidence'),
+    link('confidence', 'voice-reply', { kind: 'branch', label: 'Confident' }), link('voice-reply', 'end'), link('handoff', 'end'),
+  ]);
+
+  function replay(ops: Array<Record<string, unknown>>): void {
+    let wf = emptyWorkflow();
+    const ctx = createWorkflowCtx();
+    for (const raw of ops) {
+      const result = validateWorkflowOp(raw, catalog, models);
+      assert.deepEqual(result.warnings, []);
+      assert.ok(result.op);
+      const applied = applyWorkflowOp(wf, result.op as Parameters<typeof applyWorkflowOp>[1], ctx);
+      assert.deepEqual(applied.warnings, []);
+      wf = applied.workflow;
+    }
+    assert.deepEqual(endWorkflowTurn(ctx), []);
+    const repaired = repairWorkflow(wf, catalog, models);
+    assert.deepEqual(repaired.workflow, wf);
+    assert.deepEqual(repaired.warnings.filter((w) => w.severity !== 'info'), []);
+  }
 });
 
 // Reverse both map insertion order and the field order inside every element.

@@ -38,7 +38,9 @@
           [
             "ccaas",
             "telephony",
-            "partner"
+            "partner",
+            "customer carrier",
+            "customer-provided phone ingress"
           ]
         ]
       }

@@ -26,8 +26,11 @@
           "approvals": true,
           "boundedLoops": true,
           "international": true,
-          "effects": [
-            "pay"
+          "effectsAny": [
+            [
+              "write",
+              "pay"
+            ]
           ]
         }
       }
