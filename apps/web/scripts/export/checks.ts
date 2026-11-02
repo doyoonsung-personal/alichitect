@@ -7,6 +7,7 @@ import type { ProposalDraft } from '@ali/core/types.ts';
 import type { AppState } from '../../src/store/types.ts';
 import { buildProposal } from '../../src/export/model.ts';
 import type { ProposalModel } from '../../src/export/model.ts';
+import { wt } from '../../src/export/workflow-strings.ts';
 import { makeXT } from '../../src/export/strings.ts';
 import type { ExportKey } from '../../src/export/strings.ts';
 import { catalog } from './node-env.ts';
@@ -52,7 +53,7 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
     );
   const firstPageWith = (text: string): number => info.pages.find((p) => p.n > 1 && top(p).startsWith(squash(text)))?.n ?? -1;
   const diagramPage = firstPageWith(xt('diagram.heading'));
-  if (landscape.length !== 1 || landscape[0] !== (n ? diagramPage : 3)) problems.push(`the diagram must be the only landscape page, page ${n ? diagramPage : 3} (landscape pages: ${landscape.join(',') || 'none'})`);
+  if (!model.workflow && (landscape.length !== 1 || landscape[0] !== (n ? diagramPage : 3))) problems.push(`the diagram must be the only landscape page, page ${n ? diagramPage : 3} (landscape pages: ${landscape.join(',') || 'none'})`);
 
   // the sections, each on a later page than the one before
   const order: ExportKey[] = n
@@ -68,11 +69,25 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
         'rev.heading',
       ]
     : ['summary.heading', 'diagram.heading', ...(model.components.length ? (['components.heading'] as const) : []), ...(model.recs.length ? (['recs.heading'] as const) : []), 'conn.heading', 'rev.heading'];
-  const at = order.map((k) => firstPageWith(xt(k)));
-  order.forEach((k, idx) => {
-    if (at[idx] < 0) problems.push(`heading missing: ${xt(k)}`);
-    else if (idx > 0 && at[idx] <= at[idx - 1]) problems.push(`"${xt(k)}" (page ${at[idx]}) must come after "${xt(order[idx - 1])}" (page ${at[idx - 1]})`);
+  const titles = order.flatMap((k) => k === 'diagram.heading' && model.workflow
+    ? [firstPageWith(wt(state.lang, 'diagram.overview')) > 0 ? wt(state.lang, 'diagram.overview') : wt(state.lang, 'diagram.heading'),
+      wt(state.lang, 'steps.heading'), model.workflow.mappingTitle, model.workflow.costTitle, model.workflow.questionsTitle] : [xt(k)]);
+  const at = titles.map(firstPageWith);
+  titles.forEach((title, idx) => {
+    if (at[idx] < 0) problems.push(`heading missing: ${title}`);
+    else if (idx > 0 && at[idx] <= at[idx - 1]) problems.push(`"${title}" (page ${at[idx]}) must come after "${titles[idx - 1]}" (page ${at[idx - 1]})`);
   });
+
+  if (model.workflow) {
+    if (!landscape.length) problems.push('Workflow requires diagram pages');
+    const wf = model.workflow;
+    for (const value of [...wf.mapping.flatMap((r) => [r.id, r.label, r.runtime, r.service]),
+      ...wf.openQuestions.map((q) => q.text), wf.cost.coverage, wt(state.lang, 'cost.unpriced')]) {
+      if (!all.includes(squash(value.slice(0, 100))) || !all.includes(squash(value.slice(-100)))) {
+        problems.push(`Workflow content missing: ${value.slice(0, 100)}`);
+      }
+    }
+  }
 
   // cover
   const cover = squash(info.pages[0]?.text ?? '');
@@ -118,6 +133,9 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
   const wantLinks = model.components.map((c) => c.docs).filter((d): d is string => !!d).concat(model.recs.map((r) => r.docs).filter((d): d is string => !!d));
   // with a draft a construct (users, a mobile app) prints no documentation row at all
   const missing = model.components.filter((c) => !c.docs && !c.construct).length + model.recs.filter((r) => !r.docs).length;
+  if (model.workflow) wantLinks.push(...[...new Set([...model.workflow.cost.lines, ...model.workflow.cost.fixed]
+    .map((r) => r.source).filter((source) => /^https:\/\//.test(source)))].flatMap((source) =>
+      info.links.filter((link) => link === source)));
   const have = [...info.links];
   for (const url of wantLinks) {
     const i = have.indexOf(url);
