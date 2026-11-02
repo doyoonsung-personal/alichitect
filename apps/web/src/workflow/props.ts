@@ -1,7 +1,7 @@
 // The only workflow presentation adapter to browser store names.
 import { useMemo } from 'react';
 import { useAppState, useController, useCatalog, useT } from '../store/react.tsx';
-import { activeHighlight, taggedRevision } from '../store/selectors.ts';
+import { activeHighlight, activePan, taggedRevision } from '../store/selectors.ts';
 import { layoutWorkflow } from '@ali/core/workflow-layout.ts';
 import { estimateWorkflow } from '@ali/core/workflow-estimate.ts';
 import { models } from './models.ts';
@@ -18,5 +18,5 @@ export function useWorkflowProps(): WorkflowViewProps {
   return { view: 'workflow', lang, t, catalog, workflow, layout, version: s.workflowDisplay.version,
     settings: s.session.memory.workflowSettings ?? EMPTY_SETTINGS, estimateSettings: s.session.memory.estimate ?? EMPTY_ESTIMATE_SETTINGS,
     estimate, disabled: !!s.work || !!s.replay, streaming: !!s.work, open: s.ui.panelOpen,
-    highlight: activeHighlight(s), tagged: taggedRevision(s), building: s.work?.built ?? [], panTo: s.ui.panTo, actions };
+    highlight: activeHighlight(s), tagged: taggedRevision(s), building: s.work?.mode === 'workflow' ? s.work.built : [], panTo: activePan(s), actions };
 }

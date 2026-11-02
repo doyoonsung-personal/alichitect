@@ -1,6 +1,6 @@
 // Derived views over AppState. Pure, and cheap enough to call from a render. Components get these through the hooks in
 // app/contracts.ts; they are separate here so they can be tested with plain states.
-import type { Graph, TurnMode, WorkflowGraph } from '@ali/core/types.ts';
+import type { Catalog, Graph, TurnMode, WorkflowGraph } from '@ali/core/types.ts';
 import type { AppState, ChangeLine, Highlight, ConnMode, Revision, SessionRecord } from './types.ts';
 import { requirementViews } from './requirements.ts';
 import type { RequirementView } from './types.ts';
@@ -13,7 +13,7 @@ export function latestDone(session: SessionRecord): Revision | undefined {
 /** Ids of cards the streaming revision has added or changed and that are drawn now: they carry the BuildMark. */
 export function buildMarks(s: AppState): string[] {
   const l = s.display.layout;
-  if (!s.work || !l) return [];
+  if (!s.work || !l || s.work.mode === 'workflow') return [];
   return s.work.built.filter((id) => Object.hasOwn(l.cards, id) || Object.hasOwn(l.badges, id));
 }
 
@@ -36,8 +36,8 @@ export function headerMode(s: AppState): ConnMode {
   return s.replay ? 'replay' : s.conn.mode;
 }
 
-export function requirements(s: AppState): RequirementView[] {
-  return requirementViews(s.session, s.work);
+export function requirements(s: AppState, catalog?: Catalog): RequirementView[] {
+  return requirementViews(s.session, s.work, catalog);
 }
 
 export interface SummaryView {
@@ -92,4 +92,9 @@ export function highlightChange(line: ChangeLine): Highlight {
 export function activeHighlight(s: AppState): Highlight | null {
   const h = s.ui.highlight;
   return h && (h.view ?? 'cloud') === (s.session.mode ?? 'cloud') ? h : null;
+}
+
+export function activePan(s: AppState): AppState['ui']['panTo'] {
+  const pan = s.ui.panTo;
+  return pan && (pan.view ?? 'cloud') === (s.session.mode ?? 'cloud') ? pan : null;
 }

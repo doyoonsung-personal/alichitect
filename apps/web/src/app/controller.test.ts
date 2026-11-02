@@ -15,6 +15,57 @@ function memStorage(): KeyValueStorage {
   return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => void m.set(k, v) };
 }
 
+test('C7 / Codex #5: Tidy persists reverse arrival and a removed middle step across boot', async () => {
+  for (const scenario of ['reverse', 'removed']) {
+    const a = setup();
+    await a.c.boot();
+    a.c.setMode('workflow');
+    const { store } = a;
+    const step = (id: string) => store.dispatch({ type: 'turn/event', now: 1,
+      event: { type: 'op', phase: 'main', op: { t: 'step', id, kind: 'act', label: id } } });
+    const link = (from: string, to: string) => store.dispatch({ type: 'turn/event', now: 2,
+      event: { type: 'op', phase: 'main', op: { t: 'link', id: from + to, from, to } } });
+    const commit = () => store.dispatch({ type: 'turn/event', now: 3, event: { type: 'commit', warnings: [], changes: '',
+      memory: { ...store.getState().session.memory, workflow: store.getState().work!.rawWorkflow } } });
+    store.dispatch({ type: 'turn/start', mode: 'workflow', ask: 'Draw', now: 0 });
+    for (const id of scenario === 'reverse' ? ['end', 'b', 'a'] : ['a', 'b', 'end']) step(id);
+    link('a', 'b');
+    link('b', 'end');
+    commit();
+    if (scenario === 'removed') {
+      store.dispatch({ type: 'turn/start', mode: 'workflow', ask: 'Remove b', now: 4 });
+      store.dispatch({ type: 'turn/event', now: 5, event: { type: 'op', phase: 'main', op: { t: 'unstep', id: 'b' } } });
+      link('a', 'end');
+      commit();
+    }
+    a.c.setMode('workflow');
+    const before = store.getState().session.workflowLayout!.workflow.cells;
+    a.c.tidyWorkflowView();
+    const after = store.getState().session.workflowLayout!.workflow.cells;
+    assert.notDeepEqual(after, before);
+    const back = setup({ sessions: a.sessions, resumeId: store.getState().session.id });
+    await back.c.boot();
+    assert.deepEqual(back.store.getState().workflowDisplay.layout?.workflow.cells, after);
+    a.c.dispose();
+    back.c.dispose();
+  }
+});
+
+test('C6: switching modes, unpin, undo and refused Tidy never save an in-flight revision', async () => {
+  const a = setup({ turn: () => new Response(new ReadableStream<Uint8Array>({ start() {} })) });
+  await a.c.boot();
+  a.c.setMode('workflow');
+  a.c.submit('Draw');
+  a.store.dispatch({ type: 'turn/event', now: 1, event: { type: 'op', phase: 'main', seq: 1, added: [], updated: [], removed: [],
+    op: { t: 'ask', id: 'q1', text: 'Which payment provider?' } } });
+  a.store.dispatch({ type: 'turn/event', now: 2, event: { type: 'status', code: 'repair', text: '' } });
+  for (const edit of [() => a.c.setMode('cloud'), () => a.c.unpin('anything'), () => a.c.undoUnpin(), () => a.c.tidyWorkflowView()]) {
+    edit();
+    assert.equal(a.sessions.list().length, 0);
+  }
+  a.c.dispose();
+});
+
 /** Streams a fixture turn as NDJSON in small chunks, like the server does. */
 function turnResponse(fx: Fixture, turn = 0, upTo = Infinity): Response {
   const lines = fx.turns[turn].ev.slice(0, upTo).map(([, e]) => JSON.stringify(e) + '\n').join('');
