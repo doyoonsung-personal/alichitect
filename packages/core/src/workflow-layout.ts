@@ -75,7 +75,12 @@ export function workflowLoopIds(wf: WorkflowGraph): string[] {
     }
     color.set(id, 2);
   };
-  for (const n of sorted(wf.nodes)) if (!color.has(n.id)) visit(n.id);
+  // Search from where runs start, so the back edge found is the one that returns upstream:
+  // triggers, then steps nothing leads into, then whatever is left.
+  const nodes = sorted(wf.nodes);
+  const entered = new Set(edges.filter((e) => !loops.has(e.id) && has(wf.nodes, e.from)).map((e) => e.to));
+  const roots = [...nodes.filter((n) => n.kind === 'trigger'), ...nodes.filter((n) => !entered.has(n.id)), ...nodes];
+  for (const n of roots) if (!color.has(n.id)) visit(n.id);
   return [...loops].sort(compare);
 }
 

@@ -435,3 +435,20 @@ test('viewport fits width and height using the actual title size, capped at natu
   sized.cards.a.title.px = 12;
   assert.equal(workflowViewport(sized, { width: 400, height: 800 }).zoom, 11 / 12);
 });
+
+test('regression: cycle search starts at the trigger, so forward links are never taken for the back edge', () => {
+  // Searching from the first id ("check") marked draft -> check as the loop and folded a fresh layout into three rows.
+  const build = (name: string): WorkflowGraph => {
+    const f = JSON.parse(readFileSync(new URL(`./fixtures/workflows/${name}.json`, import.meta.url), 'utf8'));
+    let g = emptyWorkflow(); const ctx = createWorkflowCtx();
+    for (const op of f.ops) g = applyWorkflowOp(g, op, ctx).workflow;
+    return g;
+  };
+  const email = build('support-email-triage');
+  assert.deepEqual(workflowLoopIds(email), ['l13', 'l9']);
+  const cells = tidyWorkflow(email).workflow.cells;
+  const flow = ['in', 'guard', 'route', 'kb', 'rank', 'draft', 'check', 'gate', 'human', 'send', 'log', 'end'];
+  assert.deepEqual(flow.map((id) => cells[id]), flow.map((_, column) => ({ column, row: 0 })));
+  assert.deepEqual(workflowLoopIds(build('sre-incident-triage-and-rca')), ['l20']);
+  assert.deepEqual(workflowLoopIds(build('ai-tutor-socratic-hint')), ['l1', 'l15']);
+});
