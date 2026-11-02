@@ -166,6 +166,87 @@ test('cycle detection ignores loop and edit links, including a non-closing edge'
   const detached = graph([start, end, node('a', 'guard'), node('b', 'guard')], [edge('start', 'end'), edge('a', 'b'), edge('b', 'a')]);
   assert.deepEqual(ofCode(detached, 'wf-cycle'), []);
 });
+test('live triage next and rejection branch become exclusive routes, purely and idempotently', () => {
+  const liveModels = table({ id: 'qwen3.8-max' });
+  const wf = graph([
+    start, node('triage', 'ai', { label: 'Triage', ai: 'qwen3.8-max', task: 'classify' }),
+    node('embed-query', 'knowledge', { task: 'retrieve' }), node('done-rejected', 'end'), end,
+  ], [
+    edge('start', 'triage'), edge('triage', 'embed-query', { kind: 'next' }),
+    edge('triage', 'done-rejected', { kind: 'branch', label: 'rejected' }), edge('embed-query', 'end'),
+  ]);
+  assert.equal(ofCode(wf, 'wf-mixed-out').length, 1);
+  const before = structuredClone(wf);
+  freeze(wf);
+  const r = repairWorkflow(wf, catalog, liveModels);
+  assert.deepEqual(wf, before);
+  assert.deepEqual(r.workflow.edges['triage-embed-query'], edge('triage', 'embed-query', { kind: 'branch', label: 'otherwise' }));
+  assert.deepEqual(r.workflow.edges['triage-done-rejected'], wf.edges['triage-done-rejected']);
+  assert.deepEqual(r.warnings, [{
+    code: 'wf-mixed-out', ids: ['triage', 'triage-embed-query'],
+    msg: "'Triage' (triage): converted next links 'triage-embed-query' to branches.", severity: 'warn', repaired: true,
+  }]);
+  assert.deepEqual(checkWorkflow(r.workflow, catalog, liveModels), []);
+  freeze(r.workflow);
+  const again = repairWorkflow(r.workflow, catalog, liveModels);
+  assert.equal(again.workflow, r.workflow);
+  assert.deepEqual(again.warnings, []);
+});
+
+test('mixed-out repair handles every alternative and preserves labels and outcome routes', () => {
+  const alternatives: Partial<WorkflowEdge>[] = [
+    { kind: 'branch' }, { kind: 'loop', max: 3 }, { kind: 'escalate' },
+    ...(['approve', 'edit', 'reject', 'timeout', 'exhausted'] as const).map(outcome => ({ outcome })),
+    { kind: 'next', outcome: 'approve' },
+  ];
+  for (const alternative of alternatives) {
+    const wf = graph([start, end], [
+      edge('start', 'end', { id: 'z', kind: 'next', label: 'accepted' }),
+      edge('start', 'end', { id: 'b', kind: 'next', label: '' }),
+      edge('start', 'end', { id: 'a' }), edge('start', 'end', { id: 'alternative', ...alternative }),
+    ]);
+    const r = repairWorkflow(wf, catalog, models);
+    assert.deepEqual(r.workflow.edges.z, edge('start', 'end', { id: 'z', kind: 'branch', label: 'accepted' }));
+    for (const id of ['a', 'b']) {
+      assert.deepEqual(r.workflow.edges[id], edge('start', 'end', { id, kind: 'branch', label: 'otherwise' }));
+    }
+    assert.deepEqual(r.workflow.edges.alternative, wf.edges.alternative);
+    const repaired = r.warnings.filter(w => w.code === 'wf-mixed-out');
+    assert.equal(repaired.length, 1);
+    assert.deepEqual(repaired[0].ids, ['start', 'a', 'b', 'z']);
+    assert.match(repaired[0].msg, /'a', 'b', 'z'/);
+    assert.equal(repaired[0].severity, 'warn');
+    assert.equal(repaired[0].repaired, true);
+    assert.deepEqual(ofCode(r.workflow, 'wf-mixed-out'), []);
+    const reversed = graph(Object.values(wf.nodes).reverse(), Object.values(wf.edges).reverse());
+    assert.deepEqual(repairWorkflow(reversed, catalog, models), r);
+    const again = repairWorkflow(r.workflow, catalog, models);
+    assert.equal(again.workflow, r.workflow);
+    assert.equal(again.warnings.some(w => w.repaired), false);
+  }
+});
+
+test('parallel next-only routes remain unchanged', () => {
+  const wf = graph([start, draft, end], [
+    edge('start', 'draft', { kind: 'next' }), edge('start', 'end'), edge('draft', 'end'),
+  ]);
+  freeze(wf);
+  const r = repairWorkflow(wf, catalog, models);
+  assert.equal(r.workflow, wf);
+  assert.deepEqual(r.warnings, []);
+});
+
+test('mixed-out repair precedes cycle repair and retains its fallback label', () => {
+  const wf = graph([start, draft, end], [
+    edge('start', 'draft'), edge('draft', 'start'), edge('draft', 'end', { kind: 'branch', label: 'done' }),
+  ]);
+  const r = repairWorkflow(wf, catalog, models);
+  assert.deepEqual(r.warnings.filter(w => w.repaired).map(w => w.code), ['wf-mixed-out', 'wf-cycle']);
+  assert.deepEqual(r.workflow.edges['draft-start'], edge('draft', 'start', { kind: 'loop', label: 'otherwise', max: 3 }));
+  assert.deepEqual(ofCode(r.workflow, 'wf-mixed-out'), []);
+  assert.equal(repairWorkflow(r.workflow, catalog, models).workflow, r.workflow);
+});
+
 test('attached reachability follows the host, not direct links to the attachment', () => {
   const wf = graph([start, agent, node('tool', 'tool', { on: 'agent' }), end], [edge('start', 'tool'), edge('agent', 'end')]);
   assert.ok(ofCode(wf, 'wf-unreachable').some(w => w.ids.includes('tool')));
@@ -235,7 +316,9 @@ test('repaired warnings come first; repair is pure, idempotent, and leaves no fi
   assert.deepEqual(wf, before);
   assert.equal(r.workflow.nodes.agent.turns, 10);
   const repairs = r.warnings.filter(w => w.repaired);
-  assert.deepEqual(new Set(repairs.map(w => w.code)), new Set(['wf-attach-form', 'wf-agent-turns', 'wf-dangling-ref', 'wf-cycle']));
+  assert.deepEqual(new Set(repairs.map(w => w.code)), new Set([
+    'wf-attach-form', 'wf-agent-turns', 'wf-dangling-ref', 'wf-cycle', 'wf-mixed-out',
+  ]));
   assert.deepEqual(r.warnings.slice(0, repairs.length), repairs);
   assert.deepEqual(r.warnings.slice(repairs.length), warnings(r.workflow));
   assert.equal(r.warnings.some(w => w.severity === 'error'), false);
