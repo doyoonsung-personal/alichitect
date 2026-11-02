@@ -1,14 +1,18 @@
 /* Workflow geometry and interactions are isolated from the cloud canvas. */
 .wf-stage { position: relative; height: 100%; width: 100%; }
-.wf-card { display: flex; flex-direction: column; gap: 5px; padding: 12px; background: var(--card, var(--sheet));
-  border: 1px solid var(--line-1); border-radius: 10px; color: var(--ink); text-align: left; cursor: pointer; overflow: hidden; }
+.wf-card { display: flex; flex-direction: column; gap: 4px; padding: 8px; background: var(--card, var(--sheet));
+  border: 1px solid var(--line-1); border-radius: 10px; color: var(--ink); text-align: left; cursor: pointer; position: relative; }
 .wf-card:focus-visible, .wf-card[data-lit] { outline: 3px solid var(--action); outline-offset: 2px; }
 .wf-card__heading { display: flex; gap: 8px; align-items: start; }
+.wf-card__heading strong { font-family: sans-serif; font-weight: 500; }
+.wf-card > * { flex-shrink: 0; }
 .wf-card__heading svg { flex-shrink: 0; }
 .wf-card__heading strong span { display: block; line-height: 1.25; }
-.wf-card__service, .wf-card__model, .wf-card__badges, .wf-card__count { font-size: 11px; line-height: 1.3; }
+.wf-card__service, .wf-card__model, .wf-card__badges, .wf-card__count { font-size: 11px; line-height: 14px; }
+.wf-card__service, .wf-card__model { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wf-card__model { border-radius: 4px; background: var(--record); padding: 3px; }
-.wf-card__badges { display: flex; flex-wrap: wrap; gap: 3px 7px; }
+.wf-card__badges { display: flex; flex-direction: column; gap: 4px; position: relative; }
+.wf-card__badges svg { position: absolute; right: 0; top: 0; }
 .wf-card__count { margin-top: auto; text-decoration: underline; }
 .wf-card[data-enter] { animation: wf-enter 350ms both; }
 @keyframes wf-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -31,5 +35,6 @@
 
 .wf-card[data-ghost] { opacity: .25; pointer-events: none; }
 
-.wf-revision { font-size: 10px; background: var(--ink); color: var(--sheet); padding: 2px 4px; border-radius: 3px; }
-.wf-building { color: var(--action); }
+.wf-revision { position: absolute; top: -8px; right: -8px;
+  font-size: 10px; background: var(--ink); color: var(--sheet); padding: 2px 4px; border-radius: 3px; }
+.wf-building { position: absolute; top: -8px; left: -4px; color: var(--action); }

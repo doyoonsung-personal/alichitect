@@ -1,8 +1,7 @@
-// Headless interaction checks for the canvas track, against a running dev server (default http://127.0.0.1:5196) or its own
-// on a free port in 5185-5199. Prints PASS/FAIL per check and exits 1 when one fails.
-//   node scripts/e2e-canvas.mjs [--url http://127.0.0.1:5196]
+// Offline workflow checks through the real UI, served by Vite on a free loopback port in 5190-5192.
+//   node scripts/e2e-workflow.mjs [--smoke]
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,7 +9,6 @@ import puppeteer from 'puppeteer-core';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
-const arg = (n, d) => (args.includes(n) ? args[args.indexOf(n) + 1] : d);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const free = (port) =>
   new Promise((res) => {
@@ -50,6 +48,82 @@ console.log('Browser ready');
 let cases = 0;
 const errors = [];
 try {
+  const fixture = JSON.parse(readFileSync(path.join(WEB, '../../packages/core/test/fixtures/workflows/support-email-triage.json'), 'utf8'));
+  for (const [width, required] of [[1150, 4], [920, 3], [800, 2]]) {
+    const page = await browser.newPage();
+    await page.setViewport({ width, height: 800 });
+    await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+    await page.evaluateOnNewDocument(() => localStorage.setItem('ab.lang', 'en'));
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      if (req.url().includes('/api/')) return req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        ok: true, keyConfigured: true, model: 'test', endpoint: 'test', catalog: { version: 'test', entries: 1 },
+        limits: { askChars: 20000 }, inFlight: 0, maxInFlight: 4,
+      }) });
+      if (!req.url().startsWith(server.url) && !req.url().startsWith('data:')) return req.abort();
+      return req.continue();
+    });
+    page.on('pageerror', (e) => errors.push(e.message));
+    await page.goto(server.url);
+    await page.waitForFunction(() => !!window.__ab);
+    await page.evaluate(() => {
+      window.__ab.store.dispatch({ type: 'session/mode', mode: 'workflow' });
+      window.__ab.store.dispatch({ type: 'turn/start', mode: 'workflow', ask: 'Support email', now: 1 });
+    });
+    for (const op of fixture.ops) {
+      await page.evaluate((op) => {
+        const { store } = window.__ab;
+        store.dispatch({ type: 'turn/event', event: { type: 'op', phase: 'main', op }, now: 2 });
+        store.dispatch({ type: 'turn/flush', now: 3 });
+      }, op);
+      await page.waitForSelector('[data-wf-card]');
+      await sleep(60);
+    }
+    const inspect = () => page.evaluate(() => {
+      const stage = document.querySelector('.wf-stage').getBoundingClientRect();
+      const zoom = Number(/scale\(([^)]+)\)/.exec(document.querySelector('.react-flow__viewport').style.transform)?.[1]);
+      const cards = [...document.querySelectorAll('[data-wf-card]')].map((el) => {
+        const r = el.getBoundingClientRect(), title = el.querySelector('strong');
+        return { id: el.dataset.wfCard, x: r.x, y: r.y, w: r.width, h: r.height,
+          titlePx: parseFloat(getComputedStyle(title).fontSize) * zoom,
+          visible: r.left >= stage.left && r.right <= stage.right && r.top >= stage.top + 110 && r.bottom <= stage.bottom - 48,
+          clipped: el.scrollHeight > el.clientHeight + 1 || title.scrollWidth > title.clientWidth + 1 };
+      });
+      const visible = cards.filter((c) => c.visible);
+      return { zoom, width: stage.width, following: document.querySelector('.wf-tools [aria-pressed]')?.getAttribute('aria-pressed') === 'true',
+        columns: new Set(visible.map((c) => Math.round(c.x))).size,
+        readable: cards.every((c) => c.titlePx >= 10.99), clipped: cards.filter((c) => c.clipped),
+        newest: cards.filter((c) => c.x === Math.max(...cards.map((c) => c.x))).some((c) => c.visible) };
+    });
+    await sleep(300);
+    const follow = await inspect();
+    if (!follow.following || !follow.newest || !follow.readable || follow.zoom > 1) {
+      throw new Error('Fixture follow: ' + JSON.stringify({ width, follow }));
+    }
+    await page.evaluate(() => {
+      const { store } = window.__ab, s = store.getState();
+      store.dispatch({ type: 'turn/event', event: { type: 'commit',
+        memory: { ...s.session.memory, workflow: s.work.rawWorkflow }, changes: '', warnings: [] }, now: 4 });
+    });
+    await sleep(300);
+    const check = await inspect();
+    if (check.columns < required || !check.readable || check.zoom > 1 || check.clipped.length) {
+      throw new Error('Fixture fit: ' + JSON.stringify({ width, required, check }));
+    }
+    cases++;
+    console.log('PASS support-email fixture', width, JSON.stringify(check));
+    if (width === 1150) {
+      await page.setViewport({ width: 800, height: 800 });
+      await sleep(300);
+      const resized = await inspect();
+      if (resized.columns < 2 || !resized.readable || resized.zoom > 1) throw new Error('Fixture resize: ' + JSON.stringify(resized));
+      await page.click('.wf-tools button');
+      await sleep(100);
+      const fitted = await inspect();
+      if (fitted.columns < 2 || !fitted.readable || fitted.zoom > 1) throw new Error('Fixture fit button: ' + JSON.stringify(fitted));
+    }
+    await page.close();
+  }
   for (const width of [800, 920, 1150]) for (const count of (args.includes('--smoke') ? [10] : [10, 15, 25]))
     for (const focus of (args.includes('--smoke') ? [false] : [false, true, 'stage'])) {
     const page = await browser.newPage();

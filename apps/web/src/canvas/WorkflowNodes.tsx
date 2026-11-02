@@ -31,9 +31,11 @@ export function WorkflowCardNode({ data: d }: NodeProps<WorkflowCardNodeType>) {
       {d.building && <span className="wf-building" aria-hidden="true">•</span>}<Glyph geometry={workflowGlyph(c.kind)} />
       <strong style={{ fontSize: c.titlePx }}>{c.titleLines.map((line, i) => <span key={i}>{line}</span>)}</strong></span>
     {c.product && <span className="wf-card__service">{c.product}</span>}
-    {c.model && <span className="wf-card__model">{c.model} ? {d.t('workflow.model.candidate')}</span>}
-    <span className="wf-card__badges">{c.approval && <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true">
-      <path d="M3 6V4a3 3 0 0 1 6 0v2M1 6h10v7H1Z" fill="none" stroke="currentColor" /></svg>}{c.badges.map((b) => <span key={b}>{b}</span>)}</span>
+    {c.model && <span className="wf-card__model" title={c.model + ' · ' + d.t('workflow.model.candidate')}>
+      {c.model} · {d.t('workflow.model.candidate')}</span>}
+    {!!c.badges.length && <span className="wf-card__badges">{c.approval && <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true">
+      <path d="M3 6V4a3 3 0 0 1 6 0v2M1 6h10v7H1Z" fill="none" stroke="currentColor" /></svg>}
+      {c.badges.map((b) => <span key={b}>{b}</span>)}</span>}
     {!!c.hidden.length && <span className="wf-card__count">{d.t('workflow.attachments.count', { n: c.hidden.length })}</span>}
   </button>;
 }
