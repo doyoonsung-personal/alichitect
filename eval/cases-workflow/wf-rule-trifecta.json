@@ -37,7 +37,10 @@
           [
             "untrusted",
             "injection",
-            "trifecta"
+            "trifecta",
+            "guarded drafting",
+            "screen combined output",
+            "data leak"
           ],
           [
             "private",

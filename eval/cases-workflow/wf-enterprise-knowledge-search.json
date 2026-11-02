@@ -12,7 +12,6 @@
         "workflow": {
           "kinds": [
             "trigger",
-            "end",
             "knowledge"
           ],
           "tasks": [

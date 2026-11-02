@@ -26,7 +26,7 @@ test('workflow prompt is byte-stable with identical inputs and freshly loaded ta
 
 test('workflow prompt has a pinned budget band below 15,000 estimated tokens', () => {
   const tokens = estimateTokens(prompt);
-  assert.ok(tokens >= 8000 && tokens < 8500, `Workflow prompt grew or lost content: ${tokens} estimated tokens`);
+  assert.ok(tokens >= 8750 && tokens < 9250, `Workflow prompt grew or lost content: ${tokens} estimated tokens`);
   assert.ok(tokens < 15000);
 });
 
@@ -54,6 +54,31 @@ test('workflow prompt excludes prices and hidden-backend names but includes the 
   assert.ok(prompt.includes(models.promptRows()));
   assert.doesNotMatch(prompt, /\$|\b(?:claude|anthropic)\b/i);
   assert.doesNotMatch(prompt, /"(?:price|fee|usd|perUnit)"|\b(?:USD|CNY|RMB)\s*\d|\d\s*(?:USD|CNY|RMB)\b/i);
+});
+
+test('live failure guidance distinguishes delivery, hand-offs, approval and customer systems', () => {
+  for (const phrase of [
+    'effect belongs only on act, tool and memory steps',
+    'A hand-off is kind human, task takeover, reached by a kind escalate link',
+    'Every reply needs a guard between untrusted input and delivery',
+    'an escalate path to human takeover, including fallback replies',
+    'inbound email, chat apps, web, voice, uploads and search sources',
+    'Never use approval skip to mean already approved',
+    'Creating a pull request is publish: approve its exact content before creating it',
+    'A live chat/voice answer is reply, not send with approval skip',
+    'Draw phone ingress as a customer trigger', 'Function calling does not imply built-in tool support',
+    'read-only credentials, schema allowlists, row limits and timeouts',
+    'Gate consequential decisions on every path, including low-risk branches',
+  ]) assert.ok(prompt.includes(phrase), phrase);
+  const line = prompt.split('\n').find((line) => line.startsWith('Example: {'))!;
+  const raw = JSON.parse(line.slice('Example: '.length));
+  const valid = validateWorkflowOp(raw, catalog, models);
+  assert.deepEqual(valid.warnings, []);
+  assert.deepEqual(valid.op, raw);
+  assert.equal(raw.kind, 'tool');
+  assert.equal(raw.runs, 'customer');
+  assert.equal(raw.effect, 'read');
+  assert.equal(raw.tool, undefined);
 });
 
 function betweenTriggerAndEnd(work: WorkflowNode): WorkflowGraph {
@@ -227,6 +252,7 @@ test('support-email example has no cloud ops and replays without warn, error or 
   assert.deepEqual(repaired.workflow, wf, 'Example must not depend on repair to become valid');
   assert.equal(wf.nodes.in.product, 'eventbridge');
   assert.equal(wf.nodes.in.untrusted, true);
+  assert.equal(wf.nodes.retrieve.product, 'dashvector');
   assert.equal(wf.nodes.guard.kind, 'guard');
   assert.equal(wf.nodes.send.effect, 'send');
   assert.equal(wf.nodes.send.product, 'direct-mail');

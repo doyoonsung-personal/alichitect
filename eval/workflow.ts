@@ -8,8 +8,9 @@ import type { AssertionResult, TurnView } from './lib.ts';
 export interface WorkflowExpect {
   kinds?: WorkflowNodeKind[];
   tasks?: WorkflowTask[];
+  tasksAny?: WorkflowTask[][]; // each group is any-of
   tiers?: Partial<Record<WorkflowTask, ModelEntry['tier'][]>>;
-  products?: string[][]; // each group is any-of, only the service field counts
+  products?: string[][]; // each group is any-of; ai also implies Model Studio
   runtimes?: string[][]; // each group is any-of, only runs counts; customer is allowed
   effects?: Effect[];
   forbiddenProducts?: string[]; // checked in both product and runs
@@ -35,7 +36,13 @@ export function workflowAssertions(
   const nodes = Object.values(v.workflow.nodes);
   const warnings = checkWorkflow(v.workflow, catalog, models, v.workflowSettings);
   for (const kind of e.kinds ?? []) add(`workflow kind ${kind}`, nodes.some((n) => n.kind === kind));
-  for (const task of e.tasks ?? []) add(`workflow task ${task}`, nodes.some((n) => n.task === task));
+  const hasTask = (task: WorkflowTask): boolean => nodes.some((n) => {
+    if (n.task === task) return true;
+    const model = n.ai ? models.model(n.ai) : undefined;
+    return task === 'transcribe' ? !!model?.in.includes('audio') : task === 'speak' && !!model?.out.includes('audio');
+  });
+  for (const task of e.tasks ?? []) add(`workflow task ${task}`, hasTask(task));
+  for (const group of e.tasksAny ?? []) add(`workflow task ${group.join('|')}`, group.some(hasTask));
   for (const effect of e.effects ?? []) add(`workflow effect ${effect}`, nodes.some((n) => n.effect === effect));
   for (const kind of e.forbiddenKinds ?? []) add(`workflow no kind ${kind}`, nodes.every((n) => n.kind !== kind));
   for (const task of e.forbiddenTasks ?? []) add(`workflow no task ${task}`, nodes.every((n) => n.task !== task));
@@ -46,9 +53,13 @@ export function workflowAssertions(
       !matching.length ? 'task absent' : bad.map((n) => `${n.id}: ${n.ai ?? 'no model'}`).join(', '));
   }
   for (const [key, field] of [['products', 'product'], ['runtimes', 'runs']] as const) {
-    for (const group of e[key] ?? []) add(`workflow ${key} ${group.join('|')}`, nodes.some((n) => group.includes(n[field] ?? '')));
+    for (const group of e[key] ?? []) {
+      add(`workflow ${key} ${group.join('|')}`, nodes.some((n) => group.includes(n[field] ?? '')
+        || (key === 'products' && group.includes('model-studio') && !!n.ai)));
+    }
   }
-  const used = [...new Set(nodes.flatMap((n) => [n.product, n.runs].filter((p): p is string => !!p)))];
+  const used = [...new Set(nodes.flatMap((n) => [n.product, n.runs, ...(n.ai ? ['model-studio'] : [])]
+    .filter((p): p is string => !!p)))];
   for (const p of e.forbiddenProducts ?? []) add(`workflow forbids ${p}`, !used.includes(p));
   if (e.international !== false) {
     const bad = used.filter((p) => {
@@ -88,7 +99,7 @@ export function checkWorkflowExpect(value: unknown, catalog: Catalog): string[] 
   if (!value || typeof value !== 'object' || Array.isArray(value)) return ['must be an object'];
   const e = value as Record<string, unknown>;
   const problems: string[] = [];
-  const keys = ['kinds', 'tasks', 'tiers', 'products', 'runtimes', 'effects', 'forbiddenProducts', 'forbiddenKinds',
+  const keys = ['kinds', 'tasks', 'tasksAny', 'tiers', 'products', 'runtimes', 'effects', 'forbiddenProducts', 'forbiddenKinds',
     'forbiddenTasks', 'approvals', 'boundedLoops', 'international', 'noWarnings'];
   const list = (key: string, v: unknown, allowed: readonly string[]): void => {
     if (!Array.isArray(v) || !v.length || v.some((x) => typeof x !== 'string' || !allowed.includes(x))) {
@@ -104,6 +115,10 @@ export function checkWorkflowExpect(value: unknown, catalog: Catalog): string[] 
     if (key in e) list(key, e[key], allowed);
   }
   const products = [...catalog.byId.keys()];
+  if ('tasksAny' in e) {
+    if (!Array.isArray(e.tasksAny) || !e.tasksAny.length) problems.push('tasksAny must be a non-empty array of groups');
+    else for (const group of e.tasksAny) list('tasksAny', group, WORKFLOW_TASKS);
+  }
   if ('forbiddenProducts' in e) list('forbiddenProducts', e.forbiddenProducts, products);
   for (const key of ['products', 'runtimes']) {
     if (!(key in e)) continue;
