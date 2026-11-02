@@ -41,8 +41,10 @@ const CONTRACT = [
     + '"avoid":["<catalog id>"],"lifts":["regions|<catalog id>"]}',
   '{"t":"gap","need":"<missing capability>","note":"<why no catalog entry fits>"}',
   '{"t":"done","summary":"<one sentence describing the changes>"}',
-  'Required fields are t plus: step id/kind/label; link id/from/to; each id/over; splice into/id/kind/label; unstep id;',
-  'say text; assume id/text; ask id/text; req text; gap need/note; done summary. Other fields are optional: omit unused fields.',
+  'Schema-required fields are t plus: step id/kind/label; link id/from/to; each id/over; splice into/id/kind/label; unstep id;',
+  'say text; assume id/text; ask id/text; req text; gap need/note; done summary.',
+  'Other fields are schema-optional but may be required by step kind; omit only unused fields.',
+  'Every ai and agent step requires ai set to a valid model-table id, including in splice ops.',
   'step upserts by id, replacing all fields except an omitted after is preserved. Keep all still-needed fields when editing.',
   'link adds or replaces by id. each upserts a repeat group. splice inserts into a link: from -> new step -> to;',
   'the first half keeps the old id, kind, label, outcome and max; the second half is next with a new id.',
@@ -103,8 +105,9 @@ function rules(): string[] {
     '4. Fan out in parallel for independent work with several next links and a joining step; branch is only for either-or choices.',
     'Size agent teams to the task; 3 to 5 sub-agents is one research example, not a quota.',
     `5. Approval follows the shared policy. ${approvalRuleText()}`,
-    'Give every act and side-effecting tool an effect. Gate inline actions on every path after the last content change, with approve/reject',
-    'and edit back to the drafting step. Attached tools needing approval use approval required at call time.',
+    'Give every act and side-effecting tool an effect. Gate inline actions whose effective approval policy requires approval.',
+    'For those actions, gate every path after the last content change, with approve/reject and edit back to the drafting step.',
+    'Attached tools needing approval use approval required at call time.',
     'read, write, reply and notify need no approval by default. For live chat/voice reply and internal notify, add a guard and escalate to a person.',
     'Email is send even when answering its sender; reply is only live chat/voice. Mark customer/personal stores private; public help articles are not.',
     'Set subject if approval concerns other than the nearest draft. Respect session approval settings and explicit user waivers:',
@@ -174,9 +177,19 @@ export function buildWorkflowSystemPrompt(catalog: Catalog, models: ModelTable):
   const ids = new Set(catalog.entries.filter((e) => isRecommendable(e) && e.availability === 'intl'
     && (LANES.has(e.lane) || SUPPORT_IDS.has(e.id))).map((e) => e.id));
   const rows = catalog.promptRows().split('\n').filter((row) => ids.has(row.split(' | ', 1)[0]));
+  const capabilities = models.models.map((m) => {
+    const functions = m.functions === null ? 'unknown' : m.functions ? 'yes' : 'no';
+    const tools = m.tools === null ? 'unknown' : m.tools.join(',') || 'none';
+    return `${m.id} | regions: ${m.regions.join(',')} | function calling: ${functions} | built-in tools: ${tools}`;
+  });
   return [
     ...CONTRACT, '', ...SEMANTICS, '', ...rules(), '', '# Model table',
-    'id | tier | input>output | roles | note', models.promptRows(), '', '# Catalog subset', PROMPT_ROW_FORMAT,
+    'id | tier | input>output | roles | note', models.promptRows(), '', '# Model capabilities',
+    'regions is the allowed region list; match the session region or explain the conflict.',
+    'Agents need function calling: yes. no means unsupported; unknown means support is not established; confirm before relying on it.',
+    'Attach only built-in tools listed for that model; none means no built-in tools are supported.',
+    'For built-in tools too, unknown means support is not established; confirm before relying on it.',
+    ...capabilities, '', '# Catalog subset', PROMPT_ROW_FORMAT,
     ...rows, '', ...EXAMPLE,
   ].join('\n');
 }
