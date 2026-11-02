@@ -2,6 +2,7 @@
 // the logo file, and the download. This module is loaded with import() when the person asks for the PDF, so pdfkit,
 // svg-to-pdfkit, fontkit and the router stay out of the app's first load.
 import type { Catalog, ProposalDraft } from '@ali/core/types.ts';
+import { committedExportSnapshot } from './workflow-data.ts';
 import { LOGOS } from '../icons/brand.generated.ts';
 import { routeWithBudget } from '../routing/budget.ts';
 import { createAvoidPort } from '../routing/avoid-port.ts';
@@ -49,9 +50,7 @@ export interface ExportRequest {
 export async function exportProposalPdf(r: ExportRequest): Promise<GenerateResult> {
   const { state } = r;
   return generateProposalPdf({
-    session: state.session,
-    graph: state.display.graph,
-    layout: state.display.layout,
+    ...committedExportSnapshot(state, r.catalog),
     catalog: r.catalog,
     lang: state.lang,
     title: r.title,

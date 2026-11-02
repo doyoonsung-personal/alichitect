@@ -2,7 +2,7 @@
 // PDF bytes. Pure TypeScript over pdfkit; the browser and Node differ only in the font source, the logo and the router,
 // which the caller passes in. Nothing here touches the DOM.
 import PDFDocument from 'pdfkit';
-import type { Catalog, Graph, ProposalDraft } from '@ali/core/types.ts';
+import type { Catalog, Graph, ProposalDraft, WorkflowGraph } from '@ali/core/types.ts';
 import type { LayoutState } from '@ali/core/layout.ts';
 import type { Lang } from '../i18n/t.ts';
 import type { SessionRecord } from '../store/types.ts';
@@ -15,11 +15,18 @@ import type { FontSource } from './fonts.ts';
 import { buildProposal } from './model.ts';
 import { buildDocument } from './pdf.ts';
 import type { PdfReport } from './pdf.ts';
+import { layoutWorkflow } from '@ali/core/workflow-layout.ts';
+import type { WorkflowLayout } from '../workflow/layout-adapter.ts';
+import { models } from '../workflow/models.ts';
+import { drawWorkflowDiagram, prepareWorkflowDiagram } from './workflow-diagram.ts';
+import { wt } from './workflow-strings.ts';
 import { xt } from './strings.ts';
 import { createStubDoc } from './stub.ts';
 
 export interface GenerateInput {
   session: SessionRecord;
+  workflow?: WorkflowGraph;
+  workflowLayout?: WorkflowLayout;
   graph: Graph;
   layout: LayoutState | null;
   catalog: Catalog;
@@ -59,11 +66,24 @@ export async function generateProposalPdf(i: GenerateInput): Promise<GenerateRes
   const t0 = now();
   const model = buildProposal({ session: i.session, graph: i.graph, layout: i.layout, catalog: i.catalog, lang: i.lang, title: i.title, customer: i.customer, now: i.now, draft: i.draft });
   const fonts = createFontSet(i.fontSource);
-  const routed = i.layout && hasContent(i.graph) ? await routeDiagram(i.graph, i.layout, i.catalog, i.lang, i.route) : null;
+  const workflow = i.session.memory.workflow;
+  if (i.workflow && JSON.stringify(i.workflow) !== JSON.stringify(workflow)) {
+    throw new Error('Workflow export must use the committed session snapshot');
+  }
+  const prepared = model.workflow && workflow ? await prepareWorkflowDiagram({
+    workflow, layout: layoutWorkflow(workflow, i.workflowLayout), catalog: i.catalog, models,
+    settings: i.session.memory.workflowSettings ?? {}, lang: i.lang, route: i.route,
+  }) : null;
+  const routed = !prepared && i.layout && hasContent(i.graph) ? await routeDiagram(i.graph, i.layout, i.catalog, i.lang, i.route) : null;
 
   const compose = (doc: PDFDocument, dry: boolean): { report: PdfReport; svg: Drawn | null } => {
-    const svg = routed ? drawDiagram(routed, fonts) : null;
-    const report = buildDocument({ model, fonts, diagram: svg, logoSvg: i.logo?.svg ?? null, logoAspect: i.logo?.aspect ?? 7.421, dry, doc });
+    const workflowSvg = prepared ? drawWorkflowDiagram(prepared, fonts) : null;
+    const svg = workflowSvg ?? (routed ? drawDiagram(routed, fonts) : null);
+    const report = buildDocument({ model, fonts, ...(workflow ? { workflow } : {}), diagrams: svg ? [{
+      id: prepared ? 'workflow' : 'cloud', view: prepared ? 'workflow' : 'cloud',
+      title: prepared ? wt(i.lang, 'diagram.heading') : xt(i.lang, 'diagram.heading'), drawing: svg,
+      ...(workflowSvg ? { pages: workflowSvg.pages } : {}),
+    }] : [], logoSvg: i.logo?.svg ?? null, logoAspect: i.logo?.aspect ?? 7.421, dry, doc });
     return { report, svg };
   };
 
@@ -116,8 +136,8 @@ export async function generateProposalPdf(i: GenerateInput): Promise<GenerateRes
     report: {
       ...out.report,
       totalMs: Math.round(now() - t0),
-      routeMs: routed?.routeMs ?? 0,
-      router: routed?.router ?? 'none',
+      routeMs: prepared?.routeMs ?? routed?.routeMs ?? 0,
+      router: prepared?.router ?? routed?.router ?? 'none',
       fontsMs: Math.round(fontsMs),
       drawMs: Math.round(drawMs),
       faces: st.faces,
