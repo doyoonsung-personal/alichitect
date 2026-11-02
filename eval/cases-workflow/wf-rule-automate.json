@@ -1,0 +1,44 @@
+{
+  "id": "wf-rule-automate",
+  "mode": "workflow",
+  "category": "trap",
+  "lang": "en",
+  "title": "Just automate internal reversible work",
+  "reference": "A deterministic workflow with a small classification model, internal reversible write and notify. No human approval is needed; no autonomous planning loop is justified.",
+  "turns": [
+    {
+      "ask": "Just automate it: classify internal tickets, update their reversible category field, and notify our internal on-call channel. No production changes, deletion, money or external messages.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "tasks": [
+            "classify"
+          ],
+          "tiers": {
+            "classify": [
+              "small"
+            ]
+          },
+          "effects": [
+            "write",
+            "notify"
+          ],
+          "forbiddenKinds": [
+            "human"
+          ]
+        }
+      }
+    }
+  ]
+}

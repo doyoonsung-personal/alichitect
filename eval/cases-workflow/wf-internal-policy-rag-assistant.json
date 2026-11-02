@@ -1,0 +1,36 @@
+{
+  "id": "wf-internal-policy-rag-assistant",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Internal Policy RAG Assistant",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/internal-policy-rag-assistant.json. One employee question on DingTalk, Lark or WeCom; one retrieval retry, then refusal or policy-owner handoff. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Build a chatbot that answers employee questions about company policies, refuses when it lacks grounding, and escalates unknown questions to HR",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human",
+            "knowledge"
+          ],
+          "tasks": [
+            "retrieve",
+            "generate",
+            "takeover"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}

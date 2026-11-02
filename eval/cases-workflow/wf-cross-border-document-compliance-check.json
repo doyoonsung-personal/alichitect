@@ -1,0 +1,35 @@
+{
+  "id": "wf-cross-border-document-compliance-check",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Cross-border trade document compliance check",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/cross-border-document-compliance-check.json. One file upload event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Create a workflow where uploaded customs invoices and packing lists are parsed, checked against destination-country regulations, flagged for risks, and sent to a compliance officer for final approval before submission.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "extract",
+            "check",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}

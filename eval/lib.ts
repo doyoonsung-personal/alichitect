@@ -9,6 +9,11 @@ import { allowedRegions, avoidedProducts } from '../packages/core/src/constraint
 import { isOpenRegion } from '../packages/core/src/regions.ts';
 import { scanResidency } from './residency-scan.ts';
 import { createMemory } from '../packages/core/src/prompt.ts';
+import { loadModels } from '../packages/core/src/catalog-node.ts';
+import { checkWorkflow, repairWorkflow } from '../packages/core/src/workflow-validate.ts';
+import type { TurnMode, WorkflowGraph, WorkflowOp, WorkflowSettings, WorkflowEstimateSettings } from '../packages/core/src/types.ts';
+import { workflowAssertions, checkWorkflowExpect } from './workflow.ts';
+import type { WorkflowExpect } from './workflow.ts';
 import type { TurnStats } from '../packages/core/src/llm.ts';
 
 /** The part of TurnStats the assertions read; stored records carry exactly these fields, so they can be rescored offline. */
@@ -26,6 +31,7 @@ export type Category = 'pattern' | 'need' | 'trap' | 'edit' | 'multiturn' | 'i18
 
 /** Checks on one turn. Product lists name catalog ids; text lists are case-insensitive substrings. */
 export interface Expect {
+  workflow?: WorkflowExpect;
   include?: string[][]; // each any-of group needs one product among the final nodes or recs
   exclude?: string[]; // products that must not be in the final graph (nodes or recs)
   excludeRaw?: string[]; // product strings the model must not write, before alias resolution (normalized)
@@ -113,6 +119,7 @@ export interface EvalTurn {
 }
 
 export interface EvalCase {
+  mode?: TurnMode;
   id: string;
   category: Category;
   lang?: Lang;
@@ -130,7 +137,10 @@ export interface BaseFile {
   description: string;
   history?: Turn[];
   requirements?: string[];
-  graph: { groups?: unknown[]; nodes?: unknown[]; edges?: unknown[]; recs?: unknown[] };
+  workflow?: WorkflowGraph;
+  workflowSettings?: WorkflowSettings;
+  estimate?: WorkflowEstimateSettings;
+  graph?: { groups?: unknown[]; nodes?: unknown[]; edges?: unknown[]; recs?: unknown[] };
 }
 
 export function askText(t: EvalTurn): string {
@@ -156,12 +166,21 @@ export function loadCases(dir = path.join(EVAL_DIR, 'cases')): EvalCase[] {
 /** A base diagram as starting memory: validated and repaired like any untrusted graph. */
 export function loadBase(name: string, catalog: Catalog): { memory: SessionMemory; warnings: Warning[] } {
   const b = JSON.parse(readFileSync(path.join(EVAL_DIR, 'bases', `${name}.json`), 'utf8')) as BaseFile;
-  const ing = ingestGraph(b.graph, catalog);
+  const ing = ingestGraph(b.graph ?? {}, catalog);
   const rep = repairGraph(ing.graph, catalog);
   const m = createMemory(rep.graph);
   m.turns = (b.history ?? []).map((t) => ({ ...t }));
   m.requirements = [...(b.requirements ?? [])];
-  return { memory: m, warnings: [...ing.warnings, ...rep.warnings] };
+  const warnings = [...ing.warnings, ...rep.warnings];
+  if (b.workflow) {
+    const models = loadModels();
+    const wr = repairWorkflow(b.workflow, catalog, models, b.workflowSettings);
+    m.workflow = wr.workflow;
+    warnings.push(...wr.warnings, ...checkWorkflow(wr.workflow, catalog, models, b.workflowSettings));
+  }
+  if (b.workflowSettings) m.workflowSettings = structuredClone(b.workflowSettings);
+  if (b.estimate) m.estimate = structuredClone(b.estimate);
+  return { memory: m, warnings };
 }
 
 // ---------- ledger ----------
@@ -200,8 +219,12 @@ export function spentUsd(filter?: (e: LedgerEntry) => boolean): number {
 // ---------- text helpers ----------
 
 export interface TurnView {
+  mode?: TurnMode;
+  workflow?: WorkflowGraph;
+  workflowBefore?: WorkflowGraph;
+  workflowSettings?: WorkflowSettings;
   ask: string;
-  ops: Op[];
+  ops: Array<Op | WorkflowOp>;
   says: string[];
   reqs: string[];
   gaps: Array<{ need: string; note: string }>;
@@ -219,9 +242,9 @@ export interface TurnView {
 export function modelTexts(v: TurnView, withAsks = false): string[] {
   const out: string[] = [...v.says, ...v.reqs];
   for (const op of v.ops) {
-    if (op.t === 'node' || op.t === 'insert') out.push(op.label, op.why ?? '');
+    if (op.t === 'node' || op.t === 'insert' || op.t === 'step' || op.t === 'splice') out.push(op.label, op.why ?? '');
     else if (op.t === 'group') out.push(op.label);
-    else if (op.t === 'edge') out.push(op.label ?? '');
+    else if (op.t === 'edge' || op.t === 'link') out.push(op.label ?? '');
     else if (op.t === 'rec') out.push(op.why);
     else if (op.t === 'gap') out.push(op.need, op.note);
     else if (op.t === 'done') out.push(op.summary);
@@ -376,7 +399,7 @@ function regionChecks(type: string, r: NonNullable<Expect['regions']>, g: Graph,
 }
 
 /** Say, done and gap text of a list of ops: what the user reads in the console. */
-function opTexts(ops: readonly Op[]): string[] {
+function opTexts(ops: ReadonlyArray<Op | WorkflowOp>): string[] {
   const out: string[] = [];
   for (const o of ops) {
     if (o.t === 'say') out.push(o.text);
@@ -453,6 +476,7 @@ export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: Reg
   if (v.stats.error && v.stats.ops === 0) {
     return [{ type: 'api', name: 'turn completed', pass: false, detail: `${v.stats.error.code}: ${v.stats.error.message}` }];
   }
+  if (v.mode === 'workflow') out.push(...workflowAssertions(v, e.workflow ?? {}, catalog, loadModels(), e.noErrors !== false));
   if (e.include) includeChecks('include', e.include, have, out);
   if (e.exclude) excludeChecks('exclude', expandFamilies(e.exclude, catalog), have, out);
   if (e.excludeRaw) {
@@ -637,11 +661,11 @@ export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: Reg
     out.push({ type: 'noErrors', name: 'no error-level warnings after repair', pass: !errs.length, detail: errs.length ? errs.map((w) => `${w.code}: ${w.msg}`).join('; ').slice(0, 240) : undefined });
   }
   const wantPath = e.pathOrder ?? nodes.length > 1;
-  if (wantPath) {
+  if (wantPath && v.mode !== 'workflow') {
     const po = after.filter((w) => w.code === 'path-order' && w.severity !== 'info');
     out.push({ type: 'pathOrder', name: 'clean path order after repair', pass: !po.length, detail: po.length ? po.map((w) => w.msg).join('; ').slice(0, 240) : undefined });
   }
-  if (e.attachValid !== false) {
+  if (e.attachValid !== false && v.mode !== 'workflow') {
     // The model attached a badge to a node that cannot host it (Auto Scaling on SAE or ACK, an unknown host), judged on the
     // model's own output. Since Phase 1 one case is repaired correctly: a product that cannot attach at all (dify-on-ack on
     // its ACK node) becomes an ordinary node with an edge from the named host (fix code attach-invalid), so the diagram the
@@ -701,14 +725,14 @@ export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: Reg
 // ---------- case checks ----------
 
 const EXPECT_KEYS: ReadonlySet<string> = new Set([
-  'asks', 'assumes', 'notAsking', 'notAssuming', 'assumedGone', 'noCompute', 'providerNames', 'gpuNames',
+  'workflow', 'asks', 'assumes', 'notAsking', 'notAssuming', 'assumedGone', 'noCompute', 'providerNames', 'gpuNames',
   'include', 'exclude', 'excludeRaw', 'primaryRec', 'noNodes', 'noRecs', 'req', 'maxOps', 'maxNodes', 'minNodes', 'mention', 'notMention', 'notInLabels',
   'regions', 'attach', 'zones', 'edit', 'restored', 'noWarn', 'question', 'pathOrder', 'noErrors', 'noPrices', 'attachValid',
   'residency', 'pins', 'noAttach', 'linked', 'placement',
 ]);
 const RETAIN_KEYS: ReadonlySet<string> = new Set(['exclude', 'include', 'req', 'regions', 'residency']);
 const EDIT_KEYS: ReadonlySet<string> = new Set(['maxNodeAdds', 'maxNodeRemoves', 'maxEdgeRemoves', 'maxChanged', 'minChanged', 'noGrowth']);
-const CASE_KEYS: ReadonlySet<string> = new Set(['id', 'category', 'lang', 'of', 'title', 'base', 'reference', 'window', 'summarize', 'turns']);
+const CASE_KEYS: ReadonlySet<string> = new Set(['mode', 'id', 'category', 'lang', 'of', 'title', 'base', 'reference', 'window', 'summarize', 'turns']);
 const TURN_KEYS: ReadonlySet<string> = new Set(['ask', 'askRepeat', 'expect', 'retain']);
 const CATEGORIES: ReadonlySet<string> = new Set(['pattern', 'need', 'trap', 'edit', 'multiturn', 'i18n', 'adversarial']);
 const WARNING_CODES: ReadonlySet<string> = new Set([
@@ -757,6 +781,7 @@ export function checkCases(cases: EvalCase[], catalog: Catalog): string[] {
   for (const c of cases) {
     unknownKeys(c, 'case', c, CASE_KEYS);
     if (!/^[a-z0-9][a-z0-9-]*$/.test(c.id)) bad(c, 'id must be kebab-case');
+    if (c.mode !== undefined && !['cloud', 'workflow'].includes(c.mode)) bad(c, `unknown mode '${c.mode}'`);
     if (!CATEGORIES.has(c.category)) bad(c, `unknown category '${c.category}'`);
     if (c.lang && !['en', 'ko', 'zh'].includes(c.lang)) bad(c, `unknown lang '${c.lang}'`);
     if (c.category === 'i18n' && (!c.lang || c.lang === 'en')) bad(c, 'i18n cases need lang ko or zh');
@@ -770,13 +795,17 @@ export function checkCases(cases: EvalCase[], catalog: Catalog): string[] {
       unknownKeys(c, w, t, TURN_KEYS);
       if (!t.ask?.trim()) bad(c, `${w} has no ask`);
       else if (!c.lang || c.lang === 'en') {
-        const key = `${c.base ?? ''}|${t.ask.trim()}`;
+        const key = `${c.mode ?? 'cloud'}|${c.base ?? ''}|${t.ask.trim()}`;
         if (seenAsk.has(key) && !c.of) bad(c, `${w} repeats the ask of ${seenAsk.get(key)}`);
         seenAsk.set(key, c.id);
       }
       const e = t.expect;
       if (e) {
         unknownKeys(c, `${w} expect`, e, EXPECT_KEYS);
+        if (e.workflow !== undefined) {
+          if (c.mode !== 'workflow') bad(c, `${w} workflow assertions require workflow mode`);
+          for (const problem of checkWorkflowExpect(e.workflow, catalog)) bad(c, `${w} workflow: ${problem}`);
+        }
         if (e.include) groups(c, `${w} include`, e.include);
         if (e.exclude) products(c, `${w} exclude`, e.exclude);
         if (e.primaryRec) products(c, `${w} primaryRec`, e.primaryRec);

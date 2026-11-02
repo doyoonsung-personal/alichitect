@@ -1,0 +1,34 @@
+{
+  "id": "wf-insurance-claims-triage",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Insurance Claims FNOL Triage and Settlement",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/insurance-claims-triage.json. One FNOL claim with up to three evidence requests; payout and denial are separate reviewed dispositions. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Set up an agent that ingests first notice of loss emails, extracts medical and repair documents, determines coverage, and queues settlements for adjuster approval",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "extract",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}

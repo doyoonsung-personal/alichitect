@@ -1,0 +1,36 @@
+{
+  "id": "wf-rule-email-send",
+  "mode": "workflow",
+  "category": "trap",
+  "lang": "en",
+  "title": "Email answers need approval",
+  "reference": "Email answers are send, not reply: every path to sending needs approval of the final content. This is the counterpart of wf-rule-chat-reply.",
+  "turns": [
+    {
+      "ask": "Build an email agent that answers order questions from incoming customer emails. Keep human approval before sending each answer.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "human",
+            "end"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "send"
+          ],
+          "tasks": [
+            "approve"
+          ]
+        }
+      }
+    }
+  ]
+}

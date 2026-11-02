@@ -1,0 +1,32 @@
+{
+  "id": "wf-kyc-customer-onboarding",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "KYC and Customer Onboarding Triage",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/kyc-customer-onboarding.json. One webhook event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Create an onboarding agent that verifies customer IDs, screens them against sanctions lists, and routes high-risk profiles to a compliance officer",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end"
+          ],
+          "tasks": [
+            "extract"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}

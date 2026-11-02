@@ -1,0 +1,38 @@
+{
+  "id": "wf-meeting-notes-to-crm-update",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Meeting notes to CRM updates",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/meeting-notes-to-crm-update.json. One recorded meeting, with separate approval of field changes and the follow-up email. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Create a workflow that transcribes our sales calls, extracts deal updates, and shows the rep a diff to approve before writing anything to Salesforce.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "transcribe",
+            "extract",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "write"
+          ]
+        }
+      }
+    }
+  ]
+}

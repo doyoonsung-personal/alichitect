@@ -1,0 +1,34 @@
+{
+  "id": "wf-code-review-pr-agent",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Code Review and Pull-Request Agent",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/code-review-pr-agent.json. One webhook event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Deploy a coding agent that reviews pull requests, runs tests in a sandbox to verify its own comments, filters out noise, and leaves final approval to a human reviewer",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "check",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}

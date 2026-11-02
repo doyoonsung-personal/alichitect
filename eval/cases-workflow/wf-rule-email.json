@@ -1,0 +1,41 @@
+{
+  "id": "wf-rule-email",
+  "mode": "workflow",
+  "category": "trap",
+  "lang": "en",
+  "title": "Inbound email adapter",
+  "reference": "Inbound email requires a mailbox/provider webhook adapter. Direct Mail is outbound, not a native inbound mailbox. Approve each send.",
+  "turns": [
+    {
+      "ask": "Design a support email agent for an international account that receives inbound emails and sends approved answers. Show how email reaches the workflow.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "human",
+            "end"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "send"
+          ],
+          "tasks": [
+            "approve"
+          ]
+        },
+        "mention": [
+          [
+            "webhook"
+          ]
+        ]
+      }
+    }
+  ]
+}

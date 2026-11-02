@@ -1,0 +1,36 @@
+{
+  "id": "wf-rfp-security-questionnaire-answerer",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "RFP and security questionnaire answering",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/rfp-security-questionnaire-answerer.json. One file upload event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Build an agent that parses incoming RFPs, drafts answers from our approved policy library, checks them for hallucinations, and routes them to SMEs for sign-off.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "extract",
+            "generate",
+            "check",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}

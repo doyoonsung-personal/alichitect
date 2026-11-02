@@ -1,0 +1,46 @@
+{
+  "id": "wf-rule-slack",
+  "mode": "workflow",
+  "category": "trap",
+  "lang": "en",
+  "title": "Slack custom webhook",
+  "reference": "Use a custom Slack webhook/event adapter. Do not invent a native AgentRun Slack connector. Guard replies and include escalation.",
+  "turns": [
+    {
+      "ask": "Build an internal Slack question-answering bot for our Singapore team. Show how inbound Slack messages reach it; hand difficult questions to a person.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "reply"
+          ],
+          "forbiddenTasks": [
+            "approve"
+          ],
+          "noWarnings": [
+            "wf-reply-guard"
+          ]
+        },
+        "mention": [
+          [
+            "webhook"
+          ],
+          [
+            "custom"
+          ]
+        ]
+      }
+    }
+  ]
+}

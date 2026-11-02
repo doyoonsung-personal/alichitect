@@ -1,0 +1,51 @@
+{
+  "id": "wf-rule-agentrun-lowcode",
+  "mode": "workflow",
+  "category": "trap",
+  "lang": "en",
+  "title": "AgentRun low-code versus code runtime",
+  "reference": "Explain that AgentRun low-code is gated. AgentRun code runtime is allowed: do not forbid the entire AgentRun product. Use code or Dify on ACK.",
+  "turns": [
+    {
+      "ask": "We are new international customers. Build a support agent using the AgentRun low-code builder. If that builder is gated, show an available code-based runtime.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "runtimes": [
+            [
+              "agentrun",
+              "agentcore",
+              "fc",
+              "ack",
+              "acs",
+              "customer"
+            ]
+          ]
+        },
+        "mention": [
+          [
+            "low-code",
+            "low code"
+          ],
+          [
+            "gated",
+            "restricted",
+            "not available",
+            "access"
+          ]
+        ]
+      }
+    }
+  ]
+}

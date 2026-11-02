@@ -1,0 +1,33 @@
+{
+  "id": "wf-disruption-rebooking-agent",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Flight Disruption Rebooking Agent",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/disruption-rebooking-agent.json. One disruption-status event for a persisted booking; recheck events stop after rebooking or 24 hours. Each run proposes and approves one rebooking. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Build an agent that monitors flight statuses and automatically proposes rebooking options for approval when disruptions happen",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}

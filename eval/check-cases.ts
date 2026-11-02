@@ -9,7 +9,7 @@ import { EVAL_DIR, checkCases, countBy, loadBase, loadCases } from './lib.ts';
 
 const dir = process.argv[2] ? path.resolve(process.argv[2]) : path.join(EVAL_DIR, 'cases');
 const catalog = loadCatalog();
-const cases = loadCases(dir);
+const cases = process.argv[2] ? loadCases(dir) : [...loadCases(dir), ...loadCases(path.join(EVAL_DIR, 'cases-workflow'))];
 const problems = checkCases(cases, catalog);
 
 for (const f of readdirSync(path.join(EVAL_DIR, 'bases')).filter((x) => x.endsWith('.json'))) {

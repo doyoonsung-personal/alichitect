@@ -1,0 +1,41 @@
+{
+  "id": "wf-rule-whatsapp",
+  "mode": "workflow",
+  "category": "trap",
+  "lang": "en",
+  "title": "Inbound WhatsApp chat",
+  "reference": "Use Chat App Message Service for WhatsApp, guarded input, and human escalation. Live replies do not need routine approval.",
+  "turns": [
+    {
+      "ask": "Design a WhatsApp order-status chatbot for Singapore that answers in the live conversation and hands off uncertain questions to a person.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ],
+            [
+              "chatapp"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "reply"
+          ],
+          "forbiddenTasks": [
+            "approve"
+          ],
+          "noWarnings": [
+            "wf-reply-guard"
+          ]
+        }
+      }
+    }
+  ]
+}

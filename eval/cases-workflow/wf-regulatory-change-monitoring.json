@@ -1,0 +1,35 @@
+{
+  "id": "wf-regulatory-change-monitoring",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Regulatory Change Monitoring and Impact Assessment",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/regulatory-change-monitoring.json. One daily regulator-feed and remediation-status scan. Open tasks persist for the next daily trigger; overdue items are included in owner notifications. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Set up a daily job that crawls regulator feeds, translates new rules, maps them to our policies, and drafts impact memos for the compliance owner to approve",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "translate",
+            "generate",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}
