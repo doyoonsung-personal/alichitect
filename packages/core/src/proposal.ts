@@ -129,13 +129,15 @@ export function buildProposalMessages(req: ProposalRequest, catalog: Catalog): C
 
 // Workflow model names describe the design, never the writer.
 const DOCUMENT = String.raw`(?:this|the|our) (?:proposal|document|text|report|narrative)`;
-const AUTHOR_VERB = '(?:written|generated|drafted|prepared|authored|created|produced)';
+const AUTHOR_VERB = '(?:written|generated|drafted|prepared|authored|created|produced|composed)';
 const WRITER = new RegExp([
+  '(?:\\uC791\\uC131|\\uC0DD\\uC131|\\uC81C\\uC791).{0,12}(?:\\uC81C\\uC548\\uC11C|\\uBB38\\uC11C|\\uBCF4\\uACE0\\uC11C)',
+  '(?:\\u7531).{0,60}(?:\\u64B0\\u5199|\\u751F\\u6210|\\u5236\\u4F5C|\\u7F16\\u5199).{0,12}(?:\\u63D0\\u6848|\\u65B9\\u6848|\\u6587\\u6863|\\u62A5\\u544A)',
   String.raw`\b(?:I am|I'm|as an? (?:AI|language model))\b`,
   String.raw`(?:^|[.!?]\s+)${AUTHOR_VERB} (?:by|with|using)\b`,
   String.raw`\b${DOCUMENT}\s+(?:(?:is|was|has been)\s+)?${AUTHOR_VERB}\s+(?:by|with|using)\b`,
   String.raw`\b${DOCUMENT}\s+(?:comes? from|is (?:from|by)|is (?:the work|courtesy) of)\b`,
-  String.raw`\b(?:wrote|generated|drafted|prepared|authored|created|produced)\s+${DOCUMENT}\b`,
+  String.raw`\b(?:wrote|generated|drafted|prepared|authored|created|produced|composed)\s+${DOCUMENT}\b`,
   '(?:\uC774 \uC81C\uC548\uC11C|\uC774 \uBB38\uC11C|\uC774 \uAE00).{0,30}(?:\uC791\uC131|\uC0DD\uC131)',
   '(?:\u672C\u6587|\u672C\u63D0\u6848|\u672C\u65B9\u6848).{0,30}(?:\u64B0\u5199|\u751F\u6210)',
 ].join('|'), 'i');
@@ -301,6 +303,12 @@ const WORKFLOW_MODEL_NAME = /\b(?:Qwen|Llama|GPT|Mistral|Gemma|DeepSeek|Baichuan
 const MONEY_NUMBER = String.raw`\d+(?:[.,]\d+)*`;
 const MONEY_UNIT = String.raw`(?:USD|EUR|GBP|CNY|RMB|KRW|JPY|SGD|HKD|AUD|CAD|INR|dollars?|cents?|euros?|pounds?|yuan|won|yen)`;
 const WORKFLOW_MONEY = new RegExp([
+  String.raw`\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|`
+    + String.raw`eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion)`
+    + String.raw`(?:[ -]+(?:and|\w+)){0,5}\s+${MONEY_UNIT}\b`,
+  String.raw`[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341\u767e\u5343\u4e07\u842c\u4ebf\u5104\u4e24]+`
+    + String.raw`\s*(?:\u7f8e\u5143|\u5143|\u6b27\u5143)`,
+  String.raw`[\uc77c\uc774\uc0bc\uc0ac\uc624\uc721\uce60\ud314\uad6c\uc2ed\ubc31\ucc9c\ub9cc\uc5b5]+\s*(?:\uc6d0|\ub2ec\ub7ec|\uc720\ub85c)`,
   String.raw`\p{Sc}\s*[+-]?\s*${MONEY_NUMBER}`,
   String.raw`\b${MONEY_UNIT}\s*${MONEY_NUMBER}`,
   String.raw`${MONEY_NUMBER}\s*(?:${MONEY_UNIT}\b|元|块|圓|円|원|달러|유로|\p{Sc})`,
@@ -873,7 +881,7 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
         const room = left();
         const timer = Number.isFinite(room) ? AbortSignal.timeout(Math.max(1_000, room - PROPOSAL_LIMITS.deadlineMarginMs)) : null;
         const signal = timer ? (o.signal ? AbortSignal.any([o.signal, timer]) : timer) : o.signal;
-        const b = await o.backup.complete({ messages: msgs, signal, onText: (d) => f.push(d), prices: o.prices });
+        const b = await o.backup.complete({ mode: ctx.workflow ? 'workflow' : 'cloud', messages: msgs, signal, onText: (d) => f.push(d), prices: o.prices });
         f.end();
         book(b);
         if (f.accepted) stats.servedBy = o.backup.provider;

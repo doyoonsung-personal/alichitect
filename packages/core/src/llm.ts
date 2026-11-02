@@ -1,3 +1,4 @@
+import { identityBoundary } from './identity-matcher.ts';
 // Streaming Chat Completions client for Model Studio (OpenAI-compatible endpoint) and the turn runner.
 // streamTurn() posts one request with fetch, parses the SSE stream, feeds content deltas to the NDJSON line parser,
 // validates each op against the catalog and applies it with the reducer, emitting say (partial and final), op, warn,
@@ -615,6 +616,7 @@ export interface OpStreamOptions<M extends TurnMode = 'cloud'> {
   onEvent?: (e: TurnEvent<M>) => void;
   prices?: Record<string, Price>;
   pipeline?: StreamPipeline;
+  cleanIdentity?: (raw: unknown) => unknown;
 }
 
 /** Document-specific operations; each stream gets fresh pending state. */
@@ -676,6 +678,10 @@ export async function streamOps<M extends TurnMode = 'cloud'>(input: OpStreamOpt
   // The selected pipeline emits only the vocabulary selected by the caller's mode.
   const o = input as unknown as OpStreamOptions<TurnMode>;
   const model = o.model;
+  const cleanIdentity = o.provider === 'claude' ? o.cleanIdentity ?? identityBoundary([
+    ...Object.keys(o.graph?.nodes ?? {}), ...Object.keys(o.graph?.edges ?? {}), ...Object.keys(o.graph?.groups ?? {}),
+    ...Object.keys(o.workflow?.nodes ?? {}), ...Object.keys(o.workflow?.edges ?? {}), ...Object.keys(o.workflow?.groups ?? {}),
+  ]) : undefined;
   const emit = (e: TurnEvent<TurnMode>): void => {
     if (!o.onEvent) return;
     try {
@@ -731,6 +737,7 @@ export async function streamOps<M extends TurnMode = 'cloud'>(input: OpStreamOpt
   };
 
   const handle = (raw: unknown): void => {
+    if (cleanIdentity) raw = cleanIdentity(raw);
     r.raw.push(raw);
     if (isObj(raw)) r.rawProducts.push(...pipeline.products(raw));
     const v = pipeline.validate(raw, ctx);
@@ -775,7 +782,8 @@ export async function streamOps<M extends TurnMode = 'cloud'>(input: OpStreamOpt
     onOp: (raw) => handle(raw),
     onBad: (line) => {
       r.badLines.push(line.slice(0, 500));
-      warn([{ code: 'bad-json', ids: [], msg: `unparseable line: ${line.slice(0, 80)}`, severity: 'warn', repaired: false }]);
+      const msg = cleanIdentity ? 'unparseable line' : `unparseable line: ${line.slice(0, 80)}`;
+      warn([{ code: 'bad-json', ids: [], msg, severity: 'warn', repaired: false }]);
     },
   });
 
@@ -785,7 +793,7 @@ export async function streamOps<M extends TurnMode = 'cloud'>(input: OpStreamOpt
       r.content += delta;
       parser.push(delta);
       const p = parser.partialSay();
-      if (p !== null && p !== lastPartial && p.length) {
+      if (!cleanIdentity && p !== null && p !== lastPartial && p.length) {
         lastPartial = p;
         if (r.timings.firstSayMs === null) r.timings.firstSayMs = at();
         emit({ type: 'say', id: sayId, text: p, final: false });
@@ -971,6 +979,7 @@ export interface BackupStreamOptions<M extends TurnMode = 'cloud'> {
   signal?: AbortSignal;
   onEvent?: (e: TurnEvent<M>) => void;
   prices?: Record<string, Price>;
+  cleanIdentity?: (raw: unknown) => unknown;
 }
 
 /**
@@ -1383,11 +1392,16 @@ export async function runTurn<M extends TurnMode = 'cloud'>(
     if (!opts.onEvent) return;
     opts.onEvent({ ...(e.type === 'done' ? { ...e, finishReason: null } : e), phase });
   };
+  const cleanIdentity = identityBoundary([
+    ...Object.keys(memory.graph.nodes), ...Object.keys(memory.graph.edges), ...Object.keys(memory.graph.groups),
+    ...Object.keys(memory.workflow?.nodes ?? {}), ...Object.keys(memory.workflow?.edges ?? {}),
+    ...Object.keys(memory.workflow?.groups ?? {}),
+  ]);
   let backupCalls = 0;
   const onBackupStream = async (msgs: ChatMessage[], graph: Graph, phase: 'main' | 'repair', workflow?: WorkflowGraph): Promise<StreamResult> => {
     backupUsed = true;
     const s = await backup!.stream({
-      mode: opts.mode, models: opts.models, workflow, messages: msgs, catalog, graph, ctx: createCtx(),
+      mode: opts.mode, models: opts.models, workflow, messages: msgs, catalog, graph, ctx: createCtx(), cleanIdentity,
       signal: opts.signal, onEvent: backupEventsFor(phase), prices: opts.prices,
     });
     backupCalls++;
@@ -1645,7 +1659,7 @@ export async function runTurn<M extends TurnMode = 'cloud'>(
   if (!hardFail) {
     next = {
       turns: [...memory.turns, { role: 'user', text: clippedAsk, ...(workflowMode ? { mode: 'workflow' as const } : {}) },
-        { role: 'assistant', text: m.says.join('\n'), changes, ...(workflowMode ? { mode: 'workflow' as const } : {}) }],
+        { role: 'assistant', text: Array.from(m.says.join('\n')).slice(0, 20000).join(''), changes, ...(workflowMode ? { mode: 'workflow' as const } : {}) }],
       requirements: dropRequirements(mergeRequirements(memory.requirements ?? [], m.reqs), replacedTexts),
       graph: finalGraph,
       tombstones: [...(memory.tombstones ?? []), ...diff.tombstones].slice(-80),
@@ -1657,6 +1671,16 @@ export async function runTurn<M extends TurnMode = 'cloud'>(
       next.workflow = finalWorkflow;
       next.workflowTombstones = [...(memory.workflowTombstones ?? []), ...workflowDiff.tombstones].slice(-80);
       next.tombstones = memory.tombstones;
+    }
+    if (next.estimate) {
+      next.estimate = { ...next.estimate };
+      for (const key of ['steps', 'items', 'shares', 'loops', 'agents', 'guardTypes'] as const) {
+        const map = next.estimate[key];
+        if (!map) continue;
+        const ids = key === 'items' ? next.workflow?.groups
+          : key === 'shares' || key === 'loops' ? next.workflow?.edges : next.workflow?.nodes;
+        Object.assign(next.estimate, { [key]: Object.fromEntries(Object.entries(map).filter(([id]) => Object.hasOwn(ids ?? {}, id))) });
+      }
     }
     if (pinned.length) next.constraints = pinned;
     // Assumptions persist by id until a pinned requirement settles them; questions are replaced every assistant turn.

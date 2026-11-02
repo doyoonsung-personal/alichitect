@@ -295,8 +295,13 @@ function clipText(s: string, max: number): string {
 }
 
 /** Removes the delimiter tags from user text so it cannot close its own wrapper. */
-function fence(s: string): string {
-  return s.replace(/<\/?\s*user_message\s*>/gi, ' ');
+export function fence(s: string): string {
+  let previous: string;
+  do {
+    previous = s;
+    s = s.replace(/<\/?\s*user_message\s*>/gi, ' ');
+  } while (s !== previous);
+  return s;
 }
 
 /** An assistant turn as the ops it streamed: its say lines, then a done op holding the change summary. */

@@ -27,6 +27,8 @@ function dual(): SessionMemory {
     items: { batch: { typical: 5, upper: 10 } }, shares: { route: 0.5 }, loops: { route: { typical: 2, upper: 3 } },
     agents: { start: { typical: 2, upper: 5, resultTokens: 100, searchesPerRequest: 1 } }, guardTypes: { start: 3 } };
   memory.workflow.nodes.start = { id: 'start', kind: 'agent', label: '\ud55c\uad6d \u4e2d\u6587', ai: 'qwen3.8-max', tool: 'web_search', turns: 5 };
+  memory.workflow.groups.batch = { id: 'batch', over: 'items' };
+  memory.workflow.edges.route = { id: 'route', from: 'start', to: 'start' };
   memory.workflowTombstones = [{ id: 'old', kind: 'ai', label: 'Removed', ai: 'qwen3.8-flash' },
     { id: 'old-link', from: 'start', to: 'old' }, { id: 'old-group', over: 'locale' }];
   return memory;
@@ -45,7 +47,7 @@ test('workflow parser round trips all settings, independently parses tombstones 
   assert.deepEqual(clean.value.memory, memory);
 });
 
-test('workflow parser rejects bad shapes, prototype keys, oversized maps and unbounded estimates', () => {
+test('workflow parser rejects bad shapes, prototype keys and oversized documents', () => {
   const mutations = [
     (m: any) => m.workflow.nodes.start.kind = 'node',
     (m: any) => m.workflow.nodes.start.id = 'different',
@@ -54,9 +56,6 @@ test('workflow parser rejects bad shapes, prototype keys, oversized maps and unb
     (m: any) => m.workflow.nodes.start.label = 'x'.repeat(401),
     (m: any) => m.workflowSettings.approvalOn = ['unknown'],
     (m: any) => m.workflowTombstones = Array(81).fill(m.workflowTombstones[0]),
-    (m: any) => m.estimate.runsPerMonth = Infinity,
-    (m: any) => m.estimate.shares.route = 1.1,
-    (m: any) => m.estimate.guardTypes.start = 4,
     (m: any) => m.estimate.steps = JSON.parse('{"__proto__":{}}'),
     (m: any) => m.workflow.nodes = Object.fromEntries(Array.from({ length: 41 }, (_, i) => ['n-' + i, { id: 'n-' + i, kind: 'end', label: '' }])),
     (m: any) => m.workflow.edges = Object.fromEntries(Array.from({ length: 61 }, (_, i) => ['e-' + i, { id: 'e-' + i, from: 'a', to: 'b' }])),
@@ -113,7 +112,7 @@ test('large Korean and Chinese dual-document request is compacted below 512 KiB 
   };
   for (let i = 0; i < LIMITS.edges; i++) m.graph.edges['e-' + i] = { id: 'e-' + i, from: 'n-0', to: 'n-1', label: text.slice(0, 40) };
   for (let i = 0; i < LIMITS.groups; i++) m.graph.groups['g-' + i] = { id: 'g-' + i, kind: 'vpc', label: text.slice(0, 40), parent: null };
-  m.workflow!.nodes = {};
+  m.workflow = { nodes: {}, edges: {}, groups: {} };
   for (let i = 0; i < LIMITS.workflowNodes; i++) m.workflow!.nodes['s-' + i] = { id: 's-' + i, kind: 'end', label: text.slice(0, 40), why: text.slice(0, 160) };
   for (let i = 0; i < LIMITS.workflowEdges; i++) m.workflow!.edges['l-' + i] = { id: 'l-' + i, from: 's-0', to: 's-1', label: text.slice(0, 40) };
   for (let i = 0; i < LIMITS.workflowGroups; i++) m.workflow!.groups['r-' + i] = { id: 'r-' + i, over: text.slice(0, 40) };

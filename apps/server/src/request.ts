@@ -273,7 +273,7 @@ function memory(v: unknown, p: string): SessionMemory {
       .map((x, i) => workflowTombstone(x, `${p}.workflowTombstones[${i}]`));
   }
   if (own(o, 'workflowSettings') !== undefined) m.workflowSettings = workflowSettings(own(o, 'workflowSettings'), `${p}.workflowSettings`);
-  if (own(o, 'estimate') !== undefined) m.estimate = estimate(own(o, 'estimate'), `${p}.estimate`);
+  if (own(o, 'estimate') !== undefined) m.estimate = estimate(own(o, 'estimate'), `${p}.estimate`, m.workflow);
   return m;
 }
 
@@ -403,11 +403,14 @@ function workflowGroup(v: unknown, p: string): WorkflowGroup {
 
 function workflow(v: unknown, p: string): WorkflowGraph {
   const o = obj(v, p);
-  return {
+  const graph = {
     nodes: record(own(o, 'nodes'), `${p}.nodes`, LIMITS.workflowNodes, workflowNode),
     edges: record(own(o, 'edges'), `${p}.edges`, LIMITS.workflowEdges, workflowEdge),
     groups: record(own(o, 'groups'), `${p}.groups`, LIMITS.workflowGroups, workflowGroup),
   };
+  const ids = [...Object.keys(graph.nodes), ...Object.keys(graph.edges), ...Object.keys(graph.groups)];
+  if (new Set(ids).size !== ids.length) fail(p, 'node, edge and group ids must be disjoint');
+  return graph;
 }
 
 function workflowTombstone(v: unknown, p: string): WorkflowNode | WorkflowEdge | WorkflowGroup {
@@ -427,22 +430,28 @@ function workflowSettings(v: unknown, p: string): WorkflowSettings {
   return out;
 }
 
-function estimate(v: unknown, p: string): WorkflowEstimateSettings {
+function estimate(v: unknown, p: string, workflow?: WorkflowGraph): WorkflowEstimateSettings {
+  const advisory = (v: unknown, max: number, integer = false): v is number =>
+    typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= max && (!integer || Number.isInteger(v));
   const o = obj(v, p);
   const out: WorkflowEstimateSettings = {};
-  if (own(o, 'runsPerMonth') !== undefined) out.runsPerMonth = number(o.runsPerMonth, `${p}.runsPerMonth`, ESTIMATE_LIMITS.runsPerMonth, 0, true);
+  if (advisory(o.runsPerMonth, ESTIMATE_LIMITS.runsPerMonth, true)) out.runsPerMonth = o.runsPerMonth;
   if (own(o, 'scope') !== undefined) out.scope = choice(o.scope, `${p}.scope`, ['international', 'global']);
   for (const k of ['steps', 'items', 'shares', 'loops', 'agents', 'guardTypes'] as const) {
     if (own(o, k) === undefined) continue;
     const map = obj(o[k], `${p}.${k}`);
+    for (const key of Object.keys(map)) workflowId(key, `${p}.${k}.${key}`);
     const max = k === 'items' ? LIMITS.workflowGroups : k === 'shares' || k === 'loops' ? LIMITS.workflowEdges : LIMITS.workflowNodes;
-    if (Object.keys(map).length > max) fail(`${p}.${k}`, `more than ${max} entries`);
+    const ids = k === 'items' ? workflow?.groups : k === 'shares' || k === 'loops' ? workflow?.edges : workflow?.nodes;
+    const keys = Object.keys(map).filter((key) => Object.hasOwn(ids ?? {}, key));
+    if (keys.length > max) fail(`${p}.${k}`, `more than ${max} entries`);
     const parsed: Record<string, unknown> = {};
-    for (const key of Object.keys(map)) {
+    for (const key of keys) {
       const path = `${p}.${k}.${key}`;
       workflowId(key, path);
       if (k === 'shares' || k === 'guardTypes') {
-        parsed[key] = number(map[key], path, k === 'shares' ? ESTIMATE_LIMITS.share : ESTIMATE_LIMITS.guardTypes, 0, k === 'guardTypes');
+        const value = map[key];
+        if (advisory(value, k === 'shares' ? ESTIMATE_LIMITS.share : ESTIMATE_LIMITS.guardTypes, k === 'guardTypes')) parsed[key] = value;
         continue;
       }
       const value = obj(map[key], path);
@@ -452,7 +461,8 @@ function estimate(v: unknown, p: string): WorkflowEstimateSettings {
       for (const field of fields) {
         if (own(value, field) === undefined) continue;
         item[field] = field === 'thinking' || field === 'offline' ? bool(value[field], `${path}.${field}`)
-          : number(value[field], `${path}.${field}`, ESTIMATE_LIMITS.amount);
+          : advisory(value[field], ESTIMATE_LIMITS.amount) ? value[field] : undefined;
+        if (item[field] === undefined) delete item[field];
       }
       parsed[key] = item;
     }
