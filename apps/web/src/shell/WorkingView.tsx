@@ -1,3 +1,5 @@
+import { useWorkflowProps } from '../workflow/props.ts';
+import { WorkflowPanel } from '../panel/WorkflowPanel.tsx';
 // The working view: header, console on the left, the stage on the right (canvas, with the products bar and panel under
 // it). The builders' components get their props from the store through the hooks in app/props.ts.
 import { useEffect } from 'react';
@@ -26,6 +28,9 @@ export function WorkingView(): ReactElement {
   const consoleProps = useConsoleProps();
   const canvasProps = useCanvasProps();
   const panelProps = usePanelProps();
+  const workflowProps = useWorkflowProps();
+  const mode = useAppState((s) => s.session.mode ?? 'cloud');
+  const sessionId = useAppState((s) => s.session.id);
 
   // the landing box travels to the composer once the console has mounted
   useEffect(() => {
@@ -42,7 +47,7 @@ export function WorkingView(): ReactElement {
   }, [handoff]);
 
   return (
-    <div className="app app--working" data-focus={focus || undefined} data-panel-open={open || undefined}>
+    <div className="app app--working" data-view={mode} data-focus={focus || undefined} data-panel-open={open || undefined}>
       <a className="skip" href="#composer" onClick={(e) => { e.preventDefault(); document.querySelector<HTMLElement>('.console [data-flip="composer"] textarea')?.focus(); }}>
         {t('skip.toComposer')}
       </a>
@@ -54,12 +59,12 @@ export function WorkingView(): ReactElement {
         <div className="work__console" hidden={focus}>
           <Console {...consoleProps} />
         </div>
-        <div className="stage" data-enter={handoff || undefined}>
-          <main id="diagram" className="stage__canvas" tabIndex={-1} aria-label={t('canvas.label')}>
-            <Canvas {...canvasProps} />
+        <div key={sessionId} className="stage" data-enter={handoff || undefined}>
+          <main id="diagram" className="stage__canvas" tabIndex={-1} aria-label={t(mode === 'workflow' ? 'workflow.canvas.label' : 'canvas.label')}>
+            <Canvas key={mode} {...(mode === 'workflow' ? workflowProps : canvasProps)} />
           </main>
           <div className="stage__panel">
-            <Panel {...panelProps} />
+            {mode === 'workflow' ? <WorkflowPanel {...workflowProps} /> : <Panel {...panelProps} />}
           </div>
         </div>
       </div>

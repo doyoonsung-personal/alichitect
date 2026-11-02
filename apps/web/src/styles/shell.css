@@ -486,3 +486,21 @@ a.menu__item {
   .header { padding: 0 8px; }
   .header__right { gap: 0; }
 }
+
+.app--working[data-view="workflow"] { grid-template-rows: auto minmax(0, 1fr); }
+[data-view="workflow"] .header { height: auto; min-height: var(--header-h); flex-wrap: wrap; padding-top: 8px; }
+.workflow-settings { flex: 1 0 100%; min-width: 0; display: flex; align-items: center; flex-wrap: wrap;
+  gap: 8px 16px; border: 0; border-top: 1px solid var(--line-1); margin: 8px 0 0; padding: 8px 0; font-size: 12px; }
+.workflow-settings label { display: inline-flex; align-items: center; gap: 8px; }
+.workflow-settings input { width: 130px; }
+.workflow-settings select, .workflow-settings input { background: var(--sheet); color: inherit; border: 1px solid var(--line-1); }
+.workflow-approvals { display: grid; gap: 8px; padding: 12px; }
+.workflow-editing { font-size: 12px; padding: 8px 16px 0; margin: 0; }
+
+[data-view="workflow"] .header__right { flex-wrap: wrap; gap: 6px; min-width: 0; }
+[data-view="workflow"] .mode { flex: none; white-space: nowrap; }
+.workflow-diagrams select { max-width: 150px; background: var(--sheet); color: var(--ink); }
+@media (max-width: 920px) {
+  [data-view="workflow"] .header__right { flex-basis: 100%; margin-top: 6px; }
+  [data-view="workflow"] .header__right .btn { padding: 4px 6px; }
+}

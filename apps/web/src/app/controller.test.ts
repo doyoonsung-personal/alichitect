@@ -377,3 +377,17 @@ test('ordinary requests explicitly default to cloud', async () => {
   assert.equal((t.requests.find((r) => r.url.endsWith('/api/turn'))!.body as { mode: string }).mode, 'cloud');
   t.c.dispose();
 });
+
+test('workflow setting actions save through the existing persistence path', async () => {
+  const { c, store, sessions } = setup({ turn: () => turnResponse(loadFixtureFile('stub-mixed-workflow'), 1) });
+  await c.boot();
+  c.setMode('workflow');
+  assert.equal(c.submit('Draw workflow'), 'started');
+  await until(() => !store.getState().work);
+  c.setWorkflowSettings({ region: 'ap-southeast-1', approvalOff: ['pay'] });
+  c.setWorkflowEstimate({ runsPerMonth: 123, steps: { a: { inTokens: 15 } } });
+  const id = store.getState().session.id;
+  assert.deepEqual(sessions.get(id)?.memory.workflowSettings, { region: 'ap-southeast-1', approvalOff: ['pay'] });
+  assert.equal(sessions.get(id)?.memory.estimate?.runsPerMonth, 123);
+  c.dispose();
+});

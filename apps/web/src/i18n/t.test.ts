@@ -1,3 +1,4 @@
+import type { StringKey } from './t.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { keysOf, langFromTag, makeT, t } from './t.ts';
@@ -52,4 +53,13 @@ test('langFromTag', () => {
   assert.equal(langFromTag('zh-Hans-CN'), 'zh');
   assert.equal(langFromTag('en-US'), 'en');
   assert.equal(langFromTag(undefined), 'en');
+});
+
+test('workflow translations contain actual Korean and Chinese text', () => {
+  for (const key of keysOf('en').filter((key) => /^(workflow|focus|landing.workflow)\./.test(key))) {
+    const ko = t('ko', key as StringKey), zh = t('zh', key as StringKey);
+    assert.ok(/[가-힣]/.test(ko), key);
+    assert.ok(/[\u3400-\u9fff]/.test(zh), key);
+    assert.ok(!ko.includes('??') && !zh.includes('??'), key);
+  }
 });

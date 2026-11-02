@@ -1,3 +1,5 @@
+import { layoutWorkflow, tidyWorkflow } from '@ali/core/workflow-layout.ts';
+import type { WorkflowSettings, WorkflowEstimateSettings } from '@ali/core/types.ts';
 // The session store's reducer: pure, deterministic, no timers and no DOM. The controller dispatches actions with the
 // clock in them, so replays and tests are exact. One reducer owns the turn: the working raw graph (core applyOp on each
 // streamed op), the display graph (displayGraph over repairGraph), the layout (layoutGraph with the previous layout, for
@@ -58,6 +60,9 @@ export type Action =
   | { type: 'lang/set'; lang: Lang }
   | { type: 'conn/set'; mode: ConnMode; health: Health | null; now: number }
   | { type: 'account/set'; account: Account | null }
+  | { type: 'workflow/settings'; next: WorkflowSettings; now: number }
+  | { type: 'workflow/estimate'; next: WorkflowEstimateSettings; now: number }
+  | { type: 'workflow/tidy' }
   | { type: 'session/mode'; mode: TurnMode }
   | { type: 'session/new'; id: string; now: number }
   | { type: 'session/open'; record: SessionRecord; now: number }
@@ -248,6 +253,20 @@ export function reduce(state: AppState, action: Action, deps: StoreDeps): AppSta
       return { ...state, account: action.account };
     case 'sessions/list':
       return { ...state, sessions: action.sessions, sessionsVersion: state.sessionsVersion + 1 };
+    case 'workflow/settings':
+    case 'workflow/estimate': {
+      if (state.work || state.replay) return state;
+      const field = action.type === 'workflow/settings' ? 'workflowSettings' : 'estimate';
+      const next = { ...state, session: { ...state.session, updatedAt: action.now,
+        memory: { ...state.session.memory, [field]: structuredClone(action.next) } } };
+      return action.type === 'workflow/estimate' ? live(next, t(state.lang, 'workflow.live.estimate')) : next;
+    }
+    case 'workflow/tidy': {
+      if (state.work || state.replay) return state;
+      return live({ ...state, workflowDisplay: { ...state.workflowDisplay,
+        layout: tidyWorkflow(state.workflowDisplay.graph), version: state.workflowDisplay.version + 1 } },
+      t(state.lang, 'workflow.live.tidied'));
+    }
     case 'session/mode':
       return { ...state, session: { ...state.session, mode: action.mode },
         ui: { ...state.ui, highlight: null, hoverCard: null, panTo: null } };
@@ -602,8 +621,9 @@ function flush(state: AppState, deps: StoreDeps): AppState {
   const work = state.work;
   if (!work || !work.dirty) return state;
   if (work.mode === 'workflow') {
-    return { ...state, workflowDisplay: workflowDisplay(state, work.rawWorkflow, 'batch'),
-      work: { ...work, dirty: false, batches: work.batches + 1 } };
+    return live({ ...state, workflowDisplay: workflowDisplay(state, work.rawWorkflow, 'batch'),
+      work: { ...work, dirty: false, batches: work.batches + 1 } },
+    t(state.lang, 'workflow.live.updated', { n: Object.keys(work.rawWorkflow.nodes).length }));
   }
   const d = displayOpenTurn({ raw: work.raw, catalog: deps.catalog, drawn: work.drawn, shownAtTurnStart: work.shownAtTurnStart, touched: work.touched, constraints: work.constraints });
   const first = work.batches === 0;
@@ -760,7 +780,8 @@ export function sessionSummary(s: SessionRecord): SessionSummary {
 
 // Workflow display snapshots stay separate until the workflow canvas supplies layout.
 function workflowDisplay(state: AppState, graph: WorkflowGraph, reason: DisplayReason): AppState['workflowDisplay'] {
-  return { graph, version: state.workflowDisplay.version + 1, reason };
+  return { graph, layout: layoutWorkflow(graph, reason === 'restore' ? undefined : state.workflowDisplay.layout),
+    version: state.workflowDisplay.version + 1, reason };
 }
 
 function isWorkflowOp(op: Op | WorkflowOp): op is WorkflowOp {

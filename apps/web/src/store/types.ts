@@ -1,3 +1,4 @@
+import type { WorkflowLayoutState } from '@ali/core/workflow-layout.ts';
 // The session store's data model. One source of truth for the console, the canvas and the products panel.
 // Everything here is plain data (no classes, no functions), so it can be persisted, replayed and tested.
 import type { Constraint, Graph, SessionMemory, TurnMode, Warning, WorkflowGraph } from '@ali/core/types.ts';
@@ -325,7 +326,7 @@ export interface AppState {
   turn: TurnStatus;
   work: TurnWork | null;
   display: DisplayState;
-  workflowDisplay: { graph: WorkflowGraph; version: number; reason: DisplayReason };
+  workflowDisplay: { layout?: WorkflowLayoutState; graph: WorkflowGraph; version: number; reason: DisplayReason };
   canvas: { w: number; h: number };
   ui: UiState;
   replay: ReplayState | null;

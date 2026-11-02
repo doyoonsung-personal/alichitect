@@ -33,6 +33,7 @@ const selDraft = (s: AppState) => s.ui.composerDraft;
 export function Landing(): ReactElement {
   const { lang, t } = useT();
   const c = useController();
+  const mode = useAppState((s) => s.session.mode ?? 'cloud');
   const conn = useAppState(selConn);
   const handoff = useAppState(selHandoff);
   const draft = useAppState(selDraft);
@@ -110,7 +111,7 @@ export function Landing(): ReactElement {
           <BrandMark lang={lang} name={t('app.name')} size="landing" cursor />
         </h1>
         <p id="landing-lead" className="landing__lead">
-          {t('landing.lead')}
+          {t(mode === 'workflow' ? 'landing.workflow.lead' : 'landing.lead')}
         </p>
         <form
           className="brief"
@@ -121,11 +122,19 @@ export function Landing(): ReactElement {
             submit();
           }}
         >
+          <fieldset className="brief__focus">
+            <legend>{t('focus.label')}</legend>
+            {(['cloud', 'workflow'] as const).map((value) => <label key={value}>
+              <input type="radio" name="focus" value={value} checked={mode === value}
+                onChange={() => { c.setMode(value); if (exampleId) { setText(''); setExampleId(undefined); } }} />
+              {t(value === 'cloud' ? 'focus.cloud' : 'focus.workflow')}
+            </label>)}
+          </fieldset>
           <textarea
             ref={box}
             className="brief__input"
             aria-labelledby="landing-lead"
-            placeholder={t('landing.placeholder')}
+            placeholder={t(mode === 'workflow' ? 'landing.workflow.placeholder' : 'landing.placeholder')}
             value={text}
             rows={1}
             spellCheck={false}
@@ -143,7 +152,7 @@ export function Landing(): ReactElement {
               {hint}
             </p>
             <button type="submit" className="btn btn--primary" disabled={tooLong}>
-              <span>{t('landing.submit')}</span>
+              <span>{t(mode === 'workflow' ? 'landing.workflow.submit' : 'landing.submit')}</span>
               <Icon name="send" />
             </button>
           </div>
@@ -152,7 +161,7 @@ export function Landing(): ReactElement {
           {announce}
         </p>
         {notice === 'offline' ? <OfflineNotice t={t} checking={conn.mode === 'checking'} onRetry={() => void c.checkHealth()} onReplay={() => void c.startReplay(defaultFixtureFor(lang, exampleId))} className="notice--landing" /> : null}
-        <section className="examples" aria-labelledby="examples-heading">
+        <section hidden={mode === 'workflow'} className="examples"  aria-labelledby="examples-heading">
           <h2 id="examples-heading" className="examples__heading">
             {t('landing.examplesHeading')}
           </h2>

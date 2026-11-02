@@ -1,3 +1,4 @@
+import { useAppState } from '../store/react.tsx';
 // The composer (spec 7.13): the box the landing brief travelled into. Enter sends, Shift+Enter adds a line, and Enter
 // during a Korean or Chinese composition only commits it. While a turn streams the draft stays editable, Enter does not
 // send, and Send becomes Stop.
@@ -15,6 +16,7 @@ const MIN_PX = 48;
 
 export function Composer({ ctx }: { ctx: ConsoleCtx }): ReactElement {
   const { t, turn, replay, askLimit, draft, actions } = ctx;
+  const workflow = useAppState((s) => (s.session.mode ?? 'cloud') === 'workflow');
   const [text, setText] = useState('');
   const [composing, setComposing] = useState(false);
   const field = useRef<HTMLTextAreaElement>(null);
@@ -71,6 +73,7 @@ export function Composer({ ctx }: { ctx: ConsoleCtx }): ReactElement {
         if (!busy && canSend) send();
       }}
     >
+      {workflow && <p className="workflow-editing">{t('workflow.editing')}</p>}
       <div className="cmp__box" data-flip="composer" data-busy={busy || undefined}>
         <textarea
           ref={field}

@@ -171,3 +171,41 @@ test('workflow-only committed content enables export while an empty document doe
   assert.equal(Object.keys(store.getState().session.memory.graph.nodes).length, 0);
   assert.equal(canExport(store.getState()), true);
 });
+
+test('workflow settings preserve memory, advance time and refuse active edits', () => {
+  const store = newStore(), old = store.getState().session.memory.graph;
+  store.dispatch({ type: 'workflow/settings', next: { region: 'ap-southeast-1', approvalOn: ['send'] }, now: 101 });
+  store.dispatch({ type: 'workflow/estimate', next: { runsPerMonth: 42 }, now: 102 });
+  assert.equal(store.getState().session.memory.graph, old);
+  assert.equal(store.getState().session.updatedAt, 102);
+  assert.equal(store.getState().session.memory.workflowSettings?.approvalOn?.[0], 'send');
+  const version = store.getState().workflowDisplay.version;
+  store.dispatch({ type: 'workflow/tidy' });
+  assert.equal(store.getState().workflowDisplay.version, version + 1);
+  assert.ok(store.getState().workflowDisplay.layout);
+  start(store);
+  const before = store.getState();
+  store.dispatch({ type: 'workflow/estimate', next: { runsPerMonth: 99 }, now: 103 });
+  store.dispatch({ type: 'workflow/tidy' });
+  assert.equal(store.getState(), before);
+});
+
+test('settings persist across save/reload and replay refuses all settings mutations', () => {
+  const store = replay();
+  store.dispatch({ type: 'replay/set', replay: {
+    fixtureId: 'stub-mixed-workflow', speed: 'instant', turn: 1, playing: false, recordedAt: '',
+  } });
+  const before = store.getState();
+  store.dispatch({ type: 'workflow/settings', next: { region: 'different' }, now: 500 });
+  store.dispatch({ type: 'workflow/estimate', next: { runsPerMonth: 7 }, now: 500 });
+  assert.equal(store.getState(), before);
+  store.dispatch({ type: 'replay/set', replay: null });
+  store.dispatch({ type: 'workflow/settings', next: { approvalOff: ['pay'] }, now: 501 });
+  const record = { ...store.getState().session, replayOf: null };
+  let saved = '';
+  const persistence = createSessionStore({ getItem: () => saved, setItem: (_, v) => { saved = v; } });
+  assert.ok(persistence.save(record));
+  const revived = persistence.get(record.id)!;
+  assert.deepEqual(revived.memory.workflowSettings, { approvalOff: ['pay'] });
+  assert.equal(revived.memory.estimate?.runsPerMonth, 1000);
+});
