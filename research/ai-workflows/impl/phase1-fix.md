@@ -1,0 +1,13 @@
+Fix task in C:/Users/mendo/ali_catalog. Node cannot run in your sandbox: do not run anything; I will run the suites and send failures back.
+
+`research/ai-workflows/impl/phase1-review-findings.md` lists 7 defects in the phase 1 workflow code. I reproduced all 7 with the exact inputs given there (all are real). Fix them in `packages/core/src/workflow.ts` and `packages/core/src/workflow-validate.ts`, following the "Fix" line of each finding, and add one regression test per finding using its exact counterexample (reducer findings in `packages/core/test/workflow.test.ts`, check findings in `packages/core/test/workflow-checks.test.ts`).
+
+Design decisions to follow:
+- Finding 1: collect untrusted inputs through attachment descendants recursively (with a visited set), for wf-reply-guard and wherever else attachments of a node are scanned for untrusted or private inputs (wf-trifecta's upstream set must also include nested attachments).
+- Finding 2: `unstep` removes pending links with that id too (no tombstone for a pending-only link; if the id exists only in pending, that is a successful removal, not an unknown-id warning).
+- Finding 3 and 6: make splice atomic. Resolve the insertion id first; if it equals either endpoint of the target link, reject the splice with `wf-bad-op` (warn) and change nothing. Reserve room for both halves (edge cap) before upserting the node or flushing pending links; if there is no room, change nothing and warn `cap-exceeded`. Failure of either half means no change at all (stage on the copied graph and only return it when the whole splice succeeded; leave ctx.pending unchanged on failure).
+- Finding 4: one bounded id allocator used for collision renames, splice second-half ids and repair link ids: generated ids must satisfy `ID_PATTERN` from `reducer.ts` (at most 41 characters), truncating the base so the suffix fits, and must be stable under `normalizeId` (normalizeId(generated) === generated).
+- Finding 5: the namespace check includes pending link ids; when flushing a queued link, remove that exact queued entry (by reference), never whichever pending entry happens to match a newly allocated id.
+- Finding 7: sort by id wherever the reducer iterates nodes, edges or groups to produce removed, tombstones, updated or removedThisTurn.
+
+Keep everything else unchanged: the public function signatures, the warning codes, the existing tests (they must still pass; only change an existing test if a fix makes its old expectation wrong, and say which and why). Keep the code readable. Do not edit any other file. Do not commit. Report each finding with the change you made and the test name you added.

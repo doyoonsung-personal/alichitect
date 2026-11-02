@@ -3,9 +3,9 @@
 Date: 2026-11-02. Status: **draft, revised after two adversarial reviews.** One review checked the plan against the code; the other attacked the design. Section 15 records what each changed. The recommended first release is in section 12.
 
 **Research behind it** (section 14):
-- 14 Qwen deep-research reports, with a fifteenth (documents) pending;
+- 15 Qwen deep-research reports;
 - 4 GPT research reports;
-- about 850 claims checked by GPT against the cited pages;
+- about 900 claims checked by GPT against the cited pages;
 - settled rulings in `verify/NOTES.md`.
 
 ## 1. Goal
@@ -253,6 +253,7 @@ interface WorkflowNode {
   product?: string;       // the service the step calls: tablestore, direct-mail, chatapp, ai-guardrails ...
   runs?: string;          // where the step's own code runs: fc, agentrun, agentcore, cloudflow, dify-on-ack, or 'customer'
   ai?: string;            // models.json id for ai and agent steps, and for model-backed retrieve or rerank (never "model", D4)
+  tool?: string;          // tool steps: a built-in tool id from models.json (web_search, web_search_image, web_extractor, code_interpreter, mcp, pdf_parse)
   turns?: number;         // agent: maximum model requests per run
   effect?: Effect;        // act, tool and memory steps; required on act and on memory (read or write)
   untrusted?: boolean;    // trigger, tool, knowledge: content from outside the customer (inbound email, web, uploads)
@@ -285,6 +286,7 @@ interface WorkflowGraph { nodes: Record<string, WorkflowNode>; edges: Record<str
   - Alternatives are tried in this order: outcome-typed links, `branch` conditions in link order, `escalate`, `loop` while its count allows, then `exhausted`.
 - **Fan-in:** a step reached by parallel links waits for all of them unless `join: 'any'`. A step where exclusive branches merge proceeds on whichever arrives.
 - **Approval:**
+  - An approve step counts as approval only for paths that leave it by its `approve` link. A `timeout`, `reject` or `edit` route out of it is not approved, so "approve: timeout → send anyway" fails the check.
   - A human step with `task: 'approve'` approves its `subject`'s output. By default the subject is the nearest step upstream that produces content: an ai or agent step, or a tool that creates a document. `guard`, `decide` and `read` steps between them pass that output through unchanged.
   - Its out-links carry `outcome`: `approve` and `reject` are required; `edit` and `timeout` are optional.
   - An `edit` link goes back to the step that produced the output, and the approval repeats. Approving one draft never covers a later, changed one.
@@ -470,9 +472,10 @@ The price key is the model plus scope, input tier and thinking mode, because tho
 | `qwen3-coder-flash` | mid | code generation and review steps | $0.30 / $1.50 at ≤32K | Rises with input tier. |
 | `qwen3-vl-plus` | mid | image and document understanding without tool calls | $0.20 / $1.60 at ≤32K | No function calling or batch in Singapore; use `qwen3.7-plus` when the step calls tools. |
 | `qwen-vl-ocr` | small | OCR of scans and photos | $0.07 / $0.16 | The international OCR model. `qwen3.5-ocr` shows only a Beijing price, so it's left out. |
-| `qwen3.8-omni-flash` | small | audio and video understanding over HTTP | $0.15 / $0.47; cache hit $0.016 | Text output only. |
+| `qwen3.8-omni-flash` | small | audio and video understanding over HTTP | not confirmed | Text output only. The $0.15 / $0.47 figure came from the report, not a checked page, so the row ships without a price. |
 | `qwen-audio-3.1-realtime-flash` | mid | real-time voice agents with tool calls | text in $0.23, audio in $0.93, text out $0.70, audio out $1.87 | WebSocket on the workspace host. |
-| `qwen-audio-3.1-asr-flash` | small | transcription | **pending** | Two readings disagree ($0.15 / $0.47 vs $0.93 / $0.70). The row ships only once one is confirmed. |
+| `qwen-audio-3.1-asr-flash` | small | transcribing recorded audio and files | $0.15 / $0.47 | |
+| `qwen-audio-3.1-asr-flash-streaming` | small | live transcription | $0.93 / $0.70 | The two readings that looked like a conflict were these two models. |
 | `qwen-audio-3.1-tts-plus` | small | speech output | $0.30 per 10,000 characters | |
 | `text-embedding-v4` | small | indexing and retrieval | $0.07 | 64–2,048 dimensions. No Batch Inference. |
 | `qwen3-rerank` | small | reranking retrieved chunks | $0.10 | Text only. `qwen3-vl-rerank` has no Singapore price, so it's left out. |
@@ -494,6 +497,7 @@ The price key is the model plus scope, input tier and thinking mode, because tho
 |---|---|
 | `web_search` | $10 per 1,000 calls in Singapore, plus the tokens it adds |
 | `web_search_image` | $8 per 1,000 calls |
+| PDF understanding | $0.0033 per parsed page in Singapore, plus model tokens |
 | `web_extractor`, `code_interpreter` | free for a limited time, plus tokens; shown as "currently free" |
 | MCP servers | tokens, plus whatever each server charges |
 | AI Guardrails | $6 per 10,000 calls for **each** enabled detection type (content compliance, sensitive content, prompt injection) |
@@ -519,7 +523,7 @@ The products a workflow names already exist in `products.json` or `offerings.jso
 | `model-studio-apps` | Already `preview` and `restricted`. Note that the gate is a Singapore application created before 2025-04-21, not account age, and that `file_search` depends on it. |
 | `chatapp` | Channels: WhatsApp, Viber, Messenger, Instagram, Telegram, LINE, SMS and email. Since 2026-09-01:<br>- Messenger, Instagram, Telegram and LINE: $0.005 per message, charged even when delivery fails;<br>- WhatsApp and Viber: $0.005 per message or conversation, plus the channel's own fees;<br>- SMS and email: no platform fee. |
 | `dashvector` | Singapore: P.small $0.06/hour and S.small $0.045/hour, × replicas. |
-| `agentloop` | Documented regions are Hangzhou, Shanghai and Hong Kong. Singapore isn't established, despite an API endpoint there. |
+| `agentloop` | The general region list names Hangzhou, Shanghai and Hong Kong. The multimodal evaluator docs also list Singapore, so availability varies by feature: confirm the feature before drawing it in Singapore. |
 | `ai-guardrails` | Price per detection type. Endpoint `green-cip.ap-southeast-1`. Available in Singapore, Hong Kong, Frankfurt and Virginia. |
 | `eventbridge` | $0.82 per 1M events on custom buses, $0.91 per 1M custom-target pushes; the default bus is free. It is the documented inbound path for email and SaaS webhooks. |
 | `cloudflow` | Human approval uses `WaitForCustomCallback`, resumed by `ReportTaskSucceeded` or `ReportTaskFailed` with a task token. Standard mode only, with up to 1 year per execution. Reference price: 5,000 free transitions a month, then $0.25 per 10,000; this comes from the previous-version billing page. |
@@ -835,7 +839,7 @@ The estimate takes the deployment scope from the session (International by defau
   - loops bounded;
   - forbidden products (China-only, legacy, gated).
 - **Records and rescoring:** records store the turn mode and the workflow before and after, so a rescore and the judge can read them (section 4). The current 109 cloud cases keep their format.
-- **Canonical samples first.** The 24 workflows Qwen extracted to `usecases/*.json` (8 each for service, revenue and operations; documents is pending) are sketches, not truth:
+- **Canonical samples first.** The 32 workflows Qwen extracted to `usecases/*.json` (8 each for service, revenue, operations and documents) are sketches, not truth:
   - their topology is prose;
   - model work hides under `tool`, `decide` and `end`;
   - their roles (`reason`, `draft`, `ocr`, `asr`, `tts`) don't match `task`.
@@ -867,7 +871,7 @@ The estimate takes the deployment scope from the session (International by defau
 |---|---|---|---|
 | 0a | Live-app fixes that don't wait for this feature: AgentBay `no-new-purchases` with the R21 wording; qwen3.8-flash cache write 0.20 in `pricing.ts`; AgentRun and AgentCore notes | S | deterministic tests and the prompt budget band pass; cloud eval re-baselined (three runs) |
 | 0b | `models.json` with per-model tool support; the remaining catalog changes in section 6; the open facts in section 13 settled or marked as assumptions | M | every row traced to NOTES |
-| 1 | **Semantic contract:** types, the pure workflow reducer and validator, the D9 approval table, the checks; the 24 samples converted into canonical graphs | M | every canonical sample passes; each check fires on a seeded fault and stays quiet on the clean samples |
+| 1 | **Semantic contract:** types, the pure workflow reducer and validator, the D9 approval table, the checks; the 32 samples converted into canonical graphs | M | every canonical sample passes; each check fires on a seeded fault and stays quiet on the clean samples |
 | 2 | **Layout spike** on the canonical samples and synthetic streams: sticky state, attached stacks, brackets, camera, overview; routing probe | M | zero foreign moves on step and link ops; splice and overflow within budget; legible at 10, 15 and 25 steps at 800, 920 and 1,150 px |
 | 3a | **Turn pipeline, core and server:** mode, memory fields, serializers, the prompt cache by mode, `streamOps` with rescue and continuation, repair and commit, warnings by view, tombstones, caps and body size, quota | L | all existing tests unchanged; round trip, second workflow turn, truncated continuation and dual-document size tests |
 | 3b | **Browser state:** controller mode and retry, streaming and commit by view, change keys, provenance and auto-fix, selectors, stop, revert and restore, session revival and eviction, replay per-turn mode | L | save and reload, mixed-view replay, revert across views |
@@ -892,6 +896,31 @@ The estimate takes the deployment scope from the session (International by defau
 - **Headline:** pass@1 is unchanged at 96%; cases where every run passes went from 99 to 100.
 - **Noise:** six cases gained a run and four lost one, which sets the noise band at about ±1 run per case.
 - **`p1-vpc-no-group` (2/3 → 0/3):** this is a pre-existing repair gap, not the change. The model draws Private Zone attached to a VPC node that doesn't exist; it happened in 1 run of 3 before and in all 3 now.
+
+**Phases 0b and 1, done on 2026-11-02.** The spec is `impl/phase1-spec.md`.
+- **Phase 0b:**
+  - `catalog/models.json`: 16 models and 6 built-in tools, with tool support and batch as three-state values. The ASR "conflict" turned out to be two models.
+  - Catalog notes and prices for 10 entries, touching only fields the prompt doesn't read.
+- **Phase 1, new modules:** `approval.ts` (the D9 table), `models.ts`, `workflow.ts` (reducer), and `workflow-validate.ts` (validator, 19 checks and repairs). The workflow types are in `types.ts`.
+- **Additions to the contract beyond section 3:**
+  - a `tool` field on tool steps;
+  - an approve step counts only through its `approve` link;
+  - `wf-dangling-ref`;
+  - `wf-id-collision` when a link id is reused with new endpoints.
+- **Samples:** the 32 sample workflows are canonical fixtures in `test/fixtures/workflows/`. 28 pass with no findings, and 4 carry the decision-review advisory.
+- **Review:** an extra-high GPT review found 7 defects. All were reproduced, fixed and covered by regression tests:
+  - nested sub-agent inputs were missing from the reply-guard check;
+  - pending links survived an `unstep`;
+  - splice wasn't atomic;
+  - generated ids could exceed the limit;
+  - a pending id could be consumed by the wrong link;
+  - splice could overwrite an endpoint;
+  - output order depended on insertion order.
+- **Verification:**
+  - **Tests:** 694 root, 421 web and 269 Worker, all passing.
+  - **Typechecks:** all three are clean.
+  - **Cloud prompt:** byte-identical (sha256 `998fab22…`).
+- **Before phase 3, do a readability pass on `workflow.ts` and `workflow-validate.ts`.** The code is correct but denser than `reducer.ts` and `validate.ts`, with 19 lines over 160 characters.
 
 **Order.** The contract comes before the layout spike: a layout that holds still but draws the wrong semantics proves nothing. The spike still comes before the pipeline work, because layout remains the largest single risk.
 
@@ -942,7 +971,6 @@ This cut is a recommendation for the user to confirm, not a decision already tak
 
   The estimate lists these by billing unit with no figure.
 - **Facts still open, to settle in phase 0b:**
-  - `qwen-audio-3.1-asr-flash`'s price, which differs between two readings;
   - CloudFlow's current-version billing (only the previous-version page gives figures);
   - whether AgentCore team tasks run in Singapore;
   - AgentLoop in Singapore;
@@ -964,12 +992,12 @@ This cut is a recommendation for the user to confirm, not a decision already tak
 
 | Stream | Output | Status |
 |---|---|---|
-| Qwen deep research | `qwen/*.md`: models (text, multimodal), API features, platforms (runtime, tools), reference solutions, patterns, production practices, use cases (service, revenue, operations, documents), diagram notation, cost sizing, presales | 14 of 15 done; documents is retrying after Model Studio server errors |
+| Qwen deep research | `qwen/*.md`: models (text, multimodal), API features, platforms (runtime, tools), reference solutions, patterns, production practices, use cases (service, revenue, operations, documents), diagram notation, cost sizing, presales | all 15 done; documents needed four retries after Model Studio server errors |
 | GPT research | `gpt/*.md`: competitors, model-tiering evidence, interoperability (MCP, A2A), regulation | done; cited here only where NOTES confirms a claim |
-| Fact-check | `verify/batch1-6*.md`: about 850 claims; most confirmed as written, the rest corrected, flagged China-only or unverifiable | done; batch 6 tallies are in NOTES |
+| Fact-check | `verify/batch1-7*.md`: about 900 claims; most confirmed as written, the rest corrected, flagged China-only or unverifiable | done; tallies per batch are in NOTES |
 | Adjudication | `verify/adjudicate-1..4.md`: AgentBay, AI Guardrails, AgentCore channels and status, the knowledge-base gate, cache prices, retirements, Tablestore; then OCR, approvals, AgentLoop, Agent Sandbox, telephony, built-in tools | done |
-| Digests | `digest/*.md`: 14 digests, 1,500 words each | done |
-| Use cases | `usecases/*.json`: 24 workflows for evaluation | done; documents pending |
+| Digests | `digest/*.md`: 15 digests, 1,500 words each | done |
+| Use cases | `usecases/*.json`: 32 workflows for evaluation, 8 per area | done |
 
 **What the research changed in the design:**
 - **Contract:**
@@ -981,7 +1009,7 @@ This cut is a recommendation for the user to confirm, not a decision already tak
 - **Prompt:** the product routing rules, such as no inbound email service, the IM channel split, and no knowledge base for new accounts.
 - **The live app:** two catalog fixes that ship ahead of this feature (phase 0a).
 
-**What it cost:** about $51 of Model Studio usage for the 14 reports ($21 in tokens and about 3,000 web searches at $10 per 1,000), plus retries that timed out. The GPT checks ran on the ChatGPT plan.
+**What it cost:** about $54 of Model Studio usage for the 15 reports (about $24 in tokens and about 3,200 web searches at $10 per 1,000), plus retries that timed out, and $4.88 for the phase-0a eval baseline. The GPT checks ran on the ChatGPT plan.
 
 ## 15. Review outcomes
 
@@ -1017,7 +1045,7 @@ Two GPT reviews (`review/code-fit.md`, `review/design.md`) attacked the first fu
 - **Measured latency.**
 
 **Not adopted:**
-- **Loop containers with a nested canvas,** and collapsible sub-workflows. The streaming layout can't keep a sub-canvas stable; repeat groups and attached sub-agents cover the cases in the 24 samples. The phase-1 conversion tests that claim.
+- **Loop containers with a nested canvas,** and collapsible sub-workflows. The streaming layout can't keep a sub-canvas stable; repeat groups and attached sub-agents cover the cases in the 32 samples. The phase-1 conversion tests that claim.
 
 **Contract walk (`review/contract-walk.md`).** GPT then wrote six of the samples as ops in the revised contract and ran the checks by hand:
 - support email;

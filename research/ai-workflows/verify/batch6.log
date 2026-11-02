@@ -17,3 +17,5 @@ batch6-6: 59 claims, 45 pages -> task-mvz32war-ghdon3
 2026-11-02T09:56:58.281Z batch6-4 completed -> research\ai-workflows\verify\batch6-4.md (326 chars)
 2026-11-02T09:56:58.827Z batch6-6 completed -> research\ai-workflows\verify\batch6-6.md (331 chars)
 2026-11-02T09:58:59.759Z batch6-5 completed -> research\ai-workflows\verify\batch6-5.md (13471 chars)
+2026-11-02T13:18:44.992Z batch6-3 cancelled -> research\ai-workflows\verify\batch6-3.md (337 chars)
+exit 0

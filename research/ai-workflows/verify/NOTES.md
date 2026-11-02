@@ -427,3 +427,45 @@ Quote these as written:
   - `qwen3.8-flash` is confirmed for web_search only (the other tool pages list Flash up to 3.7);
   - web_extractor and code_interpreter are free for a limited time, but their tokens are billed;
   - MCP costs tokens plus whatever each server charges.
+
+## Batch 7: usecases-documents (56 claims)
+
+Results: 33 confirmed, 13 corrected, 1 contradicted, 4 china-only, 5 not on page.
+
+**Documents and OCR (Singapore)**
+- **PDF understanding:** $0.0033 per parsed page, on top of model tokens. `qwen3.8-27b` PDF input is Beijing-only. The Responses API can return HTTP 200 without the PDF reaching the model, so a design should check that the content was actually read.
+- **`qwen-vl-ocr` (International):** $0.07 / $0.16, with no batch in Singapore; the $0.022 / $0.036 batch rates are Beijing's.
+- **Beijing-only document models (keep out of international designs):**
+  - Qwen-Doc-Turbo, including its free document parsing;
+  - Qwen-Long's 10M-token file mode. Direct HTTP requests take up to 1M tokens.
+
+**Prices (International / Singapore)**
+
+| Model | Price per 1M tokens | Note |
+|---|---|---|
+| `qwen-max` (older) | $1.60 / $6.40 | no tiers |
+| `qwen3-rerank` | — | up to 4,000 tokens per item and 120,000 per request; `gte-rerank` was discontinued on 2026-05-30 |
+| `text-embedding-v4` | $0.07 | — |
+
+The rates the report quoted for qwen-mt and others were Global or Beijing rows. Several International rows are higher: $2.46 / $7.37, $0.16 / $0.49 and $0.12 / $0.36 for the models cited.
+
+**Other products**
+- **Qwen-MT:** Lite covers 31 languages; Plus and Flash cover 92. It translates single turns only and takes no system message.
+- **Savings plan:** the 47% discount applies only to Category B, 24 months, all upfront, and a commitment of at least $150,000 a month. Unused monthly quota expires.
+- **AgentLoop:** the general region list omits Singapore, but the multimodal evaluator docs list it. Availability varies by feature.
+- **SMS, Singapore destination:** per message, from $0.045 (1K package) down to $0.030 (200K package).
+- **Chat App Message Service Agentic Journey:** six overseas channels including LINE. KakaoTalk and Zalo aren't established.
+- **Alibaba's HITL agent-security guide** covers CLI operations through OpenClaw, not every agent's cloud API calls.
+
+**Regulation (e-invoicing)**
+- **Vietnam:** e-invoices have been mandatory since 2022-07-01, with exceptions. Registration for foreign suppliers is voluntary.
+- **Malaysia:** taxpayers below RM3 million annual turnover are exempt (timeline updated 2026-08-30). A transaction-level RM10,000 rule isn't established.
+- **EU AI Act Article 50(2):** synthetic-content systems already on the market before 2026-08-02 have until 2026-12-02.
+
+## Ruling: the ASR price "conflict" (2026-11-02)
+
+There are two models, not one:
+- **`qwen-audio-3.1-asr-flash`** (recorded audio and file transcription): $0.15 / $0.47 per 1M tokens, International (batch4-1 models-11 and models-66).
+- **`qwen-audio-3.1-asr-flash-streaming`** (live): $0.93 / $0.70.
+
+The Batch 4 line above that gives $0.93 / $0.70 for "qwen-audio-3.1-asr-flash" means the streaming variant. `models.json` lists both.

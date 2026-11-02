@@ -1,0 +1,964 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "The international AgentCore Overview page lists supported regions starting with China (Hangzhou) and China (Beijing), while the China-site English copy additionally lists Singapore (ap-southeast-1).",
+      "url": "https://www.alibabacloud.com/help/en/agentcore/agentcore-product-overview",
+      "topic": "AgentCore regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c2",
+      "claim": "Qwen3.8-Max pricing is $2.00 per 1M input tokens and $6.00 per 1M output tokens.",
+      "url": "https://www.activepieces.com/blog/qwen-api-pricing-costs-tiers-and-models-2026",
+      "topic": "qwen3.8-max price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c3",
+      "claim": "Function Compute supports a native OSS trigger that fires on PutObject/PostObject events with prefix and suffix filters.",
+      "url": "https://www.alibabacloud.com/help/en/functioncompute/configure-a-native-oss-trigger-1",
+      "topic": "Function Compute OSS trigger",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c4",
+      "claim": "Model Studio Batch inference operates asynchronously at 50% of the real-time price.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/batch-inference",
+      "topic": "Batch inference discount",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c5",
+      "claim": "DirectMail SMTP endpoint for the Singapore region is smtpdm-ap-southeast-1.aliyuncs.com.",
+      "url": "https://www.alibabacloud.com/help/en/direct-mail/smtp-endpoints",
+      "topic": "DirectMail Singapore endpoint",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c6",
+      "claim": "qwen-vl-ocr pricing in Singapore is $0.043 per 1M input tokens and $0.072 per 1M output tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwenvl-ocr",
+      "topic": "qwen-vl-ocr price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c7",
+      "claim": "qwen-vl-ocr batch pricing in Singapore is $0.022 per 1M input tokens and $0.036 per 1M output tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/qwenvl-ocr",
+      "topic": "qwen-vl-ocr batch price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c8",
+      "claim": "Qwen3-VL family OCR supports 32 languages, including Thai.",
+      "url": "https://qwen.ai/blog?id=99f0335c4ad9ff6153e517418d48535ab6d8afef",
+      "topic": "Qwen3-VL language support",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c9",
+      "claim": "qwen-doc-turbo supports up to 10 files with a maximum input of 253k tokens and output up to 9,000 tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/data-mining-qwen-doc",
+      "topic": "qwen-doc-turbo limits",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c10",
+      "claim": "Document parsing for qwen-doc-turbo is free of charge.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/data-mining-qwen-doc",
+      "topic": "qwen-doc-turbo parsing cost",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c11",
+      "claim": "qwen-doc-turbo pricing in Singapore is $0.087 per 1M input tokens and $0.144 per 1M output tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen-doc-turbo price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c12",
+      "claim": "PDF understanding feature in Model Studio is available only in China (Beijing) and Singapore regions.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/pdf-understanding",
+      "topic": "PDF understanding regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c13",
+      "claim": "Qwen-Max tiered pricing shows $1.65 per 1M input tokens and $4.95 per 1M output tokens at the top tier.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Qwen-Max top tier price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c14",
+      "claim": "qwen-long model supports ultra-long context processing up to 10M tokens (~15,000 pages) according to the China-site page.",
+      "url": "https://help.aliyun.com/en/model-studio/qwen-long",
+      "topic": "qwen-long context window",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c15",
+      "claim": "text-embedding-v4 pricing in Singapore is $0.072 per 1M input tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/text-embedding-v4",
+      "topic": "text-embedding-v4 price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c16",
+      "claim": "qwen3-rerank supports 100+ languages and processes up to 500 documents per call.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/embedding-rerank-model/",
+      "topic": "qwen3-rerank limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c17",
+      "claim": "gte-rerank model is discontinued as of May 30, 2026.",
+      "url": "https://www.alibabacloud.com/notice/detail?id=1873",
+      "topic": "gte-rerank discontinuation",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c18",
+      "claim": "Model Studio knowledge-base association limits are 'Document search: up to 5' and 'Data query: up to 5' per app.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/rag-knowledge-base",
+      "topic": "Knowledge base limits",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c19",
+      "claim": "AI Search Open Platform document parsing and chunking features are documented for Shanghai and Frankfurt regions only.",
+      "url": "https://www.alibabacloud.com/help/en/open-search/search-platform/product-overview/introduction-to-search-platform",
+      "topic": "AI Search regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c20",
+      "claim": "Open-source Qwen3-ASR supports 30 languages and 22 Chinese dialects with language ID.",
+      "url": "https://qwen.ai/blog?id=qwen3asr",
+      "topic": "Qwen3-ASR languages",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c21",
+      "claim": "Paraformer is labelled as an older-generation model to be migrated to Fun-ASR or Qwen-ASR.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/asr-model",
+      "topic": "Paraformer status",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c22",
+      "claim": "Qwen-MT supports 92 languages including Japanese, Korean, Thai, Indonesian, Vietnamese, and Arabic.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/machine-translation",
+      "topic": "Qwen-MT languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c23",
+      "claim": "Qwen-MT supports terminology intervention, domain prompting, and translation memory.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/machine-translation",
+      "topic": "Qwen-MT features",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c24",
+      "claim": "qwen-mt-plus pricing is $0.259 per 1M input tokens and $0.775 per 1M output tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen-mt-plus price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c25",
+      "claim": "qwen-mt-flash pricing is $0.101 per 1M input tokens and $0.280 per 1M output tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen-mt-flash price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c26",
+      "claim": "qwen-mt-lite pricing is $0.086 per 1M input tokens and $0.229 per 1M output tokens.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen-mt-lite price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c27",
+      "claim": "qwen-mt-image-2.0 pricing is $0.0006 per image.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "qwen-mt-image price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c28",
+      "claim": "ZOLOZ Real ID supports Southeast Asian ID documents and global passports.",
+      "url": "https://www.alibabacloud.com/en/product/real-id",
+      "topic": "ZOLOZ Real ID coverage",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c29",
+      "claim": "Model Studio managed-agent Tool Approval 'Always ask' feature is marked as China site only.",
+      "url": "https://help.aliyun.com/en/model-studio/managed-agents-event-stream",
+      "topic": "Tool Approval availability",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c30",
+      "claim": "Alibaba Cloud HITL plug-in intercepts medium- and high-risk cloud operations initiated by AI Agents.",
+      "url": "https://www.alibabacloud.com/help/en/skillsportal/aliyun-hitl-agent-security-guide",
+      "topic": "HITL plug-in function",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c31",
+      "claim": "International SMS service covers 200+ countries/regions.",
+      "url": "https://www.alibabacloud.com/help/en/sms/",
+      "topic": "SMS coverage",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c32",
+      "claim": "Singapore SMS package pricing is $0.045 per message.",
+      "url": "https://www.alibabacloud.com/en/product/short-message-service/pricing",
+      "topic": "Singapore SMS price",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c33",
+      "claim": "LINE/KakaoTalk/Zalo availability on the international Chat App is unconfirmed due to conflicting documentation between FAQ and pricing pages.",
+      "url": "https://www.alibabacloud.com/help/en/chatapp/support/faq",
+      "topic": "ChatApp LINE availability",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c34",
+      "claim": "JSON mode is not supported when enable_thinking is true in Model Studio; the API returns an error.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/error-code",
+      "topic": "JSON mode constraint",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c35",
+      "claim": "Average cost to process one invoice is $9.90 (2026 research) and $9.40 (2025 report).",
+      "url": "https://www.medius.com/resources/guides-reports/ardent-partners-accounts-payable-metrics-that-matter/",
+      "topic": "Invoice processing cost",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c36",
+      "claim": "Best-in-Class cost per invoice is $2.67 (2026) versus $12.50 for All Others.",
+      "url": "https://www.basware.com/en/resources/ardent-partners-accounts-payable-metrics-that-matter-in-2026",
+      "topic": "BiC invoice cost",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c37",
+      "claim": "Deloitte case study reports 92% touchless invoice processing achieved, targeting ~99%.",
+      "url": "https://www.deloitte.com/us/en/what-we-do/case-studies/hands-off-the-task-eyes-on-the-outcome.html",
+      "topic": "Touchless invoice rate",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c38",
+      "claim": "Fraunhofer IAIS benchmark reports 96.50% accuracy for clean digital invoices, 92.71% for scanned invoices, and 87.46% for scanned receipts.",
+      "url": "https://parseur.com/blog/ai-invoice-processing-benchmarks",
+      "topic": "Invoice extraction accuracy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c39",
+      "claim": "Legal time savings from AI CLM average 37% across agreement-management activities.",
+      "url": "https://www.deloitte.com/us/en/services/tax/articles/ai-contract-lifecycle-management-survey.html",
+      "topic": "CLM time savings",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c40",
+      "claim": "Structured reviewer guidance improved model accuracy by 10–15% in contract review benchmarks.",
+      "url": "https://www.worldcc.com/resource/when-we-took-a-data-driven-look-at-large-language-models-llms-in-contract-review-we-found-a-few-noteworthy-insights.html",
+      "topic": "Reviewer guidance uplift",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c41",
+      "claim": "Agentic AI can reduce KYC processing times by 30–70%.",
+      "url": "https://www.mckinsey.com/capabilities/risk-and-resilience/our-insights/how-agentic-ai-can-change-the-way-banks-fight-financial-crime",
+      "topic": "KYC time reduction",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c42",
+      "claim": "Agentic AI can accelerate source-of-wealth assessments by 30–50%.",
+      "url": "https://www.mckinsey.com/capabilities/risk-and-resilience/our-insights/agentic-ai-in-financial-crime-prevention-lessons-from-winners",
+      "topic": "SoW assessment speed",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c43",
+      "claim": "ZOLOZ Real ID authentication time was reduced from days to ~3 minutes.",
+      "url": "https://www.alibabacloud.com/blog/599207",
+      "topic": "ZOLOZ eKYC turnaround",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c44",
+      "claim": "UBX customer story states ZOLOZ Real ID eliminates 90% of manual checks.",
+      "url": "https://www.alibabacloud.com/en/customers/ubx",
+      "topic": "ZOLOZ manual check reduction",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c45",
+      "claim": "Silent Eight reports up to 45% false-positive reduction in AML where data-clarity conditions are met.",
+      "url": "https://www.silenteight.com/blog/2025-trends-in-aml-and-financial-crime-compliance-a-data-centric-perspective-and-deep-dive-into-transaction-monitoring",
+      "topic": "AML false positive reduction",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c46",
+      "claim": "Aviva reported a 30% improvement in routing accuracy from AI in motor claims.",
+      "url": "https://www.mckinsey.com/capabilities/tech-and-ai/how-we-help-clients/rewired-in-action/aviva-rewiring-the-insurance-claims-journey-with-ai",
+      "topic": "Aviva routing accuracy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c47",
+      "claim": "Aviva complex-case liability assessment time was cut by 23 days.",
+      "url": "https://www.mckinsey.com/capabilities/tech-and-ai/how-we-help-clients/rewired-in-action/aviva-rewiring-the-insurance-claims-journey-with-ai",
+      "topic": "Aviva assessment time",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c48",
+      "claim": "Aviva complaints decreased by 65% after AI implementation.",
+      "url": "https://www.mckinsey.com/capabilities/tech-and-ai/how-we-help-clients/rewired-in-action/aviva-rewiring-the-insurance-claims-journey-with-ai",
+      "topic": "Aviva complaint reduction",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c49",
+      "claim": "Aviva saved >£60 m ($82 m) in 2024 through AI claims transformation.",
+      "url": "https://www.mckinsey.com/capabilities/tech-and-ai/how-we-help-clients/rewired-in-action/aviva-rewiring-the-insurance-claims-journey-with-ai",
+      "topic": "Aviva cost savings",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c50",
+      "claim": "Published medical-invoice extraction accuracy of 98.2% is claimed in an ACM paper.",
+      "url": "https://dl.acm.org/doi/10.1145/3762249.3762297",
+      "topic": "Medical invoice accuracy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c51",
+      "claim": "Fin-RATE found accuracy dropping 18.60% moving from single-document to longitudinal tasks.",
+      "url": "https://arxiv.org/abs/2602.07294",
+      "topic": "Longitudinal accuracy drop",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c52",
+      "claim": "Fin-RATE found accuracy dropping 14.35% moving from single-document to multi-document tasks.",
+      "url": "https://arxiv.org/abs/2602.07294",
+      "topic": "Multi-document accuracy drop",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c53",
+      "claim": "GPT-4 achieved 60% accuracy predicting earnings direction vs 53% for human analysts.",
+      "url": "https://arxiv.org/html/2407.17866v2",
+      "topic": "Earnings prediction accuracy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c54",
+      "claim": "Thomson Reuters Cost of Compliance report cites an average of 234 daily regulatory alerts across 1,374 regulators.",
+      "url": "https://practicalcompliance.thomsonreuters.com/Link/Document/Blob/I47eedce10aec11ee8921fbef1a541940.pdf",
+      "topic": "Regulatory alert volume",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c55",
+      "claim": "For G-SIBs, 48% of respondents spend 8–10 hours per regulatory alert.",
+      "url": "https://practicalcompliance.thomsonreuters.com/Link/Document/Blob/I47eedce10aec11ee8921fbef1a541940.pdf",
+      "topic": "Alert handling time",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c56",
+      "claim": "Breaches with a non-compliance factor cost $174k more on average, totaling $4.61 m overall in 2025.",
+      "url": "https://secureframe.com/blog/compliance-statistics",
+      "topic": "Non-compliance cost",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c57",
+      "claim": "DeepL Forrester TEI study reports 345% ROI over three years and €2.79 m efficiency savings.",
+      "url": "https://tei.forrester.com/go/deepl/AItranslation/",
+      "topic": "Localisation ROI",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c58",
+      "claim": "Daily throughput increases from ~2,000 words (human) to 3,000–5,600 (full MTPE) and 4,000–8,000 (light MTPE).",
+      "url": "https://swissglobal.ch/en/blog/translation-productivity-2026-human-translation-vs-mtpe/",
+      "topic": "MTPE productivity",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c59",
+      "claim": "Language-services industry revenue fell to $49.68 bn in 2023 from $52.01 bn.",
+      "url": "https://csa-research.com/l/media/Language-Services-and-Technology-Industry-Faces-Revenue-Decline-but-Remains-Poised-for-Transformation",
+      "topic": "LSI revenue decline",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c60",
+      "claim": "Malaysia requires individual e-Invoices for transactions above RM10,000 from Jan 1, 2026.",
+      "url": "https://www.hasil.gov.my/en/e-invois/pelaksanaan-e-invois-di-malaysia/garis-masa-pelaksanaan-e-invois/",
+      "topic": "Malaysia e-invoice mandate",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c61",
+      "claim": "Vietnam e-invoicing has been mandatory for all taxpayers since July 1, 2022.",
+      "url": "https://www.vietnam-briefing.com/news/e-invoice-compliance-in-vietnam-regulations-requirements-and-best-practices.html/",
+      "topic": "Vietnam e-invoice mandate",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c62",
+      "claim": "Vietnam Decree 70/2025/ND-CP extends scope to foreign e-commerce providers effective June 1, 2025.",
+      "url": "https://www.pwc.com/vn/en/publications/2025/250416-changes-to-invoicing-regulations.pdf",
+      "topic": "Vietnam Decree 70",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c63",
+      "claim": "Singapore InvoiceNow mandates e-invoicing for new voluntary GST registrants from April 2026.",
+      "url": "https://edicomgroup.com/resources/videos/singapore-invoicenow-einvoicing",
+      "topic": "Singapore InvoiceNow",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c64",
+      "claim": "Thailand B2B e-invoicing mandate date is unconfirmed due to conflicting trackers (Jan 2026 vs No mandate).",
+      "url": "https://docs.monite.com/e-invoicing/mandates",
+      "topic": "Thailand e-invoice status",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c65",
+      "claim": "Indonesia e-invoicing was mandatory since July 2015 per one tracker, but status is unconfirmed.",
+      "url": "https://docs.monite.com/e-invoicing/mandates",
+      "topic": "Indonesia e-invoice status",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c66",
+      "claim": "Alibaba Cloud survey reports 75% of Asian companies say AI technology is indispensable.",
+      "url": "https://alizila.oss-us-west-1.aliyuncs.com/uploads/2026/07/The-AI-Business-Application-Readiness-and-Accessibility-Survey.pdf",
+      "topic": "Asian AI adoption",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c67",
+      "claim": "Voice Moderation 2.0 multilingual service in Singapore region supports 35 languages.",
+      "url": "https://www.alibabacloud.com/help/en/content-moderation/latest/speech-audit-multilingual-service",
+      "topic": "Voice moderation languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c68",
+      "claim": "Model Studio has no Seoul region; customers must use Singapore or Tokyo.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/regions",
+      "topic": "Model Studio Korea region",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c69",
+      "claim": "Korea PIPA Article 37-2 rights regarding fully automated decisions have been in effect since March 2024.",
+      "url": "https://www.tamimi.com/law-update/the-technology-issue-2026/articles/data-regulation-in-the-ai-era-a-comparison-of-korean-and-uae-data-protection-laws/",
+      "topic": "Korea PIPA Art 37-2",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c70",
+      "claim": "EU AI Act Annex III high-risk obligations application date moved to December 2, 2027.",
+      "url": "https://ai-act-service-desk.ec.europa.eu/en/ai-act/timeline/timeline-implementation-eu-ai-act",
+      "topic": "EU AI Act timeline",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c71",
+      "claim": "EU AI Act Article 50 transparency obligations apply from August 2, 2026.",
+      "url": "https://ai-act-service-desk.ec.europa.eu/en/ai-act/timeline/timeline-implementation-eu-ai-act",
+      "topic": "EU AI Act Art 50",
+      "kind": "general",
+      "weight": "high"
+    },
+    {
+      "id": "c72",
+      "claim": "MAS issued Advisory Guidelines on Use of Personal Data in Generative AI.",
+      "url": "https://www.pdpc.gov.sg/organisations/regulations-decisions/regulatory-guidance/advisory-guidelines-on-use-of-personal-data-in-generative-ai",
+      "topic": "PDPC GenAI guidelines",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c73",
+      "claim": "MAS issued AI Risk Management Guidelines covering GenAI and AI agents.",
+      "url": "https://www.mas.gov.sg/news/media-releases/2025/mas-guidelines-for-artificial-intelligence-risk-management",
+      "topic": "MAS AI guidelines",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c74",
+      "claim": "Japan APPI amendment 2026 introduces new biometric-data rules.",
+      "url": "https://www.aoshearman.com/en/insights/ao-shearman-on-data/amendments-to-the-act-on-the-protection-of-personal-information-promulgated",
+      "topic": "Japan APPI biometrics",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c75",
+      "claim": "Thailand's draft PDPA-AI guidance explicitly brings prompts, vector embeddings, and interaction logs into scope.",
+      "url": "https://www.hsfkramer.com/notes/data/2026-posts/ai-governance-in-thailand-the-pdpa-isnt-waiting-neither-should-you",
+      "topic": "Thailand PDPA AI scope",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c76",
+      "claim": "Bank of Thailand issued mandatory AI Risk Management Guidelines in September 2025.",
+      "url": "https://formiti.com/thailand-ai-regulation-2026-essential-compliance-guide-for-decision-makers/",
+      "topic": "BOT AI guidelines",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c77",
+      "claim": "Savings plans offer up to 47% discount.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/savings-plan-and-resource-package",
+      "topic": "Savings plan discount",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c78",
+      "claim": "Free quota for new Singapore accounts is 1M tokens per model, valid for 90 days.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/new-free-quota",
+      "topic": "Singapore free quota",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c79",
+      "claim": "Tiered pricing unit price is determined by the total number of input tokens in a single request.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Tiered pricing rule",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c80",
+      "claim": "Token consumption depends on the length of parsed text, not the size of the original file.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "topic": "Token calculation basis",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c81",
+      "claim": "AgentLoop runs internationally only in Hong Kong.",
+      "url": "https://www.alibabacloud.com/help/en/agentloop/product-overview/what-is-agentloop",
+      "topic": "AgentLoop regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c82",
+      "claim": "Model Studio fine-tuning is confirmed as available in Singapore and Beijing.",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-training-overview",
+      "topic": "Fine-tuning regions",
+      "kind": "alibaba",
+      "weight": "high"
+    },
+    {
+      "id": "c83",
+      "claim": "Document Mind (DocMind) international availability is unconfirmed; documentation found only on China site.",
+      "url": "https://help.aliyun.com/en/document-mind/getting-started/getting-started-with-document-mind",
+      "topic": "DocMind availability",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c84",
+      "claim": "Insurekan KPIs are unconfirmed; webinar page exists but no published metrics found.",
+      "url": "https://resource.alibabacloud.com/webinar/detail.html?id=9114&topic=tech-show",
+      "topic": "Insurekan KPIs",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c85",
+      "claim": "Prudential launched an AI Underwriter developed with Alibaba Cloud.",
+      "url": "https://www.alibabacloud.com/en/press-room/prudential-launches-brand-new-ai-underwriter",
+      "topic": "Prudential AI Underwriter",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c86",
+      "claim": "Manulife expanded an AI partnership with Alibaba Cloud for insurance operations.",
+      "url": "https://finance.yahoo.com/sectors/technology/articles/mfc-expands-ai-powered-insurance-140800983.html",
+      "topic": "Manulife AI partnership",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c87",
+      "claim": "Chat App Message Service channels include WhatsApp, Viber, Messenger, Instagram, SMS, and email.",
+      "url": "https://www.alibabacloud.com/help/en/chatapp/support/faq",
+      "topic": "ChatApp channels",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c88",
+      "claim": "Chat App pricing page states Facebook Messenger, Instagram DMs, Telegram, and LINE messages are currently free of message fees.",
+      "url": "https://www.alibabacloud.com/help/en/chatapp/product-overview/chatapp-message-service-pricing",
+      "topic": "ChatApp free channels",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c89",
+      "claim": "China-site overview states One API connects WhatsApp, Viber, Messenger, Instagram, LINE, and Telegram.",
+      "url": "https://help.aliyun.com/en/chatapp/product-overview/what-is-chatapp-message-service",
+      "topic": "ChatApp China channels",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c90",
+      "claim": "Since Sept 8, 2025, all International SMS users are on Sender ID mode with no signature/template application.",
+      "url": "https://www.alibabacloud.com/help/en/sms/getting-started/get-started-with-sms",
+      "topic": "SMS Sender ID mode",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c91",
+      "claim": "Legacy Intelligent Speech Interaction product supports Mandarin, Cantonese, English, Japanese, Korean, French, and Indonesian.",
+      "url": "https://www.alibabacloud.com/en/product/intelligent-speech-interaction",
+      "topic": "Legacy ASR languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c92",
+      "claim": "Older Alibaba Cloud Machine Translation product page describes primarily Chinese↔English with an e-commerce edition.",
+      "url": "https://www.alibabacloud.com/en/product/machine-translation",
+      "topic": "Legacy MT languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c93",
+      "claim": "China-site doc for Machine Translation claims 214 languages and five modalities.",
+      "url": "https://help.aliyun.com/en/machine-translation/product-overview/what-is-machine-translation",
+      "topic": "China MT languages",
+      "kind": "alibaba",
+      "weight": "medium"
+    },
+    {
+      "id": "c94",
+      "claim": "Qwen-MT blog states costs are 'as low as $0.5 per million output tokens'.",
+      "url": "https://qwen.ai/blog?id=qwen-mt",
+      "topic": "Qwen-MT blog price",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c95",
+      "claim": "COMET >0.8 correlates with high user satisfaction in MT quality estimation.",
+      "url": "https://www.weglot.com/blog/machine-translation-quality",
+      "topic": "COMET threshold",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c96",
+      "claim": "QE4PE study involved 42 professional post-editors.",
+      "url": "https://aclanthology.org/2025.tacl-1.64.pdf",
+      "topic": "QE4PE sample size",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c97",
+      "claim": "Intel reportedly achieved a 40% YoY cost reduction via TM.",
+      "url": "https://lilt.com/help-center/translation-memory-systems",
+      "topic": "Intel TM savings",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c98",
+      "claim": "Close automation reduces close time by ~50% and error rates by ~75%.",
+      "url": "https://chatfin.ai/blog/financial-close-automation-software-honest-comparison-of-every-major-platform-in-2026/",
+      "topic": "Close automation stats",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c99",
+      "claim": "Each day of close reduction saves $50k–$150k for a typical mid-cap.",
+      "url": "https://chatfin.ai/blog/financial-close-automation-software-honest-comparison-of-every-major-platform-in-2026/",
+      "topic": "Close reduction value",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c100",
+      "claim": "Gartner 2026 CFO survey reports 67% piloted AI automation but only 23% deployed at enterprise scale.",
+      "url": "https://www.facebook.com/blackline/posts/1566009495524611/",
+      "topic": "Gartner AI maturity",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c101",
+      "claim": "Combining RAG guardrail layer with generation reduced hallucinated content by 30–45%.",
+      "url": "https://dl.acm.org/doi/full/10.1145/3783862.3783896",
+      "topic": "RAG hallucination reduction",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c102",
+      "claim": "Summarisation hallucination rates run from ~1% to nearly 30% depending on model.",
+      "url": "https://www.vectara.com/blog/correcting-hallucinations-in-large-language-models",
+      "topic": "Hallucination rate range",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c103",
+      "claim": "Multi-agent filing-extraction system reports ~95% accuracy transforming filings into structured data.",
+      "url": "https://arxiv.org/html/2505.19197v2",
+      "topic": "Filing extraction accuracy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c104",
+      "claim": "Vendor benchmark of 6 LLMs on SEC earnings-release KPI extraction reports 99.3%–100% accuracy.",
+      "url": "https://www.financialdatasets.ai/news/earningsbench",
+      "topic": "KPI extraction accuracy",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c105",
+      "claim": "Annual reports often exceed 129k tokens, creating a bottleneck.",
+      "url": "https://aclanthology.org/2024.acl-short.42.pdf",
+      "topic": "Annual report token count",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c106",
+      "claim": "AI use for contract review up 75% YoY (2025 State of Contract Review).",
+      "url": "https://www.legalontech.com/press-releases/2025-survey",
+      "topic": "Contract review AI adoption",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c107",
+      "claim": "ACC 2025: 91% cite efficiency as genAI's top benefit, but ~60% reported no noticeable cost savings.",
+      "url": "https://swiftwaterco.com/legal-ai-hub/",
+      "topic": "Legal AI efficiency gap",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c108",
+      "claim": "Sales time savings 43%, fewer contracting-related escalations 29% (Deloitte study).",
+      "url": "https://www.prnewswire.com/news-releases/new-deloitte-study-shows-that-ai-powered-agreement-management-is-paying-off-302743916.html",
+      "topic": "Sales AI savings",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c109",
+      "claim": "Overall efficiency gain 36% through time savings or cycle-time reduction (DocuSign summary).",
+      "url": "https://www.docusign.com/company/news-center/new-deloitte-study-shows-that-aipowered-agreement-management-is-paying-off",
+      "topic": "Overall efficiency gain",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c110",
+      "claim": "BiC advantage (2025 report) is $2.78 vs $12.88.",
+      "url": "https://www.datocms-assets.com/80283/1744404602-ardent-partners-ap-metrics-that-matter-in-2025-pagero-final.pdf",
+      "topic": "BiC cost advantage",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c111",
+      "claim": "BiC performance gap includes 78% lower invoice processing cost, 82% faster processing time, 59% lower exception rate.",
+      "url": "https://payablesplace.ardentpartners.com/2024/09/ap-performance-advantages-of-best-in-class/",
+      "topic": "BiC performance gap",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c112",
+      "claim": "Touchless-rate benchmark range: Average 38.3%; Best-in-Class 55.2% (2026 Ardent figures).",
+      "url": "https://www.fintask.ie/research/cost-per-invoice-benchmarks",
+      "topic": "Touchless rate benchmark",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c113",
+      "claim": "Loss adjustment expense reduction potential is 25–30%.",
+      "url": "https://www.v7labs.com/blog/fnol-insurance-ai-automation",
+      "topic": "LAE reduction",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c114",
+      "claim": "Per-claim cost reduction potential is 40–60%.",
+      "url": "https://www.charterglobal.com/agentic-ai-insurance-claims-processing/",
+      "topic": "Per-claim cost reduction",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c115",
+      "claim": "Claims cycle time reduction potential is up to 40%.",
+      "url": "https://www.linkedin.com/pulse/agentic-ai-insurance-claims-turning-friction-competitive-fquae",
+      "topic": "Cycle time reduction",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c116",
+      "claim": "In April 2025, 21% of insurers used AI in claims; 35% for summarisation.",
+      "url": "https://datagrid.com/blog/ai-agent-for-insurance-statistics",
+      "topic": "Insurer AI adoption",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c117",
+      "claim": "Only 4% of firms have automated the majority of KYC checks, though 82% use AI somewhere in KYC.",
+      "url": "https://www.lorikeetcx.ai/articles/kyc-automation-fintech",
+      "topic": "KYC automation reality",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c118",
+      "claim": "93% of FIs plan to implement agentic AI within two years (Fenergo survey).",
+      "url": "https://www.corporatecomplianceinsights.com/why-most-banks-are-not-ready-agentic-ai/",
+      "topic": "FI Agentic AI intent",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c119",
+      "claim": "Banks detect only about 2% of illicit financial flows.",
+      "url": "https://www.mckinsey.com/capabilities/risk-and-resilience/our-insights/how-agentic-ai-can-change-the-way-banks-fight-financial-crime",
+      "topic": "Illicit flow detection rate",
+      "kind": "general",
+      "weight": "medium"
+    },
+    {
+      "id": "c120",
+      "claim": "Banks often assign 10–15% of employees to KYC/AML work.",
+      "url": "https://www.mckinsey.com/capabilities/risk-and-resilience/our-insights/agentic-ai-in-financial-crime-prevention-lessons-from-winners",
+      "topic": "KYC employee allocation",
+      "kind": "general",
+      "weight": "medium"
+    }
+  ]
+}

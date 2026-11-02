@@ -1,0 +1,5 @@
+Node cannot run inside your sandbox, so do not try to run anything. Continue the task without running tests:
+
+1. Write the four test files the spec lists (`packages/core/test/models.test.ts`, `approval.test.ts`, `workflow.test.ts`, `workflow-checks.test.ts`) covering every bullet in the spec's Tests section, including the four approval false-negative cases (upstream approval then translation; attached send tool without approval:'required'; approve -> timeout -> send; approve -> reject -> send) and a seeded fault plus a clean graph for every check code in the checks table.
+2. Re-read your four source files against the spec's checks table and definitions line by line (gate rule via the approve outcome link, tri-state tools/functions giving info, wf-dangling-ref, wf-cycle ignoring loop and edit links, repairWorkflow idempotence with repaired warnings first) and fix anything missing. Keep the code readable; split long functions.
+3. Report what you wrote and every spec item you are unsure your code satisfies. I will run the suites and send you the failures.

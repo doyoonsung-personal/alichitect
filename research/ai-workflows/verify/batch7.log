@@ -1,0 +1,10 @@
+[qwen] claims-usecases-documents · qwen3.8-flash · 35147 in (0 cached) · 12219 out · $0.0110 · 186.8 s -> research/ai-workflows/claims/usecases-documents.json
+[qwen] batch done: 1 ok, 0 skipped (output exists), 0 failed, list-price value $0.011
+batch7-1: 18 claims, 16 pages -> task-mvz9g4if-clmwdt
+batch7-2: 17 claims, 15 pages -> task-mvz9g60a-wlkw1a
+batch7-3: 21 claims, 15 pages -> task-mvz9g841-61jh52
+56 claims from 1 reports; jobs in research/ai-workflows/verify/batch7.jobs
+2026-11-02T12:57:18.445Z batch7-2 completed -> research\ai-workflows\verify\batch7-2.md (6215 chars)
+2026-11-02T12:59:19.687Z batch7-1 completed -> research\ai-workflows\verify\batch7-1.md (6641 chars)
+2026-11-02T13:00:20.464Z batch7-3 completed -> research\ai-workflows\verify\batch7-3.md (8001 chars)
+exit 0

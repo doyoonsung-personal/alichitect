@@ -33,3 +33,6 @@ exit 1
 [qwen-research] usecases-documents: response failed: {"message":"The request processing has failed due to some unknown error.","code":"server_error"}; retrying in 15 s
 [qwen-research] usecases-documents: response failed: {"message":"The request processing has failed due to some unknown error.","code":"server_error"}; retrying in 30 s
 [qwen-research] usecases-documents: stream ended without a result; retrying in 60 s
+[qwen-research] usecases-documents · 2092654 in (1889280 cached) · 52984 out (14069 reasoning) · 166 searches · 1343 sources · $2.8570 · 29.0 min -> research/ai-workflows/qwen/usecases-documents.md
+[qwen-research] batch done: 1 ok, 14 skipped (output exists), 0 failed, cost (tokens and searches) $2.857
+exit 0
