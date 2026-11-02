@@ -8,6 +8,7 @@ import { pageOps } from './inspect.ts';
 import { wt } from '../../src/export/workflow-strings.ts';
 import type { ProposalDraft } from '@ali/core/types.ts';
 import { usd } from '../../src/workflow/panel-model.ts';
+import { xt } from '../../src/export/strings.ts';
 
 for (const lang of ['en', 'ko', 'zh'] as const) for (const mixed of [false, true]) {
   test(`${lang}: ${mixed ? 'mixed drafted' : 'workflow-only basic'} PDF includes generated sections and readable vector tiles`, async () => {
@@ -24,6 +25,17 @@ for (const lang of ['en', 'ko', 'zh'] as const) for (const mixed of [false, true
     assert.ok(diagrams.length > 2);
     assert.ok(diagrams.every((d) => d.id === 'workflow'));
     assert.ok(diagrams.slice(1).every((d) => d.scale * 14 >= 11));
+    for (const [index, diagram] of diagrams.entries()) {
+      const page = check.info.pages[diagram.page - 1];
+      assert.ok(page.text.includes(wt(lang, 'diagram.continued', { page: diagrams[index + 1]?.page ?? 0 }))
+        === (index + 1 < diagrams.length));
+      if (index + 1 === diagrams.length) {
+        assert.ok(!page.text.includes(wt(lang, 'diagram.continued', { page: diagram.page - 1 })));
+      } else assert.ok(diagrams[index + 1].page > diagram.page);
+      if (!diagram.overview) assert.match(page.text, /step-\d+/);
+    }
+    assert.equal(result.report.pages, check.info.pages.length);
+    for (const page of check.info.pages) assert.ok(page.text.includes(xt(lang, 'page.of', { n: page.n, total: check.info.pages.length })));
     const texts = check.info.text.replace(/\s/g, '');
     for (const key of ['steps.heading', 'cost.coverage', 'cost.unpriced'] as const) {
       assert.ok(texts.includes(wt(lang, key).replace(/\s/g, '')));

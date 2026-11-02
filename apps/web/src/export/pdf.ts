@@ -376,13 +376,15 @@ export function buildDocument(i: PdfInput): PdfReport {
           : wt(model.lang, 'diagram.detail', { n: index, total: pages.length - 1 });
         outline(title);
         heading(title);
-        if (pages.length > 1) {
+        if (index + 1 < pages.length) {
           const page = doc.bufferedPageRange().count;
-          const continuation = wt(model.lang, 'diagram.continued', { page: index + 1 < pages.length ? page + 1 : page - 1 });
+          const continuation = wt(model.lang, 'diagram.continued', { page: page + 1 });
           ts.line(margin, ts.baseline(y, 16, 9), continuation, ink(9));
           y += 18;
         }
-        if (!i.dry) SVGtoPDF(doc, stripSize(p.drawing.svg), margin, y, {
+        const x = margin + (contentW() - p.drawing.width * p.scale) / 2;
+        const top = y + Math.max(0, bottomLimit() - y - p.drawing.height * p.scale) / 2;
+        if (!i.dry) SVGtoPDF(doc, stripSize(p.drawing.svg), x, top, {
           width: p.drawing.width * p.scale, height: p.drawing.height * p.scale,
           assumePt: true, preserveAspectRatio: 'xMinYMin meet', fontCallback: (family) => family,
         });
@@ -455,6 +457,9 @@ export function buildDocument(i: PdfInput): PdfReport {
     ]), [.34, .26, .40]);
     start(data.costTitle);
     const cost = data.cost;
+    const order = new Map(data.mapping.map((row, index) => [row.id, index]));
+    const ordered = <T extends { id: string }>(rows: readonly T[]): T[] =>
+      [...rows].sort((a, b) => (order.get(a.id) ?? Infinity) - (order.get(b.id) ?? Infinity));
     const triggers = cost.oneRun.filter((id) => i.workflow?.nodes[id]?.kind === 'trigger');
     paragraph(t('workflow.cost.oneRun', { trigger: triggers.map((id) => i.workflow!.nodes[id].label).join(', ')
       || t('workflow.unspecified') }));
@@ -468,13 +473,13 @@ export function buildDocument(i: PdfInput): PdfReport {
     paragraph(w('cost.coverage'), 700);
     paragraph(cost.coverage);
     table([w('cost.item'), w('cost.unit'), w('cost.typical'), w('cost.upper')],
-      cost.lines.map((r) => [`${r.id} - ${r.label}`, r.unit, usd(r.typical), usd(r.upper)]), [.40, .20, .20, .20]);
+      ordered(cost.lines).map((r) => [`${r.id} - ${r.label}`, r.unit, usd(r.typical), usd(r.upper)]), [.40, .20, .20, .20]);
     paragraph(w('cost.fixed'), 700);
     table([w('cost.item'), w('cost.unit'), w('cost.perMonth')],
       cost.fixed.map((r) => [r.label, r.unit, r.monthlyUsd === null ? w('cost.unpriced') : usd(r.monthlyUsd)]), [.45, .30, .25]);
     paragraph(w('cost.unpriced'), 700);
     table([w('cost.item'), w('cost.unit'), w('cost.reason')],
-      cost.unpriced.map((r) => [`${r.id} - ${r.label}`, r.unit, unpricedReason(r.why, t)]), [.34, .22, .44]);
+      ordered(cost.unpriced).map((r) => [`${r.id} - ${r.label}`, r.unit, unpricedReason(r.why, t)]), [.34, .22, .44]);
     paragraph(w('cost.assumptions'), 700);
     for (const a of cost.assumptions) paragraph(i.workflow ? assumptionText(a, i.workflow, t) : a.text);
     const sources = [...new Set([...cost.lines, ...cost.fixed].map((r) => r.source).filter(Boolean))];

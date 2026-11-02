@@ -115,3 +115,59 @@ export function renderWorkflowSvg(i: WorkflowSvgInput): DiagramSvg {
       edges: i.edges.length, labels: i.edges.filter((e) => e.label).length, runs },
   };
 }
+
+// Wide overviews read left to right in strips, then top to bottom, without moving any card within a strip.
+export function renderWorkflowOverview(i: WorkflowSvgInput): DiagramSvg {
+  const columns = [...new Set(i.scene.cards.map((c) => c.x))].sort((a, b) => a - b);
+  let best: { bounds: Rect[]; width: number; height: number; scale: number } | null = null;
+  for (let count = 1; count <= columns.length; count++) {
+    const strips: Rect[] = [];
+    for (let start = 0; start < columns.length; start += count) {
+      const next = columns[start + count];
+      const x = start ? columns[start] - 14 : i.bounds.x;
+      const right = next === undefined ? i.bounds.x + i.bounds.w : next - 14;
+      const cards = i.scene.cards.filter((c) => c.x >= x && c.x < right);
+      // Never cut a card, even when adjacent columns overlap horizontally.
+      if (cards.some((c) => c.x + c.w > right)) break;
+      const rects: Rect[] = [...cards, ...i.scene.brackets.filter((r) => r.x < right && r.x + r.w > x),
+        ...i.edges.filter((e) => e.label && e.labelBox.x < right && e.labelBox.x + e.labelBox.w > x).map((e) => e.labelBox)];
+      for (const e of i.edges) for (let k = 1; k < e.points.length; k++) {
+        const a = e.points[k - 1], b = e.points[k];
+        if (Math.min(a.x, b.x) < right && Math.max(a.x, b.x) >= x) {
+          rects.push({ x, y: Math.min(a.y, b.y), w: 0, h: Math.abs(a.y - b.y) });
+        }
+      }
+      const y = Math.min(...rects.map((r) => r.y)) - 14;
+      strips.push({ x, y, w: right - x, h: Math.max(...rects.map((r) => r.y + r.h)) + 14 - y });
+    }
+    if (strips.length !== Math.ceil(columns.length / count)) continue;
+    const width = Math.max(...strips.map((b) => b.w));
+    const height = strips.reduce((h, b) => h + b.h + 24, 100);
+    const scale = Math.min(1094.55 / width, 649.89 / height, 1.3);
+    if (!best || scale > best.scale) best = { bounds: strips, width, height, scale };
+  }
+  if (!best || best.bounds.length === 1) return renderWorkflowSvg(i);
+  return renderWorkflowStrips(i, best.bounds, true);
+}
+
+export function renderWorkflowStrips(i: WorkflowSvgInput, windows: readonly Rect[], withLegend = false): DiagramSvg {
+  const width = Math.max(...windows.map((b) => b.w));
+  const height = windows.reduce((h, b) => h + b.h, 0) + (windows.length - 1) * 24 + (withLegend ? 124 : 0);
+  let y = 0;
+  const parts = windows.map((bounds, index) => {
+    const strip = renderWorkflowSvg({ ...i, bounds, tile: true });
+    const svg = strip.svg.replace('<svg ', `<svg x="0" y="${y}" `);
+    y += bounds.h + 24;
+    return svg + (index + 1 < windows.length
+      ? `<path d="M0 ${y - 12} H${width}" stroke="#e2e8f0"/>` : '');
+  });
+  if (withLegend) {
+    const legend = renderWorkflowSvg({ ...i, scene: { ...i.scene, cards: [], brackets: [] }, edges: [],
+      bounds: { x: 0, y: 0, w: width, h: 100 }, tile: false });
+    parts.push(legend.svg.replace('<svg ', `<svg x="0" y="${y}" `));
+  }
+  const full = renderWorkflowSvg(i);
+  return { ...full, width, height,
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"`
+      + ` viewBox="0 0 ${width} ${height}">${parts.join('')}</svg>` };
+}

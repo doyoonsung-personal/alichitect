@@ -11,9 +11,9 @@ import { makeT } from '../i18n/t.ts';
 import type { Lang } from '../i18n/t.ts';
 import type { RouteFn } from './diagram.ts';
 import type { FontSet } from './fonts.ts';
-import { renderWorkflowSvg, workflowCardContent } from './workflow-svg.ts';
+import { renderWorkflowOverview, renderWorkflowStrips, renderWorkflowSvg, workflowCardContent } from './workflow-svg.ts';
 import type { WorkflowCardFonts } from './workflow-svg.ts';
-import { planWorkflowDiagramPages } from './workflow-pagination.ts';
+import { planWorkflowDiagramPages, WORKFLOW_TITLE_FLOOR } from './workflow-pagination.ts';
 import { wt } from './workflow-strings.ts';
 
 interface PrepareInput {
@@ -25,11 +25,13 @@ export function fitWorkflowPdfScene(source: WorkflowScene, fonts: WorkflowCardFo
   const brackets = source.brackets.map((b) => ({ ...b }));
   const rects = [...cards, ...brackets].sort((a, b) => a.y - b.y || a.x - b.x || a.id.localeCompare(b.id));
   const placed: typeof rects = [];
-  // Keep each original row aligned; expand only gaps that cannot hold the PDF content.
-  for (const y of [...new Set(rects.map((r) => r.y))]) {
-    const row = rects.filter((r) => r.y === y && !placed.includes(r));
-    const top = Math.max(y, ...row.flatMap((r) => placed
-      .filter((p) => r.x < p.x + p.w && p.x < r.x + r.w).map((p) => p.y + p.h + 24)));
+  const rows = [...new Set(rects.map((r) => r.y))].map((y) => rects.filter((r) => r.y === y));
+  const firstY = Math.min(source.bounds.y, ...rects.map((r) => r.y));
+  // Reserve a label line conservatively: routing chooses label positions after fitting.
+  const clearance = 24 + (Object.values(source.edgeLabels).some(Boolean) ? 20 : 0);
+  for (const row of rows) {
+    const top = Math.max(firstY, ...row.flatMap((r) => placed
+      .filter((p) => r.x < p.x + p.w && p.x < r.x + r.w).map((p) => p.y + p.h + clearance)));
     for (const r of row) r.y = top;
     placed.push(...row);
   }
@@ -42,7 +44,15 @@ function sceneFor(i: PrepareInput, fonts: WorkflowCardFonts) {
   const measure = { title: (s: string, px: number) => fonts.width(s, px, 500),
     body: (s: string, px: number) => fonts.width(s, px, 400) };
   const scene = fitWorkflowPdfScene(buildWorkflowScene({ ...i, layout, t: makeT(i.lang), measure }), fonts);
-  return { scene, plan: planWorkflowEdges({ workflow: i.workflow, layout, scene }) };
+  const plan = planWorkflowEdges({ workflow: i.workflow, layout, scene });
+  // Loop waypoints are tiny rectangles; their ports can differ by half a unit in y.
+  for (const [id, points] of Object.entries(plan.explicit)) {
+    plan.explicit[id] = points.flatMap((p, k) => {
+      const prev = points[k - 1];
+      return prev && prev.x !== p.x && prev.y !== p.y ? [{ x: p.x, y: prev.y }, p] : [p];
+    });
+  }
+  return { scene, plan };
 }
 export async function prepareWorkflowDiagram(i: PrepareInput) {
   const measure = (s: string, px: number) => Array.from(s).length * px;
@@ -73,7 +83,15 @@ export function drawWorkflowDiagram(d: PreparedWorkflowDiagram, fonts: FontSet) 
   const minTitlePx = Math.min(14, ...scene.cards.map((c) => c.titlePx));
   const pages = planWorkflowDiagramPages({ bounds, cards: scene.cards, minTitlePx });
   const drawing = renderWorkflowSvg({ scene, edges, bounds, fonts, legend });
-  return { ...drawing, scene, edges, pages: pages.map((p, index) => ({ ...p,
-    drawing: index === 0 ? drawing : renderWorkflowSvg({ scene, edges, bounds: p.bounds, fonts, legend, tile: true }),
-  })) };
+  const rendered = pages.map((p, index) => {
+    if (p.overview) {
+      const overview = renderWorkflowOverview({ scene, edges, bounds, fonts, legend });
+      return { ...p, scale: Math.min(1094.55 / overview.width, 649.89 / overview.height, 1.3), drawing: overview };
+    }
+    if (p.windows) return { ...p, drawing: renderWorkflowStrips({ scene, edges, bounds, fonts, legend }, p.windows) };
+    return { ...p, drawing: index === 0 ? drawing : renderWorkflowSvg({ scene, edges, bounds: p.bounds, fonts, legend, tile: true }) };
+  });
+  const first = rendered[0];
+  return { ...drawing, scene, edges, pages: first.overview && first.scale * minTitlePx >= WORKFLOW_TITLE_FLOOR
+    ? [{ ...first, overview: false }] : rendered };
 }

@@ -64,7 +64,9 @@ type Drawn = ReturnType<typeof drawDiagram>;
 
 export async function generateProposalPdf(i: GenerateInput): Promise<GenerateResult> {
   const t0 = now();
-  const model = buildProposal({ session: i.session, graph: i.graph, layout: i.layout, catalog: i.catalog, lang: i.lang, title: i.title, customer: i.customer, now: i.now, draft: i.draft });
+  const model = buildProposal({ session: i.session, graph: i.graph, layout: i.layout, catalog: i.catalog,
+    lang: i.lang, title: i.title, customer: i.customer, now: i.now, draft: i.draft,
+    ...(i.workflowLayout ? { workflowLayout: i.workflowLayout } : {}) });
   const fonts = createFontSet(i.fontSource);
   const workflow = i.session.memory.workflow;
   if (i.workflow && JSON.stringify(i.workflow) !== JSON.stringify(workflow)) {
