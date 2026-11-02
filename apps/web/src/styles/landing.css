@@ -272,3 +272,7 @@
   .example__arrow { display: none; }
   .examples__list li { padding: 0; }
 }
+
+.brief__focus { display: flex; flex-wrap: wrap; gap: 16px; border: 0; padding: 12px 20px; }
+.brief__focus legend { font-size: 12px; padding-top: 12px; }
+.brief__focus label { display: flex; align-items: center; gap: 6px; cursor: pointer; }

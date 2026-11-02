@@ -1,3 +1,5 @@
+import { WorkflowStage } from './WorkflowStage.tsx';
+import type { WorkflowViewProps } from '../workflow/contracts.ts';
 // The live diagram (spec 7.15 to 7.24, 10, 11). React Flow supplies the pan and zoom viewport; everything on it is ours:
 // frames, cards, one edge layer, the popover. The layout comes from core (already computed by the store, with `prev`),
 // the edges are routed off the main thread by libavoid with the channel router as the fallback, and only what changed
@@ -45,7 +47,8 @@ const FIT_MS = 300;
 const HINT_MS = 6000;
 const ease = (t: number): number => 1 - Math.pow(1 - t, 4);
 
-export function Canvas(p: CanvasProps): ReactElement {
+export function Canvas(p: CanvasProps | WorkflowViewProps): ReactElement {
+  if ('view' in p) return <WorkflowStage {...p} />;
   return (
     <ReactFlowProvider>
       <Stage {...p} />

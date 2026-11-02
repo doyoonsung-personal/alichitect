@@ -172,3 +172,9 @@ export interface PanelProps {
 
 export { activeDocument, activeNodeCount, canExport, activeProvenance, activeHighlight, highlightChange } from '../store/selectors.ts';
 export type { TurnMode, WorkflowGraph } from '@ali/core/types.ts';
+
+export interface WorkflowSettingsActions {
+  setWorkflowSettings(next: import('@ali/core/types.ts').WorkflowSettings): void;
+  setWorkflowEstimate(next: import('@ali/core/types.ts').WorkflowEstimateSettings): void;
+  tidyWorkflowView(): void;
+}

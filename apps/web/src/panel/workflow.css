@@ -1,0 +1,9 @@
+ .wf-panel .pp__body { padding: 12px 18px; overflow: auto; }
+.wf-panel table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; }
+.wf-panel th, .wf-panel td { padding: 8px; border-bottom: 1px solid var(--line-1); text-align: left; overflow-wrap: anywhere; }
+.wf-panel small { display: block; font-weight: normal; overflow-wrap: anywhere; }
+.wf-panel p, .wf-panel li { font-size: 13px; }
+.wf-panel li { margin-bottom: 12px; }
+.wf-panel button, .wf-driver input, .wf-driver select { background: var(--sheet); color: var(--ink); border: 1px solid var(--line-1); padding: 5px; }
+.wf-driver { margin-top: 10px; border: 1px solid var(--line-1); }
+.wf-driver input { width: 100px; }

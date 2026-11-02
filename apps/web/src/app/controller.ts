@@ -1,3 +1,4 @@
+import type { WorkflowSettings, WorkflowEstimateSettings } from '@ali/core/types.ts';
 // The controller owns every side effect: the network (POST /api/turn, GET /api/health), timers (the 180 ms display
 // batch), local storage, the replay player and the document language. Everything it decides goes through store
 // actions, so the console, canvas and panel only ever read state and call the functions on `Controller`.
@@ -67,6 +68,9 @@ export interface Controller {
   newSession(): void;
   openSession(id: string): void;
   setMode(mode: TurnMode): void;
+  setWorkflowSettings(next: WorkflowSettings): void;
+  setWorkflowEstimate(next: WorkflowEstimateSettings): void;
+  tidyWorkflowView(): void;
   setLanguage(lang: Lang): void;
   setCanvasSize(size: CanvasSize): void;
   unpin(text: string): void;
@@ -322,6 +326,17 @@ export function createController(store: Store, env: ControllerEnv): Controller {
       d({ type: 'replay/set', replay: null });
       d({ type: 'session/open', record: rec, now: env.now() });
     },
+    setWorkflowSettings(next) {
+      if (st().work || st().replay) return;
+      d({ type: 'workflow/settings', next, now: env.now() });
+      saveSession();
+    },
+    setWorkflowEstimate(next) {
+      if (st().work || st().replay) return;
+      d({ type: 'workflow/estimate', next, now: env.now() });
+      saveSession();
+    },
+    tidyWorkflowView() { d({ type: 'workflow/tidy' }); },
     setMode(mode) {
       d({ type: 'session/mode', mode });
       if (!st().replay) saveSession();
