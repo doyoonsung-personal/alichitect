@@ -3,7 +3,10 @@
 import { useMemo } from 'react';
 import { useAppState, useCatalog, useController, useT } from '../store/react.tsx';
 import { assumptionViews } from '../store/asks.ts';
-import { buildMarks, headerMode, isSolutionMap, isStreaming, productCount, requirements, summaryView, taggedRevision } from '../store/selectors.ts';
+import {
+  activeDocument, activeNodeCount, canExport, buildMarks, headerMode, isSolutionMap,
+  isStreaming, productCount, requirements, summaryView, taggedRevision,
+} from '../store/selectors.ts';
 import { catalog as bundled } from '../catalog/catalog.ts';
 import { DEFAULT_MAX_ASK_CHARS } from '@ali/core/prompt.ts';
 import type { AppState } from '../store/types.ts';
@@ -148,4 +151,14 @@ export function usePanelProps(): PanelProps {
     }),
     [lang, t, catalog, ui.panelOpen, ui.highlight, display, solution, count, session.revisions, session.provenance, latest, conn.health, streaming, actions],
   );
+}
+
+/** State contract for the phase 5 header toggle and export entry point. */
+export function useDocumentProps() {
+  const c = useController();
+  const mode = useAppState((a) => a.session.mode);
+  const document = useAppState(activeDocument, (a, b) => a.view === b.view && a.graph === b.graph);
+  const nodeCount = useAppState(activeNodeCount);
+  const exportAvailable = useAppState(canExport);
+  return { mode, document, nodeCount, exportAvailable, setMode: c.setMode };
 }

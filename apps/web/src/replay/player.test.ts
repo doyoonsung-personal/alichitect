@@ -174,3 +174,29 @@ test('a fatal ends the recording without a next turn', () => {
   assert.equal(rev.error?.code, 'idle-timeout');
   assert.equal(r.isDone(), true);
 });
+
+for (const id of ['stub-workflow', 'stub-mixed-workflow']) {
+  for (const speed of ['1x', '4x', 'instant'] as const) {
+    test(`${id} replays its fake support-email stream at ${speed}`, () => {
+      const r = runFixture(id, speed);
+      r.player.start();
+      r.host.advance(100000);
+      assert.equal(r.isDone(), true);
+      const s = r.store.getState();
+      const commit = r.fx.turns.at(-1)!.ev.at(-1)![1];
+      assert.equal(commit.type, 'commit');
+      if (commit.type !== 'commit') return;
+      assert.deepEqual(s.session.memory, commit.memory);
+      assert.equal(s.session.mode, 'workflow');
+      assert.equal(s.session.revisions.at(-1)?.mode, 'workflow');
+      assert.equal(s.session.revisions.at(-1)?.status, 'done');
+      assert.ok(Object.keys(s.workflowDisplay.graph.nodes).length > 5);
+      if (speed !== 'instant') assert.ok(r.log.some((l) => l.a.type === 'turn/flush'));
+      if (id === 'stub-mixed-workflow') {
+        assert.equal(s.session.revisions[0].mode, 'cloud');
+        assert.equal(s.session.provenance.in.addedIn, 1);
+        assert.equal(s.session.workflowProvenance?.in.addedIn, 2);
+      }
+    });
+  }
+}

@@ -56,7 +56,7 @@ export function createPlayer(host: PlayerHost, o: PlayerOptions): Player {
     const startReal = host.now();
     const vBase = startReal; // the reducer's clock: real start plus recorded offsets
     o.onTurn?.(index);
-    host.dispatch({ type: 'turn/start', ask: turn.ask, now: vBase, replayOf: o.fixture.id });
+    host.dispatch({ type: 'turn/start', ask: turn.ask, mode: turn.mode ?? 'cloud', now: vBase, replayOf: o.fixture.id });
     const plan = planTurn(turn, speed);
     const ending = turnEnding(turn);
     let i = 0;

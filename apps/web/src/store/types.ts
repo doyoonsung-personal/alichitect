@@ -1,6 +1,7 @@
 // The session store's data model. One source of truth for the console, the canvas and the products panel.
 // Everything here is plain data (no classes, no functions), so it can be persisted, replayed and tested.
-import type { Constraint, Graph, SessionMemory, Warning } from '@ali/core/types.ts';
+import type { Constraint, Graph, SessionMemory, TurnMode, Warning, WorkflowGraph } from '@ali/core/types.ts';
+import type { WorkflowCtx } from '@ali/core/workflow.ts';
 import type { ApplyCtx } from '@ali/core/reducer.ts';
 import type { LayoutState } from '@ali/core/layout.ts';
 import type { Lang } from '../i18n/t.ts';
@@ -24,6 +25,8 @@ export type ChangeKind =
   | 'gap';
 
 export interface ChangeLine {
+  /** Absent on legacy cloud records. */
+  view?: TurnMode;
   /** Stable within a revision, for React keys and for updating a line in place. */
   key: string;
   kind: ChangeKind;
@@ -69,6 +72,8 @@ export interface LifecycleNote {
 
 /** A repair the catalog rules applied on their own (attach-inline, zone-replicas, missing-group, path-order, ...). */
 export interface AutoFix {
+  /** Absent on legacy cloud records. */
+  view?: TurnMode;
   code: Warning['code'];
   ids: string[];
 }
@@ -98,6 +103,7 @@ export interface RevisionError {
 }
 
 export interface Revision {
+  mode?: TurnMode;
   /** 1-based, in order of asking. */
   n: number;
   ask: string;
@@ -171,6 +177,8 @@ export interface RequirementView {
 }
 
 export interface SessionRecord {
+  mode: TurnMode;
+  workflowProvenance?: SessionRecord['provenance'];
   id: string;
   createdAt: number;
   updatedAt: number;
@@ -204,6 +212,9 @@ export interface TurnStatus {
 
 /** The machinery behind a streaming revision. Never persisted. */
 export interface TurnWork {
+  mode: TurnMode;
+  rawWorkflow: WorkflowGraph;
+  workflowCtx: WorkflowCtx;
   n: number;
   /** The committed memory when the turn started. Fatal and Stop go back to its graph. */
   base: SessionMemory;
@@ -256,6 +267,8 @@ export type ConnMode = 'checking' | 'live' | 'offline' | 'replay';
 export type ReplaySpeed = '1x' | '4x' | 'instant';
 
 export interface Highlight {
+  /** Absent on legacy cloud records. */
+  view?: TurnMode;
   source: 'line' | 'revision' | 'row' | 'card' | 'panel';
   /** Ids to outline in blue; everything else dims. */
   cards: string[];
@@ -312,6 +325,7 @@ export interface AppState {
   turn: TurnStatus;
   work: TurnWork | null;
   display: DisplayState;
+  workflowDisplay: { graph: WorkflowGraph; version: number; reason: DisplayReason };
   canvas: { w: number; h: number };
   ui: UiState;
   replay: ReplayState | null;

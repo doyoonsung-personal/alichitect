@@ -1,6 +1,7 @@
 // Derived views over AppState. Pure, and cheap enough to call from a render. Components get these through the hooks in
 // app/contracts.ts; they are separate here so they can be tested with plain states.
-import type { AppState, ConnMode, Revision, SessionRecord } from './types.ts';
+import type { Graph, TurnMode, WorkflowGraph } from '@ali/core/types.ts';
+import type { AppState, ChangeLine, Highlight, ConnMode, Revision, SessionRecord } from './types.ts';
 import { requirementViews } from './requirements.ts';
 import type { RequirementView } from './types.ts';
 
@@ -17,14 +18,16 @@ export function buildMarks(s: AppState): string[] {
 }
 
 /** The revision whose number the cards carry: the latest committed one, and only while no revision is streaming. */
-export function taggedRevision(s: AppState): { n: number; cards: string[] } | null {
+export function taggedRevision(s: AppState): { n: number; cards: string[]; view?: TurnMode } | null {
   if (s.work) return null;
-  const rev = latestDone(s.session);
-  return rev ? { n: rev.n, cards: rev.cards } : null;
+  const rev = [...s.session.revisions].reverse().find((r) => r.status === 'done'
+    && (r.mode ?? 'cloud') === (s.session.mode ?? 'cloud'));
+  return rev ? { n: rev.n, cards: rev.cards, ...(rev.mode ? { view: rev.mode } : {}) } : null;
 }
 
 /** Products drawn: cards, badges and recommendations in the display graph. */
 export function productCount(s: AppState): number {
+  if (s.session?.mode === 'workflow') return Object.keys(s.workflowDisplay.graph.nodes).length;
   const g = s.display.graph;
   return Object.keys(g.nodes).length + g.recs.length;
 }
@@ -61,4 +64,32 @@ export function isStreaming(s: AppState): boolean {
 
 export function lastRevision(s: AppState): Revision | undefined {
   return s.session.revisions[s.session.revisions.length - 1];
+}
+
+export function activeDocument(s: AppState): { view: 'cloud'; graph: Graph } | { view: 'workflow'; graph: WorkflowGraph } {
+  return s.session.mode === 'workflow'
+    ? { view: 'workflow', graph: s.workflowDisplay.graph }
+    : { view: 'cloud', graph: s.display.graph };
+}
+
+export function activeNodeCount(s: AppState): number {
+  return Object.keys(activeDocument(s).graph.nodes).length;
+}
+
+export function canExport(s: AppState): boolean {
+  const m = s.session.memory;
+  return Object.keys(m.graph.nodes).length > 0 || m.graph.recs.length > 0 || Object.keys(m.workflow?.nodes ?? {}).length > 0;
+}
+
+export function activeProvenance(s: AppState): SessionRecord['provenance'] {
+  return s.session.mode === 'workflow' ? s.session.workflowProvenance ?? {} : s.session.provenance;
+}
+
+export function highlightChange(line: ChangeLine): Highlight {
+  return { source: 'line', view: line.view ?? 'cloud', cards: line.cards, ghosts: line.ghosts };
+}
+
+export function activeHighlight(s: AppState): Highlight | null {
+  const h = s.ui.highlight;
+  return h && (h.view ?? 'cloud') === (s.session.mode ?? 'cloud') ? h : null;
 }

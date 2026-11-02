@@ -1,7 +1,7 @@
 // The controller owns every side effect: the network (POST /api/turn, GET /api/health), timers (the 180 ms display
 // batch), local storage, the replay player and the document language. Everything it decides goes through store
 // actions, so the console, canvas and panel only ever read state and call the functions on `Controller`.
-import type { TurnRequest } from '@ali/core/types.ts';
+import type { TurnMode, TurnRequest } from '@ali/core/types.ts';
 import { DEFAULT_MAX_ASK_CHARS } from '@ali/core/prompt.ts';
 import { postTurn, probeHealth } from '../stream/ndjson-client.ts';
 import { authHandoff, fetchAccount, loginUrl } from '../stream/account.ts';
@@ -66,6 +66,7 @@ export interface Controller {
   editAndResend(): void;
   newSession(): void;
   openSession(id: string): void;
+  setMode(mode: TurnMode): void;
   setLanguage(lang: Lang): void;
   setCanvasSize(size: CanvasSize): void;
   unpin(text: string): void;
@@ -169,7 +170,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     d({ type: 'conn/set', mode: h && h.keyConfigured ? 'live' : 'offline', health: h, now: env.now() });
   }
 
-  function start(ask: string, replaceLast: boolean): void {
+  function start(ask: string, replaceLast: boolean, mode: TurnMode = st().session.mode ?? 'cloud'): void {
     const text = ask.trim();
     lastAsk = text;
     ac?.abort();
@@ -177,8 +178,8 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     ac = mine;
     const sessionId = st().session.id;
     const memory = st().session.memory;
-    d({ type: 'turn/start', ask: text, now: env.now(), replaceLast });
-    const req: TurnRequest = { sessionId, ask: text, memory };
+    d({ type: 'turn/start', ask: text, now: env.now(), replaceLast, mode });
+    const req: TurnRequest = { sessionId, ask: text, memory, mode };
     void postTurn(req, { signal: mine.signal, fetchImpl: env.fetchImpl, onEvent: onWire }).then((end) => {
       if (disposed || ac !== mine) return;
       if (end.kind === 'network') {
@@ -288,11 +289,12 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     stop,
     retry() {
       const ask = lastFailedAsk();
-      if (ask && !st().work) start(ask, true);
+      if (ask && !st().work) start(ask, true, st().session.revisions.at(-1)?.mode ?? 'cloud');
     },
     editAndResend() {
       const ask = lastFailedAsk();
       if (!ask) return;
+      d({ type: 'session/mode', mode: st().session.revisions.at(-1)?.mode ?? 'cloud' });
       d({ type: 'rev/discardFailed' });
       d({ type: 'ui/draft', text: ask });
     },
@@ -319,6 +321,10 @@ export function createController(store: Store, env: ControllerEnv): Controller {
       if (!st().replay && st().session.id !== id) saveSession();
       d({ type: 'replay/set', replay: null });
       d({ type: 'session/open', record: rec, now: env.now() });
+    },
+    setMode(mode) {
+      d({ type: 'session/mode', mode });
+      if (!st().replay) saveSession();
     },
     setLanguage(lang) {
       env.setLanguage(lang);

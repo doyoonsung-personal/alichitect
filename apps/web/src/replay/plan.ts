@@ -1,10 +1,12 @@
 // Replay timing, pure. A fixture turn is a list of [ms since the ask, wire event]; the plan says when each event is
 // dispatched for a speed. The reducer's clock is the recorded time ("virtual time"), whatever the speed, so a
 // revision always reads "Drawn in 9.5 s" as recorded.
+import type { TurnMode } from '@ali/core/types.ts';
 import type { WireEvent } from '../stream/events.ts';
 import type { ReplaySpeed } from '../store/types.ts';
 
 export interface FixtureTurn {
+  mode?: TurnMode;
   ask: string;
   ev: Array<[number, WireEvent]>;
 }

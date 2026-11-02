@@ -169,3 +169,6 @@ export interface PanelProps {
   streaming: boolean;
   actions: PanelActions;
 }
+
+export { activeDocument, activeNodeCount, canExport, activeProvenance, activeHighlight, highlightChange } from '../store/selectors.ts';
+export type { TurnMode, WorkflowGraph } from '@ali/core/types.ts';
