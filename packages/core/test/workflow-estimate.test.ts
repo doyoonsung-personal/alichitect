@@ -2,12 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { estimateWorkflow } from '../src/workflow-estimate.ts';
 import { loadCatalog, loadModels } from '../src/catalog-node.ts';
 import { createModelTable } from '../src/models.ts';
 import type { ModelEntry, PriceTier } from '../src/models.ts';
 import { applyWorkflowOp, createWorkflowCtx, emptyWorkflow } from '../src/workflow.ts';
 import { buildSystemPrompt } from '../src/prompt.ts';
+import { checkWorkflow } from '../src/workflow-validate.ts';
 import type { WorkflowGraph, WorkflowNode, WorkflowEdge, WorkflowOp, WorkflowTask } from '../src/types.ts';
 
 const catalog = loadCatalog();
@@ -356,4 +358,176 @@ test('cache savings exclude growing history on every agent request', () => {
   const input = 2150 + 3100 + 4050;
   close(e.upper.perRunUsd, input / 1e6);
   close(e.typical.perRunUsd, (input - 3 * 2150 * .5 * .8) / 1e6);
+});
+
+const plain = (id: string, kind: WorkflowNode['kind']): WorkflowNode => ({ id, kind, label: id });
+const message = (id: string): WorkflowNode => ({ ...plain(id, 'end'), product: 'chatapp', effect: 'send', approval: 'skip' });
+
+// Isolate regressions that used to exhaust the heap or block the event loop.
+function isolatedEstimate(wf: WorkflowGraph, settings = {}, repetitions = 1) {
+  const script = `
+    import { readFileSync } from 'node:fs';
+    import { estimateWorkflow } from './packages/core/src/workflow-estimate.ts';
+    import { loadCatalog, loadModels } from './packages/core/src/catalog-node.ts';
+    const { wf, settings, repetitions } = JSON.parse(readFileSync(0, 'utf8'));
+    const catalog = loadCatalog(), models = loadModels();
+    let estimate, worstMs = 0;
+    for (let i = 0; i < repetitions; i++) {
+      const start = performance.now();
+      estimate = estimateWorkflow(wf, models, catalog, settings);
+      worstMs = Math.max(worstMs, performance.now() - start);
+    }
+    console.log(JSON.stringify({ estimate, worstMs }));
+  `;
+  return JSON.parse(execFileSync(process.execPath, ['--max-old-space-size=128', '--input-type=module', '-e', script], {
+    cwd: new URL('../../../', import.meta.url), input: JSON.stringify({ wf, settings, repetitions }),
+    timeout: 5000, maxBuffer: 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'],
+  }).toString());
+}
+
+test('review 1: retry-only Chat App messages execute once typical and three times upper', () => {
+  const wf = graph([plain('trigger', 'trigger'), plain('check', 'decide'),
+    { ...message('message'), kind: 'act' }, plain('end', 'end')], [
+    edge('trigger', 'check'), edge('check', 'message', { kind: 'loop', max: 3 }),
+    edge('message', 'check'), edge('check', 'end', { outcome: 'exhausted' }),
+  ]);
+  const e = estimateWorkflow(wf, models, catalog);
+  close(e.typical.perRunUsd, .005);
+  close(e.upper.perRunUsd, .015);
+  assert.ok(e.oneRun.includes('message'));
+});
+
+test('review 2: overlapping loops spend separate per-run budgets on the shared message', () => {
+  const wf = graph([plain('a', 'trigger'), { ...message('b'), kind: 'act' }, plain('c', 'decide'), plain('end', 'end')], [
+    edge('a', 'b'), edge('b', 'c', { outcome: 'exhausted' }), edge('c', 'end', { outcome: 'exhausted' }),
+    edge('b', 'a', { kind: 'loop', max: 3 }), edge('c', 'b', { kind: 'loop', max: 3 }),
+  ]);
+  const e = estimateWorkflow(wf, models, catalog);
+  close(e.typical.perRunUsd, .005 * (1 + 1 + 1));
+  close(e.upper.perRunUsd, .005 * (1 + 3 + 3));
+});
+
+function parallelChoices(extraLinks = false): WorkflowGraph {
+  const nodes = [plain('a', 'trigger'), plain('zz', 'end')];
+  const edges: WorkflowEdge[] = [];
+  for (let i = 0; i < 19; i++) {
+    const suffix = String(i).padStart(2, '0');
+    const b = `b${suffix}`, z = `z${suffix}`;
+    nodes.push(plain(b, 'decide'), message(z));
+    edges.push(edge('a', b, { kind: 'next' }), edge(b, z, { kind: 'branch' }), edge(b, 'zz', { kind: 'branch' }));
+    if (extraLinks && i < 3) edges.push(edge('a', z, { kind: 'next' }));
+  }
+  return graph(nodes, edges);
+}
+
+test('review 3: 40 steps and 57 links factor nineteen independent decisions within 128 MiB', () => {
+  const wf = parallelChoices();
+  assert.equal(Object.keys(wf.nodes).length, 40);
+  assert.equal(Object.keys(wf.edges).length, 57);
+  assert.deepEqual(checkWorkflow(wf, catalog, models), []);
+  const { estimate: e } = isolatedEstimate(wf);
+  close(e.typical.perRunUsd, .0475);
+  close(e.upper.perRunUsd, .095);
+  assert.ok(!e.assumptions.some((a: { key: string }) => a.key === 'resources'));
+});
+
+test('40-step 60-link adversarial runtime benchmark', (t) => {
+  const wf = parallelChoices(true);
+  assert.equal(Object.keys(wf.edges).length, 60);
+  assert.deepEqual(checkWorkflow(wf, catalog, models), []);
+  const { estimate: e, worstMs } = isolatedEstimate(wf, {}, 20);
+  close(e.typical.perRunUsd, .055);
+  close(e.upper.perRunUsd, .095);
+  t.diagnostic(`40 steps / 60 links: worst of 20 estimates ${worstMs.toFixed(3)} ms; child heap limit 128 MiB`);
+});
+
+test('review 4: finite 1e308 agent request settings terminate with a documented cap', () => {
+  const wf = graph([{ ...plain('a', 'agent'), ai: 'qwen3.7-plus', turns: 1 }]);
+  const { estimate: e } = isolatedEstimate(wf, { agents: { a: { typical: 1e308, upper: 1e308 } } });
+  assert.ok(Number.isFinite(e.upper.monthlyUsd));
+  assert.ok(e.assumptions.some((a: { key: string }) => a.key.includes(':limit')));
+});
+
+test('review 4: repeated guard with 1e308 items and detection types stays finite', () => {
+  const wf = graph([{ ...plain('g', 'guard'), repeat: 'items' }]);
+  wf.groups.items = { id: 'items', over: 'items' };
+  const e = estimateWorkflow(wf, models, catalog, {
+    items: { items: { typical: 1e308, upper: 1e308 } }, guardTypes: { g: 1e308 },
+  });
+  assert.ok(e.lines.every((l) => Number.isFinite(l.typical) && Number.isFinite(l.upper)));
+  assert.ok(Number.isFinite(e.typical.monthlyUsd) && Number.isFinite(e.upper.monthlyUsd));
+  assert.ok(e.assumptions.some((a) => a.key.includes(':limit')));
+});
+
+test('decision-diagram resource limit returns a labelled conservative subtotal', () => {
+  const wf = parallelChoices(true);
+  wf.nodes.zz.ai = 'qwen3.7-plus';
+  const steps: Record<string, { inTokens: number; outTokens: number }> = {};
+  for (let i = 0; i < 19; i++) {
+    const id = `z${String(i).padStart(2, '0')}`;
+    wf.nodes[id].ai = 'qwen3.7-plus';
+    steps[id] = { inTokens: 0, outTokens: 2 ** i };
+  }
+  const { estimate: e } = isolatedEstimate(wf, { steps });
+  assert.ok(e.assumptions.some((a: { key: string }) => a.key === 'resources'));
+  assert.ok(Number.isFinite(e.upper.monthlyUsd));
+  assert.ok(e.upper.perRunUsd >= e.typical.perRunUsd);
+  assert.ok(e.lines.filter((l: { id: string }) => l.id.endsWith(':model')).every((l: { upper: number }) => l.upper > 0));
+});
+
+test('all numeric setting domains clamp with diagnostics and loop overrides respect max', () => {
+  const wf = graph([node('a', { kind: 'agent', turns: 1e308 }),
+    node('search', { kind: 'tool', ai: undefined, on: 'a', tool: 'web_search' }), plain('end', 'end')],
+  [edge('a', 'a', { kind: 'loop', max: 3 }), edge('a', 'end', { outcome: 'exhausted' })]);
+  const huge = estimateWorkflow(wf, table(), catalog, {
+    runsPerMonth: 1e308, steps: { a: { inTokens: 1e308, outTokens: 1e308 } },
+    agents: { a: { typical: 1e308, upper: 1e308, resultTokens: 1e308, searchesPerRequest: 1e308 } },
+    loops: { 'a-a': { typical: 1e308, upper: 1e308 } },
+  });
+  wf.nodes.a.turns = 50;
+  const capped = estimateWorkflow(wf, table(), catalog, {
+    runsPerMonth: 1e9, steps: { a: { inTokens: 1e6, outTokens: 1e6 } },
+    agents: { a: { typical: 50, upper: 50, resultTokens: 1e6, searchesPerRequest: 100 } },
+    loops: { 'a-a': { typical: 3, upper: 3 } },
+  });
+  assert.deepEqual(huge.typical, capped.typical);
+  assert.deepEqual(huge.upper, capped.upper);
+  for (const key of ['runsPerMonth', 'a:input', 'a:output', 'a:results', 'a:searches', 'loops:a-a:upper']) {
+    assert.ok(huge.assumptions.some((a) => a.key === `${key}:limit`), key);
+  }
+});
+
+test('overflowing price arithmetic saturates with a diagnostic instead of Infinity', () => {
+  const e = estimateWorkflow(graph([node('a')]), table([{ in: 1e308, out: 1e308 }]), catalog, { runsPerMonth: 1e308 });
+  assert.ok(e.lines.every((l) => Number.isFinite(l.typical) && Number.isFinite(l.upper)));
+  assert.ok(Number.isFinite(e.upper.monthlyUsd));
+  assert.ok(e.assumptions.some((a) => a.key === 'arithmetic:limit'));
+});
+
+test('review fixture subtotals: insurance retry-only path and invoice overlapping retries', () => {
+  close(estimateWorkflow(fixture('insurance-claims-triage.json'), models, catalog).upper.perRunUsd, .03092912);
+  close(estimateWorkflow(fixture('invoice-three-way-match.json'), models, catalog).upper.perRunUsd, .01465662);
+});
+
+test('retry links need no non-loop return path to price their destinations', () => {
+  const wf = graph([plain('a', 'trigger'), message('b'), plain('end', 'end')], [
+    edge('a', 'b', { kind: 'loop', max: 3 }), edge('a', 'end', { outcome: 'exhausted' }),
+  ]);
+  const e = estimateWorkflow(wf, models, catalog);
+  close(e.typical.perRunUsd, .005);
+  close(e.upper.perRunUsd, .015);
+});
+
+test('independent choices with distinct prices remain factored without resource fallback', () => {
+  const wf = parallelChoices();
+  const steps: Record<string, { inTokens: number; outTokens: number }> = {};
+  for (let i = 0; i < 19; i++) {
+    const id = `z${String(i).padStart(2, '0')}`;
+    wf.nodes[id].ai = 'test';
+    steps[id] = { inTokens: 0, outTokens: 2 ** i };
+  }
+  const e = estimateWorkflow(wf, unitModel, catalog, { steps });
+  close(e.typical.perRunUsd, (2 ** 19 - 1) / 2 + .0475);
+  close(e.upper.perRunUsd, 2 ** 19 - 1 + .095);
+  assert.ok(!e.assumptions.some((a) => a.key === 'resources'));
 });
