@@ -78,22 +78,36 @@ export function trimTurns(memory: SessionMemory, max: number = LIMITS.turns): Se
 /** Reserve a maximum next ask (including JSON escapes) and envelope within the 512 KiB transport cap. */
 export function compactTurnMemory(memory: SessionMemory, dropTurns = true, budget = TURN_MEMORY_BUDGET): SessionMemory {
   if (!memory.workflow) return memory;
-  const bytes = memoryBytes;
-  if (bytes(memory) <= budget) return memory;
-  let next = { ...memory, turns: memory.turns.map((t) => ({ ...t })) };
+  const bytes = (value: unknown): number => new TextEncoder().encode(JSON.stringify(value)).byteLength;
+  let size = memoryBytes(memory);
+  if (size <= budget) return memory;
+  const next = { ...memory, turns: memory.turns.map((t) => ({ ...t })) };
   for (const turn of next.turns) {
-    delete turn.changes;
-    if (bytes(next) <= budget) return next;
+    if (turn.changes !== undefined) {
+      size -= bytes(turn.changes) + 11; // ,"changes": plus the serialized value
+      delete turn.changes;
+    }
+    if (size <= budget) return next;
   }
-  while (dropTurns && next.turns.length && bytes(next) > budget) {
-    let end = 1;
-    while (end < next.turns.length && next.turns[end].role !== 'user') end++;
-    next.turns = next.turns.slice(end);
+  let cut = 0;
+  while (dropTurns && cut < next.turns.length && size > budget) {
+    do {
+      size -= bytes(next.turns[cut]) + (cut < next.turns.length - 1 ? 1 : 0);
+      cut++;
+    } while (cut < next.turns.length && next.turns[cut].role !== 'user');
   }
+  next.turns = next.turns.slice(cut);
   for (const key of ['tombstones', 'workflowTombstones'] as const) {
-    while (next[key]?.length && bytes(next) > budget) next = { ...next, [key]: next[key]!.slice(1) };
+    const entries = next[key];
+    if (!entries) continue;
+    let cut = 0;
+    while (cut < entries.length && size > budget) {
+      size -= bytes(entries[cut]) + (cut < entries.length - 1 ? 1 : 0);
+      cut++;
+    }
+    Object.assign(next, { [key]: entries.slice(cut) });
   }
-  if (bytes(next) > budget) throw new Error('turn memory budget exhausted');
+  if (size > budget) throw new Error('turn memory budget exhausted');
   return next;
 }
 
@@ -174,7 +188,7 @@ export async function executeTurn<M extends TurnMode = 'cloud'>(
       // With a backup configured, the content-filter stop of the first pass is not shown: the second pass finishes the
       // answer (or the turn ends with a neutral fatal), and the revision must look like any other.
       if (deps.backup && e.type === 'error' && e.error.code === 'content-filtered') return;
-      emit(e);
+      emit(deps.backup && e.type === 'done' && e.finishReason === 'content_filter' ? { ...e, finishReason: null } : e);
     },
     onStatus,
     onCost,
@@ -213,7 +227,7 @@ export async function executeTurn<M extends TurnMode = 'cloud'>(
       if (signal.aborted) return out;
       out.outcome = 'fatal';
       out.fatalCode = 'memory-budget';
-      emit({ type: 'fatal', code: 'memory-budget', message: 'Conversation memory is full. Shorten the documents or retry.', retryable: true });
+      emit({ type: 'fatal', code: 'memory-budget', message: fatalMessage('memory-budget', lang), retryable: true });
       return out;
     }
   } else memory = trimTurns(r.memory);

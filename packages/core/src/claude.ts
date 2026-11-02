@@ -388,7 +388,7 @@ export function createClaudeBackup(o: ClaudeBackupOptions): BackupProvider {
         effort: o.effort, maxTokens: o.maxTokens, ...(so.mode === 'workflow' ? { voice: BACKUP_WORKFLOW_VOICE_NOTE } : {}),
       });
       return streamOps({
-        mode: so.mode, models: so.models, workflow: so.workflow, model, provider: 'claude',
+        mode: so.mode, models: so.models, workflow: so.workflow, model, provider: 'claude', cleanIdentity: so.cleanIdentity,
         messages: so.messages, catalog: so.catalog, graph: so.graph, ctx: so.ctx, onEvent: so.onEvent, prices: so.prices,
       }, (h) => claudeSource(client, req, so.signal, dog, maxOutputChars, so.prices, h));
     },

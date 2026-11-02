@@ -659,3 +659,12 @@ describe('POST /api/proposal routes', () => {
     assert.equal(((await bad.json()) as { code: string }).code, 'bad-json');
   });
 });
+
+test('A D5 Worker accepts a UTF-8 BOM on proposals', async () => {
+  const env = makeEnv(), user = await approved(env), ctx = makeCtx();
+  const res = await handleProposal(propReq('\ufeff' + line(proposal())), env, ctx, user,
+    { draft: fakeDraft(happy).draft, log: () => undefined });
+  assert.equal(res.status, 200);
+  await res.text();
+  await ctx.flush();
+});

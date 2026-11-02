@@ -199,7 +199,7 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
     }
     let body: unknown;
     try {
-      body = JSON.parse(raw.toString('utf8'));
+      body = JSON.parse(new TextDecoder().decode(raw));
     } catch {
       return reject(400, 'bad-json', 'body is not valid JSON', {}, cors);
     }

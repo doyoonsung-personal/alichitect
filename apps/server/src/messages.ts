@@ -12,6 +12,11 @@ export type Lang = 'en' | 'ko' | 'zh';
 type Copy = Record<Lang, string>;
 
 export const FATAL_COPY: Record<string, Copy> = {
+  'memory-budget': {
+    en: 'Conversation memory is full. Shorten the documents or retry. Your diagram is unchanged.',
+    ko: '대화 메모리가 가득 찼습니다. 문서를 줄이거나 다시 시도해 주세요. 다이어그램은 변경되지 않았습니다.',
+    zh: '对话记忆已满。请缩短文档或重试。您的图表未更改。',
+  },
   'content-filtered': {
     en: "The model provider's content filter declined this request. Rephrase it and try again. Your diagram is unchanged.",
     ko: '모델 제공업체의 콘텐츠 필터가 이 요청을 거부했습니다. 표현을 바꿔 다시 시도해 주세요. 다이어그램은 변경되지 않았습니다.',

@@ -318,3 +318,13 @@ describe('Workers compatibility of the shared code', () => {
     assert.ok(s.system.length > 1000);
   });
 });
+
+test('A D5 Worker accepts a UTF-8 BOM on turns', async () => {
+  const env = makeEnv(), user = await approved(env), ctx = makeCtx();
+  const up = upstream([(c) => streamed(c, sseText(DIAGRAM))]);
+  const res = await handleTurn(turnReq('\ufeff' + body('Design')), env, ctx, user,
+    { fetchImpl: up.fetchImpl, turnOptions: OPTS, log: () => undefined });
+  assert.equal(res.status, 200);
+  assert.ok((await ndjson(res)).some((e) => e.type === 'commit'));
+  await ctx.flush();
+});

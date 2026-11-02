@@ -1,3 +1,4 @@
+import { hasHiddenIdentity } from './identity-matcher.ts';
 // The prompt of the proposal writer (proposal.ts draftProposal): the system prompt holds the writing brief and the NDJSON
 // format; the user message holds the session as facts (the conversation with the customer's messages verbatim, pinned
 // requirements, constraints, assumptions, open questions, the design) and a catalog excerpt for the products in the
@@ -302,7 +303,7 @@ function requirementsBlock(memory: SessionMemory, catalog: Catalog): string[] {
 
 // Keep backend names out of browser-bound text, except the coding tool's product name. Character classes also keep
 // the names out of browser bundle bytes (apps/web/scripts/check-dist.mjs).
-export const PROPOSAL_HIDDEN = /a[n]thropic|c[l]aude(?![ -]?code)/i;
+export const PROPOSAL_HIDDEN = { test: hasHiddenIdentity };
 
 /** Stable proposal-only aliases; reserve existing ids so a renamed step cannot shadow another element. */
 export function proposalWorkflowIds(workflow: WorkflowGraph | undefined): ReadonlyMap<string, string> {
@@ -317,7 +318,7 @@ export function proposalWorkflowIds(workflow: WorkflowGraph | undefined): Readon
   const aliases = new Map<string, string>();
   let next = 1;
   for (const id of ids) {
-    if (!/a[n]thropic|c[l]aude/i.test(id)) continue;
+    if (!hasHiddenIdentity(id, true)) continue;
     let alias: string;
     do { alias = `workflow-${next++}`; } while (ids.has(alias));
     ids.add(alias);

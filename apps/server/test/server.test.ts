@@ -90,6 +90,19 @@ function streamed(c: UpCall, text: string, o: { pauseAt?: number; gate?: Promise
 }
 
 const ok = (content: string): Handler => (c) => streamed(c, sseText(content));
+
+test('A D5: local turn and proposal accept a UTF-8 BOM like the Worker decoder', async () => {
+  const { srv, base } = await start({ fetchImpl: upstream(Array.from({ length: 8 }, () => ok('{"t":"done"}\n'))).fetchImpl });
+  try {
+    for (const endpoint of ['turn', 'proposal']) {
+      const body = endpoint === 'turn' ? turnBody() : JSON.stringify({ sessionId: 's', lang: 'en', memory: createMemory() });
+      const res = await fetch(`${base}/api/${endpoint}`, { method: 'POST',
+        headers: { 'Content-Type': 'application/json', Origin: ORIGIN }, body: '\ufeff' + body });
+      await res.text();
+      assert.equal(res.status, 200, endpoint);
+    }
+  } finally { await srv.close(); }
+});
 const hang: Handler = (c) => new Promise((_, rej) => c.signal.addEventListener('abort', () => rej(abortError()), { once: true }));
 
 const DIAGRAM = [
