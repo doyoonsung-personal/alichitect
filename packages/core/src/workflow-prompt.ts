@@ -1,10 +1,9 @@
-import { fence } from './prompt.ts';
 // Workflow-mode instructions and per-turn context (PLAN.md sections 3 and 8, D9 and D10). Browser-safe.
 import type { Catalog, SessionMemory, WorkflowEdge, WorkflowGraph, WorkflowGroup, WorkflowNode } from './types.ts';
 import type { ModelTable } from './models.ts';
 import { approvalRuleText } from './approval.ts';
 import { isRecommendable, PROMPT_ROW_FORMAT } from './catalog.ts';
-import { detectReplyLanguage, formatAssumptions, formatQuestions, formatRequirements } from './prompt.ts';
+import { detectReplyLanguage, fence, formatAssumptions, formatQuestions, formatRequirements } from './prompt.ts';
 import { makeLink, makeStep } from './workflow.ts';
 
 // Fixed subset: all recommendable international rows in these six lanes, plus these runtime, messaging and support ids.
@@ -63,7 +62,7 @@ const CONTRACT = [
   'tool is a built-in tool-table id (web_search, web_search_image, web_extractor, code_interpreter, mcp, pdf_parse).',
   'turns bounds model requests per agent run, integer 1..50. effect describes the action: read, write, reply, notify,',
   'send, publish, pay, delete, admin or decide. Every act and side-effecting tool needs effect; memory needs read or write.',
-  'effect belongs only on act, tool and memory steps. Never put effect on a trigger, ai, agent, guard, decide, human or end.',
+  'effect belongs only on act, tool and memory steps. Never put effect on a trigger, ai, agent, knowledge, guard, decide, human or end.',
   'Draft with ai/agent, then deliver with an act carrying the effect. A decide routes; an act with effect decide applies a consequential decision.',
   'untrusted marks outside content; private marks customer/personal data. approval required/skip overrides the effect policy.',
   'subject names the output a human approves. join controls parallel fan-in. repeat binds a step to an each group.',
@@ -95,7 +94,7 @@ const SEMANTICS = [
   'Takeover example (confidence is an existing deciding step; connect handoff to an end):',
   '{"t":"step","id":"handoff","kind":"human","label":"HR or live agent takes over","task":"takeover","runs":"customer"}',
   '{"t":"link","id":"confidence-handoff","from":"confidence","to":"handoff","kind":"escalate","label":"Uncertain or transaction requested"}',
-  'Inline nodes have no on: code always runs them via links. Attached nodes are choices for the model and have no control-flow links.',
+  'Inline nodes have no on: code always runs them via links. Attached nodes are choices for the model: never link to or from them.',
   'Only tool, knowledge, memory and agent can attach to an agent; a tool can also attach to ai. An attached agent is a sub-agent.',
   'Attachments are reachable with their host; attached tool effects count as the host\'s effects. An attached tool needing approval must carry',
   'approval required to pause at call time, or move inline after an approve step. Approval before an agent cannot approve its later tool output.',

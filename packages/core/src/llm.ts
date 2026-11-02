@@ -1,4 +1,3 @@
-import { identityBoundary } from './identity-matcher.ts';
 // Streaming Chat Completions client for Model Studio (OpenAI-compatible endpoint) and the turn runner.
 // streamTurn() posts one request with fetch, parses the SSE stream, feeds content deltas to the NDJSON line parser,
 // validates each op against the catalog and applies it with the reducer, emitting say (partial and final), op, warn,
@@ -41,6 +40,7 @@ import { checkGraph, constraintChecker, repairGraph, validateOp } from './valida
 import { impliedLifts, mergeConstraintsDetailed } from './constraints.ts';
 import { checkWorkflowConstraints } from './workflow-constraints.ts';
 import { diffGraphs } from './diff.ts';
+import { identityBoundary } from './identity-matcher.ts';
 import { ASK_LIMITS, latestById, mergeAssumptions } from './asks.ts';
 import type { Assumption, Question } from './asks.ts';
 import {

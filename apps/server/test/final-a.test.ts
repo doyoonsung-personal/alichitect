@@ -199,12 +199,11 @@ for (const name of ['sessions.json', 'sessions-phase1.json']) {
   });
 }
 
-test('admissible executeTurn commit: Codex #4 repair edge cap (pending round B)', async (t) => {
+test('admissible executeTurn commit: Codex #4 repair stays within the edge cap', async () => {
   const ops = [{ t: 'step', id: 'start', kind: 'trigger', label: 'Start' },
     { t: 'step', id: 'end', kind: 'end', label: 'End' }, { t: 'step', id: 'review', kind: 'human', label: 'Review', on: 'start' },
     ...Array.from({ length: 60 }, (_, i) => ({ t: 'link', id: `link-${i}`, from: 'start', to: 'end' }))];
   const memory = await committed(createMemory(), ops, 'workflow');
   const check = checkTurnRequest(request(memory));
-  if (!check.ok && check.message === 'memory.workflow.edges: more than 60 entries') t.todo('Codex #4: round B owns repair edge caps');
   assert.ok(check.ok, JSON.stringify(check));
 });

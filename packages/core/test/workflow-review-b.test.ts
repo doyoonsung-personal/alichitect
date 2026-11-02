@@ -102,3 +102,15 @@ test('C15 exact: booking control route cannot leave attached search', () => {
     e('search', 'book'), e('book', 'end')]);
   assert.ok(checkWorkflow(wf, catalog, models).some(w => w.code === 'wf-unreachable' && w.ids.includes('book')));
 });
+
+test('a dropped effect is info when it needs no approval and a warning when it does', () => {
+  // The final-review sweep found effect read on about 35 of 189 stored knowledge and trigger steps; dropping it is not news.
+  const drop = (kind: string, effect: string) => validateWorkflowOp({ t: 'step', id: 'x', kind, label: 'X', effect }, catalog, models)
+    .warnings.filter((w) => w.code === 'wf-bad-op').map((w) => w.severity);
+  assert.deepEqual(drop('knowledge', 'read'), ['info']);
+  assert.deepEqual(drop('trigger', 'read'), ['info']);
+  assert.deepEqual(drop('decide', 'decide'), ['warn']);
+  assert.deepEqual(drop('ai', 'send'), ['warn']);
+  const g = { nodes: { x: { id: 'x', kind: 'knowledge', label: 'X', effect: 'read' } as WorkflowNode }, edges: {}, groups: {} } as WorkflowGraph;
+  assert.deepEqual(repairWorkflow(g, catalog, models).warnings.filter((w) => w.code === 'wf-bad-op').map((w) => w.severity), ['info']);
+});

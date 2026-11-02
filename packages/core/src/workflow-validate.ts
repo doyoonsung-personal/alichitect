@@ -132,8 +132,11 @@ function validateStep(s: ValidateState, catalog: Catalog, models: ModelTable): b
   number(s, 'turns', 50);
   choice(s, 'effect', Object.keys(APPROVAL_POLICY));
   if (out.effect !== undefined && !effectKind(kind)) {
+    // A dropped read or write is noise to the user; a dropped send, pay or decide means the design lost an approval gate.
+    const gated = APPROVAL_POLICY[out.effect as keyof typeof APPROVAL_POLICY].approval;
+    s.warnings.push(W('wf-bad-op', [], `Effect on '${id}' was dropped; only act, tool and memory steps carry effects.`,
+      gated ? 'warn' : 'info'));
     delete out.effect;
-    bad(s, `Effect on '${id}' was dropped; only act, tool and memory steps carry effects.`);
   }
   choice(s, 'join', ['all', 'any']);
   choice(s, 'approval', ['required', 'skip']);
@@ -604,7 +607,8 @@ export function repairWorkflow(
     const value = { ...n };
     if (n.effect !== undefined && !effectKind(n.kind)) {
       delete value.effect;
-      repair('wf-bad-op', n.id, `Removed effect from '${n.id}'; only act, tool and memory steps carry effects.`, 'warn');
+      repair('wf-bad-op', n.id, `Removed effect from '${n.id}'; only act, tool and memory steps carry effects.`,
+        APPROVAL_POLICY[n.effect].approval ? 'warn' : 'info');
     }
     if (n.kind === 'agent' && n.turns === undefined) {
       value.turns = 10;
