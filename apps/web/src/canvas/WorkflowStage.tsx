@@ -5,7 +5,7 @@ import type { WorkflowViewProps } from '../workflow/contracts.ts';
 import { normalizeWorkflowLayout } from '../workflow/layout-adapter.ts';
 import { buildWorkflowScene } from '../workflow/scene.ts';
 import { planWorkflowEdges, drawWorkflowEdges, checkedWorkflowRoutes, workflowDrawingBounds } from '../workflow/edges.ts';
-import { minimumWorkflowZoom, workflowInitialViewport, workflowFollowViewport } from '../workflow/camera.ts';
+import { newestWorkflowStep, zoomWorkflowViewport, minimumWorkflowZoom, workflowInitialViewport, workflowFollowViewport } from '../workflow/camera.ts';
 import { models } from '../workflow/models.ts';
 import { makeMeasurer } from './measure.ts';
 import type { AvoidPort } from '../routing/budget.ts';
@@ -36,7 +36,7 @@ function Stage(p: WorkflowViewProps) {
   const [, tick] = useState(0);
   const [routes, setRoutes] = useState<Record<string, Pt[]>>({});
   const layout = useMemo(() => normalizeWorkflowLayout(p.workflow, p.layout), [p.workflow, p.layout]);
-  const measure = useMemo(() => makeMeasurer('sans-serif'), []);
+  const measure = useMemo(() => makeMeasurer('Arial, sans-serif'), []);
   const scene = useMemo(() => buildWorkflowScene({ workflow: p.workflow, layout, catalog: p.catalog,
     models, settings: p.settings, lang: p.lang, t: p.t, measure }), [p.workflow, layout, p.catalog, p.settings, p.lang, p.t, measure]);
   const plan = useMemo(() => planWorkflowEdges({ workflow: p.workflow, scene, layout }), [p.workflow, scene, layout]);
@@ -77,7 +77,7 @@ function Stage(p: WorkflowViewProps) {
   useEffect(() => { const next = createAvoidPort(); setPort(next); return () => next?.dispose(); }, []);
   useEffect(() => {
     let active = true;
-    setRoutes({});
+    setRoutes(checkedWorkflowRoutes(plan, {}));
     const accept = (result: RouteResult) => {
       if (!active) return;
       // An emergency elbow is not verified geometry. Keep it out of the drawing.
@@ -94,28 +94,59 @@ function Stage(p: WorkflowViewProps) {
     cards: Object.fromEntries(scene.cards.map((c) => [c.id, { ...layout.source.cards[c.id], h: c.h,
       title: { lines: c.titleLines, px: c.titlePx } }])) };
   const programmatic = useRef(0);
+  const activeFocus = useRef<string | null>(null);
+  const moveStart = useRef<typeof viewport | null>(null);
+  const currentView = useRef(viewport);
+  const previousWorkflow = useRef(p.workflow), newest = useRef<string | null>(null);
+  const target = newestWorkflowStep(previousWorkflow.current, p.workflow, newest.current);
+  useEffect(() => { previousWorkflow.current = p.workflow; newest.current = target; }, [p.workflow, target]);
+  const [occluded, setOccluded] = useState(50);
+  useLayoutEffect(() => {
+    const stage = root.current, panel = document.getElementById('products');
+    if (!stage || !panel) return;
+    const update = () => {
+      const bottom = stage.getBoundingClientRect().bottom;
+      const slotBottom = panel.parentElement?.getBoundingClientRect().bottom ?? bottom;
+      setOccluded(p.open ? Math.max(50, bottom - slotBottom + panel.offsetHeight) : 50);
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(stage); observer.observe(panel);
+    return () => observer.disconnect();
+  }, [p.open, size.width, size.height]);
+  const visible = { x: 0, y: 110, w: size.width, h: Math.max(0, size.height - 110 - occluded) };
   const setView = (v: typeof viewport) => { const next = { ...v, zoom: Math.max(minZoom, v.zoom) };
-        programmatic.current++;
+    programmatic.current++;
+    currentView.current = next;
     setViewport(next);
     void rf.setViewport(next).finally(() => { programmatic.current--; });
   };
   const fittedView = () => {
-    const v = workflowInitialViewport(overviewLayout, { width: size.width, height: Math.max(0, size.height - 160) });
+    const v = workflowInitialViewport(overviewLayout, { width: size.width, height: visible.h });
     return { ...v, y: v.y + 110 };
   };
   const fit = () => setView(fittedView());
   const started = useRef(false);
+  const targetCard = () => {
+    let id = target;
+    const visited = new Set<string>();
+    while (id && !scene.byId.has(id) && !visited.has(id)) {
+      visited.add(id); id = layout.attachmentOwners[id];
+    }
+    return id ? scene.byId.get(id) : undefined;
+  };
+  const followView = (reset = false) => {
+    const v = reset || !started.current || !p.streaming ? fittedView() : rf.getViewport();
+    const card = targetCard();
+    return p.streaming && card ? workflowFollowViewport({ ...v, zoom: Math.max(minZoom, v.zoom) }, card, visible) : v;
+  };
   useEffect(() => {
     if (!scene.cards.length) return;
     if (!started.current || following) {
-      started.current = true;
-      const inline = scene.cards.filter((c) => !c.node.on);
-      const card = [...inline].sort((a, b) => b.x - a.x || a.y - b.y)[0];
-      const v = fittedView();
-      setView(p.streaming && card ? workflowFollowViewport(v, card,
-        { x: 0, y: 110, w: size.width, h: Math.max(0, size.height - 160) }) : v);
+      setView(followView()); started.current = true;
     }
-  }, [p.version, size.width, size.height, bounds.x, bounds.y, bounds.w, bounds.h]);
+  }, [p.version, p.streaming, following, size.width, size.height, occluded,
+    p.streaming ? 0 : bounds.x, p.streaming ? 0 : bounds.y, p.streaming ? 0 : bounds.w, p.streaming ? 0 : bounds.h]);
   const pause = () => { if (following) { setFollowing(false); setStatus(p.t('workflow.live.paused')); } };
   const element = (id: string) => Array.from(root.current?.querySelectorAll<HTMLElement>('[data-wf-card]') ?? [])
     .find((el) => el.dataset.wfCard === id);
@@ -126,18 +157,36 @@ function Stage(p: WorkflowViewProps) {
       visited.add(id); id = layout.attachmentOwners[id]; card = scene.byId.get(id);
     }
     if (!card) return;
-    const occluded = p.open ? (document.getElementById('products')?.getBoundingClientRect().height ?? 0) : 48;
     const v = revealViewport(rf.getViewport(), { w: size.width, h: size.height }, card, 24, occluded);
     const next = v ?? rf.getViewport();
     if (card.y * next.zoom + next.y < 120) next.y = 120 - card.y * next.zoom;
     if (v || next.y !== rf.getViewport().y) setView(next);
   };
   useEffect(() => { if (p.panTo?.ids[0]) reveal(p.panTo.ids[0]); }, [p.panTo?.seq]);
-  useEffect(() => { if (focus && !scene.byId.has(focus)) { setFocus(stop); if (stop) element(stop)?.focus(); hover.closeNow(); } },
-    [p.version]);
+  useEffect(() => {
+    if (focus && !scene.byId.has(focus)) {
+      const active = document.activeElement;
+      const restore = activeFocus.current === focus && (active === document.body || root.current?.contains(active));
+      setFocus(stop); activeFocus.current = null; hover.closeNow();
+      if (stop && restore) element(stop)?.focus();
+    }
+  }, [p.version]);
   const close = () => { hover.escape(); if (open) element(open)?.focus(); hover.escape(); };
+  useEffect(() => {
+    if (!open) return;
+    const escape = (e: KeyboardEvent) => { if (e.key === 'Escape') hover.closeNow(); };
+    document.addEventListener('keydown', escape);
+    return () => document.removeEventListener('keydown', escape);
+  }, [open, hover]);
+  const observeMove = (v: typeof viewport) => {
+    const start = moveStart.current;
+    if (start && (Math.abs(v.x - start.x) > 1 || Math.abs(v.y - start.y) > 1 || Math.abs(v.zoom - start.zoom) > .001)) {
+      moveStart.current = null; pause();
+    }
+    currentView.current = v; setViewport(v);
+  };
   const nodes: Node[] = [
-    { id: 'wf-edges', type: 'workflowEdges', position: { x: 0, y: 0 }, data: { edges, t: p.t,
+    { id: 'wf:edges', type: 'workflowEdges', position: { x: 0, y: 0 }, data: { edges, t: p.t,
       width: bounds.w + 100, height: bounds.h + 100 }, selectable: false, focusable: false, zIndex: -1 },
     ...scene.brackets.map((b) => ({ id: b.id, type: 'workflowRepeat', position: { x: b.x, y: b.y },
       data: { bracket: b }, selectable: false, focusable: false })),
@@ -150,10 +199,11 @@ function Stage(p: WorkflowViewProps) {
         building: p.building.includes(card.id),
         delay: clock.current.enter(card.id, performance.now()),
         enter: () => hover.pointerEnter(card.id), leave: () => hover.pointerLeave(card.id),
-        focus: () => { setFocus(card.id); reveal(card.id); hover.focus(card.id); }, blur: () => hover.blur(card.id),
+        focus: () => { activeFocus.current = card.id; setFocus(card.id); reveal(card.id); hover.focus(card.id); }, blur: () => hover.blur(card.id),
         open: () => { hover.click(card.id); hover.holdForFocus();
           requestAnimationFrame(() => document.querySelector<HTMLElement>('#cv-pop button')?.focus()); },
         key: (e: React.KeyboardEvent) => {
+          if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
           const dirs: Record<string, NavDir> = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
           if (dirs[e.key]) { e.preventDefault(); pause();
             const next = nearest(scene.cards.map((c) => ({ ...c, frame: '' })), card.id, dirs[e.key]);
@@ -165,21 +215,33 @@ function Stage(p: WorkflowViewProps) {
       }, selectable: false, focusable: false, draggable: false })),
   ];
   const anchor = open ? element(open) : undefined, card = open ? scene.byId.get(open) : undefined;
-  return <div className="wf-stage" ref={root}>
+  return <div className="wf-stage" ref={root}
+    onBlurCapture={(e) => {
+      const target = e.relatedTarget;
+      if (!(target instanceof Element) || !target.closest('[data-wf-card], .wf-pop')) activeFocus.current = null;
+    }}
+    onKeyDown={(e) => { if (e.key === 'Escape' && open) { e.stopPropagation(); close(); } }}>
     <ReactFlow viewport={viewport} onViewportChange={setViewport} nodes={nodes} nodeTypes={nodeTypes} nodesDraggable={false} nodesConnectable={false}
       elementsSelectable={false} nodesFocusable={false} edgesFocusable={false} minZoom={minZoom} maxZoom={1.5}
-      panOnScroll zoomOnDoubleClick={false} onMoveStart={(event) => { if (event?.isTrusted && !programmatic.current) pause(); }}
-      onMove={(_, v) => setViewport(v)} proOptions={{ hideAttribution: true }} />
+      panOnScroll zoomOnDoubleClick={false}
+      onMoveStart={(event, v) => {
+        moveStart.current = event?.isTrusted && !programmatic.current ? currentView.current : null;
+        observeMove(v);
+      }}
+      onMove={(_, v) => observeMove(v)}
+      onMoveEnd={(_, v) => { observeMove(v); moveStart.current = null; }} proOptions={{ hideAttribution: true }} />
     {!scene.cards.length && <p className="wf-empty">{p.t('workflow.canvas.empty')}</p>}
+    {anchor && card && <WorkflowPopover card={card} view={p} anchor={anchor} machine={hover} close={close}
+      viewport={viewport} visible={visible} edgeLabels={scene.edgeLabels} />}
     <WorkflowTools layout={overviewLayout} viewport={viewport} size={size} t={p.t} following={following} disabled={p.disabled}
       fit={fit} zoom={(delta) => {
-        pause(); setView({ ...viewport, zoom: Math.max(minZoom, Math.min(1.5, viewport.zoom + delta)) });
+        pause(); setView(zoomWorkflowViewport(viewport, Math.max(minZoom, Math.min(1.5, viewport.zoom + delta)), visible));
       }}
-      tidy={() => p.actions.tidyWorkflowView()} resume={() => { setFollowing(true); setStatus(p.t('workflow.live.resumed'));
-        const last = ordered.at(-1); if (last) reveal(last.id); }}
+      tidy={() => p.actions.tidyWorkflowView()} resume={() => {
+        if (following) { pause(); return; }
+        setFollowing(true); setStatus(p.t('workflow.live.resumed')); setView(followView(true)); }}
       navigate={(x, y) => { pause(); setView({ ...viewport, x: 24 - x * viewport.zoom, y: 110 - y * viewport.zoom }); }} />
     <p id="workflow-keys" className="visually-hidden">{p.t('workflow.canvas.keys')}</p>
     <p className="visually-hidden" role="status">{status}</p>
-    {anchor && card && <WorkflowPopover card={card} view={p} anchor={anchor} machine={hover} close={close} />}
   </div>;
 }

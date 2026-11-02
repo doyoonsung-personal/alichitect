@@ -13,11 +13,11 @@ export function WorkflowTools(p: {
       <button onClick={p.fit}>{p.t('canvas.fit')}</button>
       <button aria-label={p.t('canvas.zoomOut')} onClick={() => p.zoom(-0.1)}>−</button>
       <button aria-label={p.t('canvas.zoomIn')} onClick={() => p.zoom(0.1)}>+</button>
-      <button aria-pressed={p.following} onClick={p.resume}>{p.t(p.following ? 'workflow.canvas.follow' : 'workflow.canvas.resume')}</button>
+      <button aria-pressed={p.following} onClick={p.resume}>{p.t('workflow.canvas.follow')}</button>
       <button disabled={p.disabled} onClick={p.tidy}>{p.t('workflow.canvas.tidy')}</button>
     </div>
-    <div className="wf-overview" aria-label={p.t('workflow.canvas.overview')}>
-      <svg viewBox={'0 0 ' + Math.max(1, b.w) + ' ' + Math.max(1, b.h)} preserveAspectRatio="none"
+    <div className="wf-overview" role="group" aria-label={p.t('workflow.canvas.overview')}>
+      <svg aria-hidden="true" viewBox={'0 0 ' + Math.max(1, b.w) + ' ' + Math.max(1, b.h)} preserveAspectRatio="none"
         onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId);
           const r = e.currentTarget.getBoundingClientRect(); p.navigate((e.clientX - r.x) / r.width * b.w, (e.clientY - r.y) / r.height * b.h); }}
         onPointerMove={(e) => { if (!e.buttons) return; const r = e.currentTarget.getBoundingClientRect();

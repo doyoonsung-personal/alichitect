@@ -1,13 +1,13 @@
 /* Workflow geometry and interactions are isolated from the cloud canvas. */
 .wf-stage { position: relative; height: 100%; width: 100%; }
-.wf-card { display: flex; flex-direction: column; gap: 4px; padding: 8px; background: var(--card, var(--sheet));
+.wf-card { pointer-events: auto; display: flex; flex-direction: column; gap: 4px; padding: 8px; background: var(--card, var(--sheet));
   border: 1px solid var(--line-1); border-radius: 10px; color: var(--ink); text-align: left; cursor: pointer; position: relative; }
 .wf-card:focus-visible, .wf-card[data-lit] { outline: 3px solid var(--action); outline-offset: 2px; }
 .wf-card__heading { display: flex; gap: 8px; align-items: start; }
-.wf-card__heading strong { font-family: sans-serif; font-weight: 500; }
+.wf-card__heading strong { font-family: Arial, sans-serif; font-weight: 500; }
 .wf-card > * { flex-shrink: 0; }
 .wf-card__heading svg { flex-shrink: 0; }
-.wf-card__heading strong span { display: block; line-height: 1.25; }
+.wf-card__heading strong span { display: block; line-height: 1.25; white-space: nowrap; }
 .wf-card__service, .wf-card__model, .wf-card__badges, .wf-card__count { font-size: 11px; line-height: 14px; }
 .wf-card__service, .wf-card__model { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wf-card__model { border-radius: 4px; background: var(--record); padding: 3px; }
@@ -16,7 +16,8 @@
 .wf-card__count { margin-top: auto; text-decoration: underline; }
 .wf-card[data-enter] { animation: wf-enter 350ms both; }
 @keyframes wf-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.wf-bracket { border: 1px solid var(--line-1); border-top: 0; text-align: center; padding: 8px; font-size: 12px; }
+.wf-bracket { border: 1px solid var(--line-1); border-top: 0; text-align: center; padding: 4px 8px; font-size: 12px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wf-edges { overflow: visible; pointer-events: none; }
 .wf-edges text { font-size: 12px; fill: currentColor; stroke: var(--sheet); stroke-width: 4px; paint-order: stroke; }
 .wf-tools { position: absolute; top: 8px; left: 8px; right: 8px; z-index: 8; pointer-events: none; }
@@ -27,7 +28,7 @@
 .wf-overview svg { width: 100%; height: 32px; touch-action: none; }
 .wf-overview__columns { display: flex; overflow-x: auto; }
 .wf-overview__columns button { flex: 1; padding: 2px 4px; }
-.wf-pop { position: fixed; z-index: 100; width: 300px; max-height: 80vh; overflow: auto; background: var(--sheet);
+.wf-pop { overflow-wrap: anywhere; position: fixed; z-index: 100; width: 300px; max-height: 80vh; overflow: auto; background: var(--sheet);
   color: var(--ink); border: 1px solid var(--line-1); border-radius: 8px; padding: 16px; box-shadow: 0 8px 32px #0003; font-size: 13px; }
 .wf-pop button { float: right; }
 .wf-empty { position: absolute; top: 45%; width: 100%; text-align: center; pointer-events: none; }

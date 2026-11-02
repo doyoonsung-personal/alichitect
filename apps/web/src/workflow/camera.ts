@@ -1,4 +1,5 @@
 // Translation, follow and overview calculations independent of the browser.
+import type { WorkflowGraph } from '@ali/core/types.ts';
 import type { Rect } from '@ali/core/layout.ts';
 import { GEOMETRY } from '@ali/core/layout.ts';
 import { workflowViewport, WORKFLOW_GEOMETRY } from '@ali/core/workflow-layout.ts';
@@ -26,4 +27,15 @@ export function overviewColumns(layout: WorkflowLayout): number[] {
 }
 export function minimumWorkflowZoom(titles: readonly number[]): number {
   return WORKFLOW_GEOMETRY.titleFloorPx / (titles.length ? Math.min(...titles) : GEOMETRY.titlePx);
+}
+
+/** Object order breaks ties within a display batch; changed existing steps outrank unchanged steps. */
+export function newestWorkflowStep(previous: WorkflowGraph,
+  next: WorkflowGraph, last: string | null): string | null {
+  const changed = Object.values(next.nodes).filter((n) => JSON.stringify(n) !== JSON.stringify(previous.nodes[n.id]));
+  return changed.at(-1)?.id ?? (last && next.nodes[last] ? last : Object.keys(next.nodes).at(-1) ?? null);
+}
+export function zoomWorkflowViewport(current: Viewport, zoom: number, visible: Rect): Viewport {
+  const x = visible.x + visible.w / 2, y = visible.y + visible.h / 2;
+  return { x: x - (x - current.x) / current.zoom * zoom, y: y - (y - current.y) / current.zoom * zoom, zoom };
 }
