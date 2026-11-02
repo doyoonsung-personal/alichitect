@@ -13,6 +13,7 @@ export interface WorkflowExpect {
   products?: string[][]; // each group is any-of; ai also implies Model Studio
   runtimes?: string[][]; // each group is any-of, only runs counts; customer is allowed
   effects?: Effect[];
+  effectsAny?: Effect[][]; // each group is any-of; approval checks still follow each action's policy
   forbiddenProducts?: string[]; // checked in both product and runs
   forbiddenKinds?: WorkflowNodeKind[];
   forbiddenTasks?: WorkflowTask[];
@@ -38,12 +39,16 @@ export function workflowAssertions(
   for (const kind of e.kinds ?? []) add(`workflow kind ${kind}`, nodes.some((n) => n.kind === kind));
   const hasTask = (task: WorkflowTask): boolean => nodes.some((n) => {
     if (n.task === task) return true;
+    if (task === 'extract' && n.kind === 'tool' && n.tool === 'pdf_parse') return true;
     const model = n.ai ? models.model(n.ai) : undefined;
     return task === 'transcribe' ? !!model?.in.includes('audio') : task === 'speak' && !!model?.out.includes('audio');
   });
   for (const task of e.tasks ?? []) add(`workflow task ${task}`, hasTask(task));
   for (const group of e.tasksAny ?? []) add(`workflow task ${group.join('|')}`, group.some(hasTask));
   for (const effect of e.effects ?? []) add(`workflow effect ${effect}`, nodes.some((n) => n.effect === effect));
+  for (const group of e.effectsAny ?? []) {
+    add(`workflow effect ${group.join('|')}`, nodes.some((n) => n.effect && group.includes(n.effect)));
+  }
   for (const kind of e.forbiddenKinds ?? []) add(`workflow no kind ${kind}`, nodes.every((n) => n.kind !== kind));
   for (const task of e.forbiddenTasks ?? []) add(`workflow no task ${task}`, nodes.every((n) => n.task !== task));
   for (const [task, tiers] of Object.entries(e.tiers ?? {})) {
@@ -100,7 +105,7 @@ export function checkWorkflowExpect(value: unknown, catalog: Catalog): string[] 
   const e = value as Record<string, unknown>;
   const problems: string[] = [];
   const keys = ['kinds', 'tasks', 'tasksAny', 'tiers', 'products', 'runtimes', 'effects', 'forbiddenProducts', 'forbiddenKinds',
-    'forbiddenTasks', 'approvals', 'boundedLoops', 'international', 'noWarnings'];
+    'effectsAny', 'forbiddenTasks', 'approvals', 'boundedLoops', 'international', 'noWarnings'];
   const list = (key: string, v: unknown, allowed: readonly string[]): void => {
     if (!Array.isArray(v) || !v.length || v.some((x) => typeof x !== 'string' || !allowed.includes(x))) {
       problems.push(`${key} must be a non-empty array of allowed values`);
@@ -115,6 +120,11 @@ export function checkWorkflowExpect(value: unknown, catalog: Catalog): string[] 
     if (key in e) list(key, e[key], allowed);
   }
   const products = [...catalog.byId.keys()];
+  if ('effectsAny' in e) {
+    if (!Array.isArray(e.effectsAny) || !e.effectsAny.length) {
+      problems.push('effectsAny must be a non-empty array of groups');
+    } else for (const group of e.effectsAny) list('effectsAny', group, EFFECTS);
+  }
   if ('tasksAny' in e) {
     if (!Array.isArray(e.tasksAny) || !e.tasksAny.length) problems.push('tasksAny must be a non-empty array of groups');
     else for (const group of e.tasksAny) list('tasksAny', group, WORKFLOW_TASKS);

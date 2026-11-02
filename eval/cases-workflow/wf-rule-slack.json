@@ -37,7 +37,9 @@
             "webhook"
           ],
           [
-            "custom"
+            "custom",
+            "FC webhook ingress",
+            "webhook into Function Compute"
           ]
         ]
       }
