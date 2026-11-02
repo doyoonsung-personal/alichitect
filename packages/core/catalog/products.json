@@ -2262,10 +2262,10 @@
       "lane": "security",
       "status": "ga",
       "availability": "intl",
-      "purpose": "Bot challenge (CAPTCHA 2.0) protecting login, sign-up and SMS flows.",
+      "purpose": "Bot challenge (CAPTCHA 2.0) for login, sign-up, SMS, orders and coupons.",
       "pairsWith": ["fraud-detection","sms"],
       "docs": "https://www.alibabacloud.com/product/captcha",
-      "verified": "2026-10-31"
+      "verified": "2026-11-02"
     },
     {
       "id": "content-moderation",
@@ -2296,12 +2296,13 @@
       "icon": "shield",
       "scope": "region",
       "lane": "security",
-      "status": "ga",
+      "status": "preview",
       "availability": "intl",
-      "purpose": "Risk scoring against fake sign-ups, account takeover and promotion abuse.",
+      "purpose": "Risk scoring for sign-ups, logins, promotion abuse and credit checks.",
       "pairsWith": ["captcha","id-verification"],
       "docs": "https://www.alibabacloud.com/product/fraud-detection",
-      "verified": "2026-10-31"
+      "note": "Beta on the international site. Its listed scenarios are account security, marketing abuse, spam sign-ups and credit risk; screening card payments is not one of them.",
+      "verified": "2026-11-02"
     },
     {
       "id": "mss",
