@@ -11,6 +11,10 @@ import type { BackupGateResult, RunStatus, TurnEvent } from '../src/llm.ts';
 import { CLAUDE_BACKUP_MODEL, CLAUDE_FALLBACK_BETA, CLAUDE_MAX_OUTPUT_CHARS, CLAUDE_MAX_TOKENS, claudeBackupConfig, claudeCost, claudeError, claudeModelOf, claudeRequest, createClaudeBackup, toClaudeMessages, BACKUP_VOICE_NOTE } from '../src/claude.ts';
 import type { ClaudeBackupOptions } from '../src/claude.ts';
 import { createMemory } from '../src/prompt.ts';
+import modelsFile from '../catalog/models.json' with { type: 'json' };
+import { createModelTable } from '../src/models.ts';
+import type { ModelFile } from '../src/models.ts';
+import { BACKUP_TEXT_VOICE_NOTE, BACKUP_WORKFLOW_VOICE_NOTE } from '../src/claude.ts';
 import Anthropic from '@anthropic-ai/sdk';
 
 const CAT = loadCatalog();
@@ -733,4 +737,40 @@ describe('runTurn: what the browser is sent about the backup', () => {
     assert.ok(!events.some((e) => e.type === 'error' && e.error.code === 'overloaded'), 'the browser is not told Claude was overloaded');
     assert.deepEqual(detail.filter((e) => e.type === 'error').map((e) => (e as { error: { code: string } }).error.code), ['overloaded']);
   });
+});
+
+test('workflow backup voices on streaming and completion allow step models, while cloud notes stay identical', async () => {
+  const models = createModelTable(modelsFile as ModelFile);
+  for (const mode of ['cloud', 'workflow'] as const) {
+    const calls: Call[] = [];
+    const fetchImpl = router([], [claudeOk(line({ t: 'done', summary: 'Ready' }) + '\n'), claudeOk('Ready')], calls);
+    const backup = backupWith(fetchImpl);
+    await backup.stream({ mode, models, catalog: CAT, messages: [{ role: 'system', content: 'System' }] });
+    await backup.complete!({ mode, messages: [{ role: 'system', content: 'System' }] });
+    for (let i = 0; i < calls.length; i++) {
+      const system = calls[i].body.system as Array<{ text: string }>;
+      const note = mode === 'workflow' ? BACKUP_WORKFLOW_VOICE_NOTE : i ? BACKUP_TEXT_VOICE_NOTE : BACKUP_VOICE_NOTE;
+      assert.ok(system[0].text.endsWith(note));
+    }
+  }
+  assert.match(BACKUP_WORKFLOW_VOICE_NOTE, /Qwen models used by the workflow steps/);
+  assert.match(BACKUP_WORKFLOW_VOICE_NOTE, /Never identify yourself/);
+});
+
+test('filtered partial workflow continues on backup even with repair disabled', async () => {
+  const partial = line({ t: 'step', id: 'start', kind: 'trigger', label: 'Input' }) + '\n';
+  const rest = [
+    { t: 'step', id: 'end', kind: 'end', label: 'Ready' },
+    { t: 'link', id: 'route', from: 'start', to: 'end' },
+    { t: 'done', summary: 'Ready' },
+  ].map(line).join('\n') + '\n';
+  const filtered: Handler = (c) => sseResponse(c, qev({ choices: [{ delta: { content: partial } }] })
+    + qev({ error: { code: 'DataInspectionFailed' } }) + 'data: [DONE]\n\n');
+  const fetchImpl = router([filtered], [claudeOk(rest)]);
+  const r = await runTurn(createMemory(), 'Design', CAT, { ...TURN, mode: 'workflow', models: createModelTable(modelsFile as ModelFile),
+    repair: false, fetchImpl, backup: backupWith(fetchImpl) });
+  assert.equal(r.stats.rescue!.kind, 'continue');
+  assert.equal(r.stats.finalDone, true);
+  assert.deepEqual(Object.keys(r.memory.workflow!.nodes), ['start', 'end']);
+  assert.ok(r.memory.workflow!.edges.route);
 });

@@ -12,6 +12,9 @@
 // leaves the chat history uncached and doubles the follow-up cost. 'two' puts a marker on the system block and on the
 // newest history message (moved every turn), which the spike recommends once traffic is steady.
 import type { ApplyResult, Catalog, Constraint, Graph, GraphEdge, GraphGroup, GraphNode, Recommendation, SessionMemory, Turn, Warning } from './types.ts';
+import type { TurnMode, WorkflowGraph } from './types.ts';
+import type { ModelTable } from './models.ts';
+import { buildWorkflowSystemPrompt, serializeWorkflow, workflowUserContent } from './workflow-prompt.ts';
 import { REGIONS, regionInfo } from './regions.ts';
 import { diffGraphs } from './diff.ts';
 import { PROMPT_ROW_FORMAT, isRecommendable } from './catalog.ts';
@@ -34,6 +37,8 @@ export interface ChatMessage {
 export type CacheMode = 'none' | 'system' | 'two';
 
 export interface BuildOptions {
+  mode?: TurnMode;
+  models?: ModelTable;
   /** Needed to build the system prompt, unless `system` is passed. */
   catalog?: Catalog;
   /** A prebuilt system prompt (from buildSystemPrompt); saves rebuilding it on every call. */
@@ -193,17 +198,27 @@ function avoidSection(catalog: Catalog): string[] {
   return lines.length ? ['# WHEN NOT TO USE (entry: the cases where another choice is better)', ...lines, ''] : [];
 }
 
-const SYSTEM_CACHE = new WeakMap<Catalog, string>();
+const SYSTEM_CACHE = new WeakMap<Catalog, { cloud?: string; workflow?: string; models?: ModelTable }>();
 
 /**
  * The system prompt: rules R1-R23, one worked example, the "when not to use" guidance, then the catalog rows.
  * Byte-stable: the same catalog gives the same string on every call (no dates, counters or random parts), so the cache keeps hitting.
  */
-export function buildSystemPrompt(catalog: Catalog): string {
-  const hit = SYSTEM_CACHE.get(catalog);
-  if (hit !== undefined) return hit;
+export function buildSystemPrompt(catalog: Catalog, mode: TurnMode = 'cloud', models?: ModelTable): string {
+  const entry = SYSTEM_CACHE.get(catalog) ?? {};
+  if (mode === 'workflow') {
+    if (!models) throw new Error('Workflow prompts need a model table');
+    if (entry.workflow === undefined || entry.models !== models) {
+      entry.workflow = buildWorkflowSystemPrompt(catalog, models);
+      entry.models = models;
+      SYSTEM_CACHE.set(catalog, entry);
+    }
+    return entry.workflow;
+  }
+  if (entry.cloud !== undefined) return entry.cloud;
   const text = [...rules(catalog), '', ...avoidSection(catalog), `# CATALOG (${PROMPT_ROW_FORMAT})`, catalog.promptRows(), ''].join('\n');
-  SYSTEM_CACHE.set(catalog, text);
+  entry.cloud = text;
+  SYSTEM_CACHE.set(catalog, entry);
   return text;
 }
 
@@ -436,7 +451,7 @@ function withMarker(m: ChatMessage): ChatMessage {
  * session share their prefix up to the newest history entry.
  */
 export function buildMessages(memory: SessionMemory, ask: string, opts: BuildOptions = {}): ChatMessage[] {
-  const system = opts.system ?? (opts.catalog ? buildSystemPrompt(opts.catalog) : undefined);
+  const system = opts.system ?? (opts.catalog ? buildSystemPrompt(opts.catalog, opts.mode, opts.models) : undefined);
   if (system === undefined) throw new Error('buildMessages needs opts.catalog or opts.system');
   const cache = opts.cache ?? 'none';
   const msgs: ChatMessage[] = [systemMessage(system, cache !== 'none')];
@@ -450,7 +465,9 @@ export function buildMessages(memory: SessionMemory, ask: string, opts: BuildOpt
     else msgs.push({ role: 'assistant', content: renderAssistantTurn(turn) });
   }
   if (cache === 'two' && msgs.length > 1) msgs[msgs.length - 1] = withMarker(msgs[msgs.length - 1]); // newest history message (or the summary)
-  msgs.push({ role: 'user', content: finalUserContent(memory, ask, opts) });
+  msgs.push({ role: 'user', content: opts.mode === 'workflow'
+    ? workflowUserContent(memory, clipText(ask, opts.maxAskChars ?? DEFAULT_MAX_ASK_CHARS))
+    : finalUserContent(memory, ask, opts) });
   return msgs;
 }
 
@@ -482,9 +499,11 @@ export function buildRepairMessages(
   assistantContent: string,
   repaired: Graph,
   findings: readonly Warning[],
-  opts: { truncated?: boolean } = {},
+  opts: { truncated?: boolean; workflow?: WorkflowGraph } = {},
 ): ChatMessage[] {
-  const parts = [`CURRENT DIAGRAM (${opts.truncated ? 'drawn so far, after automatic placement fixes' : 'after automatic placement fixes'}):\n${serializeDiagram(repaired)}`];
+  const placement = opts.truncated ? 'drawn so far, after automatic placement fixes' : 'after automatic placement fixes';
+  const parts = opts.workflow ? [`CURRENT WORKFLOW:\n${serializeWorkflow(opts.workflow)}`]
+    : [`CURRENT DIAGRAM (${placement}):\n${serializeDiagram(repaired)}`];
   // Constraint findings first, so the cap on listed findings never hides them.
   const ordered = [...findings.filter((w) => CONSTRAINT_CODES.has(w.code)), ...findings.filter((w) => !CONSTRAINT_CODES.has(w.code))];
   if (ordered.length) parts.push(`VALIDATOR FINDINGS:\n${formatFindings(ordered)}`);

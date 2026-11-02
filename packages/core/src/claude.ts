@@ -24,6 +24,7 @@
 // The key is passed to the SDK client only (it sends it in a request header to api.anthropic.com); it is never put in
 // an error message, an event or a log line, and the SDK's own logging is off. Workers-compatible: the SDK maps its
 // Node-only module to a browser stub, nothing here imports a Node built-in, and a live call ran in workerd (2026-11-01).
+import type { TurnMode } from './types.ts';
 import Anthropic from '@anthropic-ai/sdk';
 import { streamOps } from './llm.ts';
 import type { BackupCompleteOptions, BackupCompleteResult, BackupProvider, BackupStreamOptions, RawStreamHandlers, RawStreamOutcome, StreamResult, TurnError, Usage } from './llm.ts';
@@ -120,6 +121,12 @@ export const BACKUP_VOICE_NOTE = 'Write as the same assistant that began this an
 
 /** BACKUP_VOICE_NOTE for a plain-text call (complete()): a document such as the drafted proposal, in one voice. */
 export const BACKUP_TEXT_VOICE_NOTE = 'Write as the same writer who began this text. Never name an AI model, a model family or a company behind the writing, never say that the text was generated, and never mention that another writer started it.';
+
+/** Workflow designs may name their step models, but never the writer or its vendor. */
+export const BACKUP_WORKFLOW_VOICE_NOTE = [
+  'Write as the same assistant that began this answer. You may name the Qwen models used by the workflow steps.',
+  'Never identify yourself, your model, model family or vendor, or mention that another writer started or stopped the answer.',
+].join(' ');
 
 /** The request body of one backup call. `voice` replaces BACKUP_VOICE_NOTE at the end of the system prompt. */
 export function claudeRequest(model: string, messages: readonly ChatMessage[], o: { effort?: ClaudeEffort; maxTokens?: number; voice?: string } = {}): ClaudeRequest {
@@ -375,12 +382,21 @@ export function createClaudeBackup(o: ClaudeBackupOptions): BackupProvider {
   return {
     provider: 'claude',
     model,
-    stream(so: BackupStreamOptions): Promise<StreamResult> {
-      const req = claudeRequest(model, so.messages, { effort: o.effort, maxTokens: o.maxTokens });
-      return streamOps({ model, provider: 'claude', messages: so.messages, catalog: so.catalog, graph: so.graph, ctx: so.ctx, onEvent: so.onEvent, prices: so.prices }, (h) => claudeSource(client, req, so.signal, dog, maxOutputChars, so.prices, h));
+    stream<M extends TurnMode = 'cloud'>(input: BackupStreamOptions<M>): Promise<StreamResult> {
+      const so = input as unknown as BackupStreamOptions<TurnMode>;
+      const req = claudeRequest(model, so.messages, {
+        effort: o.effort, maxTokens: o.maxTokens, ...(so.mode === 'workflow' ? { voice: BACKUP_WORKFLOW_VOICE_NOTE } : {}),
+      });
+      return streamOps({
+        mode: so.mode, models: so.models, workflow: so.workflow, model, provider: 'claude',
+        messages: so.messages, catalog: so.catalog, graph: so.graph, ctx: so.ctx, onEvent: so.onEvent, prices: so.prices,
+      }, (h) => claudeSource(client, req, so.signal, dog, maxOutputChars, so.prices, h));
     },
     async complete(co: BackupCompleteOptions): Promise<BackupCompleteResult> {
-      const req = claudeRequest(model, co.messages, { effort: o.effort, maxTokens: co.maxTokens ?? o.maxTokens, voice: BACKUP_TEXT_VOICE_NOTE });
+      const req = claudeRequest(model, co.messages, {
+        effort: o.effort, maxTokens: co.maxTokens ?? o.maxTokens,
+        voice: co.mode === 'workflow' ? BACKUP_WORKFLOW_VOICE_NOTE : BACKUP_TEXT_VOICE_NOTE,
+      });
       let text = '';
       let usage: Usage | null = null;
       let finishReason: string | null = null;

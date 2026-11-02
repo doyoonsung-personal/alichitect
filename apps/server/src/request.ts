@@ -3,10 +3,19 @@
 // valid element ids equal to the element's own id, which also rules out keys such as __proto__ and constructor.
 // Pure: no I/O.
 import type { Constraint, Graph, GraphEdge, GraphGroup, GraphNode, ProposalRequest, Recommendation, SessionMemory, TurnRequest, Turn } from '../../../packages/core/src/types.ts';
+import type {
+  TurnMode, WorkflowGraph, WorkflowNode, WorkflowEdge, WorkflowGroup, WorkflowSettings, WorkflowEstimateSettings,
+} from '../../../packages/core/src/types.ts';
+import { DEFAULT_WORKFLOW_LIMITS } from '../../../packages/core/src/workflow.ts';
+import { WORKFLOW_TASKS } from '../../../packages/core/src/models.ts';
 import { ID_PATTERN } from '../../../packages/core/src/reducer.ts';
 import { ASK_LIMITS } from '../../../packages/core/src/asks.ts';
 
 export const LIMITS = {
+  workflowNodes: DEFAULT_WORKFLOW_LIMITS.maxNodes,
+  workflowEdges: DEFAULT_WORKFLOW_LIMITS.maxEdges,
+  workflowGroups: DEFAULT_WORKFLOW_LIMITS.maxGroups,
+  workflowTombstones: 80,
   askChars: 6000, // code points of the new message
   turns: 200,
   turnChars: 20000, // one stored turn (assistant turns hold several say lines)
@@ -169,6 +178,7 @@ function turn(v: unknown, p: string): Turn {
   const t: Turn = { role, text: str(own(o, 'text'), `${p}.text`, LIMITS.turnChars)! };
   const changes = str(own(o, 'changes'), `${p}.changes`, LIMITS.changesChars, { optional: true });
   if (changes !== undefined) t.changes = changes;
+  if (own(o, 'mode') !== undefined) t.mode = mode(own(o, 'mode'), `${p}.mode`);
   return t;
 }
 
@@ -243,6 +253,13 @@ function memory(v: unknown, p: string): SessionMemory {
     const list = questions(qs, `${p}.questions`);
     if (list.length) m.questions = list;
   }
+  if (own(o, 'workflow') !== undefined) m.workflow = workflow(own(o, 'workflow'), `${p}.workflow`);
+  if (own(o, 'workflowTombstones') !== undefined) {
+    m.workflowTombstones = arr(own(o, 'workflowTombstones'), `${p}.workflowTombstones`, LIMITS.workflowTombstones)!
+      .map((x, i) => workflowTombstone(x, `${p}.workflowTombstones[${i}]`));
+  }
+  if (own(o, 'workflowSettings') !== undefined) m.workflowSettings = workflowSettings(own(o, 'workflowSettings'), `${p}.workflowSettings`);
+  if (own(o, 'estimate') !== undefined) m.estimate = estimate(own(o, 'estimate'), `${p}.estimate`);
   return m;
 }
 
@@ -256,7 +273,8 @@ export function checkTurnRequest(body: unknown): RequestCheck {
     const sessionId = own(o, 'sessionId');
     if (typeof sessionId !== 'string' || !SESSION_RE.test(sessionId)) fail('sessionId', `expected 1-${LIMITS.sessionId} characters of A-Z, a-z, 0-9, _ or -`);
     const ask = str(own(o, 'ask'), 'ask', LIMITS.askChars, { nonEmpty: true })!;
-    return { ok: true, value: { sessionId, ask, memory: memory(own(o, 'memory'), 'memory') } };
+    const turnMode = mode(own(o, 'mode'), 'mode');
+    return { ok: true, value: { sessionId, ask, mode: turnMode, memory: memory(own(o, 'memory'), 'memory') } };
   } catch (e) {
     if (e instanceof Bad) return { ok: false, code: 'bad-request', message: e.message };
     return { ok: false, code: 'bad-request', message: 'invalid request body' };
@@ -281,4 +299,132 @@ export function checkProposalRequest(body: unknown): ProposalCheck {
     if (e instanceof Bad) return { ok: false, code: 'bad-request', message: e.message };
     return { ok: false, code: 'bad-request', message: 'invalid request body' };
   }
+}
+
+// Workflow documents have their own grammar and tombstones; none pass through cloud node parsing.
+function mode(v: unknown, p: string): TurnMode {
+  if (v === undefined) return 'cloud';
+  return choice(v, p, ['cloud', 'workflow']);
+}
+
+function choice<const T extends string>(v: unknown, p: string, values: readonly T[]): T {
+  if (typeof v !== 'string' || !values.includes(v as T)) fail(p, 'unknown value');
+  return v as T;
+}
+
+function number(v: unknown, p: string, max: number, min = 0, integer = false): number {
+  if (typeof v !== 'number' || !Number.isFinite(v) || v < min || v > max || (integer && !Number.isInteger(v))) {
+    fail(p, `expected ${integer ? 'an integer' : 'a number'} from ${min} to ${max}`);
+  }
+  return v;
+}
+
+function bool(v: unknown, p: string): boolean {
+  if (typeof v !== 'boolean') fail(p, 'expected a boolean');
+  return v;
+}
+
+const EFFECTS = ['read', 'write', 'reply', 'notify', 'send', 'publish', 'pay', 'delete', 'admin', 'decide'] as const;
+
+function workflowNode(v: unknown, p: string): WorkflowNode {
+  const o = obj(v, p);
+  const n: WorkflowNode = {
+    id: id(own(o, 'id'), `${p}.id`),
+    kind: choice(own(o, 'kind'), `${p}.kind`, ['trigger', 'ai', 'agent', 'decide', 'guard', 'human', 'act', 'tool', 'knowledge', 'memory', 'end']),
+    label: str(own(o, 'label'), `${p}.label`, LIMITS.textChars)!,
+  };
+  const put = (k: keyof WorkflowNode, parse: (x: unknown, path: string) => unknown): void => {
+    if (own(o, k) !== undefined) Object.assign(n, { [k]: parse(own(o, k), `${p}.${k}`) });
+  };
+  put('task', (x, path) => choice(x, path, WORKFLOW_TASKS));
+  for (const k of ['after', 'on', 'product', 'runs', 'subject', 'repeat'] as const) put(k, id);
+  for (const k of ['ai', 'tool'] as const) put(k, (x, path) => {
+    const value = str(x, path, 80, { nonEmpty: true })!;
+    if (!/^[a-z0-9][a-z0-9_.-]*$/.test(value)) fail(path, 'invalid reference');
+    return value;
+  });
+  put('turns', (x, path) => number(x, path, 50, 1, true));
+  put('effect', (x, path) => choice(x, path, EFFECTS));
+  for (const k of ['untrusted', 'private'] as const) put(k, bool);
+  put('approval', (x, path) => choice(x, path, ['required', 'skip']));
+  put('join', (x, path) => choice(x, path, ['all', 'any']));
+  put('why', (x, path) => str(x, path, LIMITS.textChars));
+  return n;
+}
+
+function workflowEdge(v: unknown, p: string): WorkflowEdge {
+  const o = obj(v, p);
+  const e: WorkflowEdge = { id: id(own(o, 'id'), `${p}.id`), from: id(own(o, 'from'), `${p}.from`), to: id(own(o, 'to'), `${p}.to`) };
+  if (own(o, 'kind') !== undefined) e.kind = choice(o.kind, `${p}.kind`, ['next', 'branch', 'loop', 'escalate']);
+  if (own(o, 'label') !== undefined) e.label = str(o.label, `${p}.label`, LIMITS.textChars)!;
+  if (own(o, 'max') !== undefined) e.max = number(o.max, `${p}.max`, 20, 1, true);
+  if (own(o, 'outcome') !== undefined) e.outcome = choice(o.outcome, `${p}.outcome`, ['approve', 'edit', 'reject', 'timeout', 'exhausted']);
+  return e;
+}
+
+function workflowGroup(v: unknown, p: string): WorkflowGroup {
+  const o = obj(v, p);
+  const g: WorkflowGroup = { id: id(own(o, 'id'), `${p}.id`), over: str(own(o, 'over'), `${p}.over`, LIMITS.textChars)! };
+  if (own(o, 'parallel') !== undefined) g.parallel = bool(o.parallel, `${p}.parallel`);
+  return g;
+}
+
+function workflow(v: unknown, p: string): WorkflowGraph {
+  const o = obj(v, p);
+  return {
+    nodes: record(own(o, 'nodes'), `${p}.nodes`, LIMITS.workflowNodes, workflowNode),
+    edges: record(own(o, 'edges'), `${p}.edges`, LIMITS.workflowEdges, workflowEdge),
+    groups: record(own(o, 'groups'), `${p}.groups`, LIMITS.workflowGroups, workflowGroup),
+  };
+}
+
+function workflowTombstone(v: unknown, p: string): WorkflowNode | WorkflowEdge | WorkflowGroup {
+  const o = obj(v, p);
+  if (own(o, 'from') !== undefined) return workflowEdge(o, p);
+  if (own(o, 'over') !== undefined) return workflowGroup(o, p);
+  return workflowNode(o, p);
+}
+
+function workflowSettings(v: unknown, p: string): WorkflowSettings {
+  const o = obj(v, p);
+  const out: WorkflowSettings = {};
+  if (own(o, 'region') !== undefined) out.region = id(o.region, `${p}.region`);
+  for (const k of ['approvalOff', 'approvalOn'] as const) {
+    if (own(o, k) !== undefined) out[k] = arr(o[k], `${p}.${k}`, EFFECTS.length)!.map((x, i) => choice(x, `${p}.${k}[${i}]`, EFFECTS));
+  }
+  return out;
+}
+
+function estimate(v: unknown, p: string): WorkflowEstimateSettings {
+  const o = obj(v, p);
+  const out: WorkflowEstimateSettings = {};
+  if (own(o, 'runsPerMonth') !== undefined) out.runsPerMonth = number(o.runsPerMonth, `${p}.runsPerMonth`, 1e9, 0, true);
+  if (own(o, 'scope') !== undefined) out.scope = choice(o.scope, `${p}.scope`, ['international', 'global']);
+  for (const k of ['steps', 'items', 'shares', 'loops', 'agents', 'guardTypes'] as const) {
+    if (own(o, k) === undefined) continue;
+    const map = obj(o[k], `${p}.${k}`);
+    const max = k === 'items' ? LIMITS.workflowGroups : k === 'shares' || k === 'loops' ? LIMITS.workflowEdges : LIMITS.workflowNodes;
+    if (Object.keys(map).length > max) fail(`${p}.${k}`, `more than ${max} entries`);
+    const parsed: Record<string, unknown> = {};
+    for (const key of Object.keys(map)) {
+      const path = `${p}.${k}.${key}`;
+      id(key, path);
+      if (k === 'shares' || k === 'guardTypes') {
+        parsed[key] = number(map[key], path, k === 'shares' ? 1 : 3, 0, k === 'guardTypes');
+        continue;
+      }
+      const value = obj(map[key], path);
+      const item: Record<string, unknown> = {};
+      const fields = k === 'steps' ? ['inTokens', 'outTokens', 'thinking', 'offline']
+        : k === 'agents' ? ['typical', 'upper', 'resultTokens', 'searchesPerRequest'] : ['typical', 'upper'];
+      for (const field of fields) {
+        if (own(value, field) === undefined) continue;
+        item[field] = field === 'thinking' || field === 'offline' ? bool(value[field], `${path}.${field}`)
+          : number(value[field], `${path}.${field}`, 1e9);
+      }
+      parsed[key] = item;
+    }
+    Object.assign(out, { [k]: parsed });
+  }
+  return out;
 }

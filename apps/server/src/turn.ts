@@ -5,9 +5,12 @@
 // filter stopped is finished there. The browser is never told: its status lines are the neutral 'finish' code, no event
 // carries a provider or model field, a filter-stop error event is held back and a failed rescue is a neutral fatal. The
 // real provider, models and codes stay in TurnOutcome (the log: spend tracking and the caps).
-import type { Catalog, ServerEvent, SessionMemory, TurnRequest } from '../../../packages/core/src/types.ts';
+import type { Catalog, ServerEvent, SessionMemory, TurnRequest, TurnMode } from '../../../packages/core/src/types.ts';
 import { foldSummary, historyOverflows, runTurn } from '../../../packages/core/src/llm.ts';
-import type { BackupCall, BackupGateResult, BackupProvider, CacheTracker, ConstraintChecker, RunStatus, RunTurnOptions, TurnEvent, TurnStats } from '../../../packages/core/src/llm.ts';
+import type {
+  BackupCall, BackupGateResult, BackupProvider, CacheTracker, ConstraintChecker, RunStatus, RunTurnOptions, TurnEvent as CoreTurnEvent, TurnStats,
+} from '../../../packages/core/src/llm.ts';
+import type { ModelTable } from '../../../packages/core/src/models.ts';
 import { DEFAULT_WINDOW } from '../../../packages/core/src/prompt.ts';
 import { fatalMessage, langOf, statusMessage } from './messages.ts';
 import type { Lang } from './messages.ts';
@@ -17,6 +20,8 @@ export interface TurnDeps {
   apiKey: string;
   catalog: Catalog;
   system: string;
+  workflowSystem?: string;
+  models?: ModelTable;
   model: string;
   fallbackModel: string | null;
   baseUrl: string;
@@ -37,7 +42,7 @@ export interface TurnDeps {
 }
 
 /** What goes on the wire: a TurnEvent with its phase, or a ServerEvent. */
-export type WireEvent = (TurnEvent & { phase: 'main' | 'repair' }) | ServerEvent;
+export type WireEvent<M extends TurnMode = 'cloud'> = (CoreTurnEvent<M> & { phase: 'main' | 'repair' }) | ServerEvent;
 
 /** One backup usage or error event, as kept for the log (tokens and codes; never text). */
 export type BackupLogEntry =
@@ -70,6 +75,28 @@ export function trimTurns(memory: SessionMemory, max: number = LIMITS.turns): Se
   return { ...memory, turns };
 }
 
+/** Reserve a maximum next ask (including JSON escapes) and envelope within the 512 KiB transport cap. */
+export function compactTurnMemory(memory: SessionMemory): SessionMemory {
+  if (!memory.workflow) return memory;
+  const budget = 512 * 1024 - LIMITS.askChars * 6 - 1024;
+  const bytes = (m: SessionMemory): number => new TextEncoder().encode(JSON.stringify(m)).byteLength;
+  if (bytes(memory) <= budget) return memory;
+  let next = { ...memory, turns: memory.turns.map((t) => ({ ...t })) };
+  for (const turn of next.turns) {
+    delete turn.changes;
+    if (bytes(next) <= budget) return next;
+  }
+  while (next.turns.length && bytes(next) > budget) {
+    let end = 1;
+    while (end < next.turns.length && next.turns[end].role !== 'user') end++;
+    next.turns = next.turns.slice(end);
+  }
+  for (const key of ['tombstones', 'workflowTombstones'] as const) {
+    while (next[key]?.length && bytes(next) > budget) next = { ...next, [key]: next[key]!.slice(1) };
+  }
+  return next;
+}
+
 /** The codes a browser sees for a failed rescue. The log keeps the real ones (fatalOf, TurnOutcome.fatalCode). */
 export const WIRE_FATAL: Readonly<Record<string, string>> = { 'backup-limit': 'request-limit', 'backup-failed': 'not-completed' };
 
@@ -89,7 +116,10 @@ export function fatalOf(stats: TurnStats): { code: string; retryable: boolean } 
   return { code: e.code, retryable: e.retryable };
 }
 
-export async function executeTurn(req: TurnRequest, deps: TurnDeps, emit: (e: WireEvent) => void, signal: AbortSignal): Promise<TurnOutcome> {
+export async function executeTurn<M extends TurnMode = 'cloud'>(
+  req: TurnRequest, deps: TurnDeps, listener: (e: WireEvent<M>) => void, signal: AbortSignal,
+): Promise<TurnOutcome> {
+  const emit = listener as unknown as (e: WireEvent<TurnMode>) => void;
   const lang = langOf(req.ask);
   const window = deps.window ?? DEFAULT_WINDOW;
   const out: TurnOutcome = { outcome: 'aborted', lang, statuses: [], summaryCostUsd: 0, backupLog: [] };
@@ -110,7 +140,9 @@ export async function executeTurn(req: TurnRequest, deps: TurnDeps, emit: (e: Wi
     baseUrl: deps.baseUrl,
     model: deps.model,
     fallbackModel: deps.fallbackModel,
-    system: deps.system,
+    mode: req.mode ?? 'cloud',
+    models: deps.models,
+    system: req.mode === 'workflow' ? deps.workflowSystem : deps.system,
     tracker: deps.tracker,
     backup: deps.backup,
     backupGate: deps.backupGate,
@@ -146,9 +178,9 @@ export async function executeTurn(req: TurnRequest, deps: TurnDeps, emit: (e: Wi
     emit({ type: 'fatal', code: wire, message: fatalMessage(wire, lang), retryable: f.retryable });
     return out;
   }
-  const memory = trimTurns(r.memory);
+  const memory = compactTurnMemory(trimTurns(r.memory));
   out.outcome = 'commit';
-  out.nodes = Object.keys(memory.graph.nodes).length;
+  out.nodes = Object.keys(req.mode === 'workflow' ? memory.workflow!.nodes : memory.graph.nodes).length;
   emit({ type: 'commit', memory, changes: r.changes, warnings: r.stats.warningsAfter });
   if (historyOverflows(memory, window) && !signal.aborted) {
     const t0 = Date.now();
