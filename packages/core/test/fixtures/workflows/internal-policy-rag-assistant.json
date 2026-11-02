@@ -1,0 +1,272 @@
+{
+    "id":  "internal-policy-rag-assistant",
+    "title":  "Internal Policy RAG Assistant",
+    "ask":  "Build a chatbot that answers employee questions about company policies, refuses when it lacks grounding, and escalates unknown questions to HR",
+    "oneRun":  "One employee question on DingTalk, Lark or WeCom; one retrieval retry, then refusal or policy-owner handoff.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "human",
+                    "kind":  "human",
+                    "label":  "Policy owner takeover",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "route",
+                    "kind":  "decide",
+                    "label":  "Safe response",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "guard",
+                    "kind":  "guard",
+                    "label":  "PII and grounding screen",
+                    "product":  "ai-guardrails",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "reply",
+                    "kind":  "act",
+                    "label":  "Return answer",
+                    "product":  "agentcore",
+                    "effect":  "reply",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "end",
+                    "kind":  "end",
+                    "label":  "Done"
+                },
+                {
+                    "t":  "step",
+                    "id":  "save",
+                    "kind":  "act",
+                    "label":  "Capture feedback",
+                    "product":  "tablestore",
+                    "effect":  "write",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "refuse",
+                    "kind":  "act",
+                    "label":  "Return explicit refusal",
+                    "product":  "agentcore",
+                    "effect":  "reply",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "acl",
+                    "kind":  "tool",
+                    "label":  "Identity and entitlements",
+                    "effect":  "read",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "intent",
+                    "kind":  "ai",
+                    "label":  "Intent",
+                    "task":  "classify",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "in",
+                    "kind":  "trigger",
+                    "label":  "Employee question",
+                    "product":  "agentcore",
+                    "runs":  "fc",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "kb",
+                    "kind":  "knowledge",
+                    "label":  "ACL-filtered policies",
+                    "task":  "retrieve",
+                    "product":  "tablestore",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "draft",
+                    "kind":  "ai",
+                    "label":  "Cited policy answer",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "ground",
+                    "kind":  "decide",
+                    "label":  "Grounding sufficiency",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "rank",
+                    "kind":  "knowledge",
+                    "label":  "Rank evidence",
+                    "task":  "rerank",
+                    "product":  "model-studio",
+                    "ai":  "qwen3-rerank",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "refusal-guard",
+                    "kind":  "guard",
+                    "label":  "Screen refusal",
+                    "runs":  "fc",
+                    "product":  "ai-guardrails"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "route",
+                    "to":  "reply",
+                    "kind":  "branch",
+                    "label":  "Safe"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "refuse",
+                    "to":  "save",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "draft",
+                    "to":  "guard",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "guard",
+                    "to":  "route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "save",
+                    "to":  "end",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "route",
+                    "to":  "human",
+                    "kind":  "escalate",
+                    "label":  "Unsafe or unanswered"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "reply",
+                    "to":  "save",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "acl",
+                    "to":  "kb",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "human",
+                    "to":  "refusal-guard",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "kb",
+                    "to":  "rank",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "in",
+                    "to":  "intent",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "intent",
+                    "to":  "acl",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "ground",
+                    "to":  "kb",
+                    "kind":  "loop",
+                    "label":  "Try retrieval again",
+                    "max":  1
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "ground",
+                    "to":  "human",
+                    "kind":  "escalate",
+                    "label":  "Still unknown",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "rank",
+                    "to":  "ground",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "ground",
+                    "to":  "draft",
+                    "kind":  "branch",
+                    "label":  "Grounded"
+                },
+                {
+                    "t":  "link",
+                    "id":  "extra-17",
+                    "from":  "refusal-guard",
+                    "to":  "refuse",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

@@ -133,6 +133,11 @@ export type Op =
   | { t: 'done'; summary: string };
 
 export type WarningCode =
+  | 'wf-bad-op' | 'wf-unknown-ref' | 'wf-id-collision' | 'wf-cloud-op'
+  | 'wf-no-trigger' | 'wf-unreachable' | 'wf-ai-missing' | 'wf-attach-form' | 'wf-dead-end' | 'wf-cycle'
+  | 'wf-loop-exit' | 'wf-agent-turns' | 'wf-act-effect' | 'wf-approval' | 'wf-mixed-out'
+  | 'wf-human-outcomes' | 'wf-reply-guard' | 'wf-trifecta' | 'wf-decision-review' | 'wf-ai-region'
+  | 'wf-ai-mismatch' | 'wf-dangling-ref' | 'wf-gated-product'
   | 'bad-json' | 'bad-op' | 'unknown-product' | 'alias-resolved' | 'retired-product' | 'china-only'
   | 'restricted' | 'dangling-edge' | 'missing-group' | 'containment' | 'dns-in-path' | 'path-order'
   | 'orphan-node' | 'duplicate-id' | 'cap-exceeded' | 'attach-host-missing'
@@ -292,3 +297,59 @@ export type ProposalEvent =
   | { type: 'status'; code: 'retry' | 'finish'; text: string }
   | { type: 'done'; draft: ProposalDraft }
   | { type: 'fatal'; code: string; message: string; retryable: boolean };
+
+// ---------- Workflow ----------
+
+export type WorkflowNodeKind = 'trigger' | 'ai' | 'agent' | 'decide' | 'guard' | 'human' | 'act' | 'tool' | 'knowledge' | 'memory' | 'end';
+export type Effect = 'read' | 'write' | 'reply' | 'notify' | 'send' | 'publish' | 'pay' | 'delete' | 'admin' | 'decide';
+export type WorkflowTask =
+  | 'classify' | 'extract' | 'retrieve' | 'rerank' | 'generate' | 'check' | 'plan' | 'summarise'
+  | 'translate' | 'transcribe' | 'speak' | 'see' | 'create'
+  | 'approve' | 'review' | 'takeover';
+export type WorkflowEdgeKind = 'next' | 'branch' | 'loop' | 'escalate';
+export type WorkflowOutcome = 'approve' | 'edit' | 'reject' | 'timeout' | 'exhausted';
+
+export interface WorkflowNode {
+  id: string; kind: WorkflowNodeKind; label: string;
+  task?: WorkflowTask; after?: string; on?: string;
+  product?: string;   // catalog id of the service the step calls
+  runs?: string;      // catalog id where the step's code runs, or 'customer'
+  ai?: string;        // models.json model id
+  tool?: string;      // models.json built-in tool id (web_search, web_search_image, web_extractor, code_interpreter, mcp, pdf_parse) for tool steps
+  turns?: number;     // agent: maximum model requests per run, 1..50
+  effect?: Effect;
+  untrusted?: boolean; private?: boolean;
+  approval?: 'required' | 'skip';
+  subject?: string;   // human approve step: id of the step whose output it approves
+  join?: 'all' | 'any';
+  repeat?: string;    // repeat-group id
+  why?: string;
+}
+export interface WorkflowEdge { id: string; from: string; to: string; kind?: WorkflowEdgeKind; label?: string; max?: number; outcome?: WorkflowOutcome }
+export interface WorkflowGroup { id: string; over: string; parallel?: boolean }
+export interface WorkflowGraph { nodes: Record<string, WorkflowNode>; edges: Record<string, WorkflowEdge>; groups: Record<string, WorkflowGroup> }
+
+export type WorkflowOp =
+  | {
+      t: 'step'; id: string; kind: WorkflowNodeKind; label: string;
+      task?: WorkflowTask; after?: string; on?: string; product?: string; runs?: string;
+      ai?: string; tool?: string; turns?: number; effect?: Effect;
+      untrusted?: boolean; private?: boolean; approval?: 'required' | 'skip'; subject?: string;
+      join?: 'all' | 'any'; repeat?: string; why?: string;
+    }
+  | { t: 'link'; id: string; from: string; to: string; kind?: WorkflowEdgeKind; label?: string; max?: number; outcome?: WorkflowOutcome }
+  | { t: 'each'; id: string; over: string; parallel?: boolean }
+  | {
+      t: 'splice'; into: string; id: string; kind: WorkflowNodeKind; label: string;
+      task?: WorkflowTask; after?: string; on?: string; product?: string; runs?: string;
+      ai?: string; tool?: string; turns?: number; effect?: Effect;
+      untrusted?: boolean; private?: boolean; approval?: 'required' | 'skip'; subject?: string;
+      join?: 'all' | 'any'; repeat?: string; why?: string;
+    }
+  | { t: 'unstep'; id: string };
+
+export interface WorkflowSettings {
+  region?: string;          // pinned region id; default 'ap-southeast-1'
+  approvalOff?: Effect[];   // the user waived approval for these effects
+  approvalOn?: Effect[];    // the user asked for approval on these effects
+}

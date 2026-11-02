@@ -1,0 +1,265 @@
+{
+    "id":  "regulatory-change-monitoring",
+    "title":  "Regulatory Change Monitoring and Impact Assessment",
+    "ask":  "Set up a daily job that crawls regulator feeds, translates new rules, maps them to our policies, and drafts impact memos for the compliance owner to approve",
+    "oneRun":  "One daily regulator-feed and remediation-status scan. Open tasks persist for the next daily trigger; overdue items are included in owner notifications.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "s8",
+                    "kind":  "act",
+                    "label":  "Create remediation tasks in GRC tracker",
+                    "runs":  "agentrun",
+                    "effect":  "write"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s7",
+                    "kind":  "human",
+                    "label":  "Compliance owner confirms or rejects",
+                    "runs":  "customer",
+                    "task":  "approve",
+                    "subject":  "s6",
+                    "why":  "Compliance owner confirms or rejects assessment"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s6",
+                    "kind":  "ai",
+                    "label":  "Draft impact memo and proposed redlines",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "generate",
+                    "ai":  "qwen3.7-plus"
+                },
+                {
+                    "t":  "step",
+                    "id":  "cancel",
+                    "kind":  "end",
+                    "label":  "Cancelled or unresolved"
+                },
+                {
+                    "t":  "step",
+                    "id":  "done",
+                    "kind":  "end",
+                    "label":  "Run complete"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s5",
+                    "kind":  "ai",
+                    "label":  "Assess materiality and impact",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "plan",
+                    "ai":  "qwen3.8-max"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s9",
+                    "kind":  "act",
+                    "label":  "Notify owners",
+                    "runs":  "fc",
+                    "product":  "direct-mail",
+                    "effect":  "notify"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s2",
+                    "kind":  "ai",
+                    "label":  "Translate non-English instruments",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "translate",
+                    "ai":  "qwen3.8-flash"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s1",
+                    "kind":  "ai",
+                    "label":  "Classify jurisdiction, regulator, and",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "classify",
+                    "ai":  "qwen3.8-flash",
+                    "why":  "Classify jurisdiction, regulator, and relevance"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s0",
+                    "kind":  "trigger",
+                    "label":  "Daily scheduled crawl of regulator feeds",
+                    "runs":  "fc",
+                    "product":  "fc",
+                    "untrusted":  true,
+                    "private":  false
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4",
+                    "kind":  "knowledge",
+                    "label":  "Map to internal policies and controls",
+                    "runs":  "fc",
+                    "product":  "dashvector",
+                    "private":  true,
+                    "task":  "rerank",
+                    "ai":  "qwen3-rerank"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4-retrieve",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve permission-filtered evidence",
+                    "task":  "retrieve",
+                    "product":  "dashvector",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s3",
+                    "kind":  "ai",
+                    "label":  "Extract obligations and deadlines",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "extract",
+                    "ai":  "qwen3.8-flash"
+                },
+                {
+                    "t":  "step",
+                    "id":  "status",
+                    "kind":  "tool",
+                    "label":  "Check overdue remediation tasks",
+                    "effect":  "read",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "crawl",
+                    "kind":  "tool",
+                    "label":  "Read regulator feeds",
+                    "effect":  "read",
+                    "tool":  "web_extractor",
+                    "untrusted":  true,
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "s7",
+                    "to":  "s8",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "s7",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "s9",
+                    "to":  "done",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "s5",
+                    "to":  "s6",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "s7",
+                    "to":  "s6",
+                    "kind":  "branch",
+                    "label":  "Revise reviewed output",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "s8",
+                    "to":  "status",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "s2",
+                    "to":  "s3",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "s6",
+                    "to":  "s7",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "s4",
+                    "to":  "s5",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "s0",
+                    "to":  "crawl",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "s4-retrieve",
+                    "to":  "s4",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "extra-15",
+                    "from":  "status",
+                    "to":  "s9",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "s1",
+                    "to":  "s2",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "s3",
+                    "to":  "s4-retrieve",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "extra-14",
+                    "from":  "crawl",
+                    "to":  "s1",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

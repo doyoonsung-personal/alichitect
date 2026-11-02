@@ -1149,8 +1149,8 @@
       "pairsWith": ["fc","iot-platform","maxcompute","agentrun"],
       "alternatives": ["lindorm","mongodb"],
       "docs": "https://www.alibabacloud.com/product/table-store",
-      "note": "The documented memory store for AgentRun, and a knowledge-base connector for AgentCore.",
-      "verified": "2026-10-31"
+      "note": "The documented memory store for AgentRun, and a knowledge-base connector for AgentCore. Knowledge Storage and Memory Storage run in Singapore and Hong Kong; their published rates are CNY reference rates only, so confirm Singapore pricing.",
+      "verified": "2026-11-02"
     },
     {
       "id": "cloud-backup",
@@ -1886,7 +1886,9 @@
       "pairsWith": ["fc","oss","smq"],
       "alternatives": ["smq"],
       "docs": "https://www.alibabacloud.com/product/eventbridge",
-      "verified": "2026-10-31"
+      "note": "The documented inbound path for email and SaaS webhooks: an HTTP/HTTPS event source gives a webhook URL. Publishing to the default bus and delivery to Alibaba Cloud targets are free.",
+      "verified": "2026-11-02",
+      "price": {"summary":"$0.82 per 1M events published to custom buses; $0.91 per 1M pushes to custom targets; events counted in 64 KB units","asOf":"2026-11-02"}
     },
     {
       "id": "cloudflow",
@@ -1903,7 +1905,9 @@
       "purpose": "Serverless state-machine workflows that orchestrate functions and services.",
       "pairsWith": ["fc","eventbridge"],
       "docs": "https://www.alibabacloud.com/product/serverless-workflow",
-      "verified": "2026-10-31"
+      "note": "Human approval steps use WaitForCustomCallback, resumed by ReportTaskSucceeded or ReportTaskFailed with the task token; Standard mode only, up to one year per execution.",
+      "verified": "2026-11-02",
+      "price": {"summary":"Reference, from the previous-version billing page: 5,000 free step transitions a month, then $0.25 per 10,000","asOf":"2026-11-02"}
     },
     {
       "id": "schedulerx",
@@ -2967,7 +2971,8 @@
       "alternatives": ["milvus","opensearch"],
       "docs": "https://www.alibabacloud.com/product/dashvector",
       "note": "Singapore and Virginia. The free trial cluster is for testing and is released after 30 days. The docs describe no VPC access.",
-      "verified": "2026-10-31"
+      "verified": "2026-11-02",
+      "price": {"summary":"Singapore instances: P.small $0.06/hour, S.small $0.045/hour, times replicas; billed per second, settled hourly","asOf":"2026-11-02"}
     },
     {
       "id": "opensearch",
@@ -3177,7 +3182,9 @@
       "availability": "intl",
       "purpose": "Transactional and marketing email by API or SMTP.",
       "docs": "https://www.alibabacloud.com/product/directmail",
-      "verified": "2026-10-31"
+      "note": "Outbound only: Alibaba Cloud has no inbound email service, so inbound email arrives by webhook into EventBridge or Function Compute.",
+      "verified": "2026-11-02",
+      "price": {"summary":"$0.29 per 1,000 messages; 2,000 free emails once per account (at most 200 a day)","asOf":"2026-11-02"}
     },
     {
       "id": "chatapp",
@@ -3193,7 +3200,9 @@
       "availability": "intl",
       "purpose": "Sends WhatsApp, Messenger, LINE and other chat-app messages through one API.",
       "docs": "https://www.alibabacloud.com/product/chatapp",
-      "verified": "2026-10-31"
+      "note": "International channels: WhatsApp, Viber, Messenger, Instagram, Telegram, LINE, SMS and email. Since 2026-09-01, Messenger, Instagram, Telegram and LINE carry a $0.005 platform fee per message, charged even when delivery fails; WhatsApp and Viber pay $0.005 per message or conversation plus the channel's own fees; SMS and email carry none.",
+      "verified": "2026-11-02",
+      "price": {"summary":"Platform fee $0.005 per message (Messenger, Instagram, Telegram, LINE) or per message or conversation (WhatsApp, Viber), plus channel fees; none on SMS and email","asOf":"2026-11-02"}
     },
     {
       "id": "voice-service",

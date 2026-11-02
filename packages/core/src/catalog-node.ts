@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs';
 import { createCatalog } from './catalog.ts';
 import type { CatalogFile } from './catalog.ts';
 import type { Catalog } from './types.ts';
+import { createModelTable } from './models.ts';
+import type { ModelFile, ModelTable } from './models.ts';
 
 const CATALOG_DIR = new URL('../catalog/', import.meta.url);
 
@@ -16,4 +18,8 @@ export function readCatalogFile(name: 'products.json' | 'offerings.json'): Catal
 /** Loads both catalog files and returns the indexed Catalog. */
 export function loadCatalog(): Catalog {
   return createCatalog(readCatalogFile('products.json'), readCatalogFile('offerings.json'));
+}
+
+export function loadModels(): ModelTable {
+  return createModelTable(JSON.parse(readFileSync(new URL('models.json', CATALOG_DIR), 'utf8')) as ModelFile);
 }

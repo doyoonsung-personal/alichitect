@@ -1,0 +1,337 @@
+{
+    "id":  "social-listening-review-analysis",
+    "title":  "Social listening and review analysis",
+    "ask":  "Build an agent that ingests marketplace reviews, clusters them by theme, drafts replies for negative ones, and holds them for PR approval before posting.",
+    "oneRun":  "One schedule event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "s10",
+                    "kind":  "act",
+                    "runs":  "fc",
+                    "product":  "chatapp",
+                    "effect":  "publish",
+                    "why":  "Post approved reply or route defect ticket to product",
+                    "label":  "Post approved public reply"
+                },
+                {
+                    "t":  "step",
+                    "id":  "done",
+                    "kind":  "end",
+                    "label":  "Run complete"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s8",
+                    "kind":  "ai",
+                    "label":  "Draft public reply in reviewer",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "generate",
+                    "ai":  "qwen3.7-plus",
+                    "why":  "Draft public reply in reviewer language if warranted"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s9",
+                    "kind":  "human",
+                    "label":  "PR team approves public reply before",
+                    "runs":  "customer",
+                    "task":  "approve",
+                    "subject":  "s8",
+                    "why":  "PR team approves public reply before posting"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-route",
+                    "kind":  "decide",
+                    "label":  "Retry or continue",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "manual",
+                    "kind":  "human",
+                    "label":  "Resolve after retry budget",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "cancel",
+                    "kind":  "end",
+                    "label":  "Cancelled or unresolved"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-check",
+                    "kind":  "ai",
+                    "task":  "check",
+                    "ai":  "qwen3.7-plus",
+                    "product":  "model-studio",
+                    "runs":  "fc",
+                    "why":  "Re-score conversation sentiment after reply to measure movement",
+                    "label":  "Re-score sentiment after reply"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s2",
+                    "kind":  "ai",
+                    "label":  "Language ID and drop",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "classify",
+                    "ai":  "qwen3.8-flash",
+                    "why":  "Language ID and drop spam/bots/duplicates"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s3",
+                    "kind":  "ai",
+                    "label":  "Sentiment, emotion, and intent",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "classify",
+                    "ai":  "qwen3.8-flash",
+                    "why":  "Sentiment, emotion, and intent classification"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s0",
+                    "kind":  "trigger",
+                    "label":  "Scheduled poll for new reviews and",
+                    "runs":  "fc",
+                    "product":  "eventbridge",
+                    "untrusted":  true,
+                    "why":  "Scheduled poll for new reviews and mentions",
+                    "private":  false
+                },
+                {
+                    "t":  "step",
+                    "id":  "s1",
+                    "kind":  "act",
+                    "label":  "Ingest raw mentions and store metadata",
+                    "runs":  "fc",
+                    "product":  "fc",
+                    "effect":  "write"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s6",
+                    "kind":  "knowledge",
+                    "label":  "Cluster themes using embeddings and",
+                    "runs":  "fc",
+                    "product":  "analyticdb",
+                    "private":  true,
+                    "task":  "retrieve",
+                    "ai":  "text-embedding-v4",
+                    "why":  "Cluster themes using embeddings and taxonomy"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s7",
+                    "kind":  "decide",
+                    "label":  "Detect volume spikes or sentiment",
+                    "runs":  "fc",
+                    "product":  "fc",
+                    "why":  "Detect volume spikes or sentiment anomalies"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4",
+                    "kind":  "ai",
+                    "label":  "Extract product entities and",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "extract",
+                    "ai":  "qwen3.8-flash",
+                    "why":  "Extract product entities and aspect-level sentiment"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s5",
+                    "kind":  "ai",
+                    "label":  "OCR text inside attached screenshots",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "extract",
+                    "ai":  "qwen-vl-ocr",
+                    "why":  "OCR text inside attached screenshots or receipts"
+                },
+                {
+                    "t":  "step",
+                    "id":  "defect",
+                    "kind":  "act",
+                    "label":  "Create internal defect ticket",
+                    "effect":  "write",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "s9",
+                    "to":  "s10",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "retry-check",
+                    "to":  "retry-route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "s8",
+                    "to":  "s9",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "s9",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "s7",
+                    "to":  "s8",
+                    "kind":  "branch",
+                    "label":  "Pass or in scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l19",
+                    "from":  "retry-route",
+                    "to":  "done",
+                    "kind":  "branch",
+                    "label":  "Pass or in scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "s9",
+                    "to":  "s8",
+                    "kind":  "branch",
+                    "label":  "Revise reviewed output",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "s10",
+                    "to":  "retry-check",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "s6",
+                    "to":  "s7",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "manual",
+                    "to":  "cancel",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "s7",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "label":  "No result or out of scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "s0",
+                    "to":  "s1",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "retry-route",
+                    "to":  "s3",
+                    "kind":  "loop",
+                    "label":  "Needs another attempt",
+                    "max":  1
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "retry-route",
+                    "to":  "manual",
+                    "kind":  "escalate",
+                    "label":  "Retry budget spent",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "s4",
+                    "to":  "s5",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "s1",
+                    "to":  "s2",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "s5",
+                    "to":  "s6",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "s2",
+                    "to":  "s3",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "s3",
+                    "to":  "s4",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "extra-20",
+                    "from":  "s7",
+                    "to":  "defect",
+                    "kind":  "branch",
+                    "label":  "Product defect"
+                },
+                {
+                    "t":  "link",
+                    "id":  "extra-21",
+                    "from":  "defect",
+                    "to":  "done",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

@@ -1,0 +1,299 @@
+{
+    "id":  "financial-report-analysis",
+    "title":  "Financial Report Analysis and Summarisation",
+    "ask":  "Build an analyst assistant that parses quarterly PDF reports, computes financial ratios in code, and drafts summary memos for human sign-off",
+    "oneRun":  "One file upload event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "s9",
+                    "kind":  "act",
+                    "label":  "Alert stakeholders",
+                    "runs":  "fc",
+                    "product":  "direct-mail",
+                    "effect":  "notify"
+                },
+                {
+                    "t":  "step",
+                    "id":  "done",
+                    "kind":  "end",
+                    "label":  "Run complete"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s7",
+                    "kind":  "human",
+                    "label":  "Analyst verifies numbers against source",
+                    "runs":  "customer",
+                    "task":  "approve",
+                    "subject":  "s6"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s8",
+                    "kind":  "act",
+                    "label":  "Publish to research repository",
+                    "runs":  "agentrun",
+                    "effect":  "publish"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-route",
+                    "kind":  "decide",
+                    "label":  "Retry or continue",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "manual",
+                    "kind":  "human",
+                    "label":  "Resolve after retry budget",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "cancel",
+                    "kind":  "end",
+                    "label":  "Cancelled or unresolved"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-check",
+                    "kind":  "ai",
+                    "label":  "Evaluator loop: second model grades",
+                    "task":  "check",
+                    "ai":  "qwen3.7-plus",
+                    "product":  "model-studio",
+                    "runs":  "fc",
+                    "why":  "Evaluator loop: second model grades memo for hallucinated numbers or misstated direction of change"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s2",
+                    "kind":  "ai",
+                    "label":  "Extract structured financials and tables",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "extract",
+                    "ai":  "qwen-vl-ocr"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s3",
+                    "kind":  "tool",
+                    "runs":  "fc",
+                    "product":  "fc",
+                    "effect":  "read",
+                    "why":  "Compute growth rates and margins in Python",
+                    "tool":  "code_interpreter",
+                    "label":  "Compute ratios deterministically"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s0",
+                    "kind":  "trigger",
+                    "label":  "Annual report PDF uploaded to OSS",
+                    "runs":  "fc",
+                    "product":  "fc",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s1",
+                    "kind":  "ai",
+                    "label":  "Segment document into MD\u0026A,",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "classify",
+                    "ai":  "qwen3.8-flash",
+                    "why":  "Segment document into MD\u0026A, statements, notes"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s5",
+                    "kind":  "ai",
+                    "label":  "Longitudinal reasoning and attribution",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "plan",
+                    "ai":  "qwen3.8-max"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s6",
+                    "kind":  "ai",
+                    "label":  "Draft analyst memo with inline citations",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "generate",
+                    "ai":  "qwen3.7-plus"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4-retrieve",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve permission-filtered evidence",
+                    "task":  "retrieve",
+                    "product":  "tablestore",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve prior periods and peer filings",
+                    "runs":  "fc",
+                    "product":  "tablestore",
+                    "private":  true,
+                    "task":  "rerank",
+                    "ai":  "qwen3-rerank"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "retry-check",
+                    "to":  "retry-route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "retry-route",
+                    "to":  "s7",
+                    "kind":  "branch",
+                    "label":  "Pass or in scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "s5",
+                    "to":  "s6",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "s6",
+                    "to":  "retry-check",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "s7",
+                    "to":  "s8",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "s8",
+                    "to":  "s9",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "s9",
+                    "to":  "done",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "s7",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "s7",
+                    "to":  "s6",
+                    "kind":  "branch",
+                    "label":  "Revise reviewed output",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "manual",
+                    "to":  "cancel",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "s0",
+                    "to":  "s1",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "retry-route",
+                    "to":  "s6",
+                    "kind":  "loop",
+                    "label":  "Needs another attempt",
+                    "max":  2
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "retry-route",
+                    "to":  "manual",
+                    "kind":  "escalate",
+                    "label":  "Retry budget spent",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "s1",
+                    "to":  "s2",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "s4-retrieve",
+                    "to":  "s4",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "s4",
+                    "to":  "s5",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "s2",
+                    "to":  "s3",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "s3",
+                    "to":  "s4-retrieve",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

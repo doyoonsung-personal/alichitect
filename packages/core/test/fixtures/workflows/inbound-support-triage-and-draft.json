@@ -1,0 +1,235 @@
+{
+    "id":  "inbound-support-triage-and-draft",
+    "title":  "Inbound support email triage and reply drafting",
+    "ask":  "Build an agent that catches inbound support emails, classifies the issue, pulls tracking info, drafts a reply, and waits for a supervisor to approve it before sending.",
+    "oneRun":  "One email via webhook event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "s8",
+                    "kind":  "act",
+                    "label":  "Send approved reply to customer",
+                    "runs":  "fc",
+                    "product":  "direct-mail",
+                    "effect":  "send"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s7",
+                    "kind":  "human",
+                    "label":  "Supervisor reviews and approves the",
+                    "runs":  "customer",
+                    "task":  "approve",
+                    "why":  "Supervisor reviews and approves the draft reply",
+                    "subject":  "s5"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s6",
+                    "kind":  "guard",
+                    "label":  "Check draft for PII leakage and tone",
+                    "runs":  "fc",
+                    "product":  "ai-guardrails",
+                    "why":  "Check draft for PII leakage and tone compliance"
+                },
+                {
+                    "t":  "step",
+                    "id":  "cancel",
+                    "kind":  "end",
+                    "label":  "Cancelled or unresolved"
+                },
+                {
+                    "t":  "step",
+                    "id":  "done",
+                    "kind":  "end",
+                    "label":  "Run complete"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s9",
+                    "kind":  "memory",
+                    "label":  "Log interaction and outcome to",
+                    "runs":  "fc",
+                    "product":  "tablestore",
+                    "private":  true,
+                    "effect":  "write",
+                    "why":  "Log interaction and outcome to support memory"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s5",
+                    "kind":  "ai",
+                    "label":  "Draft personalised resolution email",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "generate",
+                    "ai":  "qwen3.7-plus"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s2",
+                    "kind":  "ai",
+                    "label":  "Extract order ID, tracking number,",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "extract",
+                    "ai":  "qwen3.8-flash",
+                    "why":  "Extract order ID, tracking number, and customer details"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s1",
+                    "kind":  "ai",
+                    "label":  "Classify intent and urgency of the email",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "classify",
+                    "ai":  "qwen3.8-flash"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s0",
+                    "kind":  "trigger",
+                    "label":  "Inbound email received via webhook",
+                    "runs":  "fc",
+                    "product":  "eventbridge",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve relevant SOPs and resolution",
+                    "runs":  "fc",
+                    "product":  "tablestore",
+                    "private":  true,
+                    "task":  "rerank",
+                    "ai":  "qwen3-rerank",
+                    "why":  "Retrieve relevant SOPs and resolution templates"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4-retrieve",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve permission-filtered evidence",
+                    "task":  "retrieve",
+                    "product":  "tablestore",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s3",
+                    "kind":  "tool",
+                    "label":  "Fetch shipment status from logistics API",
+                    "runs":  "fc",
+                    "product":  "fc",
+                    "effect":  "read"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "s7",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "s7",
+                    "to":  "s8",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "s6",
+                    "to":  "s7",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "s9",
+                    "to":  "done",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "s8",
+                    "to":  "s9",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "s7",
+                    "to":  "s5",
+                    "kind":  "branch",
+                    "label":  "Revise reviewed output",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "s5",
+                    "to":  "s6",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "s2",
+                    "to":  "s3",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "s1",
+                    "to":  "s2",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "s0",
+                    "to":  "s1",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "s4",
+                    "to":  "s5",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "s4-retrieve",
+                    "to":  "s4",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "s3",
+                    "to":  "s4-retrieve",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

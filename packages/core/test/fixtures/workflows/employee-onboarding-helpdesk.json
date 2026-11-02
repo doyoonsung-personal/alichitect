@@ -1,0 +1,282 @@
+{
+    "id":  "employee-onboarding-helpdesk",
+    "title":  "Employee Onboarding Q\u0026A and HR Helpdesk",
+    "ask":  "Build an HR bot that answers new-hire policy questions from chat, retrieves the right handbook section, and escalates to a human if it isn\u0027t sure",
+    "oneRun":  "One new-hire question or request; administrative fulfilment needs explicit authorization.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "in",
+                    "kind":  "trigger",
+                    "label":  "New-hire message",
+                    "product":  "eventbridge",
+                    "runs":  "fc",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "intent",
+                    "kind":  "ai",
+                    "label":  "Classify request",
+                    "task":  "classify",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "entities",
+                    "kind":  "ai",
+                    "label":  "Extract request details",
+                    "task":  "extract",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "kb",
+                    "kind":  "knowledge",
+                    "label":  "Permission-filtered policies",
+                    "task":  "retrieve",
+                    "product":  "tablestore",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "rank",
+                    "kind":  "knowledge",
+                    "label":  "Rank policies",
+                    "task":  "rerank",
+                    "product":  "model-studio",
+                    "ai":  "qwen3-rerank",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "draft",
+                    "kind":  "ai",
+                    "label":  "Cited answer and request plan",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "check",
+                    "kind":  "ai",
+                    "label":  "Check confidence and scope",
+                    "task":  "check",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "guard",
+                    "kind":  "guard",
+                    "label":  "Screen answer",
+                    "product":  "ai-guardrails",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "route",
+                    "kind":  "decide",
+                    "label":  "Answer action or takeover",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "approve",
+                    "kind":  "human",
+                    "label":  "Approve fulfilment",
+                    "task":  "approve",
+                    "runs":  "customer",
+                    "subject":  "draft"
+                },
+                {
+                    "t":  "step",
+                    "id":  "act",
+                    "kind":  "act",
+                    "label":  "Order device or add group",
+                    "effect":  "admin",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "reply",
+                    "kind":  "act",
+                    "label":  "Answer employee",
+                    "effect":  "reply",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "human",
+                    "kind":  "human",
+                    "label":  "HR generalist takeover",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "save",
+                    "kind":  "act",
+                    "label":  "Capture feedback",
+                    "product":  "tablestore",
+                    "effect":  "write",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "end",
+                    "kind":  "end",
+                    "label":  "Done"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "in",
+                    "to":  "intent",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "intent",
+                    "to":  "entities",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "entities",
+                    "to":  "kb",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "kb",
+                    "to":  "rank",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "rank",
+                    "to":  "draft",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "draft",
+                    "to":  "check",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "check",
+                    "to":  "guard",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "guard",
+                    "to":  "route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "route",
+                    "to":  "reply",
+                    "kind":  "branch",
+                    "label":  "Answer"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "route",
+                    "to":  "approve",
+                    "kind":  "branch",
+                    "label":  "Fulfil request"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "route",
+                    "to":  "human",
+                    "kind":  "escalate",
+                    "label":  "Unresolved"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "approve",
+                    "to":  "act",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "approve",
+                    "to":  "save",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "approve",
+                    "to":  "draft",
+                    "kind":  "branch",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "act",
+                    "to":  "save",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "reply",
+                    "to":  "save",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "human",
+                    "to":  "save",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "save",
+                    "to":  "end",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

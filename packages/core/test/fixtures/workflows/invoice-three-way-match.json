@@ -1,0 +1,330 @@
+{
+    "id": "invoice-three-way-match",
+    "title": "Invoice Processing with 3-Way Match",
+    "ask": "Set up an agent that reads supplier invoices from email, matches them to purchase orders and goods receipts, and posts approved ones to our ERP",
+    "oneRun": "One email via webhook event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state.",
+    "settings": {
+        "region": "ap-southeast-1"
+    },
+    "ops": [
+        {
+            "t": "step",
+            "id": "s1",
+            "kind": "act",
+            "runs": "fc",
+            "effect": "write",
+            "label": "Store invoice file",
+            "product": "oss"
+        },
+        {
+            "t": "step",
+            "id": "s5",
+            "kind": "knowledge",
+            "label": "Fuzzy PO and vendor match",
+            "runs": "fc",
+            "product": "dashvector",
+            "private": true,
+            "task": "rerank",
+            "ai": "qwen3-rerank"
+        },
+        {
+            "t": "step",
+            "id": "s3",
+            "kind": "ai",
+            "label": "OCR header and line items",
+            "runs": "fc",
+            "product": "model-studio",
+            "task": "extract",
+            "ai": "qwen-vl-ocr"
+        },
+        {
+            "t": "step",
+            "id": "s0",
+            "kind": "trigger",
+            "label": "Inbound invoice email webhook",
+            "runs": "fc",
+            "product": "eventbridge",
+            "untrusted": true,
+            "private": true
+        },
+        {
+            "t": "step",
+            "id": "s6",
+            "kind": "decide",
+            "runs": "fc",
+            "label": "Matched or exception"
+        },
+        {
+            "t": "step",
+            "id": "match",
+            "kind": "tool",
+            "label": "Deterministic three-way match",
+            "effect": "read",
+            "runs": "fc"
+        },
+        {
+            "t": "step",
+            "id": "po",
+            "kind": "tool",
+            "label": "Fetch purchase order and goods receipt",
+            "effect": "read",
+            "private": true,
+            "runs": "customer"
+        },
+        {
+            "t": "step",
+            "id": "s4",
+            "kind": "tool",
+            "label": "Deterministic arithmetic check",
+            "runs": "fc",
+            "product": "fc",
+            "effect": "read"
+        },
+        {
+            "t": "step",
+            "id": "s5-retrieve",
+            "kind": "knowledge",
+            "label": "Retrieve permission-filtered evidence",
+            "task": "retrieve",
+            "product": "dashvector",
+            "ai": "text-embedding-v4",
+            "runs": "fc",
+            "private": true
+        },
+        {
+            "t": "step",
+            "id": "s7",
+            "kind": "human",
+            "label": "AP clerk reviews exceptions",
+            "runs": "customer",
+            "task": "approve",
+            "subject": "s3"
+        },
+        {
+            "t": "step",
+            "id": "s8",
+            "kind": "act",
+            "label": "Post approved invoice to ERP",
+            "runs": "agentrun",
+            "effect": "write"
+        },
+        {
+            "t": "step",
+            "id": "s9",
+            "kind": "act",
+            "label": "Audit log and notify",
+            "runs": "fc",
+            "product": "direct-mail",
+            "effect": "notify"
+        },
+        {
+            "t": "step",
+            "id": "done",
+            "kind": "end",
+            "label": "Run complete"
+        },
+        {
+            "t": "step",
+            "id": "retry-route",
+            "kind": "decide",
+            "label": "Retry or continue",
+            "runs": "fc"
+        },
+        {
+            "t": "step",
+            "id": "retry-check",
+            "kind": "ai",
+            "label": "Re-extract fields when deterministic",
+            "task": "check",
+            "ai": "qwen3.7-plus",
+            "product": "model-studio",
+            "runs": "fc",
+            "why": "Re-extract fields when deterministic arithmetic check fails"
+        },
+        {
+            "t": "step",
+            "id": "s2",
+            "kind": "ai",
+            "label": "Classify document type",
+            "runs": "fc",
+            "product": "model-studio",
+            "task": "classify",
+            "ai": "qwen3.8-flash"
+        },
+        {
+            "t": "step",
+            "id": "manual",
+            "kind": "human",
+            "label": "Resolve after retry budget",
+            "task": "takeover",
+            "runs": "customer"
+        },
+        {
+            "t": "step",
+            "id": "cancel",
+            "kind": "end",
+            "label": "Cancelled or unresolved"
+        },
+        {
+            "t": "link",
+            "id": "l9",
+            "from": "retry-check",
+            "to": "retry-route",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l8",
+            "from": "s4",
+            "to": "retry-check",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l2",
+            "from": "retry-route",
+            "to": "manual",
+            "kind": "escalate",
+            "label": "Retry budget spent",
+            "outcome": "exhausted"
+        },
+        {
+            "t": "link",
+            "id": "l5",
+            "from": "s1",
+            "to": "s2",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l6",
+            "from": "s2",
+            "to": "s3",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "extra-21",
+            "from": "match",
+            "to": "s6",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "extra-21-b",
+            "from": "s6",
+            "to": "s8",
+            "kind": "branch",
+            "label": "Exact match"
+        },
+        {
+            "t": "link",
+            "id": "l7",
+            "from": "s3",
+            "to": "s4",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "extra-20",
+            "from": "po",
+            "to": "match",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l1",
+            "from": "retry-route",
+            "to": "s3",
+            "kind": "loop",
+            "label": "Needs another attempt",
+            "max": 3
+        },
+        {
+            "t": "link",
+            "id": "l15",
+            "from": "s7",
+            "to": "s8",
+            "kind": "branch",
+            "outcome": "approve"
+        },
+        {
+            "t": "link",
+            "id": "l18",
+            "from": "s8",
+            "to": "s9",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l12",
+            "from": "s5",
+            "to": "po",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l13",
+            "from": "s6",
+            "to": "s7",
+            "kind": "branch",
+            "label": "Exception"
+        },
+        {
+            "t": "link",
+            "id": "l11",
+            "from": "s5-retrieve",
+            "to": "s5",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l19",
+            "from": "s9",
+            "to": "done",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l3",
+            "from": "manual",
+            "to": "cancel",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l4",
+            "from": "s0",
+            "to": "s1",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l10",
+            "from": "retry-route",
+            "to": "s5-retrieve",
+            "kind": "branch",
+            "label": "Pass or in scope"
+        },
+        {
+            "t": "link",
+            "id": "l16",
+            "from": "s7",
+            "to": "cancel",
+            "kind": "branch",
+            "outcome": "reject"
+        },
+        {
+            "t": "link",
+            "id": "l17",
+            "from": "s7",
+            "to": "s3",
+            "kind": "branch",
+            "label": "Revise reviewed output",
+            "outcome": "edit"
+        }
+    ],
+    "expect": {
+        "codes": []
+    }
+}

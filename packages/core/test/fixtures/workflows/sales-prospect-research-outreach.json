@@ -1,0 +1,398 @@
+{
+    "id":  "sales-prospect-research-outreach",
+    "title":  "Sales prospect research and outreach drafting",
+    "ask":  "Set up an agent that researches new CRM leads, drafts personalised outreach emails, and queues them for my reps to approve before sending.",
+    "oneRun":  "One new lead, one research retry, and one approved first-touch email; follow-ups are drafts only.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "in",
+                    "kind":  "trigger",
+                    "label":  "CRM lead",
+                    "product":  "eventbridge",
+                    "runs":  "fc",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "dedupe",
+                    "kind":  "tool",
+                    "label":  "Dedupe CRM",
+                    "effect":  "read",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "fresh",
+                    "kind":  "decide",
+                    "label":  "New lead",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "mask",
+                    "kind":  "guard",
+                    "label":  "Mask sensitive fields",
+                    "product":  "ai-guardrails",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "enrich",
+                    "kind":  "tool",
+                    "label":  "Firmographics",
+                    "effect":  "read",
+                    "runs":  "customer",
+                    "untrusted":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "site",
+                    "kind":  "tool",
+                    "label":  "Read company site",
+                    "effect":  "read",
+                    "runs":  "fc",
+                    "tool":  "web_extractor",
+                    "untrusted":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "news",
+                    "kind":  "tool",
+                    "label":  "Search company news",
+                    "effect":  "read",
+                    "runs":  "fc",
+                    "tool":  "web_search",
+                    "untrusted":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "research",
+                    "kind":  "agent",
+                    "label":  "Synthesize research",
+                    "task":  "plan",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-max",
+                    "runs":  "agentrun",
+                    "turns":  6,
+                    "join":  "all"
+                },
+                {
+                    "t":  "step",
+                    "id":  "cases",
+                    "kind":  "knowledge",
+                    "label":  "Private answer library",
+                    "task":  "retrieve",
+                    "product":  "dashvector",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "rank",
+                    "kind":  "knowledge",
+                    "label":  "Rank case studies",
+                    "task":  "rerank",
+                    "product":  "model-studio",
+                    "ai":  "qwen3-rerank",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "fit",
+                    "kind":  "ai",
+                    "label":  "ICP fit",
+                    "task":  "classify",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "eval",
+                    "kind":  "ai",
+                    "label":  "Research rubric",
+                    "task":  "check",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "quality",
+                    "kind":  "decide",
+                    "label":  "Quality threshold",
+                    "product":  "agentloop",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "manual",
+                    "kind":  "human",
+                    "label":  "Review research",
+                    "task":  "review",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "draft",
+                    "kind":  "ai",
+                    "label":  "First email and follow-up drafts",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "screen",
+                    "kind":  "guard",
+                    "label":  "Claims and PII screen",
+                    "product":  "ai-guardrails",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "approve",
+                    "kind":  "human",
+                    "label":  "Seller approves first email",
+                    "task":  "approve",
+                    "runs":  "customer",
+                    "subject":  "draft"
+                },
+                {
+                    "t":  "step",
+                    "id":  "send",
+                    "kind":  "act",
+                    "label":  "Send first email",
+                    "product":  "direct-mail",
+                    "effect":  "send",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "save",
+                    "kind":  "act",
+                    "label":  "CRM activity update",
+                    "effect":  "write",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "memory",
+                    "kind":  "memory",
+                    "label":  "Save research",
+                    "product":  "tablestore",
+                    "effect":  "write",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "end",
+                    "kind":  "end",
+                    "label":  "Done"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "in",
+                    "to":  "dedupe",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "dedupe",
+                    "to":  "fresh",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "fresh",
+                    "to":  "end",
+                    "kind":  "branch",
+                    "label":  "Duplicate"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "fresh",
+                    "to":  "mask",
+                    "kind":  "branch",
+                    "label":  "New"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "mask",
+                    "to":  "enrich",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "enrich",
+                    "to":  "site",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "site",
+                    "to":  "research",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "enrich",
+                    "to":  "news",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "news",
+                    "to":  "research",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "research",
+                    "to":  "cases",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "cases",
+                    "to":  "rank",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "rank",
+                    "to":  "fit",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "fit",
+                    "to":  "eval",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "eval",
+                    "to":  "quality",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "quality",
+                    "to":  "draft",
+                    "kind":  "branch",
+                    "label":  "Pass"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "quality",
+                    "to":  "enrich",
+                    "kind":  "loop",
+                    "label":  "Insufficient research",
+                    "max":  1
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "quality",
+                    "to":  "manual",
+                    "kind":  "escalate",
+                    "label":  "Budget spent",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "manual",
+                    "to":  "draft",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l19",
+                    "from":  "draft",
+                    "to":  "screen",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l20",
+                    "from":  "screen",
+                    "to":  "approve",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l21",
+                    "from":  "approve",
+                    "to":  "send",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l22",
+                    "from":  "approve",
+                    "to":  "end",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l23",
+                    "from":  "approve",
+                    "to":  "draft",
+                    "kind":  "branch",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l24",
+                    "from":  "send",
+                    "to":  "save",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l25",
+                    "from":  "save",
+                    "to":  "memory",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l26",
+                    "from":  "memory",
+                    "to":  "end",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

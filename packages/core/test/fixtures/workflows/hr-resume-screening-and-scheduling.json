@@ -1,0 +1,361 @@
+{
+    "id":  "hr-resume-screening-and-scheduling",
+    "title":  "HR Résumé Screening and Interview Scheduling",
+    "ask":  "Set up an agent that parses incoming CVs, scores them against our job rubric, and drafts interview schedules for recruiter approval",
+    "oneRun":  "One webhook event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "cancel",
+                    "kind":  "end",
+                    "label":  "Cancelled or unresolved"
+                },
+                {
+                    "t":  "step",
+                    "id":  "done",
+                    "kind":  "end",
+                    "label":  "Run complete"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s8",
+                    "kind":  "act",
+                    "runs":  "fc",
+                    "product":  "direct-mail",
+                    "effect":  "send",
+                    "label":  "Send approved interview invitation"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s9",
+                    "kind":  "act",
+                    "label":  "Compliance audit log written",
+                    "runs":  "fc",
+                    "effect":  "write"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-route",
+                    "kind":  "decide",
+                    "label":  "Retry or continue",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s8-approve",
+                    "kind":  "human",
+                    "label":  "Approve exact content and action",
+                    "task":  "approve",
+                    "runs":  "customer",
+                    "subject":  "s7"
+                },
+                {
+                    "t":  "step",
+                    "id":  "manual",
+                    "kind":  "human",
+                    "label":  "Resolve after retry budget",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-check",
+                    "kind":  "ai",
+                    "label":  "No slot accepted by candidate;",
+                    "task":  "check",
+                    "ai":  "qwen3.7-plus",
+                    "product":  "model-studio",
+                    "runs":  "fc",
+                    "why":  "No slot accepted by candidate; re-propose new times"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s7",
+                    "kind":  "agent",
+                    "label":  "Fetch availability and propose slots",
+                    "runs":  "agentrun",
+                    "turns":  10,
+                    "product":  "model-studio",
+                    "task":  "plan",
+                    "ai":  "qwen3.8-max"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s2",
+                    "kind":  "act",
+                    "label":  "Strip PII and identity markers",
+                    "runs":  "fc",
+                    "product":  "fc",
+                    "effect":  "write"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s3",
+                    "kind":  "ai",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "plan",
+                    "ai":  "qwen3.8-max",
+                    "effect":  "decide",
+                    "label":  "Score applicants against rubric"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s0",
+                    "kind":  "trigger",
+                    "label":  "ATS applicant webhook",
+                    "runs":  "fc",
+                    "product":  "eventbridge",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s1",
+                    "kind":  "ai",
+                    "label":  "Parse CV via OCR or text",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "extract",
+                    "ai":  "qwen-vl-ocr"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s5",
+                    "kind":  "ai",
+                    "label":  "Draft ranked slate and replies",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "generate",
+                    "ai":  "qwen3.7-plus"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s6",
+                    "kind":  "human",
+                    "label":  "Recruiter approves slate",
+                    "runs":  "customer",
+                    "product":  "agentcore",
+                    "task":  "approve",
+                    "subject":  "s5"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4-retrieve",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve permission-filtered evidence",
+                    "task":  "retrieve",
+                    "product":  "tablestore",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve comparable past hires",
+                    "runs":  "fc",
+                    "private":  true,
+                    "product":  "tablestore",
+                    "task":  "rerank",
+                    "ai":  "qwen3-rerank"
+                },
+                {
+                    "t":  "step",
+                    "id":  "calendar",
+                    "kind":  "tool",
+                    "label":  "Read calendar availability",
+                    "effect":  "read",
+                    "private":  true,
+                    "runs":  "customer",
+                    "on":  "s7"
+                },
+                {
+                    "t":  "step",
+                    "id":  "ats",
+                    "kind":  "act",
+                    "label":  "Write approved slate and slots to ATS",
+                    "effect":  "write",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "retry-check",
+                    "to":  "retry-route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "retry-route",
+                    "to":  "s8-approve",
+                    "kind":  "branch",
+                    "label":  "Pass or in scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "s7",
+                    "to":  "retry-check",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "s6",
+                    "to":  "s5",
+                    "kind":  "branch",
+                    "label":  "Revise reviewed output",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l20",
+                    "from":  "s8",
+                    "to":  "ats",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l21",
+                    "from":  "s9",
+                    "to":  "done",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l19",
+                    "from":  "s8-approve",
+                    "to":  "s7",
+                    "kind":  "branch",
+                    "label":  "Revise reviewed output",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "s8-approve",
+                    "to":  "s8",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "s8-approve",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "s6",
+                    "to":  "s7",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "s0",
+                    "to":  "s1",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "retry-route",
+                    "to":  "s7",
+                    "kind":  "loop",
+                    "label":  "Needs another attempt",
+                    "max":  3
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "manual",
+                    "to":  "cancel",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "retry-route",
+                    "to":  "manual",
+                    "kind":  "escalate",
+                    "label":  "Retry budget spent",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "s4",
+                    "to":  "s5",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "s5",
+                    "to":  "s6",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "extra-22",
+                    "from":  "ats",
+                    "to":  "s9",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "s2",
+                    "to":  "s3",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "s1",
+                    "to":  "s2",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "s4-retrieve",
+                    "to":  "s4",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "s6",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "s3",
+                    "to":  "s4-retrieve",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+                                 {
+                                     "code":  "wf-decision-review",
+                                     "why":  "Ranking applicants against a hiring rubric affects employment opportunities."
+                                 }
+                             ]
+               }
+}

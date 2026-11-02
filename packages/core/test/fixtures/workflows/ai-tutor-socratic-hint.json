@@ -1,0 +1,278 @@
+{
+    "id":  "ai-tutor-socratic-hint",
+    "title":  "AI Tutor with Socratic Hint Generation",
+    "ask":  "Create an AI tutor that reads student worksheet photos, gives hints instead of answers, and flags teachers for review",
+    "oneRun":  "One worksheet question and hint, with two quality retries. Later questions start new runs using persisted learner state; teachers review this conservative version before speech.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "done",
+                    "kind":  "end",
+                    "label":  "Run complete"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s9",
+                    "kind":  "act",
+                    "label":  "Update mastery model",
+                    "runs":  "fc",
+                    "product":  "tablestore",
+                    "effect":  "write"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s8",
+                    "kind":  "ai",
+                    "label":  "Speak hint via TTS for younger learners",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "speak",
+                    "ai":  "qwen-audio-3.1-tts-plus"
+                },
+                {
+                    "t":  "step",
+                    "id":  "cancel",
+                    "kind":  "end",
+                    "label":  "Cancelled or unresolved"
+                },
+                {
+                    "t":  "step",
+                    "id":  "manual",
+                    "kind":  "human",
+                    "label":  "Resolve after retry budget",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-route",
+                    "kind":  "decide",
+                    "label":  "Retry or continue",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-check",
+                    "kind":  "ai",
+                    "label":  "Hint quality evaluator-optimizer loop",
+                    "task":  "check",
+                    "ai":  "qwen3.7-plus",
+                    "product":  "model-studio",
+                    "runs":  "fc",
+                    "why":  "Hint quality evaluator-optimizer loop ensuring no direct answers are leaked"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s7",
+                    "kind":  "human",
+                    "label":  "Teacher reviews flagged sessions",
+                    "runs":  "customer",
+                    "task":  "approve",
+                    "subject":  "s4"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s2",
+                    "kind":  "memory",
+                    "label":  "Load learner mastery state",
+                    "runs":  "fc",
+                    "product":  "tablestore",
+                    "private":  true,
+                    "effect":  "read"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s1",
+                    "kind":  "ai",
+                    "label":  "OCR handwritten math/diagrams",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "extract",
+                    "ai":  "qwen-vl-ocr"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s0",
+                    "kind":  "trigger",
+                    "label":  "Student uploads worksheet photo",
+                    "runs":  "fc",
+                    "product":  "fc",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s3",
+                    "kind":  "ai",
+                    "label":  "Diagnose error type and skill gap",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "classify",
+                    "ai":  "qwen3.8-flash"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s6",
+                    "kind":  "guard",
+                    "label":  "Check safeguarding and",
+                    "runs":  "fc",
+                    "product":  "ai-guardrails",
+                    "why":  "Check safeguarding and age-appropriateness"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s5",
+                    "kind":  "tool",
+                    "label":  "Verify algebra/code in sandbox",
+                    "runs":  "fc",
+                    "product":  "agent-sandbox",
+                    "effect":  "read"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4",
+                    "kind":  "ai",
+                    "label":  "Generate Socratic hint (no final answer)",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "generate",
+                    "ai":  "qwen3.7-plus"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "retry-route",
+                    "to":  "s7",
+                    "kind":  "branch",
+                    "label":  "Pass or in scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "s7",
+                    "to":  "s8",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "s6",
+                    "to":  "retry-check",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "retry-check",
+                    "to":  "retry-route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "s8",
+                    "to":  "s9",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "s9",
+                    "to":  "done",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "s7",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "s7",
+                    "to":  "s4",
+                    "kind":  "branch",
+                    "label":  "Revise reviewed output",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "s5",
+                    "to":  "s6",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "manual",
+                    "to":  "cancel",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "s0",
+                    "to":  "s1",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "retry-route",
+                    "to":  "s4",
+                    "kind":  "loop",
+                    "label":  "Needs another attempt",
+                    "max":  2
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "retry-route",
+                    "to":  "manual",
+                    "kind":  "escalate",
+                    "label":  "Retry budget spent",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "s3",
+                    "to":  "s4",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "s4",
+                    "to":  "s5",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "s1",
+                    "to":  "s2",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "s2",
+                    "to":  "s3",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

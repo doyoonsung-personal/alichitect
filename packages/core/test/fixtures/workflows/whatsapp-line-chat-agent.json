@@ -1,0 +1,242 @@
+{
+    "id":  "whatsapp-line-chat-agent",
+    "title":  "Multichannel Chat Agent with Human Handoff",
+    "ask":  "Build a WhatsApp and LINE chatbot that answers order questions and hands off to a human when stuck",
+    "oneRun":  "One inbound WhatsApp or LINE message; conversation memory persists between runs.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "in",
+                    "kind":  "trigger",
+                    "label":  "Message webhook",
+                    "product":  "chatapp",
+                    "runs":  "fc",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "memory",
+                    "kind":  "memory",
+                    "label":  "Conversation history",
+                    "product":  "tablestore",
+                    "effect":  "read",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "intent",
+                    "kind":  "ai",
+                    "label":  "Language and intent",
+                    "task":  "classify",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "kb",
+                    "kind":  "knowledge",
+                    "label":  "Help articles",
+                    "task":  "retrieve",
+                    "product":  "tablestore",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "order",
+                    "kind":  "tool",
+                    "label":  "Order facts",
+                    "effect":  "read",
+                    "runs":  "customer",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "rank",
+                    "kind":  "knowledge",
+                    "label":  "Rank evidence",
+                    "task":  "rerank",
+                    "product":  "model-studio",
+                    "ai":  "qwen3-rerank",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "draft",
+                    "kind":  "ai",
+                    "label":  "Short reply",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "guard",
+                    "kind":  "guard",
+                    "label":  "Screen reply",
+                    "product":  "ai-guardrails",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "plan",
+                    "kind":  "ai",
+                    "label":  "Route advice",
+                    "task":  "plan",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "route",
+                    "kind":  "decide",
+                    "label":  "Reply or handoff",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "human",
+                    "kind":  "human",
+                    "label":  "Customer service takeover",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "reply",
+                    "kind":  "act",
+                    "label":  "Send conversational reply",
+                    "product":  "chatapp",
+                    "effect":  "reply",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "save",
+                    "kind":  "act",
+                    "label":  "Save turn",
+                    "product":  "tablestore",
+                    "effect":  "write",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "end",
+                    "kind":  "end",
+                    "label":  "Done"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "in",
+                    "to":  "memory",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "memory",
+                    "to":  "intent",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "intent",
+                    "to":  "kb",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "kb",
+                    "to":  "order",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "order",
+                    "to":  "rank",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "rank",
+                    "to":  "draft",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "draft",
+                    "to":  "guard",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "guard",
+                    "to":  "plan",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "plan",
+                    "to":  "route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "route",
+                    "to":  "reply",
+                    "kind":  "branch",
+                    "label":  "Safe answer"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "route",
+                    "to":  "human",
+                    "kind":  "escalate",
+                    "label":  "Stuck blocked or action requested"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "reply",
+                    "to":  "save",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "human",
+                    "to":  "save",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "save",
+                    "to":  "end",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

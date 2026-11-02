@@ -1,0 +1,311 @@
+{
+    "id":  "multilingual-document-localisation",
+    "title":  "Multilingual Document Localisation Pipeline",
+    "ask":  "Create a pipeline that translates product documentation into six languages, scores quality automatically, and routes low-confidence segments to human translators",
+    "oneRun":  "One file upload event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "each",
+                    "id":  "locales",
+                    "over":  "six target languages and their segments",
+                    "parallel":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s3",
+                    "kind":  "ai",
+                    "label":  "Classify risk tier per segment",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "classify",
+                    "ai":  "qwen3.8-flash"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s6",
+                    "kind":  "human",
+                    "runs":  "customer",
+                    "task":  "approve",
+                    "repeat":  "locales",
+                    "why":  "Human post-editing for low-QE or regulated segments",
+                    "label":  "Translator reviews locale",
+                    "subject":  "s4"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s1",
+                    "kind":  "ai",
+                    "label":  "Detect language and segment strings",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "extract",
+                    "ai":  "qwen3.8-flash"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s0",
+                    "kind":  "trigger",
+                    "label":  "Source content committed to CMS/OSS",
+                    "runs":  "fc",
+                    "product":  "fc",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "tm",
+                    "kind":  "act",
+                    "label":  "Save approved translation memory",
+                    "effect":  "write",
+                    "repeat":  "locales",
+                    "runs":  "fc",
+                    "product":  "dashvector"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retrieve",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve termbase and memory",
+                    "ai":  "text-embedding-v4",
+                    "private":  true,
+                    "task":  "retrieve",
+                    "runs":  "fc",
+                    "product":  "dashvector"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s5",
+                    "kind":  "tool",
+                    "label":  "Quality estimation scoring",
+                    "runs":  "fc",
+                    "product":  "fc",
+                    "effect":  "read",
+                    "repeat":  "locales"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4",
+                    "kind":  "ai",
+                    "label":  "Translate non-TM segments using MT",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "translate",
+                    "ai":  "qwen3.8-flash",
+                    "repeat":  "locales"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s7",
+                    "kind":  "act",
+                    "runs":  "fc",
+                    "effect":  "publish",
+                    "repeat":  "locales",
+                    "product":  "fc",
+                    "label":  "Publish approved locale"
+                },
+                {
+                    "t":  "step",
+                    "id":  "cancel",
+                    "kind":  "end",
+                    "label":  "Cancelled or unresolved"
+                },
+                {
+                    "t":  "step",
+                    "id":  "done",
+                    "kind":  "end",
+                    "label":  "Run complete"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s8",
+                    "kind":  "act",
+                    "label":  "Notify owners of terminology conflicts",
+                    "runs":  "fc",
+                    "product":  "chatapp",
+                    "effect":  "notify",
+                    "repeat":  "locales"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-check",
+                    "kind":  "ai",
+                    "label":  "Feedback from LQA and post-editing",
+                    "task":  "check",
+                    "ai":  "qwen3.7-plus",
+                    "product":  "model-studio",
+                    "runs":  "fc",
+                    "repeat":  "locales",
+                    "why":  "Feedback from LQA and post-editing distance adapts domain prompt and termbase, then re-translates"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s2",
+                    "runs":  "fc",
+                    "product":  "dashvector",
+                    "private":  true,
+                    "ai":  "qwen3-rerank",
+                    "label":  "Rank translation memory",
+                    "task":  "rerank",
+                    "kind":  "knowledge"
+                },
+                {
+                    "t":  "step",
+                    "id":  "manual",
+                    "kind":  "human",
+                    "label":  "Resolve after retry budget",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-route",
+                    "kind":  "decide",
+                    "label":  "Retry or continue",
+                    "runs":  "fc",
+                    "repeat":  "locales"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "s4",
+                    "to":  "s5",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "s3",
+                    "to":  "s4",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "retry-route",
+                    "to":  "s4",
+                    "kind":  "loop",
+                    "label":  "Needs another attempt",
+                    "max":  2
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "retry-route",
+                    "to":  "manual",
+                    "kind":  "escalate",
+                    "label":  "Retry budget spent",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "extra-17",
+                    "from":  "retrieve",
+                    "to":  "s2",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "extra-18",
+                    "from":  "tm",
+                    "to":  "s7",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "s1",
+                    "to":  "retrieve",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "s2",
+                    "to":  "s3",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "retry-check",
+                    "to":  "retry-route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "s7",
+                    "to":  "s8",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "s5",
+                    "to":  "retry-check",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "retry-route",
+                    "to":  "s6",
+                    "kind":  "branch",
+                    "label":  "Pass or in scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "s6",
+                    "to":  "tm",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "manual",
+                    "to":  "cancel",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "s0",
+                    "to":  "s1",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "s6",
+                    "to":  "s4",
+                    "kind":  "branch",
+                    "label":  "Revise reviewed output",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "s8",
+                    "to":  "done",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "s6",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

@@ -1,0 +1,334 @@
+{
+    "id":  "nl-to-sql-data-analysis",
+    "title":  "Data Analysis Agent (NL to SQL)",
+    "ask":  "Give business users a chat agent that translates their questions into SQL, runs them safely, and shows the generated query for verification before they trust the numbers",
+    "oneRun":  "One chat message event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "s0",
+                    "kind":  "trigger",
+                    "label":  "Business user question in chat/BI",
+                    "runs":  "fc",
+                    "product":  "fc",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s1",
+                    "kind":  "ai",
+                    "label":  "Clarify intent and metric definitions",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "classify",
+                    "ai":  "qwen3.8-flash"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s2-retrieve",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve permission-filtered evidence",
+                    "task":  "retrieve",
+                    "product":  "tablestore",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s2",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve schema and semantic layer",
+                    "runs":  "fc",
+                    "private":  true,
+                    "product":  "tablestore",
+                    "task":  "rerank",
+                    "ai":  "qwen3-rerank"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s3",
+                    "kind":  "ai",
+                    "label":  "Generate SQL query",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "generate",
+                    "ai":  "qwen3.7-plus"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4",
+                    "runs":  "fc",
+                    "ai":  "qwen3.8-flash",
+                    "label":  "Classify SQL safety",
+                    "task":  "classify",
+                    "product":  "model-studio",
+                    "kind":  "ai"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4-route",
+                    "kind":  "decide",
+                    "label":  "Route by evaluated result",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s5",
+                    "kind":  "tool",
+                    "effect":  "read",
+                    "private":  true,
+                    "label":  "Execute read-only SQL",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s6",
+                    "kind":  "ai",
+                    "label":  "Self-check result plausibility",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "plan",
+                    "ai":  "qwen3.8-max"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s7",
+                    "kind":  "human",
+                    "label":  "User verifies SQL and assumptions",
+                    "runs":  "customer",
+                    "task":  "approve",
+                    "subject":  "s6"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s8",
+                    "kind":  "act",
+                    "label":  "Cache verified query pair",
+                    "runs":  "fc",
+                    "effect":  "write"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s9",
+                    "runs":  "fc",
+                    "ai":  "qwen3.7-plus",
+                    "label":  "Chart specification and narrative",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "kind":  "ai"
+                },
+                {
+                    "t":  "step",
+                    "id":  "done",
+                    "kind":  "end",
+                    "label":  "Run complete"
+                },
+                {
+                    "t":  "step",
+                    "id":  "cancel",
+                    "kind":  "end",
+                    "label":  "Cancelled or unresolved"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-check",
+                    "kind":  "ai",
+                    "label":  "SQL execution fails or result is",
+                    "task":  "check",
+                    "ai":  "qwen3.7-plus",
+                    "product":  "model-studio",
+                    "runs":  "fc",
+                    "why":  "SQL execution fails or result is implausible; regenerate with error context"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-route",
+                    "kind":  "decide",
+                    "label":  "Retry or continue",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "manual",
+                    "kind":  "human",
+                    "label":  "Resolve after retry budget",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "sql-guard",
+                    "kind":  "guard",
+                    "label":  "Enforce read-only role and row cap",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "retry-route",
+                    "to":  "manual",
+                    "kind":  "escalate",
+                    "label":  "Retry budget spent",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "s2-retrieve",
+                    "to":  "s2",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "retry-route",
+                    "to":  "s3",
+                    "kind":  "loop",
+                    "label":  "Needs another attempt",
+                    "max":  3
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "s1",
+                    "to":  "s2-retrieve",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "manual",
+                    "to":  "cancel",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "s2",
+                    "to":  "s3",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "s3",
+                    "to":  "s4",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "s4",
+                    "to":  "s4-route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "s4-route",
+                    "to":  "sql-guard",
+                    "kind":  "branch",
+                    "label":  "Pass or in scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "s4-route",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "label":  "No result or out of scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "s0",
+                    "to":  "s1",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "s5",
+                    "to":  "s6",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "s6",
+                    "to":  "retry-check",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "retry-check",
+                    "to":  "retry-route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "retry-route",
+                    "to":  "s7",
+                    "kind":  "branch",
+                    "label":  "Pass or in scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "s7",
+                    "to":  "s8",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "s7",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "s7",
+                    "to":  "s6",
+                    "kind":  "branch",
+                    "label":  "Revise reviewed output",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l19",
+                    "from":  "s8",
+                    "to":  "s9",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l20",
+                    "from":  "s9",
+                    "to":  "done",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "extra-21",
+                    "from":  "sql-guard",
+                    "to":  "s5",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

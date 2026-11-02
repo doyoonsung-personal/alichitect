@@ -1,0 +1,239 @@
+{
+    "id":  "disruption-rebooking-agent",
+    "title":  "Flight Disruption Rebooking Agent",
+    "ask":  "Build an agent that monitors flight statuses and automatically proposes rebooking options for approval when disruptions happen",
+    "oneRun":  "One disruption-status event for a persisted booking; recheck events stop after rebooking or 24 hours. Each run proposes and approves one rebooking.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "s8",
+                    "kind":  "act",
+                    "label":  "Notify passenger of new itinerary",
+                    "runs":  "fc",
+                    "product":  "chatapp",
+                    "effect":  "send"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s7",
+                    "kind":  "act",
+                    "label":  "Execute rebooking via GDS API",
+                    "runs":  "fc",
+                    "product":  "fc",
+                    "effect":  "pay"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s6",
+                    "kind":  "human",
+                    "label":  "Approve rebooking and fare difference",
+                    "runs":  "customer",
+                    "product":  "agentcore",
+                    "task":  "approve",
+                    "subject":  "s5"
+                },
+                {
+                    "t":  "step",
+                    "id":  "cancel",
+                    "kind":  "end",
+                    "label":  "Cancelled or unresolved"
+                },
+                {
+                    "t":  "step",
+                    "id":  "done",
+                    "kind":  "end",
+                    "label":  "Run complete"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s2",
+                    "kind":  "ai",
+                    "label":  "Assess impact and passenger tier",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "classify",
+                    "ai":  "qwen3.8-flash"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s9",
+                    "kind":  "act",
+                    "label":  "Update booking record",
+                    "runs":  "fc",
+                    "product":  "tablestore",
+                    "effect":  "write"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s1",
+                    "kind":  "memory",
+                    "label":  "Load passenger booking context",
+                    "runs":  "fc",
+                    "product":  "tablestore",
+                    "private":  true,
+                    "effect":  "read"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s0",
+                    "kind":  "trigger",
+                    "label":  "Flight status irregularity event",
+                    "runs":  "fc",
+                    "product":  "eventbridge",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s5",
+                    "kind":  "ai",
+                    "label":  "Draft rebooking proposal",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "generate",
+                    "ai":  "qwen3.7-plus"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4",
+                    "kind":  "ai",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "plan",
+                    "ai":  "qwen3.8-max",
+                    "label":  "Check fare rules and differences"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s3",
+                    "kind":  "agent",
+                    "label":  "Search alternative flights and fares",
+                    "runs":  "agentrun",
+                    "product":  "model-studio",
+                    "turns":  10,
+                    "task":  "plan",
+                    "ai":  "qwen3.8-max"
+                },
+                {
+                    "t":  "step",
+                    "id":  "fare",
+                    "kind":  "tool",
+                    "label":  "Compute fare difference",
+                    "effect":  "read",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "gds",
+                    "kind":  "tool",
+                    "label":  "Search current fares and availability",
+                    "effect":  "read",
+                    "untrusted":  true,
+                    "runs":  "customer",
+                    "on":  "s3"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "s9",
+                    "to":  "done",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "s6",
+                    "to":  "s5",
+                    "kind":  "branch",
+                    "label":  "Revise reviewed output",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "s6",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "s8",
+                    "to":  "s9",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "s7",
+                    "to":  "s8",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "s2",
+                    "to":  "s3",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "s6",
+                    "to":  "s7",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "s4",
+                    "to":  "s5",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "s0",
+                    "to":  "s1",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "s5",
+                    "to":  "s6",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "s1",
+                    "to":  "s2",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "s3",
+                    "to":  "fare",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "extra-13",
+                    "from":  "fare",
+                    "to":  "s4",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

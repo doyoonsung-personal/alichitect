@@ -1,0 +1,325 @@
+{
+    "id":  "supply-chain-exception-handling",
+    "title":  "Supply-Chain Exception Handling",
+    "ask":  "Build an agent that watches for delayed shipments or ASN mismatches, reads supplier PDFs, calculates expedite options, and asks a planner before spending money",
+    "oneRun":  "One webhook event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "s9",
+                    "kind":  "act",
+                    "runs":  "fc",
+                    "effect":  "write",
+                    "label":  "Save exception outcome",
+                    "product":  "tablestore"
+                },
+                {
+                    "t":  "step",
+                    "id":  "done",
+                    "kind":  "end",
+                    "label":  "Run complete"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s7",
+                    "kind":  "act",
+                    "effect":  "pay",
+                    "runs":  "customer",
+                    "label":  "Commit PO and freight booking"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s8",
+                    "kind":  "act",
+                    "label":  "Notify supplier and internal",
+                    "runs":  "fc",
+                    "product":  "direct-mail",
+                    "effect":  "send",
+                    "why":  "Notify supplier and internal stakeholders"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-route",
+                    "kind":  "decide",
+                    "label":  "Retry or continue",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "manual",
+                    "kind":  "human",
+                    "label":  "Resolve after retry budget",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "cancel",
+                    "kind":  "end",
+                    "label":  "Cancelled or unresolved"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-check",
+                    "kind":  "ai",
+                    "label":  "Monitor execution of new ETA or",
+                    "task":  "check",
+                    "ai":  "qwen3.7-plus",
+                    "product":  "model-studio",
+                    "runs":  "fc",
+                    "why":  "Monitor execution of new ETA or shipment plan; re-open if it fails"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s6",
+                    "kind":  "human",
+                    "label":  "Planner/buyer approves",
+                    "runs":  "customer",
+                    "product":  "agentcore",
+                    "task":  "approve",
+                    "why":  "Planner/buyer approves above-threshold options",
+                    "subject":  "s4"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s2",
+                    "kind":  "ai",
+                    "label":  "Extract data from supplier PDFs/invoices",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "extract",
+                    "ai":  "qwen-vl-ocr"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s3-retrieve",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve permission-filtered evidence",
+                    "task":  "retrieve",
+                    "product":  "tablestore",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s0",
+                    "kind":  "trigger",
+                    "label":  "Exception event from ERP/TMS webhook",
+                    "runs":  "fc",
+                    "product":  "eventbridge",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s1",
+                    "kind":  "ai",
+                    "label":  "Classify exception type and SKU",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "classify",
+                    "ai":  "qwen3.8-flash",
+                    "why":  "Classify exception type and SKU criticality"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s5",
+                    "kind":  "ai",
+                    "label":  "Check delegated authority thresholds",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "plan",
+                    "ai":  "qwen3.8-max"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s5-route",
+                    "kind":  "decide",
+                    "label":  "Route by evaluated result",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s3",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve contracts, SLAs, alternate",
+                    "runs":  "fc",
+                    "private":  true,
+                    "product":  "tablestore",
+                    "task":  "rerank",
+                    "ai":  "qwen3-rerank",
+                    "why":  "Retrieve contracts, SLAs, alternate suppliers"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4",
+                    "kind":  "agent",
+                    "label":  "Generate quantified trade-off options",
+                    "runs":  "agentrun",
+                    "turns":  10,
+                    "product":  "model-studio",
+                    "task":  "plan",
+                    "ai":  "qwen3.8-max"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "s6",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "s6",
+                    "to":  "s5",
+                    "kind":  "branch",
+                    "label":  "Revise reviewed output",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "s6",
+                    "to":  "s7",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "s5-route",
+                    "to":  "s6",
+                    "kind":  "branch",
+                    "label":  "Pass or in scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "s5-route",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "label":  "No result or out of scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l19",
+                    "from":  "retry-route",
+                    "to":  "s9",
+                    "kind":  "branch",
+                    "label":  "Pass or in scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l20",
+                    "from":  "s9",
+                    "to":  "done",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "retry-check",
+                    "to":  "retry-route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "s7",
+                    "to":  "s8",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "s8",
+                    "to":  "retry-check",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "s0",
+                    "to":  "s1",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "s1",
+                    "to":  "s2",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "manual",
+                    "to":  "cancel",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "retry-route",
+                    "to":  "s1",
+                    "kind":  "loop",
+                    "label":  "Needs another attempt",
+                    "max":  3
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "retry-route",
+                    "to":  "manual",
+                    "kind":  "escalate",
+                    "label":  "Retry budget spent",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "s4",
+                    "to":  "s5",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "s5",
+                    "to":  "s5-route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "s3",
+                    "to":  "s4",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "s2",
+                    "to":  "s3-retrieve",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "s3-retrieve",
+                    "to":  "s3",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

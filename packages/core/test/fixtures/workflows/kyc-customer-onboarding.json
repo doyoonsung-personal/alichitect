@@ -1,0 +1,342 @@
+{
+    "id":  "kyc-customer-onboarding",
+    "title":  "KYC and Customer Onboarding Triage",
+    "ask":  "Create an onboarding agent that verifies customer IDs, screens them against sanctions lists, and routes high-risk profiles to a compliance officer",
+    "oneRun":  "One webhook event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "s0",
+                    "kind":  "trigger",
+                    "label":  "Application submitted via web form",
+                    "runs":  "fc",
+                    "product":  "eventbridge",
+                    "untrusted":  true,
+                    "private":  true,
+                    "why":  "Application submitted via web form webhook"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s1",
+                    "kind":  "tool",
+                    "runs":  "fc",
+                    "product":  "zoloz-real-id",
+                    "effect":  "read",
+                    "label":  "ZOLOZ identity and liveness"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s2",
+                    "kind":  "ai",
+                    "label":  "Extract MRZ and corporate docs",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "extract",
+                    "ai":  "qwen-vl-ocr"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s3-retrieve",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve permission-filtered evidence",
+                    "task":  "retrieve",
+                    "product":  "dashvector",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s3",
+                    "kind":  "knowledge",
+                    "label":  "Screen against sanctions and PEP lists",
+                    "runs":  "fc",
+                    "product":  "dashvector",
+                    "private":  true,
+                    "task":  "rerank",
+                    "ai":  "qwen3-rerank"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4",
+                    "kind":  "ai",
+                    "label":  "Risk rating and SoW narrative synthesis",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "plan",
+                    "ai":  "qwen3.8-max"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s5",
+                    "kind":  "decide",
+                    "label":  "Route SDD/CDD/EDD based on risk score",
+                    "runs":  "fc",
+                    "product":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s6",
+                    "kind":  "human",
+                    "runs":  "customer",
+                    "task":  "approve",
+                    "subject":  "s4",
+                    "label":  "Compliance approves account decision"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s7",
+                    "kind":  "act",
+                    "label":  "Open account in core banking",
+                    "runs":  "agentrun",
+                    "effect":  "decide"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s8",
+                    "kind":  "ai",
+                    "label":  "Translate status update to customer",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "translate",
+                    "ai":  "qwen3.8-flash",
+                    "why":  "Translate status update to customer language"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s9",
+                    "kind":  "act",
+                    "label":  "Send notification",
+                    "runs":  "fc",
+                    "product":  "chatapp",
+                    "effect":  "send"
+                },
+                {
+                    "t":  "step",
+                    "id":  "done",
+                    "kind":  "end",
+                    "label":  "Run complete"
+                },
+                {
+                    "t":  "step",
+                    "id":  "cancel",
+                    "kind":  "end",
+                    "label":  "Cancelled or unresolved"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s9-approve",
+                    "kind":  "human",
+                    "label":  "Approve exact content and action",
+                    "task":  "approve",
+                    "runs":  "customer",
+                    "subject":  "s8"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-check",
+                    "kind":  "ai",
+                    "label":  "Re-capture document if ZOLOZ rejects",
+                    "task":  "check",
+                    "ai":  "qwen3.7-plus",
+                    "product":  "model-studio",
+                    "runs":  "fc",
+                    "why":  "Re-capture document if ZOLOZ rejects authenticity or OCR confidence is too low"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-route",
+                    "kind":  "decide",
+                    "label":  "Retry or continue",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "manual",
+                    "kind":  "human",
+                    "label":  "Resolve after retry budget",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "retry-route",
+                    "to":  "s1",
+                    "kind":  "loop",
+                    "label":  "Needs another attempt",
+                    "max":  3
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "retry-route",
+                    "to":  "manual",
+                    "kind":  "escalate",
+                    "label":  "Retry budget spent",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "manual",
+                    "to":  "cancel",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "s0",
+                    "to":  "s1",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "s1",
+                    "to":  "s2",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "s2",
+                    "to":  "retry-check",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "retry-check",
+                    "to":  "retry-route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "retry-route",
+                    "to":  "s3-retrieve",
+                    "kind":  "branch",
+                    "label":  "Pass or in scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "s3-retrieve",
+                    "to":  "s3",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "s3",
+                    "to":  "s4",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "s4",
+                    "to":  "s5",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "s5",
+                    "to":  "s6",
+                    "kind":  "branch",
+                    "label":  "Pass or in scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "s5",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "label":  "No result or out of scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "s6",
+                    "to":  "s7",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "s6",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "s6",
+                    "to":  "s4",
+                    "kind":  "branch",
+                    "label":  "Revise reviewed output",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "s7",
+                    "to":  "s8",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "s8",
+                    "to":  "s9-approve",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l19",
+                    "from":  "s9-approve",
+                    "to":  "s9",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l20",
+                    "from":  "s9-approve",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l21",
+                    "from":  "s9-approve",
+                    "to":  "s8",
+                    "kind":  "branch",
+                    "label":  "Revise reviewed output",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l22",
+                    "from":  "s9",
+                    "to":  "done",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+                                 {
+                                     "code":  "wf-decision-review",
+                                     "why":  "Opening a banking account commits the onboarding eligibility decision."
+                                 }
+                             ]
+               }
+}

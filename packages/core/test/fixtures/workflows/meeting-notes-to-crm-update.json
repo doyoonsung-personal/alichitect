@@ -1,0 +1,276 @@
+{
+    "id":  "meeting-notes-to-crm-update",
+    "title":  "Meeting notes to CRM updates",
+    "ask":  "Create a workflow that transcribes our sales calls, extracts deal updates, and shows the rep a diff to approve before writing anything to Salesforce.",
+    "oneRun":  "One recorded meeting, with separate approval of field changes and the follow-up email.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "in",
+                    "kind":  "trigger",
+                    "label":  "Recording webhook",
+                    "product":  "eventbridge",
+                    "runs":  "fc",
+                    "private":  true,
+                    "untrusted":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "asr",
+                    "kind":  "ai",
+                    "label":  "Transcribe speakers",
+                    "task":  "transcribe",
+                    "product":  "model-studio",
+                    "ai":  "qwen-audio-3.1-asr-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "mask",
+                    "kind":  "guard",
+                    "label":  "Mask transcript PII",
+                    "product":  "ai-guardrails",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "summary",
+                    "kind":  "ai",
+                    "label":  "Summarise meeting",
+                    "task":  "summarise",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "fields",
+                    "kind":  "ai",
+                    "label":  "Extract CRM field deltas",
+                    "task":  "extract",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "memory",
+                    "kind":  "memory",
+                    "label":  "Prior meetings",
+                    "product":  "tablestore",
+                    "effect":  "read",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "conflict",
+                    "kind":  "decide",
+                    "label":  "CRM conflict",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "risk",
+                    "kind":  "ai",
+                    "label":  "Deal risk",
+                    "task":  "classify",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "review",
+                    "kind":  "human",
+                    "label":  "Approve field diff",
+                    "task":  "approve",
+                    "runs":  "customer",
+                    "subject":  "fields"
+                },
+                {
+                    "t":  "step",
+                    "id":  "write",
+                    "kind":  "act",
+                    "label":  "Write fields and tasks",
+                    "effect":  "write",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "draft",
+                    "kind":  "ai",
+                    "label":  "Draft follow-up",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "approve",
+                    "kind":  "human",
+                    "label":  "Approve email",
+                    "task":  "approve",
+                    "runs":  "customer",
+                    "subject":  "draft"
+                },
+                {
+                    "t":  "step",
+                    "id":  "send",
+                    "kind":  "act",
+                    "label":  "Send follow-up",
+                    "product":  "direct-mail",
+                    "effect":  "send",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "end",
+                    "kind":  "end",
+                    "label":  "Done"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "in",
+                    "to":  "asr",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "asr",
+                    "to":  "mask",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "mask",
+                    "to":  "summary",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "summary",
+                    "to":  "fields",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "fields",
+                    "to":  "memory",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "memory",
+                    "to":  "conflict",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "conflict",
+                    "to":  "risk",
+                    "kind":  "branch",
+                    "label":  "No conflict"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "conflict",
+                    "to":  "review",
+                    "kind":  "branch",
+                    "label":  "Resolve conflicting values"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "risk",
+                    "to":  "review",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "review",
+                    "to":  "write",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "review",
+                    "to":  "end",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "review",
+                    "to":  "fields",
+                    "kind":  "branch",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "write",
+                    "to":  "draft",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "draft",
+                    "to":  "approve",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "approve",
+                    "to":  "send",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "approve",
+                    "to":  "end",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "approve",
+                    "to":  "draft",
+                    "kind":  "branch",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "send",
+                    "to":  "end",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

@@ -1,0 +1,415 @@
+{
+    "id": "rfp-security-questionnaire-answerer",
+    "title": "RFP and security questionnaire answering",
+    "ask": "Build an agent that parses incoming RFPs, drafts answers from our approved policy library, checks them for hallucinations, and routes them to SMEs for sign-off.",
+    "oneRun": "One file upload event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state.",
+    "settings": {
+        "region": "ap-southeast-1"
+    },
+    "ops": [
+        {
+            "t": "each",
+            "id": "questions-group",
+            "over": "atomic RFP questions",
+            "parallel": true
+        },
+        {
+            "t": "step",
+            "id": "s3",
+            "kind": "knowledge",
+            "label": "Retrieve approved answers and",
+            "runs": "fc",
+            "product": "analyticdb",
+            "private": true,
+            "task": "rerank",
+            "ai": "qwen3-rerank",
+            "why": "Retrieve approved answers and evidence chunks",
+            "repeat": "questions-group"
+        },
+        {
+            "t": "step",
+            "id": "s5-route",
+            "kind": "decide",
+            "label": "Route by evaluated result",
+            "runs": "fc",
+            "repeat": "questions-group"
+        },
+        {
+            "t": "step",
+            "id": "s1",
+            "kind": "ai",
+            "label": "Parse document and extract atomic",
+            "runs": "fc",
+            "product": "model-studio",
+            "task": "extract",
+            "ai": "qwen3.8-flash",
+            "why": "Parse document and extract atomic questions"
+        },
+        {
+            "t": "step",
+            "id": "s3-retrieve",
+            "kind": "knowledge",
+            "label": "Retrieve permission-filtered evidence",
+            "task": "retrieve",
+            "product": "analyticdb",
+            "ai": "text-embedding-v4",
+            "runs": "fc",
+            "private": true,
+            "repeat": "questions-group"
+        },
+        {
+            "t": "step",
+            "id": "s0",
+            "kind": "trigger",
+            "label": "Receive RFP document upload",
+            "runs": "fc",
+            "product": "oss",
+            "untrusted": true,
+            "private": true
+        },
+        {
+            "t": "step",
+            "id": "library",
+            "kind": "act",
+            "label": "Update approved answer library",
+            "effect": "write",
+            "runs": "fc",
+            "product": "analyticdb"
+        },
+        {
+            "t": "step",
+            "id": "questions",
+            "kind": "tool",
+            "label": "Enumerate atomic questions",
+            "effect": "read",
+            "runs": "fc"
+        },
+        {
+            "t": "step",
+            "id": "s5",
+            "kind": "ai",
+            "label": "Faithfulness check against retrieved",
+            "runs": "fc",
+            "product": "model-studio",
+            "task": "plan",
+            "ai": "qwen3.8-max",
+            "why": "Faithfulness check against retrieved evidence",
+            "repeat": "questions-group"
+        },
+        {
+            "t": "step",
+            "id": "s6",
+            "kind": "ai",
+            "label": "Freshness and conflict check on cited",
+            "runs": "fc",
+            "product": "model-studio",
+            "task": "classify",
+            "ai": "qwen3.8-flash",
+            "why": "Freshness and conflict check on cited policies",
+            "repeat": "questions-group"
+        },
+        {
+            "t": "step",
+            "id": "s4",
+            "kind": "ai",
+            "label": "Draft answers with inline citations",
+            "runs": "fc",
+            "product": "model-studio",
+            "task": "generate",
+            "ai": "qwen3.7-plus",
+            "repeat": "questions-group"
+        },
+        {
+            "t": "step",
+            "id": "s2",
+            "kind": "ai",
+            "label": "Classify questions by risk and",
+            "runs": "fc",
+            "product": "model-studio",
+            "task": "classify",
+            "ai": "qwen3.8-flash",
+            "why": "Classify questions by risk and answerability",
+            "repeat": "questions-group"
+        },
+        {
+            "t": "step",
+            "id": "s9",
+            "kind": "act",
+            "runs": "agentrun",
+            "effect": "write",
+            "why": "Assemble response document in required format",
+            "label": "Assemble approved answers",
+            "join": "all"
+        },
+        {
+            "t": "step",
+            "id": "done",
+            "kind": "end",
+            "label": "Run complete"
+        },
+        {
+            "t": "step",
+            "id": "s8",
+            "kind": "human",
+            "runs": "customer",
+            "task": "approve",
+            "label": "SME or legal approves answer",
+            "subject": "s4",
+            "repeat": "questions-group"
+        },
+        {
+            "t": "step",
+            "id": "s10",
+            "kind": "guard",
+            "label": "Final compliance screen for",
+            "runs": "fc",
+            "product": "ai-guardrails",
+            "why": "Final compliance screen for over-claiming"
+        },
+        {
+            "t": "step",
+            "id": "s11",
+            "kind": "act",
+            "label": "Submit to bid desk and update answer",
+            "runs": "fc",
+            "product": "fc",
+            "effect": "send",
+            "why": "Submit to bid desk and update answer library"
+        },
+        {
+            "t": "step",
+            "id": "retry-check",
+            "kind": "ai",
+            "label": "Redraft if faithfulness check fails",
+            "task": "check",
+            "ai": "qwen3.7-plus",
+            "product": "model-studio",
+            "runs": "fc",
+            "repeat": "questions-group"
+        },
+        {
+            "t": "step",
+            "id": "s7",
+            "kind": "decide",
+            "label": "Route by confidence: auto-approve,",
+            "runs": "fc",
+            "product": "fc",
+            "why": "Route by confidence: auto-approve, SME, or legal",
+            "repeat": "questions-group"
+        },
+        {
+            "t": "step",
+            "id": "cancel",
+            "kind": "end",
+            "label": "Cancelled or unresolved"
+        },
+        {
+            "t": "step",
+            "id": "manual",
+            "kind": "human",
+            "label": "Resolve after retry budget",
+            "task": "takeover",
+            "runs": "customer",
+            "repeat": "questions-group"
+        },
+        {
+            "t": "step",
+            "id": "retry-route",
+            "kind": "decide",
+            "label": "Retry or continue",
+            "runs": "fc",
+            "repeat": "questions-group"
+        },
+        {
+            "t": "link",
+            "id": "l6",
+            "from": "s2",
+            "to": "s3-retrieve",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l10",
+            "from": "s5",
+            "to": "s5-route",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l2",
+            "from": "retry-route",
+            "to": "manual",
+            "kind": "escalate",
+            "label": "Retry budget spent",
+            "outcome": "exhausted"
+        },
+        {
+            "t": "link",
+            "id": "l1",
+            "from": "retry-route",
+            "to": "s4",
+            "kind": "loop",
+            "label": "Needs another attempt",
+            "max": 2
+        },
+        {
+            "t": "link",
+            "id": "l3",
+            "from": "manual",
+            "to": "cancel",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l11",
+            "from": "s5-route",
+            "to": "retry-check",
+            "kind": "branch",
+            "label": "Pass or in scope"
+        },
+        {
+            "t": "link",
+            "id": "extra-24",
+            "from": "questions",
+            "to": "s2",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "extra-25",
+            "from": "library",
+            "to": "done",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l8",
+            "from": "s3",
+            "to": "s4",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l9",
+            "from": "s4",
+            "to": "s5",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l7",
+            "from": "s3-retrieve",
+            "to": "s3",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l5",
+            "from": "s1",
+            "to": "questions",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l13",
+            "from": "retry-check",
+            "to": "retry-route",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l14",
+            "from": "retry-route",
+            "to": "s6",
+            "kind": "branch",
+            "label": "Pass or in scope"
+        },
+        {
+            "t": "link",
+            "id": "l18",
+            "from": "s8",
+            "to": "s9",
+            "kind": "branch",
+            "outcome": "approve"
+        },
+        {
+            "t": "link",
+            "id": "l16",
+            "from": "s7",
+            "to": "s8",
+            "kind": "branch",
+            "label": "Pass or in scope"
+        },
+        {
+            "t": "link",
+            "id": "l17",
+            "from": "s7",
+            "to": "cancel",
+            "kind": "branch",
+            "label": "No result or out of scope"
+        },
+        {
+            "t": "link",
+            "id": "l15",
+            "from": "s6",
+            "to": "s7",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l22",
+            "from": "s10",
+            "to": "s11",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l20",
+            "from": "s8",
+            "to": "s6",
+            "kind": "branch",
+            "label": "Revise reviewed output",
+            "outcome": "edit"
+        },
+        {
+            "t": "link",
+            "id": "l12",
+            "from": "s5-route",
+            "to": "cancel",
+            "kind": "branch",
+            "label": "No result or out of scope"
+        },
+        {
+            "t": "link",
+            "id": "l4",
+            "from": "s0",
+            "to": "s1",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l21",
+            "from": "s9",
+            "to": "s10",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l19",
+            "from": "s8",
+            "to": "cancel",
+            "kind": "branch",
+            "outcome": "reject"
+        },
+        {
+            "t": "link",
+            "id": "extra-25-b",
+            "from": "s11",
+            "to": "library",
+            "kind": "next"
+        }
+    ],
+    "expect": {
+        "codes": []
+    }
+}

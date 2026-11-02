@@ -1,0 +1,340 @@
+{
+    "id":  "ecommerce-product-listing-enrichment",
+    "title":  "E-commerce product listing creation from images",
+    "ask":  "Set up a pipeline that takes supplier photos, extracts attributes, generates SEO-friendly listings in multiple languages, and queues them for merchandiser approval before pushing to Amazon and Shopee.",
+    "oneRun":  "One file upload event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "each",
+                    "id":  "locales",
+                    "over":  "target marketplace locales",
+                    "parallel":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s0",
+                    "kind":  "trigger",
+                    "label":  "Supplier image drop into OSS bucket",
+                    "runs":  "fc",
+                    "product":  "oss",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s1",
+                    "kind":  "act",
+                    "label":  "Normalise images and strip EXIF/PII",
+                    "runs":  "fc",
+                    "product":  "imm",
+                    "effect":  "write"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s2",
+                    "kind":  "ai",
+                    "label":  "Read text in packaging and labels",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "extract",
+                    "ai":  "qwen-vl-ocr"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s3",
+                    "kind":  "ai",
+                    "label":  "Identify category, material, colour,",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "see",
+                    "ai":  "qwen3-vl-plus",
+                    "why":  "Identify category, material, colour, and defects from images"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4-retrieve",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve permission-filtered evidence",
+                    "task":  "retrieve",
+                    "product":  "analyticdb",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "s4",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve target marketplace taxonomy",
+                    "runs":  "fc",
+                    "product":  "analyticdb",
+                    "private":  true,
+                    "task":  "rerank",
+                    "ai":  "qwen3-rerank",
+                    "why":  "Retrieve target marketplace taxonomy and required attributes"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s5",
+                    "kind":  "decide",
+                    "label":  "Map extracted attributes to taxonomy;",
+                    "runs":  "fc",
+                    "product":  "fc",
+                    "why":  "Map extracted attributes to taxonomy; abstain if low confidence"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s6",
+                    "kind":  "ai",
+                    "label":  "Generate title, bullets, description,",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "generate",
+                    "ai":  "qwen3.7-plus",
+                    "why":  "Generate title, bullets, description, and SEO keywords"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s7",
+                    "kind":  "ai",
+                    "label":  "Localise listing copy for each",
+                    "runs":  "fc",
+                    "product":  "model-studio",
+                    "task":  "translate",
+                    "ai":  "qwen3.8-flash",
+                    "repeat":  "locales",
+                    "why":  "Localise listing copy for each marketplace locale"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s8",
+                    "kind":  "guard",
+                    "label":  "Compliance screen for restricted",
+                    "runs":  "fc",
+                    "product":  "ai-guardrails",
+                    "repeat":  "locales",
+                    "why":  "Compliance screen for restricted claims and prohibited words"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s9",
+                    "kind":  "human",
+                    "label":  "Merchandiser reviews diff and",
+                    "runs":  "customer",
+                    "task":  "approve",
+                    "subject":  "s7",
+                    "repeat":  "locales",
+                    "why":  "Merchandiser reviews diff and bulk-approves listings"
+                },
+                {
+                    "t":  "step",
+                    "id":  "s10",
+                    "kind":  "act",
+                    "label":  "Publish approved listings to PIM and",
+                    "runs":  "fc",
+                    "product":  "fc",
+                    "effect":  "publish",
+                    "repeat":  "locales",
+                    "why":  "Publish approved listings to PIM and marketplaces via API"
+                },
+                {
+                    "t":  "step",
+                    "id":  "done",
+                    "kind":  "end",
+                    "label":  "Run complete"
+                },
+                {
+                    "t":  "step",
+                    "id":  "cancel",
+                    "kind":  "end",
+                    "label":  "Cancelled or unresolved"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-check",
+                    "kind":  "ai",
+                    "task":  "check",
+                    "ai":  "qwen3.7-plus",
+                    "product":  "model-studio",
+                    "runs":  "fc",
+                    "why":  "Regenerate copy if listing quality score is below marketplace rubric threshold",
+                    "repeat":  "locales",
+                    "label":  "Check locale listing quality"
+                },
+                {
+                    "t":  "step",
+                    "id":  "retry-route",
+                    "kind":  "decide",
+                    "label":  "Retry or continue",
+                    "runs":  "fc",
+                    "repeat":  "locales"
+                },
+                {
+                    "t":  "step",
+                    "id":  "manual",
+                    "kind":  "human",
+                    "label":  "Resolve after retry budget",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "retry-route",
+                    "to":  "s7",
+                    "kind":  "loop",
+                    "label":  "Needs another attempt",
+                    "max":  2
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "retry-route",
+                    "to":  "manual",
+                    "kind":  "escalate",
+                    "label":  "Retry budget spent",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "manual",
+                    "to":  "cancel",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "s0",
+                    "to":  "s1",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "s1",
+                    "to":  "s2",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "s2",
+                    "to":  "s3",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "s3",
+                    "to":  "s4-retrieve",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "s4-retrieve",
+                    "to":  "s4",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "s4",
+                    "to":  "s5",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "s5",
+                    "to":  "s6",
+                    "kind":  "branch",
+                    "label":  "Pass or in scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "s5",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "label":  "No result or out of scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "s6",
+                    "to":  "s7",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "s7",
+                    "to":  "s8",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "s8",
+                    "to":  "retry-check",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "retry-check",
+                    "to":  "retry-route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "retry-route",
+                    "to":  "s9",
+                    "kind":  "branch",
+                    "label":  "Pass or in scope"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "s9",
+                    "to":  "s10",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "s9",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l19",
+                    "from":  "s9",
+                    "to":  "s7",
+                    "kind":  "branch",
+                    "label":  "Revise reviewed output",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l20",
+                    "from":  "s10",
+                    "to":  "done",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

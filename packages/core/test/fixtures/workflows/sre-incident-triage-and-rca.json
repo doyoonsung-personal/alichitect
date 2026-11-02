@@ -1,0 +1,367 @@
+{
+    "id":  "sre-incident-triage-and-rca",
+    "title":  "SRE Incident Triage and Root-Cause Analysis",
+    "ask":  "Wire up an SRE agent that listens for CloudMonitor alerts, gathers logs and metrics, reasons through hypotheses, and proposes a rollback for the on-call engineer to approve",
+    "oneRun":  "One incident; parallel initial evidence and a hypothesis agent limited to ten model requests.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "in",
+                    "kind":  "trigger",
+                    "label":  "Alert",
+                    "product":  "eventbridge",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "triage",
+                    "kind":  "ai",
+                    "label":  "Severity and blast radius",
+                    "task":  "classify",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "page",
+                    "kind":  "act",
+                    "label":  "Page on-call",
+                    "effect":  "notify",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "metrics",
+                    "kind":  "tool",
+                    "label":  "Metrics",
+                    "effect":  "read",
+                    "runs":  "customer",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "logs",
+                    "kind":  "tool",
+                    "label":  "Logs",
+                    "effect":  "read",
+                    "runs":  "customer",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "traces",
+                    "kind":  "tool",
+                    "label":  "Traces",
+                    "effect":  "read",
+                    "runs":  "customer",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "extract",
+                    "kind":  "ai",
+                    "label":  "Extract evidence",
+                    "task":  "extract",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc",
+                    "join":  "all"
+                },
+                {
+                    "t":  "step",
+                    "id":  "changes",
+                    "kind":  "knowledge",
+                    "label":  "Recent changes",
+                    "task":  "retrieve",
+                    "product":  "tablestore",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "rank",
+                    "kind":  "knowledge",
+                    "label":  "Rank changes",
+                    "task":  "rerank",
+                    "product":  "model-studio",
+                    "ai":  "qwen3-rerank",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "rca",
+                    "kind":  "agent",
+                    "label":  "Generate and verify hypotheses",
+                    "task":  "plan",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-max",
+                    "runs":  "agentrun",
+                    "turns":  10
+                },
+                {
+                    "t":  "step",
+                    "id":  "query",
+                    "kind":  "tool",
+                    "label":  "Targeted query",
+                    "effect":  "read",
+                    "runs":  "customer",
+                    "untrusted":  true,
+                    "on":  "rca"
+                },
+                {
+                    "t":  "step",
+                    "id":  "enough",
+                    "kind":  "decide",
+                    "label":  "Confidence and budget",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "manual",
+                    "kind":  "human",
+                    "label":  "Investigate",
+                    "task":  "review",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "report",
+                    "kind":  "ai",
+                    "label":  "RCA and timeline",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "plan",
+                    "kind":  "ai",
+                    "label":  "Bounded mitigation plan",
+                    "task":  "plan",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-max",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "approve",
+                    "kind":  "human",
+                    "label":  "On-call approval",
+                    "task":  "approve",
+                    "runs":  "customer",
+                    "subject":  "plan"
+                },
+                {
+                    "t":  "step",
+                    "id":  "apply",
+                    "kind":  "act",
+                    "label":  "Apply mitigation",
+                    "effect":  "admin",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "save",
+                    "kind":  "act",
+                    "label":  "Write back",
+                    "product":  "tablestore",
+                    "effect":  "write",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "notify",
+                    "kind":  "act",
+                    "label":  "Notify internal responders",
+                    "product":  "direct-mail",
+                    "effect":  "notify",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "end",
+                    "kind":  "end",
+                    "label":  "Done"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "in",
+                    "to":  "triage",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "triage",
+                    "to":  "page",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "page",
+                    "to":  "metrics",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "metrics",
+                    "to":  "extract",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "page",
+                    "to":  "logs",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "logs",
+                    "to":  "extract",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "page",
+                    "to":  "traces",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "traces",
+                    "to":  "extract",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "extract",
+                    "to":  "changes",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "changes",
+                    "to":  "rank",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "rank",
+                    "to":  "rca",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "rca",
+                    "to":  "enough",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "enough",
+                    "to":  "report",
+                    "kind":  "branch",
+                    "label":  "Sufficient evidence"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "enough",
+                    "to":  "manual",
+                    "kind":  "escalate",
+                    "label":  "Insufficient or budget spent",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "manual",
+                    "to":  "report",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "report",
+                    "to":  "plan",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "plan",
+                    "to":  "approve",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "approve",
+                    "to":  "apply",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l19",
+                    "from":  "approve",
+                    "to":  "save",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l20",
+                    "from":  "approve",
+                    "to":  "plan",
+                    "kind":  "branch",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l21",
+                    "from":  "apply",
+                    "to":  "save",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l22",
+                    "from":  "save",
+                    "to":  "notify",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l23",
+                    "from":  "notify",
+                    "to":  "end",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

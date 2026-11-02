@@ -1,0 +1,358 @@
+{
+    "id":  "multilingual-marketing-localisation",
+    "title":  "Marketing content generation and localisation",
+    "ask":  "Set up an agent that takes our English campaign brief, generates master copy, translates it into five APAC languages, and queues it for in-market review before publishing.",
+    "oneRun":  "One campaign across five APAC locales; at most three measured refinements per locale.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "each",
+                    "id":  "locales",
+                    "over":  "five APAC locales",
+                    "parallel":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "in",
+                    "kind":  "trigger",
+                    "label":  "Campaign brief",
+                    "product":  "eventbridge",
+                    "runs":  "fc",
+                    "untrusted":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "type",
+                    "kind":  "ai",
+                    "label":  "Audience and risk",
+                    "task":  "classify",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "brand",
+                    "kind":  "knowledge",
+                    "label":  "Brand rules",
+                    "task":  "retrieve",
+                    "product":  "dashvector",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "rank",
+                    "kind":  "knowledge",
+                    "label":  "Rank rules",
+                    "task":  "rerank",
+                    "product":  "model-studio",
+                    "ai":  "qwen3-rerank",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "master",
+                    "kind":  "ai",
+                    "label":  "Master variants",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "screen",
+                    "kind":  "ai",
+                    "label":  "Substantiate claims",
+                    "task":  "check",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "legal",
+                    "kind":  "human",
+                    "label":  "Approve master",
+                    "task":  "approve",
+                    "runs":  "customer",
+                    "subject":  "master"
+                },
+                {
+                    "t":  "step",
+                    "id":  "tr",
+                    "kind":  "ai",
+                    "label":  "Translate",
+                    "task":  "translate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc",
+                    "repeat":  "locales"
+                },
+                {
+                    "t":  "step",
+                    "id":  "adapt",
+                    "kind":  "ai",
+                    "label":  "Transcreate",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc",
+                    "repeat":  "locales"
+                },
+                {
+                    "t":  "step",
+                    "id":  "local",
+                    "kind":  "ai",
+                    "label":  "Local compliance",
+                    "task":  "check",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc",
+                    "repeat":  "locales"
+                },
+                {
+                    "t":  "step",
+                    "id":  "review",
+                    "kind":  "human",
+                    "label":  "Approve locale",
+                    "task":  "approve",
+                    "runs":  "customer",
+                    "repeat":  "locales",
+                    "subject":  "adapt"
+                },
+                {
+                    "t":  "step",
+                    "id":  "pub",
+                    "kind":  "act",
+                    "label":  "Publish locale",
+                    "effect":  "publish",
+                    "runs":  "customer",
+                    "repeat":  "locales"
+                },
+                {
+                    "t":  "step",
+                    "id":  "stats",
+                    "kind":  "tool",
+                    "label":  "Observe CTR and CVR",
+                    "effect":  "read",
+                    "runs":  "customer",
+                    "repeat":  "locales"
+                },
+                {
+                    "t":  "step",
+                    "id":  "goal",
+                    "kind":  "decide",
+                    "label":  "Performance target",
+                    "runs":  "fc",
+                    "repeat":  "locales"
+                },
+                {
+                    "t":  "step",
+                    "id":  "revise",
+                    "kind":  "ai",
+                    "label":  "Revise locale",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc",
+                    "repeat":  "locales"
+                },
+                {
+                    "t":  "step",
+                    "id":  "stop",
+                    "kind":  "human",
+                    "label":  "Manual review",
+                    "task":  "review",
+                    "runs":  "customer",
+                    "repeat":  "locales"
+                },
+                {
+                    "t":  "step",
+                    "id":  "done",
+                    "kind":  "end",
+                    "label":  "Locale complete",
+                    "repeat":  "locales"
+                },
+                {
+                    "t":  "step",
+                    "id":  "cancel",
+                    "kind":  "end",
+                    "label":  "Cancelled"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "in",
+                    "to":  "type",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "type",
+                    "to":  "brand",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "brand",
+                    "to":  "rank",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "rank",
+                    "to":  "master",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "master",
+                    "to":  "screen",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "screen",
+                    "to":  "legal",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "legal",
+                    "to":  "tr",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "legal",
+                    "to":  "cancel",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "legal",
+                    "to":  "master",
+                    "kind":  "branch",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "tr",
+                    "to":  "adapt",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "adapt",
+                    "to":  "local",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "local",
+                    "to":  "review",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "review",
+                    "to":  "pub",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "review",
+                    "to":  "done",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "review",
+                    "to":  "adapt",
+                    "kind":  "branch",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "pub",
+                    "to":  "stats",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "stats",
+                    "to":  "goal",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "goal",
+                    "to":  "done",
+                    "kind":  "branch",
+                    "label":  "Target met"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l19",
+                    "from":  "goal",
+                    "to":  "revise",
+                    "kind":  "loop",
+                    "label":  "Below target",
+                    "max":  3
+                },
+                {
+                    "t":  "link",
+                    "id":  "l20",
+                    "from":  "revise",
+                    "to":  "adapt",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l21",
+                    "from":  "goal",
+                    "to":  "stop",
+                    "kind":  "escalate",
+                    "label":  "Budget spent",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l22",
+                    "from":  "stop",
+                    "to":  "done",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

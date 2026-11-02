@@ -1,0 +1,344 @@
+{
+    "id": "travel-itinerary-booking",
+    "title": "Travel Itinerary Booking Agent",
+    "ask": "Set up a travel agent that searches flights and hotels, builds itineraries, and waits for my approval before booking",
+    "oneRun": "One chat message event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state.",
+    "settings": {
+        "region": "ap-southeast-1"
+    },
+    "ops": [
+        {
+            "t": "step",
+            "id": "s9",
+            "kind": "act",
+            "label": "Issue documents via email",
+            "runs": "fc",
+            "product": "direct-mail",
+            "effect": "send"
+        },
+        {
+            "t": "step",
+            "id": "done",
+            "kind": "end",
+            "label": "Run complete"
+        },
+        {
+            "t": "step",
+            "id": "s7",
+            "kind": "human",
+            "label": "User confirms selection and payment",
+            "runs": "customer",
+            "task": "approve",
+            "subject": "s5"
+        },
+        {
+            "t": "step",
+            "id": "s8",
+            "kind": "act",
+            "label": "Book PNR and authorize payment",
+            "runs": "fc",
+            "product": "fc",
+            "effect": "pay"
+        },
+        {
+            "t": "step",
+            "id": "retry-route",
+            "kind": "decide",
+            "label": "Retry or continue",
+            "runs": "fc"
+        },
+        {
+            "t": "step",
+            "id": "cancel",
+            "kind": "end",
+            "label": "Cancelled or unresolved"
+        },
+        {
+            "t": "step",
+            "id": "manual",
+            "kind": "human",
+            "label": "Resolve after retry budget",
+            "task": "takeover",
+            "runs": "customer"
+        },
+        {
+            "t": "step",
+            "id": "s2",
+            "kind": "agent",
+            "runs": "agentrun",
+            "product": "model-studio",
+            "turns": 10,
+            "task": "plan",
+            "ai": "qwen3.8-max",
+            "label": "Plan searches"
+        },
+        {
+            "t": "step",
+            "id": "retry-check",
+            "kind": "ai",
+            "label": "Evaluator-optimizer loop checking",
+            "task": "check",
+            "ai": "qwen3.7-plus",
+            "product": "model-studio",
+            "runs": "fc",
+            "why": "Evaluator-optimizer loop checking itinerary claims against tool results"
+        },
+        {
+            "t": "step",
+            "id": "s3",
+            "kind": "tool",
+            "runs": "fc",
+            "product": "fc",
+            "effect": "read",
+            "label": "Search flights"
+        },
+        {
+            "t": "step",
+            "id": "s0",
+            "kind": "trigger",
+            "label": "User trip request",
+            "runs": "fc",
+            "product": "eventbridge",
+            "untrusted": true,
+            "private": true
+        },
+        {
+            "t": "step",
+            "id": "s1",
+            "kind": "ai",
+            "label": "Parse origin, dates, pax, budget",
+            "runs": "fc",
+            "product": "model-studio",
+            "task": "extract",
+            "ai": "qwen3.8-flash"
+        },
+        {
+            "t": "step",
+            "id": "s6",
+            "kind": "ai",
+            "label": "Evaluate grounding of all claims",
+            "runs": "fc",
+            "product": "model-studio",
+            "task": "plan",
+            "ai": "qwen3.8-max"
+        },
+        {
+            "t": "step",
+            "id": "s6-route",
+            "kind": "decide",
+            "label": "Route by evaluated result",
+            "runs": "fc"
+        },
+        {
+            "t": "step",
+            "id": "s4",
+            "kind": "ai",
+            "label": "Validate fare rules and constraints",
+            "runs": "fc",
+            "product": "model-studio",
+            "task": "plan",
+            "ai": "qwen3.8-max",
+            "join": "all"
+        },
+        {
+            "t": "step",
+            "id": "s5",
+            "kind": "ai",
+            "label": "Build itinerary options",
+            "runs": "fc",
+            "product": "model-studio",
+            "task": "generate",
+            "ai": "qwen3.7-plus"
+        },
+        {
+            "t": "step",
+            "id": "activities",
+            "kind": "tool",
+            "label": "Search activities",
+            "effect": "read",
+            "runs": "customer"
+        },
+        {
+            "t": "step",
+            "id": "hotels",
+            "kind": "tool",
+            "label": "Search hotels",
+            "effect": "read",
+            "runs": "customer"
+        },
+        {
+            "t": "link",
+            "id": "l14",
+            "from": "retry-route",
+            "to": "s7",
+            "kind": "branch",
+            "label": "Pass or in scope"
+        },
+        {
+            "t": "link",
+            "id": "l11",
+            "from": "s6-route",
+            "to": "retry-check",
+            "kind": "branch",
+            "label": "Pass or in scope"
+        },
+        {
+            "t": "link",
+            "id": "l13",
+            "from": "retry-check",
+            "to": "retry-route",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l15",
+            "from": "s7",
+            "to": "s8",
+            "kind": "branch",
+            "outcome": "approve"
+        },
+        {
+            "t": "link",
+            "id": "l18",
+            "from": "s8",
+            "to": "s9",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l3",
+            "from": "manual",
+            "to": "cancel",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l16",
+            "from": "s7",
+            "to": "cancel",
+            "kind": "branch",
+            "outcome": "reject"
+        },
+        {
+            "t": "link",
+            "id": "l10",
+            "from": "s6",
+            "to": "s6-route",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l19",
+            "from": "s9",
+            "to": "done",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l4",
+            "from": "s0",
+            "to": "s1",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l1",
+            "from": "retry-route",
+            "to": "s5",
+            "kind": "loop",
+            "label": "Needs another attempt",
+            "max": 2
+        },
+        {
+            "t": "link",
+            "id": "l12",
+            "from": "s6-route",
+            "to": "cancel",
+            "kind": "branch",
+            "label": "No result or out of scope"
+        },
+        {
+            "t": "link",
+            "id": "l8",
+            "from": "s4",
+            "to": "s5",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l6",
+            "from": "s2",
+            "to": "s3",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l5",
+            "from": "s1",
+            "to": "s2",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l7",
+            "from": "s3",
+            "to": "s4",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l9",
+            "from": "s5",
+            "to": "s6",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "extra-23",
+            "from": "activities",
+            "to": "s4",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "extra-21",
+            "from": "s2",
+            "to": "activities",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "l2",
+            "from": "retry-route",
+            "to": "manual",
+            "kind": "escalate",
+            "label": "Retry budget spent",
+            "outcome": "exhausted"
+        },
+        {
+            "t": "link",
+            "id": "extra-20",
+            "from": "s2",
+            "to": "hotels",
+            "kind": "next"
+        },
+        {
+            "t": "link",
+            "id": "extra-23-b",
+            "from": "s7",
+            "to": "s5",
+            "kind": "branch",
+            "outcome": "edit"
+        },
+        {
+            "t": "link",
+            "id": "extra-22",
+            "from": "hotels",
+            "to": "s4",
+            "kind": "next"
+        }
+    ],
+    "expect": {
+        "codes": []
+    }
+}

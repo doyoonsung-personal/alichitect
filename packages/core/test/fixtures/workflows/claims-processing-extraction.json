@@ -1,0 +1,359 @@
+{
+    "id":  "claims-processing-extraction",
+    "title":  "Insurance Claims Processing and Extraction",
+    "ask":  "Set up an agent that extracts data from uploaded claim photos and PDFs, checks policies, and routes approvals for payouts",
+    "oneRun":  "One claim packet, at most three OCR retries, then an adjuster-approved payout or denial.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "in",
+                    "kind":  "trigger",
+                    "label":  "Uploaded claim",
+                    "product":  "eventbridge",
+                    "runs":  "fc",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "mask",
+                    "kind":  "tool",
+                    "label":  "Mask uploaded files",
+                    "effect":  "write",
+                    "runs":  "customer",
+                    "why":  "Customer file-redaction service; catalog presence does not establish inline DSC masking."
+                },
+                {
+                    "t":  "step",
+                    "id":  "ocr",
+                    "kind":  "ai",
+                    "label":  "Extract receipts and forms",
+                    "task":  "extract",
+                    "product":  "model-studio",
+                    "ai":  "qwen-vl-ocr",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "valid",
+                    "kind":  "ai",
+                    "label":  "Validate extraction",
+                    "task":  "check",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "quality",
+                    "kind":  "decide",
+                    "label":  "OCR quality",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "manual",
+                    "kind":  "human",
+                    "label":  "Manual entry",
+                    "task":  "review",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "policy",
+                    "kind":  "ai",
+                    "label":  "Parse policy PDF",
+                    "task":  "extract",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "cover",
+                    "kind":  "knowledge",
+                    "label":  "Coverage limits",
+                    "task":  "retrieve",
+                    "product":  "tablestore",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "rank",
+                    "kind":  "knowledge",
+                    "label":  "Rank coverage",
+                    "task":  "rerank",
+                    "product":  "model-studio",
+                    "ai":  "qwen3-rerank",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "assess",
+                    "kind":  "ai",
+                    "label":  "Assess validity",
+                    "task":  "plan",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-max",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "packet",
+                    "kind":  "ai",
+                    "label":  "Exact disposition amount and letter",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "approve",
+                    "kind":  "human",
+                    "label":  "Adjuster approval",
+                    "task":  "approve",
+                    "runs":  "customer",
+                    "subject":  "packet"
+                },
+                {
+                    "t":  "step",
+                    "id":  "route",
+                    "kind":  "decide",
+                    "label":  "Approved disposition",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "pay",
+                    "kind":  "act",
+                    "label":  "Pay claim",
+                    "effect":  "pay",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "deny",
+                    "kind":  "act",
+                    "label":  "Record denial",
+                    "effect":  "decide",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "letter",
+                    "kind":  "act",
+                    "label":  "Send approved denial",
+                    "product":  "direct-mail",
+                    "effect":  "send",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "audit",
+                    "kind":  "act",
+                    "label":  "Audit claim",
+                    "product":  "tablestore",
+                    "effect":  "write",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "close",
+                    "kind":  "act",
+                    "label":  "Close claim",
+                    "effect":  "write",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "end",
+                    "kind":  "end",
+                    "label":  "Done"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "in",
+                    "to":  "mask",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "mask",
+                    "to":  "ocr",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "ocr",
+                    "to":  "valid",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "valid",
+                    "to":  "quality",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "quality",
+                    "to":  "policy",
+                    "kind":  "branch",
+                    "label":  "Valid"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "quality",
+                    "to":  "ocr",
+                    "kind":  "loop",
+                    "label":  "Low confidence",
+                    "max":  3
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "quality",
+                    "to":  "manual",
+                    "kind":  "escalate",
+                    "label":  "Budget spent",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "manual",
+                    "to":  "policy",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "policy",
+                    "to":  "cover",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "cover",
+                    "to":  "rank",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "rank",
+                    "to":  "assess",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "assess",
+                    "to":  "packet",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "packet",
+                    "to":  "approve",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "approve",
+                    "to":  "route",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "approve",
+                    "to":  "audit",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "approve",
+                    "to":  "packet",
+                    "kind":  "branch",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "route",
+                    "to":  "pay",
+                    "kind":  "branch",
+                    "label":  "Payout"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "route",
+                    "to":  "deny",
+                    "kind":  "branch",
+                    "label":  "Denial"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l19",
+                    "from":  "pay",
+                    "to":  "audit",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l20",
+                    "from":  "deny",
+                    "to":  "letter",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l21",
+                    "from":  "letter",
+                    "to":  "audit",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l22",
+                    "from":  "audit",
+                    "to":  "close",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l23",
+                    "from":  "close",
+                    "to":  "end",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+                                 {
+                                     "code":  "wf-decision-review",
+                                     "why":  "The claim workflow commits a coverage denial with legal effect."
+                                 }
+                             ]
+               }
+}

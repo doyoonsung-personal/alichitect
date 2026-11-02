@@ -1,0 +1,311 @@
+{
+    "id":  "enterprise-knowledge-search",
+    "title":  "Enterprise Knowledge Search Assistant",
+    "ask":  "Set up a secure search agent that answers employee questions over internal documents, respects file permissions, and flags gaps to content owners",
+    "oneRun":  "One authenticated employee query; optional outbound actions require approval of the exact answer.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "in",
+                    "kind":  "trigger",
+                    "label":  "SSO employee query",
+                    "product":  "fc",
+                    "runs":  "fc",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "intent",
+                    "kind":  "ai",
+                    "label":  "Language and query intent",
+                    "task":  "classify",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "expand",
+                    "kind":  "ai",
+                    "label":  "Expand query",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "kb",
+                    "kind":  "knowledge",
+                    "label":  "Document ACL-filtered retrieval",
+                    "task":  "retrieve",
+                    "product":  "tablestore",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "rank",
+                    "kind":  "knowledge",
+                    "label":  "Rank results",
+                    "task":  "rerank",
+                    "product":  "model-studio",
+                    "ai":  "qwen3-rerank",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "found",
+                    "kind":  "decide",
+                    "label":  "Evidence found",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "draft",
+                    "kind":  "ai",
+                    "label":  "Answer with citations",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "check",
+                    "kind":  "ai",
+                    "label":  "Check injection and leaks",
+                    "task":  "check",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "guard",
+                    "kind":  "guard",
+                    "label":  "Enforce response safety",
+                    "product":  "ai-guardrails",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "route",
+                    "kind":  "decide",
+                    "label":  "Reply or outbound request",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "human",
+                    "kind":  "human",
+                    "label":  "Knowledge owner takeover",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "approve",
+                    "kind":  "human",
+                    "label":  "Approve outbound content",
+                    "task":  "approve",
+                    "runs":  "customer",
+                    "subject":  "draft"
+                },
+                {
+                    "t":  "step",
+                    "id":  "send",
+                    "kind":  "act",
+                    "label":  "Send requested answer",
+                    "effect":  "send",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "reply",
+                    "kind":  "act",
+                    "label":  "Return internal answer",
+                    "effect":  "reply",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "empty",
+                    "kind":  "end",
+                    "label":  "Explicit no results"
+                },
+                {
+                    "t":  "step",
+                    "id":  "save",
+                    "kind":  "memory",
+                    "label":  "Feedback and gaps",
+                    "product":  "tablestore",
+                    "effect":  "write",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "end",
+                    "kind":  "end",
+                    "label":  "Done"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "in",
+                    "to":  "intent",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "intent",
+                    "to":  "expand",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "expand",
+                    "to":  "kb",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "kb",
+                    "to":  "rank",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "rank",
+                    "to":  "found",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "found",
+                    "to":  "draft",
+                    "kind":  "branch",
+                    "label":  "Evidence found"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "found",
+                    "to":  "empty",
+                    "kind":  "branch",
+                    "label":  "No results"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "draft",
+                    "to":  "check",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "check",
+                    "to":  "guard",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "guard",
+                    "to":  "route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "route",
+                    "to":  "reply",
+                    "kind":  "branch",
+                    "label":  "Internal query"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "route",
+                    "to":  "approve",
+                    "kind":  "branch",
+                    "label":  "Outbound requested"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "route",
+                    "to":  "human",
+                    "kind":  "escalate",
+                    "label":  "Unsafe"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "approve",
+                    "to":  "send",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "approve",
+                    "to":  "save",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "approve",
+                    "to":  "draft",
+                    "kind":  "branch",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "send",
+                    "to":  "save",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "reply",
+                    "to":  "save",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l19",
+                    "from":  "human",
+                    "to":  "save",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l20",
+                    "from":  "save",
+                    "to":  "end",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

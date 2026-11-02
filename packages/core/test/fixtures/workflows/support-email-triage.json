@@ -1,0 +1,252 @@
+{
+    "id":  "support-email-triage",
+    "title":  "Support Email Triage and Auto-Resolution",
+    "ask":  "Set up an agent that triages inbound support emails and drafts replies for approval",
+    "oneRun":  "One inbound email, at most two draft revisions, then approval or manual resolution.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "in",
+                    "kind":  "trigger",
+                    "label":  "Email webhook",
+                    "product":  "eventbridge",
+                    "runs":  "fc",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "guard",
+                    "kind":  "guard",
+                    "label":  "Screen injection",
+                    "product":  "ai-guardrails",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "route",
+                    "kind":  "ai",
+                    "label":  "Intent and urgency",
+                    "task":  "classify",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "kb",
+                    "kind":  "knowledge",
+                    "label":  "Retrieve help centre",
+                    "task":  "retrieve",
+                    "product":  "tablestore",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "rank",
+                    "kind":  "knowledge",
+                    "label":  "Rank evidence",
+                    "task":  "rerank",
+                    "product":  "model-studio",
+                    "ai":  "qwen3-rerank",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "draft",
+                    "kind":  "ai",
+                    "label":  "Draft grounded answer",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "check",
+                    "kind":  "ai",
+                    "label":  "Check evidence",
+                    "task":  "check",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "gate",
+                    "kind":  "decide",
+                    "label":  "Evidence quality",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "human",
+                    "kind":  "human",
+                    "label":  "Approve exact email",
+                    "task":  "approve",
+                    "runs":  "customer",
+                    "subject":  "draft"
+                },
+                {
+                    "t":  "step",
+                    "id":  "manual",
+                    "kind":  "human",
+                    "label":  "Resolve manually",
+                    "task":  "review",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "send",
+                    "kind":  "act",
+                    "label":  "Send approved email",
+                    "product":  "direct-mail",
+                    "effect":  "send",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "log",
+                    "kind":  "act",
+                    "label":  "Write trace",
+                    "product":  "tablestore",
+                    "effect":  "write",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "end",
+                    "kind":  "end",
+                    "label":  "Done"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "in",
+                    "to":  "guard",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "guard",
+                    "to":  "route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "route",
+                    "to":  "kb",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "kb",
+                    "to":  "rank",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "rank",
+                    "to":  "draft",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "draft",
+                    "to":  "check",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "check",
+                    "to":  "gate",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "gate",
+                    "to":  "human",
+                    "kind":  "branch",
+                    "label":  "Grounded"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "gate",
+                    "to":  "draft",
+                    "kind":  "loop",
+                    "label":  "Revise",
+                    "max":  2
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "gate",
+                    "to":  "manual",
+                    "kind":  "escalate",
+                    "label":  "Budget spent",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "human",
+                    "to":  "send",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "human",
+                    "to":  "log",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "human",
+                    "to":  "draft",
+                    "kind":  "branch",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "manual",
+                    "to":  "log",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "send",
+                    "to":  "log",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "log",
+                    "to":  "end",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

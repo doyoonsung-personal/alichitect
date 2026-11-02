@@ -1,0 +1,240 @@
+{
+    "id":  "inbound-voice-support-agent",
+    "title":  "Inbound Voice Support Agent",
+    "ask":  "Create a voice agent that handles inbound bank calls, checks balances, and transfers to a human for transactions",
+    "oneRun":  "One inbound call turn through partner CCaaS; later turns start new runs with call state.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "in",
+                    "kind":  "trigger",
+                    "label":  "Partner SIP inbound call",
+                    "runs":  "customer",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "asr",
+                    "kind":  "ai",
+                    "label":  "Recognise speech",
+                    "task":  "transcribe",
+                    "product":  "model-studio",
+                    "ai":  "qwen-audio-3.1-asr-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "intent",
+                    "kind":  "ai",
+                    "label":  "Intent and slots",
+                    "task":  "extract",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "route",
+                    "kind":  "decide",
+                    "label":  "Information or transaction",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "balance",
+                    "kind":  "tool",
+                    "label":  "Authenticated balance lookup",
+                    "effect":  "read",
+                    "runs":  "customer",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "plan",
+                    "kind":  "ai",
+                    "label":  "Plan policy-safe response",
+                    "task":  "plan",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "draft",
+                    "kind":  "ai",
+                    "label":  "Speakable text",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "guard",
+                    "kind":  "guard",
+                    "label":  "Screen response",
+                    "product":  "ai-guardrails",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "tts",
+                    "kind":  "ai",
+                    "label":  "Synthesize speech",
+                    "task":  "speak",
+                    "product":  "model-studio",
+                    "ai":  "qwen-audio-3.1-tts-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "reply",
+                    "kind":  "act",
+                    "label":  "Play speech to caller",
+                    "effect":  "reply",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "human",
+                    "kind":  "human",
+                    "label":  "Warm transfer for transactions",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "summary",
+                    "kind":  "ai",
+                    "label":  "Summarise call turn",
+                    "task":  "summarise",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "log",
+                    "kind":  "act",
+                    "label":  "Save call state",
+                    "product":  "tablestore",
+                    "effect":  "write",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "end",
+                    "kind":  "end",
+                    "label":  "Done"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "in",
+                    "to":  "asr",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "asr",
+                    "to":  "intent",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "intent",
+                    "to":  "route",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "route",
+                    "to":  "balance",
+                    "kind":  "branch",
+                    "label":  "Balance question"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "route",
+                    "to":  "human",
+                    "kind":  "escalate",
+                    "label":  "Transaction or requested transfer"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "balance",
+                    "to":  "plan",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "plan",
+                    "to":  "draft",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "draft",
+                    "to":  "guard",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "guard",
+                    "to":  "tts",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "tts",
+                    "to":  "reply",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "reply",
+                    "to":  "summary",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "human",
+                    "to":  "summary",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "summary",
+                    "to":  "log",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "log",
+                    "to":  "end",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+
+                             ]
+               }
+}

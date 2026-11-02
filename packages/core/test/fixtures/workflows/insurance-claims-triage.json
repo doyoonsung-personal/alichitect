@@ -1,0 +1,425 @@
+{
+    "id":  "insurance-claims-triage",
+    "title":  "Insurance Claims FNOL Triage and Settlement",
+    "ask":  "Set up an agent that ingests first notice of loss emails, extracts medical and repair documents, determines coverage, and queues settlements for adjuster approval",
+    "oneRun":  "One FNOL claim with up to three evidence requests; payout and denial are separate reviewed dispositions.",
+    "settings":  {
+                     "region":  "ap-southeast-1"
+                 },
+    "ops":  [
+                {
+                    "t":  "step",
+                    "id":  "in",
+                    "kind":  "trigger",
+                    "label":  "FNOL email webhook",
+                    "product":  "eventbridge",
+                    "runs":  "fc",
+                    "untrusted":  true,
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "shell",
+                    "kind":  "act",
+                    "label":  "Create claim shell",
+                    "effect":  "write",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "class",
+                    "kind":  "ai",
+                    "label":  "Business line and severity",
+                    "task":  "classify",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "ocr",
+                    "kind":  "ai",
+                    "label":  "Extract medical and repair bills",
+                    "task":  "extract",
+                    "product":  "model-studio",
+                    "ai":  "qwen-vl-ocr",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "complete",
+                    "kind":  "decide",
+                    "label":  "Required evidence complete",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "request",
+                    "kind":  "ai",
+                    "label":  "Draft missing-document request",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "request-review",
+                    "kind":  "human",
+                    "label":  "Approve evidence request",
+                    "task":  "approve",
+                    "runs":  "customer",
+                    "subject":  "request"
+                },
+                {
+                    "t":  "step",
+                    "id":  "ask",
+                    "kind":  "act",
+                    "label":  "Request missing evidence",
+                    "product":  "direct-mail",
+                    "effect":  "send",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "wait",
+                    "kind":  "tool",
+                    "label":  "Wait for uploaded evidence",
+                    "effect":  "read",
+                    "runs":  "customer",
+                    "untrusted":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "manual",
+                    "kind":  "human",
+                    "label":  "Manual evidence collection",
+                    "task":  "takeover",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "kb",
+                    "kind":  "knowledge",
+                    "label":  "Policy wording and exclusions",
+                    "task":  "retrieve",
+                    "product":  "dashvector",
+                    "ai":  "text-embedding-v4",
+                    "runs":  "fc",
+                    "private":  true
+                },
+                {
+                    "t":  "step",
+                    "id":  "rank",
+                    "kind":  "knowledge",
+                    "label":  "Rank policy evidence",
+                    "task":  "rerank",
+                    "product":  "model-studio",
+                    "ai":  "qwen3-rerank",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "reason",
+                    "kind":  "ai",
+                    "label":  "Coverage reasoning",
+                    "task":  "plan",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-max",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "math",
+                    "kind":  "tool",
+                    "label":  "Calculate quantum deterministically",
+                    "product":  "fc",
+                    "effect":  "read",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "letter",
+                    "kind":  "ai",
+                    "label":  "Draft disposition and letter",
+                    "task":  "generate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.7-plus",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "translate",
+                    "kind":  "ai",
+                    "label":  "Translate exact letter",
+                    "task":  "translate",
+                    "product":  "model-studio",
+                    "ai":  "qwen3.8-flash",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "review",
+                    "kind":  "human",
+                    "label":  "Approve disposition amount and letter",
+                    "task":  "approve",
+                    "runs":  "customer",
+                    "subject":  "translate"
+                },
+                {
+                    "t":  "step",
+                    "id":  "route",
+                    "kind":  "decide",
+                    "label":  "Approved disposition",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "pay",
+                    "kind":  "act",
+                    "label":  "Post settlement and pay",
+                    "effect":  "pay",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "deny",
+                    "kind":  "act",
+                    "label":  "Commit denial",
+                    "effect":  "decide",
+                    "runs":  "customer"
+                },
+                {
+                    "t":  "step",
+                    "id":  "send",
+                    "kind":  "act",
+                    "label":  "Send approved customer letter",
+                    "product":  "chatapp",
+                    "effect":  "send",
+                    "runs":  "fc"
+                },
+                {
+                    "t":  "step",
+                    "id":  "end",
+                    "kind":  "end",
+                    "label":  "Done"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l1",
+                    "from":  "in",
+                    "to":  "shell",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l2",
+                    "from":  "shell",
+                    "to":  "class",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l3",
+                    "from":  "class",
+                    "to":  "ocr",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l4",
+                    "from":  "ocr",
+                    "to":  "complete",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l5",
+                    "from":  "complete",
+                    "to":  "kb",
+                    "kind":  "branch",
+                    "label":  "Complete"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l6",
+                    "from":  "complete",
+                    "to":  "request",
+                    "kind":  "loop",
+                    "label":  "Missing evidence",
+                    "max":  3
+                },
+                {
+                    "t":  "link",
+                    "id":  "l7",
+                    "from":  "complete",
+                    "to":  "manual",
+                    "kind":  "escalate",
+                    "label":  "Request limit",
+                    "outcome":  "exhausted"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l8",
+                    "from":  "request",
+                    "to":  "request-review",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l9",
+                    "from":  "request-review",
+                    "to":  "ask",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l10",
+                    "from":  "request-review",
+                    "to":  "end",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l11",
+                    "from":  "request-review",
+                    "to":  "request",
+                    "kind":  "branch",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l12",
+                    "from":  "ask",
+                    "to":  "wait",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l13",
+                    "from":  "wait",
+                    "to":  "ocr",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l14",
+                    "from":  "manual",
+                    "to":  "end",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l15",
+                    "from":  "kb",
+                    "to":  "rank",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l16",
+                    "from":  "rank",
+                    "to":  "reason",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l17",
+                    "from":  "reason",
+                    "to":  "math",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l18",
+                    "from":  "math",
+                    "to":  "letter",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l19",
+                    "from":  "letter",
+                    "to":  "translate",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l20",
+                    "from":  "translate",
+                    "to":  "review",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l21",
+                    "from":  "review",
+                    "to":  "route",
+                    "kind":  "branch",
+                    "outcome":  "approve"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l22",
+                    "from":  "review",
+                    "to":  "end",
+                    "kind":  "branch",
+                    "outcome":  "reject"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l23",
+                    "from":  "review",
+                    "to":  "letter",
+                    "kind":  "branch",
+                    "outcome":  "edit"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l24",
+                    "from":  "route",
+                    "to":  "pay",
+                    "kind":  "branch",
+                    "label":  "Settlement"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l25",
+                    "from":  "route",
+                    "to":  "deny",
+                    "kind":  "branch",
+                    "label":  "Denial"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l26",
+                    "from":  "pay",
+                    "to":  "send",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l27",
+                    "from":  "deny",
+                    "to":  "send",
+                    "kind":  "next"
+                },
+                {
+                    "t":  "link",
+                    "id":  "l28",
+                    "from":  "send",
+                    "to":  "end",
+                    "kind":  "next"
+                }
+            ],
+    "expect":  {
+                   "codes":  [
+                                 {
+                                     "code":  "wf-decision-review",
+                                     "why":  "The FNOL sketch includes coverage denial, committed only after adjuster approval."
+                                 }
+                             ]
+               }
+}
