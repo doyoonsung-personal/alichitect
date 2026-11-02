@@ -37,21 +37,71 @@ function noOverlap(s: WorkflowLayoutState): void {
     assert.ok(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y, `${a.id} overlaps ${b.id}`);
   }
 }
-function budget(prev: WorkflowLayoutState, next: WorkflowLayoutState, touched: string[]): void {
+function budget(
+  prev: WorkflowLayoutState, next: WorkflowLayoutState, before: WorkflowGraph, after: WorkflowGraph,
+  op: WorkflowOp, opts: WorkflowLayoutOptions = {},
+): void {
   const diff = workflowLayoutDiff(prev, next);
-  for (const id of diff.moved.filter((id) => !touched.includes(id))) {
-    const allowed = next.workflow.moves.filter((m) => m.ids.includes(id));
-    assert.ok(allowed.length, `Foreign move: ${id}`);
-    assert.equal(next.cards[id].x - prev.cards[id].x, allowed.reduce((n, m) => n + m.dx, 0));
-    assert.equal(next.cards[id].y - prev.cards[id].y, allowed.reduce((n, m) => n + m.dy, 0));
+  const touched = new Set(op.t === 'step' || op.t === 'splice' ? [op.id] : []);
+  if ((op.t === 'step' || op.t === 'splice') && before.nodes[op.id]?.on !== after.nodes[op.id]?.on) {
+    for (const id of touched) for (const node of Object.values(after.nodes)) if (node.on === id) touched.add(node.id);
+  }
+  const shifted = new Set<string>();
+  if (op.t === 'splice') {
+    const edge = before.edges[op.into];
+    const a = edge && prev.workflow.cells[edge.from];
+    const b = edge && prev.workflow.cells[edge.to];
+    const applied = edge && after.edges[op.into]?.to !== edge.to && after.edges[op.into]?.from === edge.from;
+    if (applied && a && b && b.column === a.column + 1 && b.row === a.row) {
+      const reachable = new Set([edge.to]);
+      const loops = new Set(workflowLoopIds(before));
+      for (const id of reachable) for (const e of Object.values(before.edges)) {
+        if (e.from === id && !loops.has(e.id) && !before.nodes[e.to].on) reachable.add(e.to);
+      }
+      const rows = new Set([...reachable].map((id) => prev.workflow.cells[id].row));
+      for (const [id, cell] of Object.entries(prev.workflow.cells)) {
+        if (rows.has(cell.row) && cell.column >= b.column && !touched.has(id)) shifted.add(id);
+      }
+    }
+  }
+  // Derive band overflow from occupied geometry and prior reservations, never the declared move list.
+  const tops: number[] = [];
+  const heights: number[] = [];
+  const spare = opts.spareRows ?? W.spareRows;
+  for (const row of next.workflow.branchRows) {
+    const used = Math.max(0, ...Object.keys(next.cards).filter((id) => next.workflow.cells[id].row === row)
+      .map((id) => (next.cards[id].y - next.workflow.rowTops[row]) / W.rowPitch));
+    heights[row] = Math.max(prev.workflow.rowHeights[row] ?? 0, (1 + Math.max(spare, used)) * W.rowPitch + GEOMETRY.head);
+    tops[row] = Math.max(prev.workflow.rowTops[row] ?? 0, row ? tops[row - 1] + heights[row - 1] : 0);
+    assert.equal(next.workflow.rowTops[row], tops[row]);
+    assert.equal(next.workflow.rowHeights[row], heights[row]);
+  }
+  for (const id of Object.keys(prev.cards).filter((id) => next.cards[id] && !touched.has(id))) {
+    const row = prev.workflow.cells[id].row;
+    const dy = tops[row] - prev.workflow.rowTops[row];
+    assert.ok(dy >= 0 && dy <= W.rowPitch, `Overflow budget: ${id}`);
+    if (op.t === 'link' || op.t === 'each') assert.equal(dy, 0);
+    assert.equal(next.cards[id].x - prev.cards[id].x, shifted.has(id) ? W.columnPitch : 0, `Foreign x move: ${id}`);
+    assert.equal(next.cards[id].y - prev.cards[id].y, dy, `Foreign y move: ${id}`);
   }
   for (const move of next.workflow.moves) {
-    if (move.reason === 'splice') { assert.equal(move.dx, W.columnPitch); assert.equal(move.dy, 0); }
-    else { assert.equal(move.dx, 0); assert.ok(move.dy > 0 && move.dy <= W.rowPitch); }
+    if (move.reason === 'splice') {
+      assert.equal(op.t, 'splice');
+      assert.deepEqual(move.ids, [...shifted].sort());
+      assert.equal(move.dx, W.columnPitch);
+      assert.equal(move.dy, 0);
+    } else {
+      assert.equal(move.dx, 0);
+      assert.ok(move.dy > 0 && move.dy <= W.rowPitch);
+      for (const id of move.ids) {
+        const row = next.workflow.cells[id].row;
+        assert.equal(move.dy, tops[row] - prev.workflow.rowTops[row]);
+      }
+    }
   }
   if (!next.workflow.moves.length) {
-    assert.deepEqual(diff.moved.filter((id) => !touched.includes(id)), []);
-    assert.deepEqual(workflowUnrelatedMoves(prev, next, diff.moved).filter((id) => !touched.includes(id)), []);
+    assert.deepEqual(diff.moved.filter((id) => !touched.has(id)), []);
+    assert.deepEqual(workflowUnrelatedMoves(prev, next, diff.moved).filter((id) => !touched.has(id)), []);
   }
 }
 function replay(ops: unknown[], opts: WorkflowLayoutOptions = {}): { wf: WorkflowGraph; state: WorkflowLayoutState } {
@@ -60,12 +110,14 @@ function replay(ops: unknown[], opts: WorkflowLayoutOptions = {}): { wf: Workflo
   let state = layoutWorkflow(wf);
   for (const raw of ops) {
     const op = validate(raw);
+    const before = wf;
     wf = applyWorkflowOp(wf, op, ctx).workflow;
     const prev = freeze(clone(state));
-    const next = layoutWorkflow(freeze(wf), prev, opts);
-    assert.deepEqual(next, layoutWorkflow(wf, state, opts), 'JSON round trip');
-    assert.deepEqual(next, layoutWorkflow(wf, prev, opts), 'deterministic');
-    budget(state, next, op.t === 'step' || op.t === 'splice' ? [op.id] : []);
+    const options = freeze({ ...opts, op });
+    const next = layoutWorkflow(freeze(wf), prev, options);
+    assert.deepEqual(next, layoutWorkflow(wf, state, options), 'JSON round trip');
+    assert.deepEqual(next, layoutWorkflow(wf, prev, options), 'deterministic');
+    budget(state, next, before, wf, op, opts);
     noOverlap(next);
     state = next;
   }
@@ -124,6 +176,69 @@ for (const sample of samples) for (const order of ['arrival', 'reverse', 'shuffl
 
 const step = (id: string, after?: string): WorkflowOp => ({ t: 'step', id, kind: 'agent', label: id, ...(after ? { after } : {}) });
 const link = (id: string, from: string, to: string): WorkflowOp => ({ t: 'link', id, from, to });
+
+test('regression 1: detaching a previously inline node allocates a free cell', () => {
+  const { state } = replay([step('host'), step('x'), { ...step('x'), on: 'host' }, step('x')]);
+  assert.deepEqual([state.cards.host.x, state.cards.host.y], [0, 0]);
+  assert.deepEqual([state.cards.x.x, state.cards.x.y], [200, 0]);
+});
+
+test('regression 2: moving a sub-agent preserves child offsets without overlapping siblings', () => {
+  const { state } = replay([
+    step('host'), step('sub'), { ...step('tool'), kind: 'tool', on: 'sub' },
+    { ...step('sibling'), kind: 'tool', on: 'host' }, { ...step('sub'), on: 'host' },
+  ]);
+  assert.deepEqual(['host', 'sibling', 'sub', 'tool'].map((id) => [state.cards[id].x, state.cards[id].y]),
+    [[0, 0], [0, 84], [0, 168], [0, 252]]);
+});
+
+test('regression 3: ordinary arrival flushing pending links is not a splice', () => {
+  const { state } = replay([
+    step('a'), step('b'), link('ab', 'a', 'b'), link('ab', 'a', 'x'), link('xb', 'x', 'b'), step('x'),
+  ]);
+  assert.deepEqual(state.workflow.cells.b, { column: 1, row: 0 });
+  assert.deepEqual(state.workflow.cells.x, { column: 1, row: 1 });
+  assert.deepEqual(state.workflow.moves, []);
+});
+
+test('the movement gate rejects a false splice declaration on ordinary arrival', () => {
+  const ctx = createWorkflowCtx();
+  let wf = emptyWorkflow();
+  let state = layoutWorkflow(wf);
+  for (const op of [step('a'), step('b'), link('ab', 'a', 'b'), link('ab', 'a', 'x'), link('xb', 'x', 'b')]) {
+    wf = applyWorkflowOp(wf, op, ctx).workflow;
+    state = layoutWorkflow(wf, state, { op });
+  }
+  const op = step('x');
+  const after = applyWorkflowOp(wf, op, ctx).workflow;
+  const forged = clone(layoutWorkflow(after, state, { op }));
+  forged.cards.b.x = state.cards.b.x + W.columnPitch;
+  forged.workflow.cells.b.column = state.workflow.cells.b.column + 1;
+  forged.workflow.moves = [{ reason: 'splice', ids: ['b'], dx: W.columnPitch, dy: 0 }];
+  assert.throws(() => budget(state, forged, wf, after, op), /Foreign x move: b/);
+});
+
+test('regression 4: deleted attachment slots do not consume live visibility', () => {
+  const { state } = replay([
+    step('host'), ...['a', 'b', 'c'].map((id) => ({ ...step(id), kind: 'tool', on: 'host' })),
+    ...['a', 'b', 'c'].map((id) => ({ t: 'unstep', id })), { ...step('d'), kind: 'tool', on: 'host' },
+  ]);
+  assert.ok(state.cards.d);
+  assert.equal(state.cards.host.hiddenAttached, 0);
+  assert.deepEqual(state.workflow.attachmentSlots.host, ['a', 'b', 'c', 'd']);
+  assert.equal(state.cards.d.y, 4 * W.rowPitch, 'deleted physical slots remain holes');
+});
+
+test('regression 5: an explicit splice overrides a reintroduced id tombstone', () => {
+  const { state } = replay([
+    step('a'), step('b'), link('ab', 'a', 'b'), step('x'), { t: 'unstep', id: 'x' },
+    { t: 'splice', into: 'ab', id: 'x', kind: 'guard', label: 'x' },
+  ]);
+  assert.deepEqual(state.workflow.cells.a, { column: 0, row: 0 });
+  assert.deepEqual(state.workflow.cells.x, { column: 1, row: 0 });
+  assert.deepEqual(state.workflow.cells.b, { column: 2, row: 0 });
+  assert.deepEqual(state.workflow.moves, [{ reason: 'splice', ids: ['b'], dx: W.columnPitch, dy: 0 }]);
+});
 test('predecessor priority, trigger column, branch rows and late backward dependencies', () => {
   const { state } = replay([
     step('a'), step('b'), link('bc', 'b', 'c'), { ...step('c', 'a') }, step('d', 'a'), step('e', 'a'),
@@ -162,19 +277,21 @@ test('splice shifts reachable rows uniformly, including bystanders to their righ
     link('ab', 'a', 'b'), link('bc', 'b', 'c'), link('bt', 'b', 'tail'),
     { t: 'step', id: 'tool', kind: 'tool', label: 'Tool', on: 'b' },
   ]);
-  const nextWf = applyWorkflowOp(wf, { t: 'splice', into: 'ab', id: 'x', kind: 'guard', label: 'Review' }).workflow;
-  const next = layoutWorkflow(nextWf, clone(state));
-  budget(state, next, ['x']);
+  const op: WorkflowOp = { t: 'splice', into: 'ab', id: 'x', kind: 'guard', label: 'Review' };
+  const nextWf = applyWorkflowOp(wf, op).workflow;
+  const next = layoutWorkflow(nextWf, clone(state), { op });
+  budget(state, next, wf, nextWf, op);
   assert.deepEqual(workflowLayoutDiff(state, next).moved, ['b', 'branch', 'c', 'tail', 'tool', 'unrelated']);
   assert.deepEqual(next.workflow.cells.x, { column: 1, row: 0 });
   assert.equal(next.workflow.cells.branch.column, state.workflow.cells.branch.column + 1);
   noOverlap(next);
-  assert.deepEqual(layoutWorkflow(nextWf, next).workflow.moves, [], 'splice applied only once');
+  assert.deepEqual(layoutWorkflow(nextWf, next, { op }).workflow.moves, [], 'splice applied only once');
 });
 test('nonadjacent splice does not shift existing cards', () => {
   const { wf, state } = replay([step('a'), step('b'), step('c'), link('ac', 'a', 'c')]);
-  const nextWf = applyWorkflowOp(wf, { t: 'splice', into: 'ac', id: 'x', kind: 'guard', label: 'X' }).workflow;
-  const next = layoutWorkflow(nextWf, state);
+  const op: WorkflowOp = { t: 'splice', into: 'ac', id: 'x', kind: 'guard', label: 'X' };
+  const nextWf = applyWorkflowOp(wf, op).workflow;
+  const next = layoutWorkflow(nextWf, state, { op });
   assert.deepEqual(workflowLayoutDiff(state, next).moved, []);
   assert.deepEqual(next.workflow.cells.x, { column: 1, row: 1 });
 });
@@ -190,7 +307,7 @@ test('attachments keep occupied slots, collapse past three, and removals leave h
   const next = layoutWorkflow(removed, state);
   assert.deepEqual(workflowLayoutDiff(state, next).moved, []);
   assert.equal(next.cards.c.y, state.cards.c.y);
-  assert.equal(next.cards.host.hiddenAttached, 1);
+  assert.equal(next.cards.host.hiddenAttached, 0);
   assert.equal(tidyWorkflow(removed).cards.host.hiddenAttached, 0);
   assert.deepEqual(tidyWorkflow(wf).workflow.attachmentSlots.host, ['a', 'b', 'c', 'z']);
 });
@@ -200,18 +317,26 @@ test('spare rows absorb flat stacks; overflow has a one-row vertical budget and 
   let small = replay([step('a'), step('host', 'a'), step('branch', 'a')], { spareRows: 1 }).state;
   let normal = state;
   for (const id of ['t1', 't2', 't3', 't4']) {
-    graph = applyWorkflowOp(graph, { t: 'step', id, kind: 'tool', label: id, on: 'host' }).workflow;
+    const before = graph;
+    const op: WorkflowOp = { t: 'step', id, kind: 'tool', label: id, on: 'host' };
+    graph = applyWorkflowOp(graph, op).workflow;
     const next = layoutWorkflow(graph, small, { spareRows: 1 });
-    budget(small, next, [id]);
+    budget(small, next, before, graph, op, { spareRows: 1 });
     assert.equal(next.cards.branch.y - small.cards.branch.y, id === 't2' || id === 't3' ? W.rowPitch : 0);
     small = next;
     const stable = layoutWorkflow(graph, normal);
     assert.deepEqual(workflowLayoutDiff(normal, stable).moved, []);
     normal = stable;
   }
-  graph = applyWorkflowOp(graph, { t: 'unstep', id: 't2' }).workflow;
+  const before = graph;
+  const op: WorkflowOp = { t: 'unstep', id: 't2' };
+  graph = applyWorkflowOp(graph, op).workflow;
   const removed = layoutWorkflow(graph, small, { spareRows: 1 });
-  assert.deepEqual(workflowLayoutDiff(small, removed).moved, []);
+  budget(small, removed, before, graph, op, { spareRows: 1 });
+  assert.deepEqual(workflowLayoutDiff(small, removed).moved, ['branch']);
+  assert.equal(removed.cards.branch.y - small.cards.branch.y, W.rowPitch);
+  assert.equal(removed.cards.t3.y, small.cards.t3.y);
+  assert.ok(removed.cards.t4);
   noOverlap(removed);
 });
 test('nested attachments grow without moving siblings', () => {
