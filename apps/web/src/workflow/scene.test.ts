@@ -29,6 +29,15 @@ for (const file of files) test('scene and routing: ' + file, () => {
   const scene = buildWorkflowScene({ workflow: wf, layout, catalog: loadCatalog(), models,
     settings: fixture.settings ?? {}, lang: 'en', t: makeT('en'), measure: { title: (s, px) => s.length * px / 2, body: (s) => s.length * 6 } });
   assert.equal(scene.cards.length + scene.hiddenAttachmentIds.length, Object.keys(wf.nodes).length);
+  for (const card of scene.cards) {
+    assert.equal(card.w, 168);
+    assert.equal(card.titlePx, 14);
+    assert.equal(card.titleLines.join('').replace(/\s/g, ''), card.label.replace(/\s/g, ''));
+    assert.ok(card.h >= 18 + card.titleLines.length * card.titlePx * 1.25);
+    if (!card.model && !card.product && !card.badges.length && !card.hidden.length && card.titleLines.length <= 2) {
+      assert.equal(card.h, 60);
+    }
+  }
   for (const a of scene.cards) for (const b of scene.cards) {
     if (a.id >= b.id) continue;
     assert.ok(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y, a.id + '/' + b.id);
@@ -46,7 +55,7 @@ for (const file of files) test('scene and routing: ' + file, () => {
   for (const routes of [checkedWorkflowRoutes(plan, result.routes), checkedWorkflowRoutes(plan, avoided.routes)]) {
     const all = drawWorkflowEdges({ plan, routes, measure: (s) => s.length * 6 });
     for (const d of all) {
-      assert.ok(d.points.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y)));
+      assert.ok(d.points.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y)), JSON.stringify(d));
       for (let i = 1; i < d.points.length; i++) {
         const a = d.points[i - 1], b = d.points[i];
         for (const r of plan.request.obstacles.filter((r) => r.id !== d.edge.from && r.id !== d.edge.to)) {

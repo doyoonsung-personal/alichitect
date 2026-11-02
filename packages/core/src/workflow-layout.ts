@@ -269,11 +269,13 @@ export function tidyWorkflow(wf: WorkflowGraph, opts: WorkflowLayoutOptions = {}
   return layoutWorkflow(wf, undefined, opts);
 }
 
-/** Fit height, retaining the worst-case fitted title floor even when the browser measures text differently. */
+/** Fit both axes between the actual title floor and natural size. */
 export function workflowViewport(state: WorkflowLayoutState, size: { width: number; height: number }) {
-  const floor = W.titleFloorPx / G.titleMinPx;
+  const titles = Object.values(state.cards).map((c) => c.title.px);
+  const floor = W.titleFloorPx / (titles.length ? Math.min(...titles) : G.titlePx);
   const width = Math.max(0, size.width - 2 * G.fitPad);
   const height = Math.max(0, size.height - 2 * G.fitPad);
-  const zoom = Math.max(floor, Math.min(G.maxZoom, state.height ? height / state.height : G.maxZoom));
+  const fit = Math.min(1, state.width ? width / state.width : 1, state.height ? height / state.height : 1);
+  const zoom = Math.min(1, Math.max(floor, fit));
   return { zoom, panX: state.width * zoom > width, panY: state.height * zoom > height };
 }

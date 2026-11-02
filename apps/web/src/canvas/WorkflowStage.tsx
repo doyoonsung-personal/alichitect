@@ -88,27 +88,34 @@ function Stage(p: WorkflowViewProps) {
     });
     return () => { active = false; };
   }, [plan, port]);
+  const edges = drawWorkflowEdges({ plan, routes, measure: (s) => measure.body(s, 12) });
+  const bounds = workflowDrawingBounds(plan, edges);
+  const overviewLayout = { ...layout.source, bounds, width: bounds.w, height: bounds.h,
+    cards: Object.fromEntries(scene.cards.map((c) => [c.id, { ...layout.source.cards[c.id], h: c.h,
+      title: { lines: c.titleLines, px: c.titlePx } }])) };
   const programmatic = useRef(0);
   const setView = (v: typeof viewport) => { const next = { ...v, zoom: Math.max(minZoom, v.zoom) };
         programmatic.current++;
     setViewport(next);
     void rf.setViewport(next).finally(() => { programmatic.current--; });
   };
-  const fit = () => {
-    const v = workflowInitialViewport(layout.source, { width: size.width, height: size.height - 130 });
-    setView({ ...v, y: Math.max(120, v.y + 110) });
+  const fittedView = () => {
+    const v = workflowInitialViewport(overviewLayout, { width: size.width, height: Math.max(0, size.height - 160) });
+    return { ...v, y: v.y + 110 };
   };
-  const started = useRef(false), newest = useRef(-1);
+  const fit = () => setView(fittedView());
+  const started = useRef(false);
   useEffect(() => {
     if (!scene.cards.length) return;
-    const column = Math.max(...scene.cards.map((c) => c.x));
-    if (!started.current) { started.current = true; fit(); }
-    else if (following && p.streaming && column > newest.current) {
-      const card = scene.cards.find((c) => c.x === column)!;
-      setView(workflowFollowViewport(rf.getViewport(), card, { x: 0, y: 100, w: size.width, h: size.height - 160 }));
+    if (!started.current || following) {
+      started.current = true;
+      const inline = scene.cards.filter((c) => !c.node.on);
+      const card = [...inline].sort((a, b) => b.x - a.x || a.y - b.y)[0];
+      const v = fittedView();
+      setView(p.streaming && card ? workflowFollowViewport(v, card,
+        { x: 0, y: 110, w: size.width, h: Math.max(0, size.height - 160) }) : v);
     }
-    newest.current = Math.max(column, newest.current);
-  }, [p.version, size.width, size.height]);
+  }, [p.version, size.width, size.height, bounds.x, bounds.y, bounds.w, bounds.h]);
   const pause = () => { if (following) { setFollowing(false); setStatus(p.t('workflow.live.paused')); } };
   const element = (id: string) => Array.from(root.current?.querySelectorAll<HTMLElement>('[data-wf-card]') ?? [])
     .find((el) => el.dataset.wfCard === id);
@@ -129,9 +136,6 @@ function Stage(p: WorkflowViewProps) {
   useEffect(() => { if (focus && !scene.byId.has(focus)) { setFocus(stop); if (stop) element(stop)?.focus(); hover.closeNow(); } },
     [p.version]);
   const close = () => { hover.escape(); if (open) element(open)?.focus(); hover.escape(); };
-  const edges = drawWorkflowEdges({ plan, routes, measure: (s) => measure.body(s, 12) });
-  const bounds = workflowDrawingBounds(plan, edges);
-  const overviewLayout = { ...layout.source, bounds, width: bounds.w, height: bounds.h };
   const nodes: Node[] = [
     { id: 'wf-edges', type: 'workflowEdges', position: { x: 0, y: 0 }, data: { edges, t: p.t,
       width: bounds.w + 100, height: bounds.h + 100 }, selectable: false, focusable: false, zIndex: -1 },
@@ -164,7 +168,7 @@ function Stage(p: WorkflowViewProps) {
   return <div className="wf-stage" ref={root}>
     <ReactFlow viewport={viewport} onViewportChange={setViewport} nodes={nodes} nodeTypes={nodeTypes} nodesDraggable={false} nodesConnectable={false}
       elementsSelectable={false} nodesFocusable={false} edgesFocusable={false} minZoom={minZoom} maxZoom={1.5}
-      panOnScroll zoomOnDoubleClick={false} onMoveStart={(event) => { if (event && !programmatic.current) pause(); }}
+      panOnScroll zoomOnDoubleClick={false} onMoveStart={(event) => { if (event?.isTrusted && !programmatic.current) pause(); }}
       onMove={(_, v) => setViewport(v)} proOptions={{ hideAttribution: true }} />
     {!scene.cards.length && <p className="wf-empty">{p.t('workflow.canvas.empty')}</p>}
     <WorkflowTools layout={overviewLayout} viewport={viewport} size={size} t={p.t} following={following} disabled={p.disabled}

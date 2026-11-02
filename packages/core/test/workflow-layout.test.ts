@@ -412,8 +412,7 @@ for (const count of [10, 15, 25]) for (const width of [800, 920, 1150]) {
     const { wf, state } = replay(ops);
     for (const layout of [state, tidyWorkflow(wf)]) {
       const camera = workflowViewport(layout, { width, height: 700 });
-      assert.ok(camera.zoom >= 11 / GEOMETRY.titleMinPx);
-      assert.ok(Object.values(layout.cards).every((c) => c.title.px * camera.zoom >= 11));
+      assert.equal(camera.zoom, Math.min(1, 11 / Math.min(...Object.values(layout.cards).map((c) => c.title.px))));
       assert.equal(camera.panX, true);
       assert.equal(camera.panY, layout.height * camera.zoom > 700 - 2 * GEOMETRY.fitPad);
     }
@@ -421,6 +420,18 @@ for (const count of [10, 15, 25]) for (const width of [800, 920, 1150]) {
 }
 test('empty and tiny viewports have finite readable zoom', () => {
   const empty = layoutWorkflow(emptyWorkflow());
-  assert.deepEqual(workflowViewport(empty, { width: 800, height: 700 }), { zoom: GEOMETRY.maxZoom, panX: false, panY: false });
+  assert.deepEqual(workflowViewport(empty, { width: 800, height: 700 }), { zoom: 1, panX: false, panY: false });
   assert.ok(Number.isFinite(workflowViewport(empty, { width: 0, height: 0 }).zoom));
+});
+
+test('viewport fits width and height using the actual title size, capped at natural size', () => {
+  const { state } = replay([step('a')]);
+  const sized = { ...state, width: 1000, height: 100 };
+  sized.cards = { ...state.cards, a: { ...state.cards.a, title: { lines: ['A'], px: 14 } } };
+  assert.deepEqual(workflowViewport(sized, { width: 948, height: 800 }), { zoom: .9, panX: false, panY: false });
+  assert.deepEqual(workflowViewport(sized, { width: 2000, height: 800 }), { zoom: 1, panX: false, panY: false });
+  assert.equal(workflowViewport(sized, { width: 400, height: 800 }).zoom, 11 / 14);
+  assert.equal(workflowViewport({ ...sized, height: 1000 }, { width: 2000, height: 948 }).zoom, .9);
+  sized.cards.a.title.px = 12;
+  assert.equal(workflowViewport(sized, { width: 400, height: 800 }).zoom, 11 / 12);
 });

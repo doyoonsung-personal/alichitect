@@ -2,11 +2,11 @@
 import type { Catalog, WorkflowGraph, WorkflowNode, WorkflowSettings } from '@ali/core/types.ts';
 import type { ModelTable } from '@ali/core/models.ts';
 import type { Rect } from '@ali/core/layout.ts';
-import { fitTitle } from '@ali/core/layout.ts';
 import { needsApproval, waived } from '@ali/core/approval.ts';
 import type { Lang, TFn } from '../i18n/t.ts';
 import type { Measurer } from '../canvas/scene.ts';
 import type { WorkflowRenderLayout } from './layout-adapter.ts';
+import { workflowTitle } from './layout-adapter.ts';
 export interface WorkflowCardView extends Rect {
   id: string; kind: WorkflowNode['kind']; node: WorkflowNode; label: string;
   titleLines: string[]; titlePx: number; product?: string; model?: string;
@@ -28,7 +28,7 @@ export function buildWorkflowScene(input: {
   const { workflow, layout, catalog, models, settings, t, measure } = input;
   const cards = Object.values(layout.source.cards).map((r): WorkflowCardView => {
     const n = workflow.nodes[r.id];
-    const title = fitTitle(n.label, measure.title, r.w - 38);
+    const title = workflowTitle(n.label, measure.title, r.w - 48);
     const hidden = layout.hiddenAttachmentIds.filter((id) => {
       let host = layout.attachmentOwners[id];
       const seen = new Set<string>();
@@ -44,7 +44,10 @@ export function buildWorkflowScene(input: {
     if (n.kind === 'human') badges.push(t('workflow.badge.wait'));
     if (n.effect) badges.push(t('workflow.effect.' + n.effect as 'workflow.effect.read'));
     if (needsApproval(n, settings)) badges.push(t('workflow.badge.approval'));
-    return { id: n.id, kind: n.kind, node: n, label: n.label, x: r.x, y: r.y, w: r.w, h: r.h,
+    // Integer port centres keep the channel router's coordinate keys exact.
+    const h = Math.ceil(Math.max(60, 18 + Math.max(22, title.lines.length * title.px * 1.25)
+      + (n.product ? 18 : 0) + (n.ai ? 24 : 0) + badges.length * 18 + (hidden.length ? 18 : 0)) / 2) * 2;
+    return { id: n.id, kind: n.kind, node: n, label: n.label, x: r.x, y: r.y, w: r.w, h,
       titleLines: title.lines, titlePx: title.px,
       ...(n.product ? { product: catalog.byId.get(n.product)?.short ?? n.product } : {}),
       ...(n.ai ? { model: models.model(n.ai)?.name ?? n.ai } : {}),
@@ -59,6 +62,8 @@ export function buildWorkflowScene(input: {
     layout.source.workflow.routes[e.id]?.loop && e.max !== undefined ? t('workflow.edge.loop', { n: e.max }) : '',
     e.kind === 'escalate' ? t('workflow.edge.escalate') : '',
   ].filter(Boolean).join(' ? ')]));
+  const rects = [...cards, ...brackets];
+  const bounds = { ...layout.source.bounds, h: Math.max(0, ...rects.map((r) => r.y + r.h)) };
   return { cards, brackets, edgeLabels, byId: new Map(cards.map((c) => [c.id, c])),
-    attachmentOwners: layout.attachmentOwners, hiddenAttachmentIds: layout.hiddenAttachmentIds, bounds: layout.source.bounds };
+    attachmentOwners: layout.attachmentOwners, hiddenAttachmentIds: layout.hiddenAttachmentIds, bounds };
 }
