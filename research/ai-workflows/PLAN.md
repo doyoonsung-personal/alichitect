@@ -952,7 +952,10 @@ The estimate takes the deployment scope from the session (International by defau
   - phase 8.
 - **Open decision:** the live canvas keeps the per-row attachment reserve, so branch rows start below the first view. Reserving slots only under agent hosts would give up the zero-foreign-moves rule.
 - **Verification:**
-  - **Tests:** 1,087 root, 658 web and 276 Worker, all passing.
+  - **Tests:** 1,097 root, 658 web and 276 Worker, all passing.
+  - **Live proposal export** (phase 7 gate):
+    - workflow proposals in en and ko complete and download through the real UI, with no hidden name in the PDF or on the wire;
+    - it had failed until the cross-reference rule stopped reading an agent's "attached tools" as an attached document.
   - **Typechecks:** all three are clean.
   - **Cloud prompt:** byte-identical (sha256 `998fab22…`), and the cloud messages match `58b4fc3` on all 141 eval turns.
   - **Production build:** clean, and the hidden-word scan passes.

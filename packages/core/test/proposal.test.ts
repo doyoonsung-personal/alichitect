@@ -993,3 +993,32 @@ for (const text of ['This proposal was authored by qwen3.7-plus.', 'This proposa
   req.memory.workflow!.nodes.draft.ai = 'qwen3.7-plus';
   assert.equal(parseProposalLine(line({ k: 'step', id: 'draft', text }), proposalCtx(req, CAT)), null);
 });
+
+// Live export, 2026-11-03: every workflow draft with an agent failed, because its step line said "attached tools" and
+// the cloud cross-reference rule read "attached" as "see the attached document". The new money words also caught
+// ordinary Korean and Chinese words and the verb "won".
+for (const [lang, text] of [
+  ['en', 'AgentRun hosts the qwen3.5-plus agent that decides whether the email is routine or complex. It uses attached tools to retrieve and rerank help articles from DashVector via RAG, then drafts a reply.'],
+  ['en', 'One of the reviewers who won the last audit approves each reply before it is sent.'],
+  ['ko', '이 원칙에 따라 담당자가 답장을 승인합니다.'],
+  ['ko', '사원이 검토한 뒤 답장을 보냅니다.'],
+  ['ko', '일원화된 절차로 이 원인을 기록합니다.'],
+  ['zh', '采用一元化流程，由人工审批回复。'],
+] as const) test(`live export: a workflow step line is accepted (${lang}): ${text.slice(0, 40)}`, () => {
+  const req = { ...workflowRequest(), lang };
+  assert.notEqual(parseProposalLine(line({ k: 'step', id: 'draft', text }), proposalCtx(req, CAT)), null);
+});
+
+for (const [lang, text] of [
+  ['en', 'See the attached price list for the monthly figures.'],
+  ['ko', '한 건당 만 원이 듭니다.'],
+  ['zh', '每次运行花费五十元。'],
+] as const) test(`live export: a cross-reference or invented price is still refused (${lang}): ${text}`, () => {
+  const req = { ...workflowRequest(), lang };
+  assert.equal(parseProposalLine(line({ k: 'step', id: 'draft', text }), proposalCtx(req, CAT)), null);
+});
+
+test('live export: the cloud proposal still refuses a bare "attached" cross-reference', () => {
+  assert.equal(lintSection({ k: 'tradeoff', text: 'Pricing is in the attached sheet.' }, proposalCtx(request(), CAT))?.rule, 'price');
+  assert.equal(lintSection({ k: 'tradeoff', text: 'Details are attached.' }, proposalCtx(request(), CAT))?.rule, 'price');
+});

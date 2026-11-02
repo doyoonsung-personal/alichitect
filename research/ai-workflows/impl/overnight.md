@@ -266,3 +266,21 @@ All three turns committed: status 200, no fatal error, no vendor names or banned
   - the panel handle says "Show steps and why…";
   - with the panel open, Fit lifts the row above it;
   - the only console error is the local `/api/me` 404, from the account endpoint that only the Worker serves.
+- **Live workflow proposal export** (phase 7 gate; real UI, real Qwen, the restarted server):
+  - **Before the fix, every export failed** (3/3 through the server, then 4/5 calling `draftProposal` directly):
+    - the agent's step line said "attached tools", and the cloud cross-reference rule `PRICE_ALWAYS` read the bare "attached" as "see the attached document";
+    - the step stayed missing, so the workflow-only completeness check failed (`draft-failed` or `draft-timeout`);
+    - the new money words (round A) also caught 이 원칙, 사원, 일원화, 一元化 and the verb "won".
+  - **Fixed:**
+    - in workflow mode, "attached" counts only next to a document word;
+    - spelled-out amounts need an unambiguous currency word;
+    - 원 and 元 need a magnitude numeral;
+    - ten regression tests from the exact live lines (six failed before the fix);
+    - cloud proposals keep the bare "attached" rule.
+  - **After:**
+    - en: done, 12 sections, an 18-page PDF;
+    - ko: done, 11 sections, a 15-page PDF;
+    - both have the overview, steps, where each step runs, the priced usage (typical and upper) and open questions;
+    - `hasHiddenIdentity` is clean on both PDFs and on the wire, and there are no page errors.
+- **Cloud replay** (`?replay=ha`): 9 cards, 13 edge paths, the `~edges` layer with no pointer events, and hover popovers work.
+- **Gates:** root 1097/1097, web 658/658, Worker 276/276, typechecks clean, and the cloud hash unchanged.

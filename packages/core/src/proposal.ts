@@ -288,6 +288,8 @@ const ABSOLUTE: Record<ProposalCtx['lang'], RegExp> = {
   zh: /彻底|消除|杜绝|绝不|瞬间|不再|万无一失|百分之百|100 ?%|零(?:停机|宕机|风险|丢失|丢单|延迟|故障|中断)/,
 };
 const PRICE_ALWAYS = /\b(?:attached|appendix|enclosed|(?:listed|shown|see|set out|detailed) below)\b|아래(?:의|에)? ?(?:표|내용|참고)|첨부|附件|附录|见下|如下表/i;
+// In a workflow an agent's tools are "attached" (첨부된 도구): only an attached document or file is a cross-reference.
+const PRICE_ALWAYS_WORKFLOW = /\b(?:(?:see|as) (?:the )?attached|attached (?:document|file|table|sheet|spreadsheet|pdf|quote|quotation|price list|pricing|proposal|estimate)s?|appendix|enclosed|(?:listed|shown|see|set out|detailed) below)\b|아래(?:의|에)? ?(?:표|내용|참고)|첨부(?:된|한)? ?(?:문서|파일|자료|표|견적)|附件|附录|见下|如下表/i;
 // the catalog's Price line copied into a line: the PDF prints it next to its product already
 const PRICE_LINE = /\bPrice:|가격\s*:|价格\s*[:：]/;
 const PRICE_WORDS = /\b(?:pric(?:e|es|ed|ing)|budget\w*|monthly (?:spend|cost|bill)|estimated (?:monthly )?(?:spend|cost|budget|bill))\b|가격|요금표|예산|价格|报价|预算/i;
@@ -302,13 +304,21 @@ const MODEL_NAME = /\b(?:Qwen|Llama|GPT|Mistral|Gemma|DeepSeek|Baichuan|GLM)[\w.
 const WORKFLOW_MODEL_NAME = /\b(?:Qwen|Llama|GPT|Mistral|Gemma|DeepSeek|Baichuan|GLM)\w*(?:[.-]\w+)*/gi;
 const MONEY_NUMBER = String.raw`\d+(?:[.,]\d+)*`;
 const MONEY_UNIT = String.raw`(?:USD|EUR|GBP|CNY|RMB|KRW|JPY|SGD|HKD|AUD|CAD|INR|dollars?|cents?|euros?|pounds?|yuan|won|yen)`;
+// After a spelled-out number only a word that is always money counts: "won" and "pounds" are also ordinary words.
+const MONEY_WORD_UNIT = String.raw`(?:USD|EUR|GBP|CNY|RMB|KRW|JPY|SGD|HKD|AUD|CAD|INR|dollars?|cents?|euros?|yuan|yen)`;
 const WORKFLOW_MONEY = new RegExp([
   String.raw`\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|`
     + String.raw`eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion)`
-    + String.raw`(?:[ -]+(?:and|\w+)){0,5}\s+${MONEY_UNIT}\b`,
+    + String.raw`(?:[ -]+(?:and|\w+)){0,3}\s+${MONEY_WORD_UNIT}\b`,
+  // \u7f8e\u5143 and \u6b27\u5143 are always money; a bare \u5143 needs a magnitude (\u4e94\u5341\u5143), so \u4e00\u5143\u5316 and \u4e8c\u5143 stay words.
   String.raw`[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341\u767e\u5343\u4e07\u842c\u4ebf\u5104\u4e24]+`
-    + String.raw`\s*(?:\u7f8e\u5143|\u5143|\u6b27\u5143)`,
-  String.raw`[\uc77c\uc774\uc0bc\uc0ac\uc624\uc721\uce60\ud314\uad6c\uc2ed\ubc31\ucc9c\ub9cc\uc5b5]+\s*(?:\uc6d0|\ub2ec\ub7ec|\uc720\ub85c)`,
+    + String.raw`\s*(?:\u7f8e\u5143|\u6b27\u5143)`,
+  String.raw`[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u4e24]*[\u5341\u767e\u5343\u4e07\u842c\u4ebf\u5104]`
+    + String.raw`[\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u4e24\u5341\u767e\u5343\u4e07\u842c\u4ebf\u5104]*\s*\u5143`,
+  // \ub2ec\ub7ec and \uc720\ub85c are always money; \uc6d0 needs a magnitude at a word start (\uc624\ucc9c \uc6d0, \ub9cc \uc6d0), so \uc774 \uc6d0\uce59, \uc0ac\uc6d0 and \uc77c\uc6d0\ud654 stay words.
+  String.raw`[\uc77c\uc774\uc0bc\uc0ac\uc624\uc721\uce60\ud314\uad6c\uc2ed\ubc31\ucc9c\ub9cc\uc5b5]+\s*(?:\ub2ec\ub7ec|\uc720\ub85c)`,
+  String.raw`(?<![\uac00-\ud7a3])[\uc77c\uc774\uc0bc\uc0ac\uc624\uc721\uce60\ud314\uad6c]*[\uc2ed\ubc31\ucc9c\ub9cc\uc5b5]`
+    + String.raw`[\uc77c\uc774\uc0bc\uc0ac\uc624\uc721\uce60\ud314\uad6c\uc2ed\ubc31\ucc9c\ub9cc\uc5b5]*\s*\uc6d0`,
   String.raw`\p{Sc}\s*[+-]?\s*${MONEY_NUMBER}`,
   String.raw`\b${MONEY_UNIT}\s*${MONEY_NUMBER}`,
   String.raw`${MONEY_NUMBER}\s*(?:${MONEY_UNIT}\b|元|块|圓|円|원|달러|유로|\p{Sc})`,
@@ -414,7 +424,7 @@ export function lintSection(s: ProposalSection, ctx: ProposalCtx): LintProblem |
   if (ABSOLUTE[ctx.lang].test(claims) || (ctx.lang !== 'en' && ABSOLUTE.en.test(claims)))
     return { level: 'hard', rule: 'absolute', reason: 'it makes an absolute promise (never, instantly, eliminates, guarantees, no order is lost); say what the design reduces or makes less likely' };
   if (PRICE_LINE.test(all)) return { level: 'hard', rule: 'price', reason: "it copies a catalog Price line, which the PDF already prints next to the product; give the business reason only" };
-  if (PRICE_ALWAYS.test(all)) return { level: 'hard', rule: 'price', reason: 'it refers to another part of the document; every line must stand on its own' };
+  if ((ctx.workflow ? PRICE_ALWAYS_WORKFLOW : PRICE_ALWAYS).test(all)) return { level: 'hard', rule: 'price', reason: 'it refers to another part of the document; every line must stand on its own' };
   if (!ctx.hasPrice && PRICE_WORDS.test(all))
     return { level: 'hard', rule: 'price', reason: 'it mentions prices or a budget; this design has no catalog price, so describe the cost shape (fixed or pay-as-you-go) without numbers' };
   const typo = misspeltName(all, ctx);
