@@ -179,6 +179,7 @@ export interface RequirementView {
 
 export interface SessionRecord {
   mode: TurnMode;
+  workflowLayout?: WorkflowLayoutState;
   workflowProvenance?: SessionRecord['provenance'];
   id: string;
   createdAt: number;
@@ -215,6 +216,7 @@ export interface TurnStatus {
 export interface TurnWork {
   mode: TurnMode;
   rawWorkflow: WorkflowGraph;
+  workflowLayout: WorkflowLayoutState | undefined;
   workflowCtx: WorkflowCtx;
   n: number;
   /** The committed memory when the turn started. Fatal and Stop go back to its graph. */

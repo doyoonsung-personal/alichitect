@@ -263,8 +263,9 @@ export function reduce(state: AppState, action: Action, deps: StoreDeps): AppSta
     }
     case 'workflow/tidy': {
       if (state.work || state.replay) return state;
-      return live({ ...state, workflowDisplay: { ...state.workflowDisplay,
-        layout: tidyWorkflow(state.workflowDisplay.graph), version: state.workflowDisplay.version + 1 } },
+      const layout = tidyWorkflow(state.workflowDisplay.graph);
+      return live({ ...state, session: { ...state.session, workflowLayout: layout }, workflowDisplay: { ...state.workflowDisplay,
+        layout, version: state.workflowDisplay.version + 1 } },
       t(state.lang, 'workflow.live.tidied'));
     }
     case 'session/mode':
@@ -284,7 +285,7 @@ export function reduce(state: AppState, action: Action, deps: StoreDeps): AppSta
         ...state,
         view: 'working',
         session: { ...rec, mode: rec.mode ?? 'cloud' },
-        workflowDisplay: workflowDisplay(state, rec.memory.workflow ?? emptyWorkflow(), 'restore'),
+        workflowDisplay: workflowDisplay({ ...state, session: rec }, rec.memory.workflow ?? emptyWorkflow(), 'restore'),
         work: null,
         turn: { phase: 'idle', lastTextAt: null, startedAt: null },
         replay: null,
@@ -396,6 +397,7 @@ function startTurn(state: AppState, ask: string, now: number, replayOf: string |
     n,
     mode,
     rawWorkflow: mem.workflow ?? emptyWorkflow(),
+    workflowLayout: state.workflowDisplay.layout,
     workflowCtx: createWorkflowCtx(),
     base: mem,
     raw: mem.graph,
@@ -582,7 +584,8 @@ function onStatus(state: AppState, work: TurnWork, code: Extract<WireEvent, { ty
     if (work.mode === 'workflow') {
       const rep = repairWorkflow(work.rawWorkflow, deps.catalog, models, work.base.workflowSettings);
       const follow = code === 'continue' ? 'continue' : 'repair';
-      next = { ...next, work: { ...work, rawWorkflow: rep.workflow, workflowCtx: createWorkflowCtx(),
+      next = { ...next, work: { ...work, rawWorkflow: rep.workflow,
+        workflowLayout: layoutWorkflow(rep.workflow, work.workflowLayout), workflowCtx: createWorkflowCtx(),
         follow, dirty: true, autoFixes: mergeFixes(work.autoFixes, rep.warnings.map((w) => ({ ...w, view: 'workflow' }))) },
         turn: { ...next.turn, phase: 'repairing' } };
       return patchLast(next, (r) => follow === 'repair'
@@ -621,7 +624,8 @@ function flush(state: AppState, deps: StoreDeps): AppState {
   const work = state.work;
   if (!work || !work.dirty) return state;
   if (work.mode === 'workflow') {
-    return live({ ...state, workflowDisplay: workflowDisplay(state, work.rawWorkflow, 'batch'),
+    return live({ ...state, workflowDisplay: { graph: work.rawWorkflow, layout: work.workflowLayout ?? layoutWorkflow(work.rawWorkflow),
+      version: state.workflowDisplay.version + 1, reason: 'batch' },
       work: { ...work, dirty: false, batches: work.batches + 1 } },
     t(state.lang, 'workflow.live.updated', { n: Object.keys(work.rawWorkflow.nodes).length }));
   }
@@ -697,11 +701,13 @@ function onCommit(state: AppState, work: TurnWork, ev: Extract<WireEvent, { type
     reqPinnedIn[text] = n;
   }
   const session: SessionRecord = { ...next.session, memory, updatedAt: now, reqPinnedIn,
+    ...(workflow ? { workflowLayout: layoutWorkflow(afterWorkflow, work.workflowLayout) } : {}),
     ...(workflow ? { workflowProvenance: provenance } : { provenance }) };
   session.summarizedThrough = memory.summary ? Math.max(session.summarizedThrough, foldedThrough(session, memory)) : session.summarizedThrough;
   next = { ...next, session, work: null, turn: { phase: 'idle', lastTextAt: null, startedAt: null } };
   next = workflow
-    ? { ...next, workflowDisplay: workflowDisplay(next, afterWorkflow, 'commit') }
+    ? { ...next, workflowDisplay: { graph: afterWorkflow, layout: session.workflowLayout!,
+      version: next.workflowDisplay.version + 1, reason: 'commit' } }
     : relayout(next, deps, committed, 'commit', { refit: true, animate: true });
   const rev = next.session.revisions[next.session.revisions.length - 1];
   const broken = ev.warnings.find((w) => CONSTRAINT_CODES.has(w.code));
@@ -778,9 +784,9 @@ export function sessionSummary(s: SessionRecord): SessionSummary {
   return { id: s.id, title: s.title, updatedAt: s.updatedAt, revisions: s.revisions.length };
 }
 
-// Workflow display snapshots stay separate until the workflow canvas supplies layout.
+// Restores and rollbacks use committed cells, never a partially streamed layout.
 function workflowDisplay(state: AppState, graph: WorkflowGraph, reason: DisplayReason): AppState['workflowDisplay'] {
-  return { graph, layout: layoutWorkflow(graph, reason === 'restore' ? undefined : state.workflowDisplay.layout),
+  return { graph, layout: layoutWorkflow(graph, state.session.workflowLayout),
     version: state.workflowDisplay.version + 1, reason };
 }
 
@@ -804,6 +810,8 @@ function onWorkflowOp(state: AppState, work: TurnWork, op: WorkflowOp, phase: 'm
   const changes = workflowChanges(work.rawWorkflow, res.workflow, toFix ? 'repair' : 'main');
   const built = [...new Set([...work.built, ...res.added, ...res.updated])].filter((id) => has(res.workflow.nodes, id));
   const next = { ...state, work: { ...work, rawWorkflow: res.workflow, workflowCtx: ctx,
+    // Advance each transition with its operation before the display batch coalesces it.
+    workflowLayout: res.workflow === work.rawWorkflow ? work.workflowLayout : layoutWorkflow(res.workflow, work.workflowLayout, { op }),
     dirty: work.dirty || res.workflow !== work.rawWorkflow, built } };
   return patchLast(next, (r) => {
     const lines = toFix ? r.fix.changes : r.changes;

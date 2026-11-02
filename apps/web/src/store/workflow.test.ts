@@ -8,6 +8,8 @@ import { createSessionStore, reviveSession } from './sessions.ts';
 import { activeDocument, activeNodeCount, activeHighlight, activeProvenance, canExport, highlightChange } from './selectors.ts';
 import type { Store } from './store.ts';
 import type { SessionRecord } from './types.ts';
+import { layoutWorkflow } from '@ali/core/workflow-layout.ts';
+import { applyWorkflowOp, createWorkflowCtx } from '@ali/core/workflow.ts';
 
 function replay(id = 'stub-mixed-workflow') {
   const store = newStore();
@@ -21,6 +23,87 @@ function op(store: Store, op: WorkflowOp) {
 function start(store: Store, mode: 'cloud' | 'workflow' = 'workflow') {
   store.dispatch({ type: 'turn/start', mode, ask: 'Update the design', now: 100 });
 }
+
+test('splice ab inserts Review between a and b across flush, commit, replay and revival', () => {
+  const base = { nodes: {
+    a: { id: 'a', kind: 'trigger' as const, label: 'Start' }, b: { id: 'b', kind: 'end' as const, label: 'End' },
+  }, edges: { ab: { id: 'ab', from: 'a', to: 'b' } }, groups: {} };
+  const splice: WorkflowOp = { t: 'splice', into: 'ab', id: 'x', kind: 'human', label: 'Review' };
+  const after = applyWorkflowOp(base, splice, createWorkflowCtx()).workflow;
+  const expected = layoutWorkflow(after, layoutWorkflow(base), { op: splice }).workflow.cells;
+  assert.deepEqual(expected, { a: { column: 0, row: 0 }, b: { column: 2, row: 0 }, x: { column: 1, row: 0 } });
+  for (const flush of [true, false]) {
+    const store = newStore();
+    const record = { ...store.getState().session, mode: 'workflow' as const,
+      memory: { ...store.getState().session.memory, workflow: base } };
+    store.dispatch({ type: 'session/open', record, now: 1 });
+    start(store);
+    op(store, splice);
+    if (flush) {
+      store.dispatch({ type: 'turn/flush', now: 2 });
+      assert.deepEqual(store.getState().workflowDisplay.layout?.workflow.cells, expected);
+    }
+    const memory = { ...record.memory, workflow: after };
+    store.dispatch({ type: 'turn/event', event: { type: 'commit', memory, changes: '', warnings: [] }, now: 3 });
+    assert.deepEqual(store.getState().workflowDisplay.layout?.workflow.cells, expected);
+    const revived = reviveSession(JSON.parse(JSON.stringify(store.getState().session)))!;
+    store.dispatch({ type: 'session/open', record: revived, now: 4 });
+    assert.deepEqual(store.getState().workflowDisplay.layout?.workflow.cells, expected);
+  }
+  const store = newStore();
+  const fixture = loadFixtureFile('stub-workflow');
+  fixture.turns = [
+    { mode: 'workflow', ask: 'Start', ev: [[1, { type: 'commit',
+      memory: { ...store.getState().session.memory, workflow: base }, changes: '', warnings: [] }]] },
+    { mode: 'workflow', ask: 'Review', ev: [[1, { type: 'op', phase: 'main', op: splice }], [2, { type: 'commit',
+      memory: { ...store.getState().session.memory, workflow: after }, changes: '', warnings: [] }]] },
+  ];
+  createPlayer({ dispatch: store.dispatch, now: () => 100, setTimeout: () => 0, clearTimeout: () => {} },
+    { fixture, speed: () => 'instant' }).start();
+  assert.deepEqual(store.getState().workflowDisplay.layout?.workflow.cells, expected);
+});
+
+test('multiple splices preserve operation order across batches and rollback restores committed cells', () => {
+  const operations: WorkflowOp[] = [
+    { t: 'step', id: 'a', kind: 'trigger', label: 'Start' },
+    { t: 'step', id: 'b', kind: 'end', label: 'End' },
+    { t: 'link', id: 'ab', from: 'a', to: 'b' },
+    { t: 'splice', into: 'ab', id: 'x', kind: 'human', label: 'Review' },
+    { t: 'splice', into: 'ab', id: 'y', kind: 'human', label: 'Second review' },
+    { t: 'unstep', id: 'x' },
+  ];
+  let expected: ReturnType<typeof layoutWorkflow> | undefined;
+  let graph = { nodes: {}, edges: {}, groups: {} };
+  const ctx = createWorkflowCtx();
+  for (const operation of operations) {
+    graph = applyWorkflowOp(graph, operation, ctx).workflow;
+    expected = layoutWorkflow(graph, expected, { op: operation });
+  }
+  for (const every of [1, 3, 0]) {
+    const store = newStore();
+    start(store);
+    operations.forEach((operation, i) => {
+      op(store, operation);
+      if (every && (i + 1) % every === 0) store.dispatch({ type: 'turn/flush', now: 200 });
+    });
+    store.dispatch({ type: 'turn/event', now: 300, event: { type: 'commit',
+      memory: { ...store.getState().session.memory, workflow: graph }, changes: '', warnings: [] } });
+    assert.deepEqual(store.getState().workflowDisplay.layout?.workflow.cells, expected!.workflow.cells);
+    let text = '';
+    const sessions = createSessionStore({ getItem: () => text, setItem: (_, value) => { text = value; } });
+    assert.ok(sessions.save(store.getState().session));
+    store.dispatch({ type: 'session/new', id: 'other', now: 400 });
+    store.dispatch({ type: 'session/open', record: sessions.get('s1')!, now: 500 });
+    assert.deepEqual(store.getState().workflowDisplay.layout?.workflow.cells, expected!.workflow.cells);
+    start(store);
+    op(store, { t: 'splice', into: 'ab', id: 'z', kind: 'human', label: 'Temporary' });
+    store.dispatch({ type: 'turn/flush', now: 600 });
+    store.dispatch({ type: 'turn/stop', now: 700 });
+    assert.deepEqual(store.getState().workflowDisplay.layout?.workflow.cells, expected!.workflow.cells);
+    const bad = { ...store.getState().session, workflowLayout: { mode: 'workflow', workflow: { arrival: 1 }, cards: {} } };
+    assert.equal(reviveSession(bad)?.workflowLayout, undefined);
+  }
+});
 
 test('workflow commit retains both documents, settings, estimates and independent provenance', () => {
   const store = replay();

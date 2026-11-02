@@ -69,7 +69,7 @@ export function WorkingView(): ReactElement {
         </div>
       </div>
       <p className="visually-hidden" role="status" aria-live="polite">
-        {live?.text}
+        <span key={live?.seq}>{live?.text}</span>
       </p>
     </div>
   );

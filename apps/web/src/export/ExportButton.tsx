@@ -6,7 +6,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { FormEvent, KeyboardEvent, ReactElement } from 'react';
 import type { ProposalDraft } from '@ali/core/types.ts';
 import { useAppState, useCatalog, useController, useStore, useT } from '../store/react.tsx';
-import { isStreaming, productCount } from '../store/selectors.ts';
+import { canExport, isStreaming } from '../store/selectors.ts';
 import type { AppState } from '../store/types.ts';
 import { entryFor } from '../canvas/scene.ts';
 import { DownloadIcon } from './DownloadIcon.tsx';
@@ -21,7 +21,6 @@ import './export.css';
 /** 'stopped': Stop, or the overlay was closed after a failure; nothing was downloaded. */
 type Phase = 'idle' | 'working' | 'done' | 'failed' | 'stopped';
 
-const workflowCount = (s: AppState) => Object.keys(s.session.memory.workflow?.nodes ?? {}).length;
 const selSession = (s: AppState) => s.session.id;
 const TICK_MS = 500;
 
@@ -32,8 +31,7 @@ export function ExportButton(): ReactElement {
   const catalog = useCatalog();
   const controller = useController();
   const streaming = useAppState(isStreaming);
-  const products = useAppState(productCount);
-  const workflowNodes = useAppState(workflowCount);
+  const exportable = useAppState(canExport);
   const sessionId = useAppState(selSession);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -57,8 +55,8 @@ export function ExportButton(): ReactElement {
   const nameOf = useCallback((id: string): string => entryFor(catalog, id)?.name ?? id, [catalog]);
   const send = useCallback((ev: FlowEvent) => setFlow((f) => (f ? reduceFlow(f, ev, nameOf) : f)), [nameOf]);
 
-  const disabled = streaming || (products === 0 && workflowNodes === 0);
-  const disabledTitle = streaming ? xt('dialog.disabledBusy') : (products === 0 && workflowNodes === 0) ? xt('dialog.disabledEmpty') : undefined;
+  const disabled = streaming || !exportable;
+  const disabledTitle = streaming ? xt('dialog.disabledBusy') : !exportable ? xt('dialog.disabledEmpty') : undefined;
 
   // a new session starts with a clean dialog; a draft still being written for the old one is dropped
   useEffect(() => {

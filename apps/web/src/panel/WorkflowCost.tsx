@@ -76,14 +76,14 @@ function Driver({ p, label, edit, value }: {
   const [error, setError] = useState<StringKey | null>(null);
   useEffect(() => { setDraft(value === undefined ? '' : String(value)); }, [value]);
   const bool = edit.map === 'steps' && (edit.field === 'thinking' || edit.field === 'offline');
-  const apply = (reset = false) => {
-    const input = reset || draft === '' ? undefined : bool ? draft === 'true' : Number(draft);
+  const apply = (reset = false, nextDraft = draft) => {
+    const input = reset || nextDraft === '' ? undefined : bool ? nextDraft === 'true' : Number(nextDraft);
     const result = applyEstimateEdit(p.estimateSettings, { ...edit, value: input } as EstimateEdit, p.workflow);
     if (!result.ok) { setError(result.key); return; }
     setError(null); p.actions.setWorkflowEstimate(result.value);
   };
   return <fieldset disabled={p.disabled} className="wf-driver"><legend>{label}</legend>
-    {bool ? <select aria-label={label} value={draft} onChange={(e) => setDraft(e.target.value)}>
+    {bool ? <select aria-label={label} value={draft} onChange={(e) => { setDraft(e.target.value); apply(false, e.target.value); }}>
       <option value="">{p.t('workflow.cost.reset')}</option><option value="true">{p.t('workflow.cost.enabled')}</option>
       <option value="false">{p.t('workflow.cost.disabled')}</option></select>
       : <input aria-label={label} aria-describedby={error ? id : undefined} aria-invalid={!!error} type="number"
