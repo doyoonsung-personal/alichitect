@@ -395,6 +395,16 @@ test('workflow user content handles missing and empty workflows, defaults and me
   assert.equal(fenced.match(/<\/user_message>/g)?.length, 1);
 });
 
+test('workflow user content names the reply language for non-Latin messages, as the cloud path does', () => {
+  // Live ko/zh eval (2026-11-03): without this line say and assume text came back in English.
+  const memory = createMemory();
+  const ko = workflowUserContent(memory, '공급업체 인보이스를 PO, 입고와 대조해 ERP에 등록하는 에이전트를 만들어 주세요');
+  assert.match(ko, /REPLY LANGUAGE: Korean\n\nUSER MESSAGE:/);
+  assert.match(workflowUserContent(memory, '搭建一个客服邮件分诊代理'), /REPLY LANGUAGE: Chinese/);
+  assert.doesNotMatch(workflowUserContent(memory, 'Triage support emails'), /REPLY LANGUAGE/);
+  assert.match(buildWorkflowSystemPrompt(loadCatalog(), loadModels()), /language of the\nuser's latest message; a REPLY LANGUAGE line names it/);
+});
+
 test('workflow tombstones retain at most 30 newest distinct removed elements, including links and groups', () => {
   const memory = createMemory();
   memory.workflow = { nodes: { live: { id: 'live', kind: 'trigger', label: 'Current' } }, edges: {}, groups: {} };

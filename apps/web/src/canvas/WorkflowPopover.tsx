@@ -26,11 +26,11 @@ export function WorkflowPopover(p: {
     onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) p.machine.releaseHold(); }}
     onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); p.close(); } }}>
     <button onClick={p.close}>{t('panel.collapse')}</button><h3>{n.label}</h3>
-    <p>{t('workflow.kind.' + n.kind as 'workflow.kind.ai')}{n.task && ' ? ' + t('workflow.task.' + n.task as 'workflow.task.generate')}</p>
+    <p>{t('workflow.kind.' + n.kind as 'workflow.kind.ai')}{n.task && ' · ' + t('workflow.task.' + n.task as 'workflow.task.generate')}</p>
     {n.why && <p>{n.why}</p>}
     {n.on && <p>{t('workflow.pop.attachedTo', { step: workflow.nodes[n.on]?.label ?? n.on })}</p>}
     {n.subject && <p>{t('workflow.pop.subject', { step: workflow.nodes[n.subject]?.label ?? n.subject })}</p>}
-    {p.card.model && <p>{p.card.model} ? {t('workflow.model.candidate')}</p>}
+    {p.card.model && <p>{p.card.model} · {t('workflow.model.candidate')}</p>}
     {p.card.badges.map((b) => <p key={b}>{b}</p>)}
     {n.approval && <p>{t('workflow.pop.approval')}: {t(n.approval === 'required' ? 'workflow.badge.approval' : 'workflow.badge.waived')}</p>}
     {!!p.card.hidden.length && <section><h4>{t('workflow.attachments.title', { step: n.label })}</h4>
@@ -39,7 +39,7 @@ export function WorkflowPopover(p: {
       </li>)}</ul></section>}
     <ul>{Object.values(workflow.edges).filter((e) => e.from === n.id).map((e) =>
       <li key={e.id}>{e.label ?? t('workflow.edge.' + (e.kind ?? 'next') as 'workflow.edge.next', { n: e.max ?? 0 })}
-        {e.outcome && ' ? ' + t('workflow.outcome.' + e.outcome as 'workflow.outcome.approve')}
+        {e.outcome && ' · ' + t('workflow.outcome.' + e.outcome as 'workflow.outcome.approve')}
         {' → ' + (workflow.nodes[e.to]?.label ?? e.to)}</li>)}</ul>
   </div>, document.body);
 }

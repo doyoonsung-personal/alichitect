@@ -19,8 +19,8 @@ export function WorkflowPanel(p: WorkflowPanelProps) {
     <div id="products-body" className="pp__body" inert={!p.open}>
       <ol>{model.rows.map((row) => <li key={row.id}>
         <button onClick={() => show(row.id)} aria-label={t('workflow.show', { step: row.label })}>{row.label}</button>
-        <p>{row.kind} ? {row.task}{row.host && ' ? ' + t('workflow.pop.attachedTo', { step: row.host })}</p>
-        {row.model && <p>{row.model} ? {t('workflow.model.candidate')}</p>}
+        <p>{row.kind} · {row.task}{row.host && ' · ' + t('workflow.pop.attachedTo', { step: row.host })}</p>
+        {row.model && <p>{row.model} · {t('workflow.model.candidate')}</p>}
         <p>{row.services}</p><p>{row.why}</p>
         {row.repeat && <p>{t('workflow.badge.repeat', { over: p.workflow.groups[row.repeat]?.over ?? row.repeat })}</p>}
       </li>)}</ol>

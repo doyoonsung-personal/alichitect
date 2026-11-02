@@ -3,7 +3,7 @@ import type { Catalog, SessionMemory, WorkflowEdge, WorkflowGraph, WorkflowGroup
 import type { ModelTable } from './models.ts';
 import { approvalRuleText } from './approval.ts';
 import { isRecommendable, PROMPT_ROW_FORMAT } from './catalog.ts';
-import { formatAssumptions, formatQuestions, formatRequirements } from './prompt.ts';
+import { detectReplyLanguage, formatAssumptions, formatQuestions, formatRequirements } from './prompt.ts';
 import { makeLink, makeStep } from './workflow.ts';
 
 // Fixed subset: all recommendable international rows in these six lanes, plus these runtime, messaging and support ids.
@@ -186,7 +186,9 @@ function rules(): string[] {
     'State private API authentication and FC VPC access when needed. Gate consequential decisions on every path, including low-risk branches.',
     'Never write prices or cost figures: the app computes estimates. Never name the model that writes the reply or its provider/backend.',
     'Model names in designed steps refer only to the model table. Recommend only catalog ids from the subset below; emit gap when none fits.',
-    'Map competitor workflow shapes onto Alibaba products without claiming feature parity. Answer in the user\'s language.',
+    'Map competitor workflow shapes onto Alibaba products without claiming feature parity.',
+    'Write all readable text (say, step labels and why, assume, ask and its options, req, gap, done) in the language of the',
+    'user\'s latest message; a REPLY LANGUAGE line names it. Ids, enum values, product names and model names stay as written.',
   ];
 }
 
@@ -287,6 +289,8 @@ export function workflowUserContent(memory: SessionMemory, ask: string): string 
   if (asked) parts.push(asked);
   if (Object.keys(memory.graph.nodes).length) parts.push('A cloud deployment diagram exists for this session.');
   const text = ask.trim().replace(/<\/?\s*user_message\s*>/gi, ' ');
+  const lang = detectReplyLanguage(text);
+  if (lang) parts.push(`REPLY LANGUAGE: ${lang}`);
   parts.push(`USER MESSAGE:\n<user_message>\n${text}\n</user_message>`);
   return parts.join('\n\n');
 }

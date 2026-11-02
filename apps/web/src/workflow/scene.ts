@@ -61,7 +61,7 @@ export function buildWorkflowScene(input: {
     e.label, e.outcome ? t('workflow.outcome.' + e.outcome as 'workflow.outcome.approve') : '',
     layout.source.workflow.routes[e.id]?.loop && e.max !== undefined ? t('workflow.edge.loop', { n: e.max }) : '',
     e.kind === 'escalate' ? t('workflow.edge.escalate') : '',
-  ].filter(Boolean).join(' ? ')]));
+  ].filter(Boolean).join(' · ')]));
   const rects = [...cards, ...brackets];
   const bounds = { ...layout.source.bounds, h: Math.max(0, ...rects.map((r) => r.y + r.h)) };
   return { cards, brackets, edgeLabels, byId: new Map(cards.map((c) => [c.id, c])),
