@@ -1,6 +1,7 @@
 // Saved sessions in localStorage under "ab.sessions.v1". Every read and write is wrapped, because storage can be
 // missing (private window, blocked site data), full (quota), or hold something that is not ours (corruption, an older
 // shape). The app works without it; a failed save is reported to the caller, never thrown.
+import { failedRevision } from './reducer.ts';
 import type { SessionMemory } from '@ali/core/types.ts';
 import { layoutWorkflow } from '@ali/core/workflow-layout.ts';
 import type { WorkflowLayoutState } from '@ali/core/workflow-layout.ts';
@@ -23,6 +24,15 @@ function savedWorkflowLayout(v: unknown, memory: SessionMemory): WorkflowLayoutS
     const layout = v as unknown as WorkflowLayoutState;
     const rebuilt = layoutWorkflow(memory.workflow, layout);
     if (Object.values(rebuilt.workflow.cells).some((c) => !Number.isFinite(c.column) || !Number.isFinite(c.row))) return;
+    if (![rebuilt.width, rebuilt.height, ...Object.values(rebuilt.cards).flatMap((c) => [c.x, c.y, c.w, c.h])]
+      .every(Number.isFinite)) return;
+    const occupied = new Set<string>();
+    for (const [id, cell] of Object.entries(rebuilt.workflow.cells)) {
+      if (rebuilt.workflow.roles[id] !== 'inline') continue;
+      const key = `${cell.column}:${cell.row}`;
+      if (occupied.has(key)) return;
+      occupied.add(key);
+    }
     return layout;
   } catch { return; }
 }
@@ -50,7 +60,7 @@ export function reviveSession(v: unknown): SessionRecord | null {
   const revisions: Revision[] = [];
   for (const r of v.revisions) {
     if (!validRevision(r)) return null;
-    revisions.push(r.status === 'waiting' || r.status === 'streaming' ? { ...r, status: 'stopped', changes: [], statusLine: null } : r);
+    revisions.push(r.status === 'waiting' || r.status === 'streaming' ? failedRevision(r, 'stopped', null) : r);
   }
   const workflowLayout = savedWorkflowLayout(v.workflowLayout, v.memory);
   return {

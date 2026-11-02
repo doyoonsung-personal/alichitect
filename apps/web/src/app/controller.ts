@@ -336,10 +336,14 @@ export function createController(store: Store, env: ControllerEnv): Controller {
       d({ type: 'workflow/estimate', next, now: env.now() });
       saveSession();
     },
-    tidyWorkflowView() { d({ type: 'workflow/tidy' }); },
+    tidyWorkflowView() {
+      if (st().work || st().replay) return;
+      d({ type: 'workflow/tidy' });
+      saveSession();
+    },
     setMode(mode) {
       d({ type: 'session/mode', mode });
-      if (!st().replay) saveSession();
+      if (!st().work && !st().replay) saveSession();
     },
     setLanguage(lang) {
       env.setLanguage(lang);
@@ -348,11 +352,11 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     setCanvasSize: (size) => d({ type: 'canvas/size', size }),
     unpin(text) {
       d({ type: 'req/unpin', text, now: env.now() });
-      if (!st().replay) saveSession();
+      if (!st().work && !st().replay) saveSession();
     },
     undoUnpin() {
       d({ type: 'req/undo' });
-      if (!st().replay) saveSession();
+      if (!st().work && !st().replay) saveSession();
     },
     setPanelOpen: (open) => d({ type: 'ui/panel', open }),
     setFocusDiagram: (on) => d({ type: 'ui/focusDiagram', on }),

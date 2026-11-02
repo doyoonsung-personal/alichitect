@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { useAppState, useCatalog, useController, useT } from '../store/react.tsx';
 import { assumptionViews } from '../store/asks.ts';
 import {
-  activeDocument, activeNodeCount, canExport, buildMarks, headerMode, isSolutionMap,
+  activeDocument, activeNodeCount, activeHighlight, activePan, canExport, buildMarks, headerMode, isSolutionMap,
   isStreaming, productCount, requirements, summaryView, taggedRevision,
 } from '../store/selectors.ts';
 import { catalog as bundled } from '../catalog/catalog.ts';
@@ -24,6 +24,7 @@ const s = {
 };
 
 export function useConsoleProps(): ConsoleProps {
+  const catalog = useCatalog();
   const { lang, t } = useT();
   const c = useController();
   const session = useAppState(s.session);
@@ -53,7 +54,7 @@ export function useConsoleProps(): ConsoleProps {
     }),
     [c, lang],
   );
-  const requirementList = useMemo(() => requirements({ session, work } as AppState), [session, work]);
+  const requirementList = useMemo(() => requirements({ session, work } as AppState, catalog), [session, work, catalog]);
   const summary = useMemo(() => summaryView({ session } as AppState), [session]);
   const assumptions = useMemo(() => assumptionViews(session, work), [session, work]);
   const latest = session.revisions.length ? [...session.revisions].reverse().find((r) => r.status === 'done') : undefined;
@@ -108,8 +109,8 @@ export function useCanvasProps(): CanvasProps {
       finishing: session.revisions.at(-1)?.finishing === true,
       blank: !streaming && !display.layout && (session.revisions.at(-1)?.status === 'failed' || session.revisions.at(-1)?.status === 'stopped'),
       streaming,
-      highlight: ui.highlight,
-      panTo: ui.panTo,
+      highlight: activeHighlight({ session, ui } as AppState),
+      panTo: activePan({ session, ui } as AppState),
       hoverCard: ui.hoverCard,
       provenance: session.provenance,
       focusDiagram: ui.focusDiagram,
@@ -144,12 +145,12 @@ export function usePanelProps(): PanelProps {
       revisions: session.revisions,
       provenance: session.provenance,
       latestCommitted: latest ? latest.n : null,
-      highlight: ui.highlight,
+      highlight: activeHighlight({ session, ui } as AppState),
       catalogVersion: conn.health?.catalog.version ?? bundled.version,
       streaming,
       actions,
     }),
-    [lang, t, catalog, ui.panelOpen, ui.highlight, display, solution, count, session.revisions, session.provenance, latest, conn.health, streaming, actions],
+    [lang, t, catalog, ui.panelOpen, ui.highlight, display, solution, count, session, latest, conn.health, streaming, actions],
   );
 }
 

@@ -357,6 +357,11 @@ export function canAnswer(phase: TurnStatus['phase'], replay: boolean): boolean 
 // ---------- the fix block (7.11) ----------
 
 const FIX_KEY = {
+  'wf-mixed-out': 'workflow.fix.mixedOut',
+  'wf-cycle': 'workflow.fix.cycle',
+  'wf-agent-turns': 'workflow.fix.agentTurns',
+  'wf-attach-form': 'workflow.fix.attachForm',
+  'wf-dangling-ref': 'workflow.fix.danglingRef',
   'attach-inline': 'fix.attachInline',
   'zone-replicas': 'fix.zoneReplicas',
   'missing-group': 'fix.missingGroup',
@@ -371,7 +376,8 @@ export function autoFixLines(fixes: readonly AutoFix[], t: TFn): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
   for (const f of fixes) {
-    const key = Object.hasOwn(FIX_KEY, f.code) ? FIX_KEY[f.code as keyof typeof FIX_KEY] : 'fix.generic';
+    const key = Object.hasOwn(FIX_KEY, f.code) ? FIX_KEY[f.code as keyof typeof FIX_KEY]
+      : f.view === 'workflow' ? 'workflow.fix.generic' : 'fix.generic';
     if (seen.has(key)) continue;
     seen.add(key);
     out.push(t(key));

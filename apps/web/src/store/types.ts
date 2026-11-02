@@ -232,6 +232,7 @@ export interface TurnWork {
   /** Ops changed the raw graph since the last flush. */
   dirty: boolean;
   batches: number;
+  workflowAnnouncement?: { text: string; at: number };
   /** say text by `${phase}:${id}`, in arrival order. */
   says: Record<string, string>;
   sayOrder: string[];
@@ -304,7 +305,7 @@ export interface UiState {
   focusDiagram: boolean;
   highlight: Highlight | null;
   /** A request to pan the canvas to these ids (click or Enter on a line, a tag or a row). `seq` makes repeats distinct. */
-  panTo: { ids: string[]; seq: number } | null;
+  panTo: { ids: string[]; seq: number; view?: TurnMode } | null;
   /** A request to scroll the record to a revision (a revision tag on the canvas, a Rev. cell in the panel). */
   reveal: { revision: number; seq: number } | null;
   /** The card the user is pointing at or has focused, for the popover. */
