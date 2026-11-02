@@ -21,9 +21,10 @@ const ROOT = path.resolve(HERE, '../../..');
 const CAT = loadCatalog();
 
 describe('pricing', () => {
-  test('the qwen rows equal llm.ts PRICES (authoritative); flash creation is 0.1875; unknown models get the conservative price', () => {
+  test('the qwen rows equal llm.ts PRICES (authoritative); flash creation is the published 0.20; unknown models get the conservative price', () => {
     for (const [model, p] of Object.entries(llm.PRICES)) assert.deepEqual(PRICES[model], p, model);
-    assert.equal(PRICES['qwen3.8-flash'].explicitCreate, 0.1875);
+    assert.equal(PRICES['qwen3.8-flash'].explicitCreate, 0.2);
+    assert.equal(PRICES['qwen3.7-plus'].explicitHit, 0.04);
     assert.deepEqual(priceOf('some-new-model'), UNKNOWN_PRICE);
     assert.deepEqual(priceOf('constructor'), UNKNOWN_PRICE, 'no prototype keys');
     for (const judge of ['kimi-k3', 'deepseek-v4-pro', 'glm-5.3']) assert.deepEqual(PRICES[judge], UNKNOWN_PRICE, judge);

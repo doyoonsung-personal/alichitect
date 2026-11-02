@@ -23,12 +23,14 @@ export const PRICES: Record<string, Price> = {
   'qwen3.8-max': { in: 2, out: 6, implicitHit: 0.25, explicitHit: 0.17, explicitCreate: 2.5 },
   // Snapshot of qwen3.8-max (ask.ts lists it at the same input, output and cache-hit prices).
   'qwen3.8-max-0902': { in: 2, out: 6, implicitHit: 0.25, explicitHit: 0.17, explicitCreate: 2.5 },
-  // Only the cache-hit price was given for flash; creation is assumed at 125% of input, as for max.
-  'qwen3.8-flash': { in: 0.15, out: 0.47, implicitHit: 0.016, explicitHit: 0.016, explicitCreate: 0.1875 },
+  // International prices checked against the model page on 2026-11-02 (research/ai-workflows/verify/NOTES.md, Adjudicate-2):
+  // explicit creation is $0.20, not the 125%-of-input guess, and explicit and implicit hits are both $0.016.
+  'qwen3.8-flash': { in: 0.15, out: 0.47, implicitHit: 0.016, explicitHit: 0.016, explicitCreate: 0.2 },
   // Fallback model. Its cache price was not researched, so hits are billed at the full input price (an overstatement).
   'qwen3.7-max': { in: 2.5, out: 7.5, implicitHit: 2.5, explicitHit: 2.5, explicitCreate: 3.125 },
-  // ask.ts row (input, output, implicit hit). Explicit caching is not used with it: explicit hit = implicit hit, creation 125% of input.
-  'qwen3.7-plus': { in: 0.4, out: 1.6, implicitHit: 0.08, explicitHit: 0.08, explicitCreate: 0.5 },
+  // International, input up to 256K, checked on 2026-11-02 (NOTES.md, Adjudicate-3): implicit hit $0.08, explicit read $0.04,
+  // explicit creation $0.50.
+  'qwen3.7-plus': { in: 0.4, out: 1.6, implicitHit: 0.08, explicitHit: 0.04, explicitCreate: 0.5 },
   // Claude backup (claude.ts), Anthropic first-party list prices from the claude-api skill (cached 2026-10-06). Mapped onto
   // these fields: implicitHit and explicitHit are the cache-read price, explicitCreate the 5-minute cache-write price.
   // claude-opus-5-5: $4 in, $20 out, cache reads $0.20, 5-minute writes $5.

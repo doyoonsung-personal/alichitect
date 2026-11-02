@@ -195,7 +195,7 @@
     "id": "need-10-build-agents",
     "category": "need",
     "title": "Build and govern our own agents",
-    "reference": "AgentCore as the build and governance platform; Model Studio models; AgentRun runtime and AgentBay sandboxes; AI Gateway for MCP and LLM traffic; Agent Security Center and AI Guardrails; AgentLoop for observability.",
+    "reference": "AgentCore as the build and governance platform; Model Studio models; AgentRun runtime and Agent Sandbox for tool execution (AgentBay closed to new customers on 2026-11-02); AI Gateway for MCP and LLM traffic; Agent Security Center and AI Guardrails; AgentLoop for observability.",
     "turns": [
       {
         "ask": "We want to build and govern our own enterprise AI agents, with tools, MCP servers and human approval steps.",
