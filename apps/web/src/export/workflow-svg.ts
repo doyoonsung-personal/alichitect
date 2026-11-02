@@ -1,6 +1,7 @@
 // Vector-only workflow serialization from p5's pure presentation models.
 import type { Rect } from '@ali/core/layout.ts';
-import type { WorkflowScene } from '../workflow/scene.ts';
+import type { WorkflowCardView, WorkflowScene } from '../workflow/scene.ts';
+import { workflowTitle } from '../workflow/layout-adapter.ts';
 import type { WorkflowEdgeDrawing } from '../workflow/edges.ts';
 import { workflowGlyph } from '../workflow/glyphs.ts';
 import { iconMarkup } from './svg.ts';
@@ -13,6 +14,43 @@ export interface WorkflowSvgInput {
   legend: WorkflowLegendText; tile?: boolean;
 }
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+export type WorkflowCardFonts = Pick<SvgFonts, 'width' | 'metrics'>;
+export function workflowCardContent(c: WorkflowCardView, fonts: WorkflowCardFonts) {
+  const metrics = fonts.metrics();
+  const texts: Array<{ x: number; y: number; value: string; px: number; weight: Weight }> = [];
+  const chips: Rect[] = [];
+  const title = workflowTitle(c.label, (s, px) => fonts.width(s, px, 500), c.w - (c.approval ? 64 : 44));
+  const titleHeight = Math.max(title.px * 1.25, title.px * (metrics.ascent + metrics.descent));
+  let top = 8;
+  for (const value of title.lines) {
+    texts.push({ x: 34, y: top + title.px * metrics.ascent, value, px: title.px, weight: 500 });
+    top += titleHeight;
+  }
+  top = Math.max(34, top + 4);
+  const room = c.w - 20 - (c.kind === 'human' ? 24 : 0);
+  // Step headings and runtime rows in the PDF refer to raw IDs.
+  const rows = [{ value: c.id, chip: false }, { value: c.product ?? '', chip: false },
+    { value: c.model ?? '', chip: true }, ...c.badges.map((value) => ({ value, chip: false })),
+    { value: c.hidden.length ? `+${c.hidden.length}` : '', chip: true }];
+  for (const row of rows.filter((r) => r.value)) {
+    const lines: string[] = []; let line = '';
+    for (const ch of row.value) {
+      if (line && fonts.width(line + ch, 12, 400) > room - 8) { lines.push(line); line = ''; }
+      line += ch;
+    }
+    if (line) lines.push(line);
+    const lh = Math.max(18, 12 * (metrics.ascent + metrics.descent));
+    const height = lines.length * lh + (row.chip ? 6 : 0);
+    if (row.chip) chips.push({ x: 6, y: top,
+      w: Math.max(...lines.map((s) => fonts.width(s, 12, 400))) + 8, h: height });
+    for (const value of lines) {
+      texts.push({ x: 10, y: top + (row.chip ? 3 : 0) + 12 * metrics.ascent, value, px: 12, weight: 400 });
+      top += lh;
+    }
+    if (row.chip) top += 6;
+  }
+  return { texts, chips, h: Math.ceil(Math.max(60, top + 8) / 2) * 2 };
+}
 export function renderWorkflowSvg(i: WorkflowSvgInput): DiagramSvg {
   const { fonts, bounds: b } = i;
   const parts: string[] = [];
@@ -25,15 +63,6 @@ export function renderWorkflowSvg(i: WorkflowSvgInput): DiagramSvg {
       parts.push(`<text x="${start}" y="${y}" font-family="${esc(r.face || 'sans')}" font-size="${px}" fill="${color}">${esc(r.text.trim())}</text>`);
       x += r.width * px; runs++;
     }
-  }
-  function lines(value: string, width: number, px: number): string[] {
-    const result: string[] = []; let line = '';
-    for (const ch of value) {
-      if (line && fonts.width(line + ch, px, 400) > width) { result.push(line); line = ''; }
-      line += ch;
-    }
-    if (line) result.push(line);
-    return result;
   }
   const cards = i.scene.cards.filter((c) => !i.tile || inside(c));
   const brackets = i.scene.brackets.filter((c) => !i.tile || inside(c));
@@ -61,16 +90,11 @@ export function renderWorkflowSvg(i: WorkflowSvgInput): DiagramSvg {
     parts.push(`<g data-kind="card" data-id="${esc(c.id)}"><rect x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}"`
       + ' rx="5" fill="#ffffff" stroke="#94a3b8"/>');
     parts.push(iconMarkup(workflowGlyph(c.kind), c.x + 8, c.y + 10, 22, '#334155').replaceAll('currentColor', '#334155'));
-    let y = c.y + 12 + c.titlePx;
-    for (const line of c.titleLines) { text(c.x + 34, y, line, c.titlePx, 500); y += c.titlePx + 4; }
-    for (const value of [c.id, c.product, c.model, ...c.badges, c.hidden.length ? `+${c.hidden.length}` : ''].filter(Boolean)) {
-      const wrapped = lines(value!, c.w - 20, 12);
-      if (value === c.model || value === `+${c.hidden.length}`) {
-        const width = Math.min(c.w - 16, Math.max(...wrapped.map((line) => fonts.width(line, 12, 400))) + 8);
-        parts.push(`<rect x="${c.x + 6}" y="${y}" width="${width}" height="${wrapped.length * 16}" rx="3" fill="#f1f5f9"/>`);
-      }
-      for (const line of wrapped) { text(c.x + 10, y + 12, line); y += 16; }
+    const content = workflowCardContent(c, fonts);
+    for (const r of content.chips) {
+      parts.push(`<rect x="${c.x + r.x}" y="${c.y + r.y}" width="${r.w}" height="${r.h}" rx="3" fill="#f1f5f9"/>`);
     }
+    for (const t of content.texts) text(c.x + t.x, c.y + t.y, t.value, t.px, t.weight);
     if (c.approval) parts.push(`<path d="M${c.x + c.w - 19} ${c.y + 10} v-3 a3 3 0 0 1 6 0 v3 m-8 0 h10 v8 h-10 Z" fill="none" stroke="#334155"/>`);
     if (c.kind === 'human') {
       parts.push(`<circle cx="${c.x + c.w - 16}" cy="${c.y + c.h - 16}" r="7" fill="none" stroke="#64748b"/>`);
