@@ -7,6 +7,10 @@ import { catalog, loadFixtureFile, play } from '../test/fixtures.ts';
 import type { Lang } from '../i18n/t.ts';
 import { buildProposal, defaultTitle, isoDate, modelStrings } from './model.ts';
 import type { ProposalModel } from './model.ts';
+import { estimateWorkflow } from '@ali/core/workflow-estimate.ts';
+import { createModelTable } from '@ali/core/models.ts';
+import type { ModelFile } from '@ali/core/models.ts';
+import modelFile from '@ali/catalog/models.json' with { type: 'json' };
 import { makeXT } from './strings.ts';
 
 const NOW = new Date(2026, 9, 31, 12, 0, 0);
@@ -209,4 +213,88 @@ test('with fewer than half of the needs stated the needs page is headed as typic
   assert.deepEqual(en.narrative!.needs.map((x) => x.sourceText), ['“stay in Singapore”']);
   const ko = buildProposal({ session: s.session, graph: s.display.graph, layout: s.display.layout, catalog, lang: 'en', now: NOW, draft: { ...draft, needs: [{ id: 'a', need: 'n', source: 'stated', quote: '데이터', answer: 'a', products: [] }] } });
   assert.deepEqual(ko.narrative!.needs.map((x) => x.sourceText), ['“데이터” (original wording)']);
+});
+
+
+function workflowState(): AppState {
+  const s = createInitialState({ lang: 'en', canvas: { w: 1040, h: 800 }, id: 'workflow', now: 0 });
+  s.session.memory.workflow = {
+    nodes: {
+      start: { id: 'start', kind: 'trigger', label: 'Incoming request', product: 'eventbridge' },
+      draft: { id: 'draft', kind: 'ai', label: 'Draft answer', task: 'generate', ai: 'qwen3.5-plus', product: 'model-studio', runs: 'fc' },
+      review: { id: 'review', kind: 'human', label: 'Review answer', runs: 'customer' },
+      docs: { id: 'docs', kind: 'knowledge', label: 'Read articles', on: 'draft', product: 'tablestore' },
+      end: { id: 'end', kind: 'end', label: 'Finished' },
+    },
+    edges: {
+      a: { id: 'a', from: 'start', to: 'draft' }, b: { id: 'b', from: 'draft', to: 'review' },
+      c: { id: 'c', from: 'review', to: 'end' },
+    }, groups: {},
+  };
+  s.session.memory.estimate = { runsPerMonth: 1200, steps: { draft: { inTokens: 800, outTokens: 100 } } };
+  s.session.memory.assumptions = [{ id: 'a', text: 'Staff review every answer', alt: 'Review selected answers' }];
+  s.session.memory.questions = [{ id: 'q', text: 'Which team reviews?', options: ['Support', 'Operations'] }];
+  return s;
+}
+
+test('workflow export costs come from the estimator, with scenarios, coverage, exclusions and settings', () => {
+  const s = workflowState();
+  const before = structuredClone(s);
+  const m = modelOf(s);
+  const expected = estimateWorkflow(s.session.memory.workflow!, createModelTable(modelFile as ModelFile), catalog, s.session.memory.estimate);
+  assert.deepEqual(m.workflow!.cost, expected);
+  assert.equal(m.workflow!.cost.runsPerMonth, 1200);
+  assert.ok(m.workflow!.cost.typical.perRunUsd > 0);
+  assert.equal(m.workflow!.cost.typical.monthlyUsd, m.workflow!.cost.typical.perRunUsd * 1200);
+  assert.ok(m.workflow!.cost.upper.monthlyUsd >= m.workflow!.cost.typical.monthlyUsd);
+  assert.ok(m.workflow!.cost.coverage.length > 0);
+  assert.ok(m.workflow!.cost.unpriced.some((x) => x.id === 'review:human'));
+  assert.notEqual(m.mode, 'empty');
+  assert.equal(m.narrative, undefined);
+  assert.deepEqual(s, before, 'building the export never changes the session');
+});
+
+test('workflow mapping, business explanations and open questions are available for PDF layout', () => {
+  const s = workflowState();
+  const m = buildProposal({ session: s.session, graph: s.display.graph, layout: null, catalog, lang: 'en', now: NOW,
+    draft: { lang: 'en', exec: 'Support staff can focus on complex requests.', needs: [], outcomes: [], why: {},
+      steps: { draft: 'Draft an answer for staff to review.', review: 'Check the answer before sending.', unknown: 'Ignore.' },
+      tradeoffs: [], next: [], complete: true },
+  });
+  assert.deepEqual(m.workflow!.steps.map((x) => x.id), ['draft', 'review']);
+  assert.equal(m.workflow!.steps[0].text, 'Draft an answer for staff to review.');
+  assert.equal(m.workflow!.mapping.find((x) => x.id === 'draft')?.runtime, catalog.byId.get('fc')!.name);
+  assert.equal(m.workflow!.mapping.find((x) => x.id === 'draft')?.service, catalog.byId.get('model-studio')!.name);
+  assert.equal(m.workflow!.mapping.find((x) => x.id === 'review')?.runtime, 'Customer environment');
+  assert.equal(m.workflow!.mapping.find((x) => x.id === 'docs')?.on, 'draft');
+  assert.ok(m.workflow!.openQuestions.some((q) => q.text.includes('Staff review every answer') && q.source === 'assumption'));
+  assert.ok(m.workflow!.openQuestions.some((q) => q.text === 'Which team reviews?' && q.source === 'question'));
+  const boundary = m.workflow!.openQuestions.filter((q) => q.source === 'boundary').map((q) => q.text).join(' ');
+  assert.match(boundary, /fields leave/);
+  assert.match(boundary, /identity reads/);
+  assert.match(boundary, /retained/);
+  assert.equal(m.narrative!.pricingNote, null);
+  assert.ok(modelStrings(m).includes(m.workflow!.steps[0].text));
+});
+
+test('mixed exports include workflow catalog entries; cloud-only exports keep their shape', () => {
+  const s = stateOf('residency');
+  assert.equal(Object.hasOwn(modelOf(s), 'workflow'), false);
+  s.session.memory.workflow = workflowState().session.memory.workflow;
+  const m = modelOf(s);
+  assert.ok(m.components.some((c) => c.product === 'fc'));
+  assert.ok(m.components.some((c) => c.product === 'model-studio'));
+  assert.equal(new Set(m.components.map((c) => c.product)).size, m.components.length);
+  assert.ok(m.connections.length > 0);
+});
+
+test('workflow data-boundary questions are localized without drafting', () => {
+  for (const lang of ['en', 'ko', 'zh'] as const) {
+    const s = workflowState();
+    s.lang = lang;
+    const m = modelOf(s);
+    const xt = makeXT(lang);
+    assert.ok(m.workflow!.openQuestions.some((q) => q.text === xt('workflow.fields')));
+    assert.equal(m.workflow!.questionsTitle, xt('workflow.questions'));
+  }
 });

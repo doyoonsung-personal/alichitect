@@ -2,7 +2,12 @@
 // catalog. Nothing here draws or measures. Names, reasons, prices and links come from the same builders the console,
 // the canvas popover and the products panel use, so the document says what the screen says. A drafted narrative
 // (POST /api/proposal), when there is one, adds the business "why" on top; without one the model is exactly as before.
-import type { Catalog, CatalogEntry, Graph, NeedSource, ProposalDraft } from '@ali/core/types.ts';
+import type { Catalog, CatalogEntry, Graph, NeedSource, ProposalDraft, SessionMemory } from '@ali/core/types.ts';
+import { estimateWorkflow } from '@ali/core/workflow-estimate.ts';
+import type { WorkflowEstimate } from '@ali/core/workflow-estimate.ts';
+import { createModelTable } from '@ali/core/models.ts';
+import type { ModelFile } from '@ali/core/models.ts';
+import modelFile from '@ali/catalog/models.json' with { type: 'json' };
 import type { LayoutState } from '@ali/core/layout.ts';
 import { regionLabel } from '@ali/core/regions.ts';
 import type { Lang } from '../i18n/t.ts';
@@ -150,6 +155,16 @@ export interface RevisionEntry {
   applied: boolean;
 }
 
+export interface WorkflowProposalModel {
+  steps: Array<{ id: string; label: string; text: string }>;
+  cost: WorkflowEstimate;
+  costTitle: string;
+  mapping: Array<{ id: string; label: string; runtime: string; service: string; on?: string }>;
+  mappingTitle: string;
+  openQuestions: Array<{ source: 'assumption' | 'question' | 'boundary'; text: string; options: string[] }>;
+  questionsTitle: string;
+}
+
 export interface ProposalModel {
   lang: Lang;
   title: string;
@@ -170,6 +185,8 @@ export interface ProposalModel {
   revisions: RevisionEntry[];
   /** Present only when a drafted narrative was given. */
   narrative?: NarrativeModel;
+  /** Generated workflow data; phase 7b supplies the PDF layout. */
+  workflow?: WorkflowProposalModel;
 }
 
 const pad = (n: number): string => String(n).padStart(2, '0');
@@ -267,6 +284,18 @@ export function buildProposal(i: ProposalInput): ProposalModel {
       });
     }
   }
+  for (const n of Object.values(mem.workflow?.nodes ?? {})) {
+    for (const product of [n.product, n.runs]) {
+      if (!product || product === 'customer' || byProduct.has(product)) continue;
+      const e = catalog.byId.get(product);
+      if (!e || e.kind === 'construct') continue;
+      order.push(product);
+      byProduct.set(product, {
+        id: n.id, product, name: e.name, short: e.short, category: e.category,
+        roles: [], what: e.purpose, notes: cautionOf(e, lang), price: priceText(e, xt), docs: safeHttps(e.docs),
+      });
+    }
+  }
   const components = order.map((p) => byProduct.get(p)!);
 
   // ---- recommendations (product-need answers) ----
@@ -343,7 +372,9 @@ export function buildProposal(i: ProposalInput): ProposalModel {
   });
 
   // ---- the drafted narrative ----
+  const workflow = buildWorkflow(mem, catalog, xt, i.draft);
   const narrative = i.draft ? buildNarrative(i.draft, components, recs, xt, lang) : null;
+  if (workflow && narrative) narrative.pricingNote = null;
   if (i.draft) {
     for (const c of components) {
       const w = i.draft.why[c.product]?.trim();
@@ -363,9 +394,9 @@ export function buildProposal(i: ProposalInput): ProposalModel {
     date: isoDate(i.now),
     dateText: longDate(i.now, lang),
     catalogDate: catalog.version,
-    mode: components.length === 0 && recs.length === 0 ? 'empty' : solution ? 'solution' : 'architecture',
+    mode: !workflow && components.length === 0 && recs.length === 0 ? 'empty' : solution ? 'solution' : 'architecture',
     revisionsDone: doneRevs,
-    productCount: products,
+    productCount: workflow ? new Set([...components.map((c) => c.product), ...recs.map((r) => r.product)]).size : products,
     summary,
     components,
     recs,
@@ -373,6 +404,37 @@ export function buildProposal(i: ProposalInput): ProposalModel {
     connections,
     revisions,
     ...(narrative ? { narrative } : {}),
+    ...(workflow ? { workflow } : {}),
+  };
+}
+
+function buildWorkflow(mem: SessionMemory, catalog: Catalog, xt: XT, draft?: ProposalDraft | null): WorkflowProposalModel | null {
+  const wf = mem.workflow;
+  if (!wf || !Object.keys(wf.nodes).length) return null;
+  const nodes = Object.values(wf.nodes);
+  const name = (id: string | undefined): string => id === 'customer'
+    ? xt('workflow.customerRuntime') : id ? catalog.byId.get(id)?.name ?? id : xt('workflow.unspecified');
+  const openQuestions: WorkflowProposalModel['openQuestions'] = [
+    ...(mem.assumptions ?? []).map((a) => ({
+      source: 'assumption' as const, text: xt('workflow.confirm', { text: a.text }), options: a.alt ? [a.text, a.alt] : [],
+    })),
+    ...(mem.questions ?? []).map((q) => ({ source: 'question' as const, text: q.text, options: q.options ?? [] })),
+    ...(['workflow.fields', 'workflow.identity', 'workflow.retention'] as const).map((key) => ({
+      source: 'boundary' as const, text: xt(key), options: [],
+    })),
+  ];
+  return {
+    steps: nodes.filter((n) => !n.on && n.kind !== 'trigger' && n.kind !== 'end').map((n) => ({
+      id: n.id, label: n.label, text: draft?.steps?.[n.id]?.trim() ?? '',
+    })),
+    cost: estimateWorkflow(wf, createModelTable(modelFile as ModelFile), catalog, mem.estimate),
+    costTitle: xt('workflow.cost'),
+    mapping: nodes.filter((n) => n.kind !== 'end').map((n) => ({
+      id: n.id, label: n.label, runtime: name(n.runs), service: name(n.product), ...(n.on ? { on: n.on } : {}),
+    })),
+    mappingTitle: xt('workflow.mapping'),
+    openQuestions,
+    questionsTitle: xt('workflow.questions'),
   };
 }
 

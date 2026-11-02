@@ -185,3 +185,21 @@ test('a draft is read defensively: bad parts are dropped, never passed on to the
   assert.equal(asDraft(null), null);
   assert.equal(asDraft({ needs: [] }), null);
 });
+
+
+test('workflow sections and step maps survive the wire; malformed fields are discarded', async () => {
+  const section: ProposalSection = { k: 'step', id: 'draft', text: 'Draft the answer with qwen3.5-plus.' };
+  assert.deepEqual(parseProposalEvent(JSON.stringify({ type: 'section', section })), { type: 'section', section });
+  assert.equal(parseProposalEvent(JSON.stringify({ type: 'section', section: { ...section, id: '' } })), null);
+  const draft = { ...DRAFT, steps: { draft: section.text, empty: '', wrong: 3 } };
+  assert.deepEqual(asDraft(draft)?.steps, { draft: section.text });
+  const seen: ProposalSection[] = [];
+  const result = await requestDraft(REQ, {
+    signal: new AbortController().signal, onSection: (s) => seen.push(s),
+    fetchImpl: (async () => streamOf([enc.encode([
+      JSON.stringify({ type: 'section', section }), JSON.stringify({ type: 'done', draft }), '',
+    ].join('\n'))])) as typeof fetch,
+  });
+  assert.deepEqual(result.steps, { draft: section.text });
+  assert.deepEqual(seen, [section]);
+});

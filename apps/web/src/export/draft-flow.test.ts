@@ -115,3 +115,26 @@ test('Try again after the PDF failed to lay out goes back to laying out with the
   const w = reduceFlow(startFlow(0, []), { type: 'failed', error: { kind: 'network', code: 'network', message: '', retryable: true }, now: 1 });
   assert.equal(reduceFlow(w, { type: 'drafted', now: 2 }).phase, 'failed');
 });
+
+
+test('workflow explanations count steps once and preserve the cloud stages for mixed sessions', () => {
+  const wf = { nodes: {
+    start: { id: 'start', kind: 'trigger' as const, label: 'Start', product: 'eventbridge' },
+    a: { id: 'a', kind: 'ai' as const, label: 'Draft', product: 'model-studio', runs: 'fc' },
+    b: { id: 'b', kind: 'human' as const, label: 'Review', runs: 'customer' },
+    tool: { id: 'tool', kind: 'tool' as const, label: 'Look up', on: 'a', product: 'tablestore' },
+    end: { id: 'end', kind: 'end' as const, label: 'End' },
+  }, edges: {}, groups: {} };
+  const products = designProducts({ nodes: { cloud: { product: 'fc' } }, recs: [{ product: 'oss' }] }, () => true, wf);
+  assert.deepEqual(products, ['fc', 'oss', 'eventbridge', 'model-studio', 'tablestore']);
+  let s = startFlow(0, products, wf, true);
+  s = run(s, [sec({ k: 'step', id: 'a', text: 'Draft an answer.' }, 100),
+    sec({ k: 'step', id: 'a', text: 'Duplicate.' }, 200), sec({ k: 'step', id: 'unknown', text: 'Unknown.' }, 300)]);
+  assert.deepEqual(s.steps, ['a', 'unknown']);
+  assert.equal(s.next, 0);
+  assert.equal(activeStep(s), 'why');
+  assert.deepEqual(stepsOf(s).find((v) => v.id === 'why')?.count, { k: 1, n: 2 });
+  assert.deepEqual(stepsOf(s).map((v) => v.id), ['read', 'exec', 'needs', 'why', 'layout']);
+  assert.equal(s.preview?.text, 'Draft an answer.');
+  assert.deepEqual(stepsOf(startFlow(0, products, wf)).find((v) => v.id === 'why')?.count, { k: 0, n: 7 });
+});

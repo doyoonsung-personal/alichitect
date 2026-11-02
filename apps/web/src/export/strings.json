@@ -141,7 +141,17 @@
     "cover.date": "Date",
     "cover.revisions": "Revisions",
     "cover.products": "Products",
-    "cover.catalog": "Catalog checked"
+    "cover.catalog": "Catalog checked",
+    "overlay.step.workflow": "Explaining the workflow",
+    "workflow.cost": "Priced usage subtotal (USD)",
+    "workflow.mapping": "Where each step runs",
+    "workflow.questions": "Open questions",
+    "workflow.customerRuntime": "Customer environment",
+    "workflow.unspecified": "Not specified",
+    "workflow.confirm": "Confirm the assumption: {text}",
+    "workflow.fields": "Which data fields leave the customer environment, and where are they sent?",
+    "workflow.identity": "Which identity reads each data store, and what access does it need?",
+    "workflow.retention": "How long are inputs, outputs, memory and logs retained, and how are they deleted?"
   },
   "ko": {
     "doc.type": "아키텍처 제안서",
@@ -285,7 +295,17 @@
     "cover.date": "날짜",
     "cover.revisions": "리비전",
     "cover.products": "제품",
-    "cover.catalog": "카탈로그 확인일"
+    "cover.catalog": "카탈로그 확인일",
+    "overlay.step.workflow": "워크플로 설명",
+    "workflow.cost": "가격이 확인된 사용량 소계 (USD)",
+    "workflow.mapping": "단계별 실행 위치",
+    "workflow.questions": "확인이 필요한 질문",
+    "workflow.customerRuntime": "고객 환경",
+    "workflow.unspecified": "미지정",
+    "workflow.confirm": "가정을 확인해 주십시오: {text}",
+    "workflow.fields": "어떤 데이터 필드가 고객 환경 밖으로 전송되며, 전송 대상은 어디입니까?",
+    "workflow.identity": "각 데이터 저장소를 읽는 계정은 무엇이며, 어떤 접근 권한이 필요합니까?",
+    "workflow.retention": "입력, 출력, 메모리 및 로그의 보관 기간과 삭제 방법은 무엇입니까?"
   },
   "zh": {
     "doc.type": "架构提案",
@@ -429,6 +449,16 @@
     "cover.date": "日期",
     "cover.revisions": "修订",
     "cover.products": "产品",
-    "cover.catalog": "目录核对时间"
+    "cover.catalog": "目录核对时间",
+    "overlay.step.workflow": "解释工作流",
+    "workflow.cost": "已定价用量小计 (USD)",
+    "workflow.mapping": "各步骤的运行位置",
+    "workflow.questions": "待确认问题",
+    "workflow.customerRuntime": "客户环境",
+    "workflow.unspecified": "未指定",
+    "workflow.confirm": "请确认假设：{text}",
+    "workflow.fields": "哪些数据字段离开客户环境，发送到哪里？",
+    "workflow.identity": "哪个身份读取各数据存储，需要什么访问权限？",
+    "workflow.retention": "输入、输出、记忆和日志保留多久，如何删除？"
   }
 }
