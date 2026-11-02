@@ -218,3 +218,77 @@ export type ServerEvent =
   | { type: 'commit'; memory: SessionMemory; changes: string; warnings: Warning[] } // final repaired state; the browser replaces its memory with it
   | { type: 'summary'; summary: string } // rolling summary after the commit; the browser stores it in memory.summary
   | { type: 'fatal'; code: string; message: string; retryable: boolean }; // the turn failed and memory is unchanged
+
+// ---------- Proposal drafting (POST /api/proposal) ----------
+
+/**
+ * POST /api/proposal body: the session as the browser holds it, plus the export dialog's cover fields. The server
+ * drafts the proposal's narrative with Qwen (packages/core/src/proposal.ts draftProposal) and streams it back.
+ */
+export interface ProposalRequest {
+  sessionId: string;
+  /** The language the PDF is written in (the app's UI language), whatever language the conversation used. */
+  lang: 'en' | 'ko' | 'zh';
+  /** Cover title as typed; may be empty. */
+  title: string;
+  /** Customer name as typed; may be empty. The writer uses it to address the reader and never adds facts about it. */
+  customer: string;
+  memory: SessionMemory;
+}
+
+/**
+ * Where a customer need comes from: the customer's own words in any message, including corrections and answers to
+ * questions ('stated', with a short quote of those words); what their answers and corrections imply ('inferred'); or
+ * what is typical for this kind of workload when the conversation says little ('general').
+ */
+export type NeedSource = 'stated' | 'inferred' | 'general';
+
+/** One NDJSON line of the drafted narrative, as the writer model emits it and proposal.ts validates it. */
+export type ProposalSection =
+  /** Executive summary for business decision makers: 2 or 3 short paragraphs separated by a blank line. */
+  | { k: 'exec'; text: string }
+  /** A customer need or pain point and how the design answers it, in business terms. `products` are catalog ids in the design. */
+  | { k: 'need'; id: string; need: string; source: NeedSource; quote?: string; answer: string; products: string[] }
+  /** A business outcome of the design ("Pay only for what you use"): a short title and why it follows. */
+  | { k: 'outcome'; title: string; text: string }
+  /** Why one product is in this design for this customer: the problem it removes or the outcome it enables, and the cost of leaving it out. */
+  | { k: 'why'; product: string; text: string }
+  /** An honest trade-off, risk or open point, and how it is handled. */
+  | { k: 'tradeoff'; text: string; mitigation?: string }
+  /** A concrete next step. */
+  | { k: 'next'; text: string };
+
+export interface ProposalNeed {
+  id: string;
+  need: string;
+  source: NeedSource;
+  /** Present only when it was found in the customer's messages. */
+  quote?: string;
+  answer: string;
+  products: string[];
+}
+
+/** The validated, assembled narrative the PDF prints. Products without a `why` entry fall back to the drawing's own reason. */
+export interface ProposalDraft {
+  lang: 'en' | 'ko' | 'zh';
+  exec: string;
+  needs: ProposalNeed[];
+  outcomes: Array<{ title: string; text: string }>;
+  /** Catalog id -> why it is in this design for this customer. */
+  why: Record<string, string>;
+  tradeoffs: Array<{ text: string; mitigation?: string }>;
+  next: string[];
+  /** Every section kind arrived and every product in the design got a why line. */
+  complete: boolean;
+}
+
+/**
+ * POST /api/proposal response: NDJSON, one event per line, ending with 'done' or 'fatal'. As on /api/turn, the wire
+ * never names who wrote a line: no provider, model or reason field travels to the browser.
+ */
+export type ProposalEvent =
+  | { type: 'section'; section: ProposalSection }
+  /** 'retry': a stalled or failed call is being retried; 'finish': a second pass is completing the draft. */
+  | { type: 'status'; code: 'retry' | 'finish'; text: string }
+  | { type: 'done'; draft: ProposalDraft }
+  | { type: 'fatal'; code: string; message: string; retryable: boolean };

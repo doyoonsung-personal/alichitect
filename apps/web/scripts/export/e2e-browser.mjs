@@ -1,5 +1,7 @@
 // Drives the real app in headless Chrome: opens a recorded conversation (replay, no server and no Qwen), clicks
-// "Export proposal", edits the dialog, downloads, and checks what came out. Run against your own Vite on 5185-5199:
+// "Export proposal", edits the dialog, downloads, and checks what came out. A replay has no server to write the
+// proposal's narrative, so the overlay offers the basic version, which this downloads (scripts/export/e2e-overlay.mjs
+// covers the written proposal with a stubbed server). Run against your own Vite on 5185-5199:
 //   API_TARGET=http://127.0.0.1:8790 npx vite --port 5185 --strictPort     (in apps/web)
 //   node --import ./scripts/alias.mjs scripts/export/e2e-browser.mjs [url] [fixture] [lang]
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'node:fs';
@@ -57,8 +59,13 @@ await page.keyboard.up('Control');
 await page.keyboard.type(lang === 'ko' ? '배달 앱 제안서' : lang === 'zh' ? '外卖应用方案' : 'Singapore customer portal');
 const customerInput = (await page.$$('.xp__input'))[1];
 await customerInput.type(lang === 'ko' ? '한빛푸드' : lang === 'zh' ? '星河餐饮' : 'Acme Pay Pte Ltd');
-const t0 = Date.now();
 await page.click('.xp__actions .btn--primary');
+await page.waitForSelector('.dov__panel');
+await sleep(300);
+console.log('overlay:', await page.$eval('.dov__title', (n) => n.textContent));
+await page.screenshot({ path: path.join(outDir, `${fixture}-3-overlay.png`) });
+const t0 = Date.now();
+await page.click('.dov__actions .btn--primary');
 let file = null;
 for (let i = 0; i < 200; i++) {
   await sleep(100);
@@ -71,7 +78,8 @@ for (let i = 0; i < 200; i++) {
 const ms = Date.now() - t0;
 await sleep(300);
 console.log('download:', file, 'in', ms, 'ms; note:', await page.$eval('.xp__note', (n) => n.textContent));
-await page.screenshot({ path: path.join(outDir, `${fixture}-3-done.png`), clip: { x: 640, y: 0, width: 800, height: 440 } });
+await sleep(1200);
+await page.screenshot({ path: path.join(outDir, `${fixture}-4-done.png`), clip: { x: 640, y: 0, width: 800, height: 440 } });
 console.log('window.print calls:', await page.evaluate(() => window.__prints));
 console.log('errors:', errors.length ? errors.join('\n') : 'none');
 await browser.close();

@@ -1,0 +1,2598 @@
+{
+  "steps": [
+    {
+      "kind": "ask",
+      "text": "We're an online retailer in Indonesia. Our site goes down every flash sale and checkout gets slow; last 11.11 we lost a lot of orders. Design something on Alibaba Cloud."
+    },
+    {
+      "kind": "correct",
+      "text": "About the assumption “Flash sale traffic spikes 10x+ normal load”: It's more like 50x in the first five minutes after a flash sale opens, and almost all of it comes from our mobile app."
+    }
+  ],
+  "memory": {
+    "turns": [
+      {
+        "role": "user",
+        "text": "We're an online retailer in Indonesia. Our site goes down every flash sale and checkout gets slow; last 11.11 we lost a lot of orders. Design something on Alibaba Cloud."
+      },
+      {
+        "role": "assistant",
+        "text": "I'll design a flash-sale-ready retail architecture in Jakarta with auto-scaling compute, caching, and queue-based checkout to prevent downtime.\nWeb servers auto-scale for flash sales. Checkout orders go through RocketMQ so the database never gets overwhelmed.\nMonitoring and logging ensure you see flash sale issues before customers do.",
+        "changes": "+internet[external] +edge[edge] +jk[region] +vpc[vpc] +users(users) +dns(dns) +esa(esa) +alb(alb, zones a,b) +waf(waf, badge on alb) +web(ecs, zones a,b) +scaling(ess, badge on web) +cache(tair, zones a,b) +mq(rocketmq) +db(rds, zones a,b) +media(oss) +logs(sls) +monitor(cloudmonitor) +e-users-dns +e-users-esa +e-esa-alb +e-alb-web +e-web-cache +e-web-mq +e-mq-db +e-esa-media +e-web-logs +e-web-monitor"
+      },
+      {
+        "role": "user",
+        "text": "About the assumption “Flash sale traffic spikes 10x+ normal load”: It's more like 50x in the first five minutes after a flash sale opens, and almost all of it comes from our mobile app."
+      },
+      {
+        "role": "assistant",
+        "text": "Pinned 50x flash sale spikes and mobile-app traffic. I'll add HTTPDNS for app DNS safety, NLB for raw TCP throughput, and split checkout workers.",
+        "changes": "+httpdns(httpdns) +nlb(nlb, zones a,b) +workers(ecs, zones a,b) +worker-scaling(ess, badge on workers) +e-users-httpdns +e-esa-nlb +e-nlb-web +e-workers-db +e-mq-workers +e-workers-cache +e-workers-logs +e-workers-monitor ~users(mobile-app) -e-esa-alb -e-alb-web -e-mq-db"
+      }
+    ],
+    "requirements": [
+      "Retailer based in Indonesia",
+      "Flash sale traffic spikes 50x in first five minutes"
+    ],
+    "graph": {
+      "groups": {
+        "internet": {
+          "id": "internet",
+          "kind": "external",
+          "label": "Internet",
+          "parent": null
+        },
+        "edge": {
+          "id": "edge",
+          "kind": "edge",
+          "label": "Edge",
+          "parent": null
+        },
+        "jk": {
+          "id": "jk",
+          "kind": "region",
+          "label": "Jakarta (ap-southeast-5)",
+          "parent": null
+        },
+        "vpc": {
+          "id": "vpc",
+          "kind": "vpc",
+          "label": "Retail VPC",
+          "parent": "jk"
+        }
+      },
+      "nodes": {
+        "users": {
+          "id": "users",
+          "product": "mobile-app",
+          "label": "Mobile shoppers",
+          "group": "internet",
+          "why": "Almost all flash sale traffic comes from the mobile app."
+        },
+        "dns": {
+          "id": "dns",
+          "product": "dns",
+          "label": "Alibaba Cloud DNS",
+          "group": null,
+          "why": "Resolves the shop domain to ESA edge."
+        },
+        "esa": {
+          "id": "esa",
+          "product": "esa",
+          "label": "ESA",
+          "group": "edge",
+          "why": "Caches product pages/images and absorbs flash sale DDoS traffic at the edge."
+        },
+        "alb": {
+          "id": "alb",
+          "product": "alb",
+          "label": "ALB",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Distributes incoming traffic across web servers in two zones."
+        },
+        "waf": {
+          "id": "waf",
+          "product": "waf",
+          "label": "WAF",
+          "group": "vpc",
+          "attachTo": "alb",
+          "why": "Blocks bot scalpers and injection attacks during sales."
+        },
+        "web": {
+          "id": "web",
+          "product": "ecs",
+          "label": "Web servers",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Runs the storefront; scales out automatically during flash sales."
+        },
+        "scaling": {
+          "id": "scaling",
+          "product": "ess",
+          "label": "Auto Scaling",
+          "group": "vpc",
+          "attachTo": "web",
+          "why": "Adds ECS instances when CPU or request count spikes."
+        },
+        "cache": {
+          "id": "cache",
+          "product": "tair",
+          "label": "Session & inventory cache",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Holds sessions, cart data and hot inventory counts in memory to offload the DB."
+        },
+        "mq": {
+          "id": "mq",
+          "product": "rocketmq",
+          "label": "Checkout queue",
+          "group": "vpc",
+          "why": "Buffers checkout requests so orders are never lost under flash sale spikes."
+        },
+        "db": {
+          "id": "db",
+          "product": "rds",
+          "label": "Orders DB",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Stores orders reliably; consumers drain the queue at a safe pace."
+        },
+        "media": {
+          "id": "media",
+          "product": "oss",
+          "label": "Product images",
+          "group": "jk",
+          "why": "Stores static assets that ESA caches at the edge."
+        },
+        "logs": {
+          "id": "logs",
+          "product": "sls",
+          "label": "Logs",
+          "group": "jk",
+          "why": "Centralizes application logs for troubleshooting sale events."
+        },
+        "monitor": {
+          "id": "monitor",
+          "product": "cloudmonitor",
+          "label": "CloudMonitor",
+          "group": "jk",
+          "why": "Alerts on CPU, latency and queue depth during flash sales."
+        },
+        "httpdns": {
+          "id": "httpdns",
+          "product": "httpdns",
+          "label": "HTTPDNS",
+          "group": null,
+          "why": "Prevents DNS hijacking and speeds up app scheduling."
+        },
+        "nlb": {
+          "id": "nlb",
+          "product": "nlb",
+          "label": "NLB",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Handles massive 50x TCP connection bursts from the app."
+        },
+        "workers": {
+          "id": "workers",
+          "product": "ecs",
+          "label": "Checkout workers",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Dedicated servers draining the queue so web stays fast."
+        },
+        "worker-scaling": {
+          "id": "worker-scaling",
+          "product": "ess",
+          "label": "Auto Scaling",
+          "group": "vpc",
+          "attachTo": "workers",
+          "why": "Scales checkout workers with queue depth during sales."
+        }
+      },
+      "edges": {
+        "e-users-esa": {
+          "id": "e-users-esa",
+          "from": "users",
+          "to": "esa",
+          "label": "HTTPS"
+        },
+        "e-web-cache": {
+          "id": "e-web-cache",
+          "from": "web",
+          "to": "cache"
+        },
+        "e-web-mq": {
+          "id": "e-web-mq",
+          "from": "web",
+          "to": "mq",
+          "label": "orders",
+          "kind": "async"
+        },
+        "e-esa-media": {
+          "id": "e-esa-media",
+          "from": "esa",
+          "to": "media",
+          "label": "assets"
+        },
+        "e-web-logs": {
+          "id": "e-web-logs",
+          "from": "web",
+          "to": "logs",
+          "kind": "control"
+        },
+        "e-web-monitor": {
+          "id": "e-web-monitor",
+          "from": "web",
+          "to": "monitor",
+          "kind": "control"
+        },
+        "e-users-httpdns": {
+          "id": "e-users-httpdns",
+          "from": "users",
+          "to": "httpdns",
+          "kind": "resolve"
+        },
+        "e-esa-nlb": {
+          "id": "e-esa-nlb",
+          "from": "esa",
+          "to": "nlb",
+          "label": "origin"
+        },
+        "e-nlb-web": {
+          "id": "e-nlb-web",
+          "from": "nlb",
+          "to": "web"
+        },
+        "e-workers-db": {
+          "id": "e-workers-db",
+          "from": "workers",
+          "to": "db",
+          "label": "persist",
+          "kind": "async"
+        },
+        "e-mq-workers": {
+          "id": "e-mq-workers",
+          "from": "mq",
+          "to": "workers",
+          "label": "consume",
+          "kind": "async"
+        },
+        "e-workers-cache": {
+          "id": "e-workers-cache",
+          "from": "workers",
+          "to": "cache",
+          "label": "inventory"
+        },
+        "e-workers-logs": {
+          "id": "e-workers-logs",
+          "from": "workers",
+          "to": "logs",
+          "kind": "control"
+        },
+        "e-workers-monitor": {
+          "id": "e-workers-monitor",
+          "from": "workers",
+          "to": "monitor",
+          "kind": "control"
+        },
+        "e-users-dns": {
+          "id": "e-users-dns",
+          "from": "users",
+          "to": "dns",
+          "kind": "resolve"
+        }
+      },
+      "recs": []
+    },
+    "tombstones": [
+      {
+        "id": "e-esa-alb",
+        "from": "esa",
+        "to": "alb",
+        "label": "origin"
+      },
+      {
+        "id": "e-alb-web",
+        "from": "alb",
+        "to": "web"
+      },
+      {
+        "id": "e-mq-db",
+        "from": "mq",
+        "to": "db",
+        "label": "persist",
+        "kind": "async"
+      }
+    ],
+    "constraints": [
+      {
+        "text": "Retailer based in Indonesia",
+        "regions": [
+          "ap-southeast-5"
+        ]
+      }
+    ],
+    "assumptions": [
+      {
+        "id": "public-site",
+        "text": "Public-facing e-commerce site",
+        "alt": "Internal only"
+      }
+    ],
+    "questions": [
+      {
+        "id": "checkout-backend",
+        "text": "How is your checkout backend built today?",
+        "options": [
+          "Java / Spring Boot",
+          "Node.js / PHP",
+          "Containers / Kubernetes",
+          "Monolith on VMs"
+        ]
+      },
+      {
+        "id": "peak-orders",
+        "text": "What's your peak order rate during a flash sale?",
+        "options": [
+          "Under 1k per minute",
+          "1k - 10k per minute",
+          "Over 10k per minute"
+        ]
+      }
+    ]
+  },
+  "turns": [
+    {
+      "ask": "We're an online retailer in Indonesia. Our site goes down every flash sale and checkout gets slow; last 11.11 we lost a lot of orders. Design something on Alibaba Cloud.",
+      "ev": [
+        [
+          2492,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design a",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2575,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design a flash-sale-ready retail",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2673,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design a flash-sale-ready retail architecture in Jakarta with",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2763,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design a flash-sale-ready retail architecture in Jakarta with auto-scaling compute",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2893,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design a flash-sale-ready retail architecture in Jakarta with auto-scaling compute, caching, and",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          3025,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design a flash-sale-ready retail architecture in Jakarta with auto-scaling compute, caching, and queue-based checkout to",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          3118,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design a flash-sale-ready retail architecture in Jakarta with auto-scaling compute, caching, and queue-based checkout to prevent downtime.",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          3120,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design a flash-sale-ready retail architecture in Jakarta with auto-scaling compute, caching, and queue-based checkout to prevent downtime.",
+            "final": true,
+            "phase": "main"
+          }
+        ],
+        [
+          3120,
+          {
+            "type": "op",
+            "seq": 1,
+            "op": {
+              "t": "say",
+              "text": "I'll design a flash-sale-ready retail architecture in Jakarta with auto-scaling compute, caching, and queue-based checkout to prevent downtime."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          3876,
+          {
+            "type": "op",
+            "seq": 2,
+            "op": {
+              "t": "plan",
+              "products": [
+                "users",
+                "dns",
+                "esa",
+                "alb",
+                "waf",
+                "ecs",
+                "ess",
+                "tair",
+                "rds",
+                "rocketmq",
+                "oss",
+                "sls",
+                "cloudmonitor"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          4351,
+          {
+            "type": "op",
+            "seq": 3,
+            "op": {
+              "t": "req",
+              "text": "Retailer based in Indonesia",
+              "regions": [
+                "ap-southeast-5"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          4917,
+          {
+            "type": "op",
+            "seq": 4,
+            "op": {
+              "t": "assume",
+              "id": "public-site",
+              "text": "Public-facing e-commerce site",
+              "alt": "Internal only"
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          6718,
+          {
+            "type": "op",
+            "seq": 5,
+            "op": {
+              "t": "assume",
+              "id": "scale",
+              "text": "Flash sale traffic spikes 10x+ normal load",
+              "alt": "Steady traffic only"
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          7148,
+          {
+            "type": "op",
+            "seq": 6,
+            "op": {
+              "t": "group",
+              "id": "internet",
+              "kind": "external",
+              "label": "Internet",
+              "parent": null
+            },
+            "added": [
+              "internet"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          7735,
+          {
+            "type": "op",
+            "seq": 7,
+            "op": {
+              "t": "node",
+              "id": "users",
+              "product": "users",
+              "label": "Shoppers",
+              "group": "internet",
+              "why": "Customers browsing and buying during flash sales."
+            },
+            "added": [
+              "users"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          8461,
+          {
+            "type": "op",
+            "seq": 8,
+            "op": {
+              "t": "node",
+              "id": "dns",
+              "product": "dns",
+              "label": "Alibaba Cloud DNS",
+              "group": null,
+              "why": "Resolves the shop domain to ESA edge."
+            },
+            "added": [
+              "dns"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          8873,
+          {
+            "type": "op",
+            "seq": 9,
+            "op": {
+              "t": "edge",
+              "id": "e-users-dns",
+              "from": "users",
+              "to": "dns",
+              "kind": "resolve"
+            },
+            "added": [
+              "e-users-dns"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          9289,
+          {
+            "type": "op",
+            "seq": 10,
+            "op": {
+              "t": "group",
+              "id": "edge",
+              "kind": "edge",
+              "label": "Edge",
+              "parent": null
+            },
+            "added": [
+              "edge"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          10094,
+          {
+            "type": "op",
+            "seq": 11,
+            "op": {
+              "t": "node",
+              "id": "esa",
+              "product": "esa",
+              "label": "ESA",
+              "group": "edge",
+              "why": "Caches product pages/images and absorbs flash sale DDoS traffic at the edge."
+            },
+            "added": [
+              "esa"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          10467,
+          {
+            "type": "op",
+            "seq": 12,
+            "op": {
+              "t": "edge",
+              "id": "e-users-esa",
+              "from": "users",
+              "to": "esa",
+              "label": "HTTPS"
+            },
+            "added": [
+              "e-users-esa"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          10974,
+          {
+            "type": "op",
+            "seq": 13,
+            "op": {
+              "t": "group",
+              "id": "jk",
+              "kind": "region",
+              "label": "Jakarta (ap-southeast-5)",
+              "parent": null
+            },
+            "added": [
+              "jk"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          11367,
+          {
+            "type": "op",
+            "seq": 14,
+            "op": {
+              "t": "group",
+              "id": "vpc",
+              "kind": "vpc",
+              "label": "Retail VPC",
+              "parent": "jk"
+            },
+            "added": [
+              "vpc"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          12322,
+          {
+            "type": "op",
+            "seq": 15,
+            "op": {
+              "t": "node",
+              "id": "alb",
+              "product": "alb",
+              "label": "ALB",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "Distributes incoming traffic across web servers in two zones."
+            },
+            "added": [
+              "alb"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          13225,
+          {
+            "type": "op",
+            "seq": 16,
+            "op": {
+              "t": "node",
+              "id": "waf",
+              "product": "waf",
+              "label": "WAF",
+              "group": "vpc",
+              "attachTo": "alb",
+              "why": "Blocks bot scalpers and injection attacks during sales."
+            },
+            "added": [
+              "waf"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          13766,
+          {
+            "type": "op",
+            "seq": 17,
+            "op": {
+              "t": "edge",
+              "id": "e-esa-alb",
+              "from": "esa",
+              "to": "alb",
+              "label": "origin"
+            },
+            "added": [
+              "e-esa-alb"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          14017,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "Web servers auto-scale",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          14113,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "Web servers auto-scale for flash sales.",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          14211,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "Web servers auto-scale for flash sales. Checkout orders go through",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          14312,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "Web servers auto-scale for flash sales. Checkout orders go through RocketMQ so the",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          14411,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "Web servers auto-scale for flash sales. Checkout orders go through RocketMQ so the database never gets overwhelmed",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          14504,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "Web servers auto-scale for flash sales. Checkout orders go through RocketMQ so the database never gets overwhelmed.",
+            "final": true,
+            "phase": "main"
+          }
+        ],
+        [
+          14504,
+          {
+            "type": "op",
+            "seq": 18,
+            "op": {
+              "t": "say",
+              "text": "Web servers auto-scale for flash sales. Checkout orders go through RocketMQ so the database never gets overwhelmed."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          15486,
+          {
+            "type": "op",
+            "seq": 19,
+            "op": {
+              "t": "node",
+              "id": "web",
+              "product": "ecs",
+              "label": "Web servers",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "Runs the storefront; scales out automatically during flash sales."
+            },
+            "added": [
+              "web"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          16464,
+          {
+            "type": "op",
+            "seq": 20,
+            "op": {
+              "t": "node",
+              "id": "scaling",
+              "product": "ess",
+              "label": "Auto Scaling",
+              "group": "vpc",
+              "attachTo": "web",
+              "why": "Adds ECS instances when CPU or request count spikes."
+            },
+            "added": [
+              "scaling"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          16884,
+          {
+            "type": "op",
+            "seq": 21,
+            "op": {
+              "t": "edge",
+              "id": "e-alb-web",
+              "from": "alb",
+              "to": "web"
+            },
+            "added": [
+              "e-alb-web"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          18076,
+          {
+            "type": "op",
+            "seq": 22,
+            "op": {
+              "t": "node",
+              "id": "cache",
+              "product": "tair",
+              "label": "Session & inventory cache",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "Holds sessions, cart data and hot inventory counts in memory to offload the DB."
+            },
+            "added": [
+              "cache"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          18542,
+          {
+            "type": "op",
+            "seq": 23,
+            "op": {
+              "t": "edge",
+              "id": "e-web-cache",
+              "from": "web",
+              "to": "cache"
+            },
+            "added": [
+              "e-web-cache"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          19387,
+          {
+            "type": "op",
+            "seq": 24,
+            "op": {
+              "t": "node",
+              "id": "mq",
+              "product": "rocketmq",
+              "label": "Checkout queue",
+              "group": "vpc",
+              "why": "Buffers checkout requests so orders are never lost under flash sale spikes."
+            },
+            "added": [
+              "mq"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          19864,
+          {
+            "type": "op",
+            "seq": 25,
+            "op": {
+              "t": "edge",
+              "id": "e-web-mq",
+              "from": "web",
+              "to": "mq",
+              "label": "orders",
+              "kind": "async"
+            },
+            "added": [
+              "e-web-mq"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          20841,
+          {
+            "type": "op",
+            "seq": 26,
+            "op": {
+              "t": "node",
+              "id": "db",
+              "product": "rds",
+              "label": "Orders DB",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "Stores orders reliably; consumers drain the queue at a safe pace."
+            },
+            "added": [
+              "db"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          21594,
+          {
+            "type": "op",
+            "seq": 27,
+            "op": {
+              "t": "edge",
+              "id": "e-mq-db",
+              "from": "mq",
+              "to": "db",
+              "label": "persist",
+              "kind": "async"
+            },
+            "added": [
+              "e-mq-db"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          22640,
+          {
+            "type": "op",
+            "seq": 28,
+            "op": {
+              "t": "node",
+              "id": "media",
+              "product": "oss",
+              "label": "Product images",
+              "group": "jk",
+              "why": "Stores static assets that ESA caches at the edge."
+            },
+            "added": [
+              "media"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          22651,
+          {
+            "type": "op",
+            "seq": 29,
+            "op": {
+              "t": "edge",
+              "id": "e-esa-media",
+              "from": "esa",
+              "to": "media",
+              "label": "assets"
+            },
+            "added": [
+              "e-esa-media"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          22949,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "Monitoring and logging ensure",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          22950,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "Monitoring and logging ensure you",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          23090,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "Monitoring and logging ensure you see flash sale issues",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          23168,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "Monitoring and logging ensure you see flash sale issues before customers do.",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          23170,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "Monitoring and logging ensure you see flash sale issues before customers do.",
+            "final": true,
+            "phase": "main"
+          }
+        ],
+        [
+          23170,
+          {
+            "type": "op",
+            "seq": 30,
+            "op": {
+              "t": "say",
+              "text": "Monitoring and logging ensure you see flash sale issues before customers do."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          23889,
+          {
+            "type": "op",
+            "seq": 31,
+            "op": {
+              "t": "node",
+              "id": "logs",
+              "product": "sls",
+              "label": "Logs",
+              "group": "jk",
+              "why": "Centralizes application logs for troubleshooting sale events."
+            },
+            "added": [
+              "logs"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          24317,
+          {
+            "type": "op",
+            "seq": 32,
+            "op": {
+              "t": "edge",
+              "id": "e-web-logs",
+              "from": "web",
+              "to": "logs",
+              "kind": "control"
+            },
+            "added": [
+              "e-web-logs"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          25058,
+          {
+            "type": "op",
+            "seq": 33,
+            "op": {
+              "t": "node",
+              "id": "monitor",
+              "product": "cloudmonitor",
+              "label": "CloudMonitor",
+              "group": "jk",
+              "why": "Alerts on CPU, latency and queue depth during flash sales."
+            },
+            "added": [
+              "monitor"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          25439,
+          {
+            "type": "op",
+            "seq": 34,
+            "op": {
+              "t": "edge",
+              "id": "e-web-monitor",
+              "from": "web",
+              "to": "monitor",
+              "kind": "control"
+            },
+            "added": [
+              "e-web-monitor"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          26338,
+          {
+            "type": "op",
+            "seq": 35,
+            "op": {
+              "t": "ask",
+              "id": "checkout-backend",
+              "text": "How is your checkout backend built today?",
+              "options": [
+                "Java / Spring Boot",
+                "Node.js / PHP",
+                "Containers / Kubernetes",
+                "Monolith on VMs"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          27369,
+          {
+            "type": "op",
+            "seq": 36,
+            "op": {
+              "t": "ask",
+              "id": "peak-orders",
+              "text": "What's your peak order rate during a flash sale?",
+              "options": [
+                "Under 1k per minute",
+                "1k - 10k per minute",
+                "Over 10k per minute"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          28120,
+          {
+            "type": "op",
+            "seq": 37,
+            "op": {
+              "t": "done",
+              "summary": "Flash-sale resilient retail architecture in Jakarta with ESA edge caching, auto-scaling ECS, Tair for hot data, and RocketMQ to buffer checkouts."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          28120,
+          {
+            "type": "usage",
+            "usage": {
+              "completion_tokens": 1231,
+              "prompt_tokens": 15337,
+              "prompt_tokens_details": {
+                "cached_tokens": 15232,
+                "text_tokens": 15337
+              },
+              "total_tokens": 16568
+            },
+            "costUsd": 0.011404,
+            "phase": "main"
+          }
+        ],
+        [
+          28120,
+          {
+            "type": "done",
+            "summary": "Flash-sale resilient retail architecture in Jakarta with ESA edge caching, auto-scaling ECS, Tair for hot data, and RocketMQ to buffer checkouts.",
+            "timings": {
+              "headersMs": 2184,
+              "firstByteMs": 2184,
+              "firstContentMs": 2185,
+              "firstSayMs": 2486,
+              "firstOpMs": 3115,
+              "firstNodeMs": 7730,
+              "lastOpMs": 28115,
+              "totalMs": 28114,
+              "maxGapMs": 1305,
+              "hedgeAtMs": null
+            },
+            "finishReason": "stop",
+            "truncated": false,
+            "phase": "main"
+          }
+        ],
+        [
+          28151,
+          {
+            "type": "commit",
+            "memory": {
+              "turns": [
+                {
+                  "role": "user",
+                  "text": "We're an online retailer in Indonesia. Our site goes down every flash sale and checkout gets slow; last 11.11 we lost a lot of orders. Design something on Alibaba Cloud."
+                },
+                {
+                  "role": "assistant",
+                  "text": "I'll design a flash-sale-ready retail architecture in Jakarta with auto-scaling compute, caching, and queue-based checkout to prevent downtime.\nWeb servers auto-scale for flash sales. Checkout orders go through RocketMQ so the database never gets overwhelmed.\nMonitoring and logging ensure you see flash sale issues before customers do.",
+                  "changes": "+internet[external] +edge[edge] +jk[region] +vpc[vpc] +users(users) +dns(dns) +esa(esa) +alb(alb, zones a,b) +waf(waf, badge on alb) +web(ecs, zones a,b) +scaling(ess, badge on web) +cache(tair, zones a,b) +mq(rocketmq) +db(rds, zones a,b) +media(oss) +logs(sls) +monitor(cloudmonitor) +e-users-dns +e-users-esa +e-esa-alb +e-alb-web +e-web-cache +e-web-mq +e-mq-db +e-esa-media +e-web-logs +e-web-monitor"
+                }
+              ],
+              "requirements": [
+                "Retailer based in Indonesia"
+              ],
+              "graph": {
+                "groups": {
+                  "internet": {
+                    "id": "internet",
+                    "kind": "external",
+                    "label": "Internet",
+                    "parent": null
+                  },
+                  "edge": {
+                    "id": "edge",
+                    "kind": "edge",
+                    "label": "Edge",
+                    "parent": null
+                  },
+                  "jk": {
+                    "id": "jk",
+                    "kind": "region",
+                    "label": "Jakarta (ap-southeast-5)",
+                    "parent": null
+                  },
+                  "vpc": {
+                    "id": "vpc",
+                    "kind": "vpc",
+                    "label": "Retail VPC",
+                    "parent": "jk"
+                  }
+                },
+                "nodes": {
+                  "users": {
+                    "id": "users",
+                    "product": "users",
+                    "label": "Shoppers",
+                    "group": "internet",
+                    "why": "Customers browsing and buying during flash sales."
+                  },
+                  "dns": {
+                    "id": "dns",
+                    "product": "dns",
+                    "label": "Alibaba Cloud DNS",
+                    "group": null,
+                    "why": "Resolves the shop domain to ESA edge."
+                  },
+                  "esa": {
+                    "id": "esa",
+                    "product": "esa",
+                    "label": "ESA",
+                    "group": "edge",
+                    "why": "Caches product pages/images and absorbs flash sale DDoS traffic at the edge."
+                  },
+                  "alb": {
+                    "id": "alb",
+                    "product": "alb",
+                    "label": "ALB",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Distributes incoming traffic across web servers in two zones."
+                  },
+                  "waf": {
+                    "id": "waf",
+                    "product": "waf",
+                    "label": "WAF",
+                    "group": "vpc",
+                    "attachTo": "alb",
+                    "why": "Blocks bot scalpers and injection attacks during sales."
+                  },
+                  "web": {
+                    "id": "web",
+                    "product": "ecs",
+                    "label": "Web servers",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Runs the storefront; scales out automatically during flash sales."
+                  },
+                  "scaling": {
+                    "id": "scaling",
+                    "product": "ess",
+                    "label": "Auto Scaling",
+                    "group": "vpc",
+                    "attachTo": "web",
+                    "why": "Adds ECS instances when CPU or request count spikes."
+                  },
+                  "cache": {
+                    "id": "cache",
+                    "product": "tair",
+                    "label": "Session & inventory cache",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Holds sessions, cart data and hot inventory counts in memory to offload the DB."
+                  },
+                  "mq": {
+                    "id": "mq",
+                    "product": "rocketmq",
+                    "label": "Checkout queue",
+                    "group": "vpc",
+                    "why": "Buffers checkout requests so orders are never lost under flash sale spikes."
+                  },
+                  "db": {
+                    "id": "db",
+                    "product": "rds",
+                    "label": "Orders DB",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Stores orders reliably; consumers drain the queue at a safe pace."
+                  },
+                  "media": {
+                    "id": "media",
+                    "product": "oss",
+                    "label": "Product images",
+                    "group": "jk",
+                    "why": "Stores static assets that ESA caches at the edge."
+                  },
+                  "logs": {
+                    "id": "logs",
+                    "product": "sls",
+                    "label": "Logs",
+                    "group": "jk",
+                    "why": "Centralizes application logs for troubleshooting sale events."
+                  },
+                  "monitor": {
+                    "id": "monitor",
+                    "product": "cloudmonitor",
+                    "label": "CloudMonitor",
+                    "group": "jk",
+                    "why": "Alerts on CPU, latency and queue depth during flash sales."
+                  }
+                },
+                "edges": {
+                  "e-users-dns": {
+                    "id": "e-users-dns",
+                    "from": "users",
+                    "to": "dns",
+                    "kind": "resolve"
+                  },
+                  "e-users-esa": {
+                    "id": "e-users-esa",
+                    "from": "users",
+                    "to": "esa",
+                    "label": "HTTPS"
+                  },
+                  "e-esa-alb": {
+                    "id": "e-esa-alb",
+                    "from": "esa",
+                    "to": "alb",
+                    "label": "origin"
+                  },
+                  "e-alb-web": {
+                    "id": "e-alb-web",
+                    "from": "alb",
+                    "to": "web"
+                  },
+                  "e-web-cache": {
+                    "id": "e-web-cache",
+                    "from": "web",
+                    "to": "cache"
+                  },
+                  "e-web-mq": {
+                    "id": "e-web-mq",
+                    "from": "web",
+                    "to": "mq",
+                    "label": "orders",
+                    "kind": "async"
+                  },
+                  "e-mq-db": {
+                    "id": "e-mq-db",
+                    "from": "mq",
+                    "to": "db",
+                    "label": "persist",
+                    "kind": "async"
+                  },
+                  "e-esa-media": {
+                    "id": "e-esa-media",
+                    "from": "esa",
+                    "to": "media",
+                    "label": "assets"
+                  },
+                  "e-web-logs": {
+                    "id": "e-web-logs",
+                    "from": "web",
+                    "to": "logs",
+                    "kind": "control"
+                  },
+                  "e-web-monitor": {
+                    "id": "e-web-monitor",
+                    "from": "web",
+                    "to": "monitor",
+                    "kind": "control"
+                  }
+                },
+                "recs": []
+              },
+              "tombstones": [],
+              "constraints": [
+                {
+                  "text": "Retailer based in Indonesia",
+                  "regions": [
+                    "ap-southeast-5"
+                  ]
+                }
+              ],
+              "assumptions": [
+                {
+                  "id": "public-site",
+                  "text": "Public-facing e-commerce site",
+                  "alt": "Internal only"
+                },
+                {
+                  "id": "scale",
+                  "text": "Flash sale traffic spikes 10x+ normal load",
+                  "alt": "Steady traffic only"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "checkout-backend",
+                  "text": "How is your checkout backend built today?",
+                  "options": [
+                    "Java / Spring Boot",
+                    "Node.js / PHP",
+                    "Containers / Kubernetes",
+                    "Monolith on VMs"
+                  ]
+                },
+                {
+                  "id": "peak-orders",
+                  "text": "What's your peak order rate during a flash sale?",
+                  "options": [
+                    "Under 1k per minute",
+                    "1k - 10k per minute",
+                    "Over 10k per minute"
+                  ]
+                }
+              ]
+            },
+            "changes": "+internet[external] +edge[edge] +jk[region] +vpc[vpc] +users(users) +dns(dns) +esa(esa) +alb(alb, zones a,b) +waf(waf, badge on alb) +web(ecs, zones a,b) +scaling(ess, badge on web) +cache(tair, zones a,b) +mq(rocketmq) +db(rds, zones a,b) +media(oss) +logs(sls) +monitor(cloudmonitor) +e-users-dns +e-users-esa +e-esa-alb +e-alb-web +e-web-cache +e-web-mq +e-mq-db +e-esa-media +e-web-logs +e-web-monitor",
+            "warnings": []
+          }
+        ]
+      ]
+    },
+    {
+      "ask": "About the assumption “Flash sale traffic spikes 10x+ normal load”: It's more like 50x in the first five minutes after a flash sale opens, and almost all of it comes from our mobile app.",
+      "ev": [
+        [
+          2104,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "Pinned 5",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2105,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "Pinned 50",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2221,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "Pinned 50x flash sale spikes",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2341,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "Pinned 50x flash sale spikes and mobile-app traffic",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2342,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "Pinned 50x flash sale spikes and mobile-app traffic.",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2456,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "Pinned 50x flash sale spikes and mobile-app traffic. I'll add HTTP",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2536,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "Pinned 50x flash sale spikes and mobile-app traffic. I'll add HTTPDNS for app DNS",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2538,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "Pinned 50x flash sale spikes and mobile-app traffic. I'll add HTTPDNS for app DNS safety, NLB",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2539,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "Pinned 50x flash sale spikes and mobile-app traffic. I'll add HTTPDNS for app DNS safety, NLB for",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2734,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "Pinned 50x flash sale spikes and mobile-app traffic. I'll add HTTPDNS for app DNS safety, NLB for raw TCP throughput,",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2735,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "Pinned 50x flash sale spikes and mobile-app traffic. I'll add HTTPDNS for app DNS safety, NLB for raw TCP throughput, and",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2814,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "Pinned 50x flash sale spikes and mobile-app traffic. I'll add HTTPDNS for app DNS safety, NLB for raw TCP throughput, and split checkout workers.",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2816,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "Pinned 50x flash sale spikes and mobile-app traffic. I'll add HTTPDNS for app DNS safety, NLB for raw TCP throughput, and split checkout workers.",
+            "final": true,
+            "phase": "main"
+          }
+        ],
+        [
+          2816,
+          {
+            "type": "op",
+            "seq": 1,
+            "op": {
+              "t": "say",
+              "text": "Pinned 50x flash sale spikes and mobile-app traffic. I'll add HTTPDNS for app DNS safety, NLB for raw TCP throughput, and split checkout workers."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          3348,
+          {
+            "type": "op",
+            "seq": 2,
+            "op": {
+              "t": "req",
+              "text": "Flash sale traffic spikes 50x in first five minutes"
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          4100,
+          {
+            "type": "op",
+            "seq": 3,
+            "op": {
+              "t": "node",
+              "id": "users",
+              "product": "mobile-app",
+              "label": "Mobile shoppers",
+              "group": "internet",
+              "why": "Almost all flash sale traffic comes from the mobile app."
+            },
+            "added": [],
+            "updated": [
+              "users"
+            ],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          4756,
+          {
+            "type": "op",
+            "seq": 4,
+            "op": {
+              "t": "node",
+              "id": "httpdns",
+              "product": "httpdns",
+              "label": "HTTPDNS",
+              "group": null,
+              "why": "Prevents DNS hijacking and speeds up app scheduling."
+            },
+            "added": [
+              "httpdns"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          4931,
+          {
+            "type": "op",
+            "seq": 5,
+            "op": {
+              "t": "remove",
+              "id": "e-users-dns"
+            },
+            "added": [],
+            "updated": [],
+            "removed": [
+              "e-users-dns"
+            ],
+            "phase": "main"
+          }
+        ],
+        [
+          5359,
+          {
+            "type": "op",
+            "seq": 6,
+            "op": {
+              "t": "edge",
+              "id": "e-users-httpdns",
+              "from": "users",
+              "to": "httpdns",
+              "kind": "resolve"
+            },
+            "added": [
+              "e-users-httpdns"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          6315,
+          {
+            "type": "op",
+            "seq": 7,
+            "op": {
+              "t": "node",
+              "id": "nlb",
+              "product": "nlb",
+              "label": "NLB",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "Handles massive 50x TCP connection bursts from the app."
+            },
+            "added": [
+              "nlb"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          6875,
+          {
+            "type": "op",
+            "seq": 8,
+            "op": {
+              "t": "edge",
+              "id": "e-esa-nlb",
+              "from": "esa",
+              "to": "nlb",
+              "label": "origin"
+            },
+            "added": [
+              "e-esa-nlb"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          6999,
+          {
+            "type": "op",
+            "seq": 9,
+            "op": {
+              "t": "remove",
+              "id": "e-esa-alb"
+            },
+            "added": [],
+            "updated": [],
+            "removed": [
+              "e-esa-alb"
+            ],
+            "phase": "main"
+          }
+        ],
+        [
+          7388,
+          {
+            "type": "op",
+            "seq": 10,
+            "op": {
+              "t": "edge",
+              "id": "e-nlb-web",
+              "from": "nlb",
+              "to": "web"
+            },
+            "added": [
+              "e-nlb-web"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          7646,
+          {
+            "type": "op",
+            "seq": 11,
+            "op": {
+              "t": "remove",
+              "id": "e-alb-web"
+            },
+            "added": [],
+            "updated": [],
+            "removed": [
+              "e-alb-web"
+            ],
+            "phase": "main"
+          }
+        ],
+        [
+          8561,
+          {
+            "type": "op",
+            "seq": 12,
+            "op": {
+              "t": "node",
+              "id": "workers",
+              "product": "ecs",
+              "label": "Checkout workers",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "Dedicated servers draining the queue so web stays fast."
+            },
+            "added": [
+              "workers"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          9470,
+          {
+            "type": "op",
+            "seq": 13,
+            "op": {
+              "t": "node",
+              "id": "worker-scaling",
+              "product": "ess",
+              "label": "Auto Scaling",
+              "group": "vpc",
+              "attachTo": "workers",
+              "why": "Scales checkout workers with queue depth during sales."
+            },
+            "added": [
+              "worker-scaling"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          9625,
+          {
+            "type": "op",
+            "seq": 14,
+            "op": {
+              "t": "remove",
+              "id": "e-mq-db"
+            },
+            "added": [],
+            "updated": [],
+            "removed": [
+              "e-mq-db"
+            ],
+            "phase": "main"
+          }
+        ],
+        [
+          10154,
+          {
+            "type": "op",
+            "seq": 15,
+            "op": {
+              "t": "edge",
+              "id": "e-workers-db",
+              "from": "workers",
+              "to": "db",
+              "label": "persist",
+              "kind": "async"
+            },
+            "added": [
+              "e-workers-db"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          10706,
+          {
+            "type": "op",
+            "seq": 16,
+            "op": {
+              "t": "edge",
+              "id": "e-mq-workers",
+              "from": "mq",
+              "to": "workers",
+              "label": "consume",
+              "kind": "async"
+            },
+            "added": [
+              "e-mq-workers"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          11069,
+          {
+            "type": "op",
+            "seq": 17,
+            "op": {
+              "t": "edge",
+              "id": "e-workers-cache",
+              "from": "workers",
+              "to": "cache",
+              "label": "inventory"
+            },
+            "added": [
+              "e-workers-cache"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          11495,
+          {
+            "type": "op",
+            "seq": 18,
+            "op": {
+              "t": "edge",
+              "id": "e-workers-logs",
+              "from": "workers",
+              "to": "logs",
+              "kind": "control"
+            },
+            "added": [
+              "e-workers-logs"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          11988,
+          {
+            "type": "op",
+            "seq": 19,
+            "op": {
+              "t": "edge",
+              "id": "e-workers-monitor",
+              "from": "workers",
+              "to": "monitor",
+              "kind": "control"
+            },
+            "added": [
+              "e-workers-monitor"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          12810,
+          {
+            "type": "op",
+            "seq": 20,
+            "op": {
+              "t": "ask",
+              "id": "checkout-backend",
+              "text": "How is your checkout backend built today?",
+              "options": [
+                "Java / Spring Boot",
+                "Node.js / PHP",
+                "Containers / Kubernetes",
+                "Monolith on VMs"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          13523,
+          {
+            "type": "op",
+            "seq": 21,
+            "op": {
+              "t": "ask",
+              "id": "peak-orders",
+              "text": "What's your peak order rate during a flash sale?",
+              "options": [
+                "Under 1k per minute",
+                "1k - 10k per minute",
+                "Over 10k per minute"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          14258,
+          {
+            "type": "op",
+            "seq": 22,
+            "op": {
+              "t": "done",
+              "summary": "Added HTTPDNS, swapped ALB for NLB to handle 50x app bursts, and added dedicated checkout workers draining RocketMQ."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          14258,
+          {
+            "type": "usage",
+            "usage": {
+              "completion_tokens": 670,
+              "prompt_tokens": 16519,
+              "prompt_tokens_details": {
+                "cached_tokens": 15232,
+                "text_tokens": 16519
+              },
+              "total_tokens": 17189
+            },
+            "costUsd": 0.010402,
+            "phase": "main"
+          }
+        ],
+        [
+          14258,
+          {
+            "type": "done",
+            "summary": "Added HTTPDNS, swapped ALB for NLB to handle 50x app bursts, and added dedicated checkout workers draining RocketMQ.",
+            "timings": {
+              "headersMs": 1738,
+              "firstByteMs": 1738,
+              "firstContentMs": 1739,
+              "firstSayMs": 2099,
+              "firstOpMs": 2812,
+              "firstNodeMs": 4095,
+              "lastOpMs": 14254,
+              "totalMs": 14253,
+              "maxGapMs": 240,
+              "hedgeAtMs": null
+            },
+            "finishReason": "stop",
+            "truncated": false,
+            "phase": "main"
+          }
+        ],
+        [
+          14288,
+          {
+            "type": "commit",
+            "memory": {
+              "turns": [
+                {
+                  "role": "user",
+                  "text": "We're an online retailer in Indonesia. Our site goes down every flash sale and checkout gets slow; last 11.11 we lost a lot of orders. Design something on Alibaba Cloud."
+                },
+                {
+                  "role": "assistant",
+                  "text": "I'll design a flash-sale-ready retail architecture in Jakarta with auto-scaling compute, caching, and queue-based checkout to prevent downtime.\nWeb servers auto-scale for flash sales. Checkout orders go through RocketMQ so the database never gets overwhelmed.\nMonitoring and logging ensure you see flash sale issues before customers do.",
+                  "changes": "+internet[external] +edge[edge] +jk[region] +vpc[vpc] +users(users) +dns(dns) +esa(esa) +alb(alb, zones a,b) +waf(waf, badge on alb) +web(ecs, zones a,b) +scaling(ess, badge on web) +cache(tair, zones a,b) +mq(rocketmq) +db(rds, zones a,b) +media(oss) +logs(sls) +monitor(cloudmonitor) +e-users-dns +e-users-esa +e-esa-alb +e-alb-web +e-web-cache +e-web-mq +e-mq-db +e-esa-media +e-web-logs +e-web-monitor"
+                },
+                {
+                  "role": "user",
+                  "text": "About the assumption “Flash sale traffic spikes 10x+ normal load”: It's more like 50x in the first five minutes after a flash sale opens, and almost all of it comes from our mobile app."
+                },
+                {
+                  "role": "assistant",
+                  "text": "Pinned 50x flash sale spikes and mobile-app traffic. I'll add HTTPDNS for app DNS safety, NLB for raw TCP throughput, and split checkout workers.",
+                  "changes": "+httpdns(httpdns) +nlb(nlb, zones a,b) +workers(ecs, zones a,b) +worker-scaling(ess, badge on workers) +e-users-httpdns +e-esa-nlb +e-nlb-web +e-workers-db +e-mq-workers +e-workers-cache +e-workers-logs +e-workers-monitor ~users(mobile-app) -e-esa-alb -e-alb-web -e-mq-db"
+                }
+              ],
+              "requirements": [
+                "Retailer based in Indonesia",
+                "Flash sale traffic spikes 50x in first five minutes"
+              ],
+              "graph": {
+                "groups": {
+                  "internet": {
+                    "id": "internet",
+                    "kind": "external",
+                    "label": "Internet",
+                    "parent": null
+                  },
+                  "edge": {
+                    "id": "edge",
+                    "kind": "edge",
+                    "label": "Edge",
+                    "parent": null
+                  },
+                  "jk": {
+                    "id": "jk",
+                    "kind": "region",
+                    "label": "Jakarta (ap-southeast-5)",
+                    "parent": null
+                  },
+                  "vpc": {
+                    "id": "vpc",
+                    "kind": "vpc",
+                    "label": "Retail VPC",
+                    "parent": "jk"
+                  }
+                },
+                "nodes": {
+                  "users": {
+                    "id": "users",
+                    "product": "mobile-app",
+                    "label": "Mobile shoppers",
+                    "group": "internet",
+                    "why": "Almost all flash sale traffic comes from the mobile app."
+                  },
+                  "dns": {
+                    "id": "dns",
+                    "product": "dns",
+                    "label": "Alibaba Cloud DNS",
+                    "group": null,
+                    "why": "Resolves the shop domain to ESA edge."
+                  },
+                  "esa": {
+                    "id": "esa",
+                    "product": "esa",
+                    "label": "ESA",
+                    "group": "edge",
+                    "why": "Caches product pages/images and absorbs flash sale DDoS traffic at the edge."
+                  },
+                  "alb": {
+                    "id": "alb",
+                    "product": "alb",
+                    "label": "ALB",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Distributes incoming traffic across web servers in two zones."
+                  },
+                  "waf": {
+                    "id": "waf",
+                    "product": "waf",
+                    "label": "WAF",
+                    "group": "vpc",
+                    "attachTo": "alb",
+                    "why": "Blocks bot scalpers and injection attacks during sales."
+                  },
+                  "web": {
+                    "id": "web",
+                    "product": "ecs",
+                    "label": "Web servers",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Runs the storefront; scales out automatically during flash sales."
+                  },
+                  "scaling": {
+                    "id": "scaling",
+                    "product": "ess",
+                    "label": "Auto Scaling",
+                    "group": "vpc",
+                    "attachTo": "web",
+                    "why": "Adds ECS instances when CPU or request count spikes."
+                  },
+                  "cache": {
+                    "id": "cache",
+                    "product": "tair",
+                    "label": "Session & inventory cache",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Holds sessions, cart data and hot inventory counts in memory to offload the DB."
+                  },
+                  "mq": {
+                    "id": "mq",
+                    "product": "rocketmq",
+                    "label": "Checkout queue",
+                    "group": "vpc",
+                    "why": "Buffers checkout requests so orders are never lost under flash sale spikes."
+                  },
+                  "db": {
+                    "id": "db",
+                    "product": "rds",
+                    "label": "Orders DB",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Stores orders reliably; consumers drain the queue at a safe pace."
+                  },
+                  "media": {
+                    "id": "media",
+                    "product": "oss",
+                    "label": "Product images",
+                    "group": "jk",
+                    "why": "Stores static assets that ESA caches at the edge."
+                  },
+                  "logs": {
+                    "id": "logs",
+                    "product": "sls",
+                    "label": "Logs",
+                    "group": "jk",
+                    "why": "Centralizes application logs for troubleshooting sale events."
+                  },
+                  "monitor": {
+                    "id": "monitor",
+                    "product": "cloudmonitor",
+                    "label": "CloudMonitor",
+                    "group": "jk",
+                    "why": "Alerts on CPU, latency and queue depth during flash sales."
+                  },
+                  "httpdns": {
+                    "id": "httpdns",
+                    "product": "httpdns",
+                    "label": "HTTPDNS",
+                    "group": null,
+                    "why": "Prevents DNS hijacking and speeds up app scheduling."
+                  },
+                  "nlb": {
+                    "id": "nlb",
+                    "product": "nlb",
+                    "label": "NLB",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Handles massive 50x TCP connection bursts from the app."
+                  },
+                  "workers": {
+                    "id": "workers",
+                    "product": "ecs",
+                    "label": "Checkout workers",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Dedicated servers draining the queue so web stays fast."
+                  },
+                  "worker-scaling": {
+                    "id": "worker-scaling",
+                    "product": "ess",
+                    "label": "Auto Scaling",
+                    "group": "vpc",
+                    "attachTo": "workers",
+                    "why": "Scales checkout workers with queue depth during sales."
+                  }
+                },
+                "edges": {
+                  "e-users-esa": {
+                    "id": "e-users-esa",
+                    "from": "users",
+                    "to": "esa",
+                    "label": "HTTPS"
+                  },
+                  "e-web-cache": {
+                    "id": "e-web-cache",
+                    "from": "web",
+                    "to": "cache"
+                  },
+                  "e-web-mq": {
+                    "id": "e-web-mq",
+                    "from": "web",
+                    "to": "mq",
+                    "label": "orders",
+                    "kind": "async"
+                  },
+                  "e-esa-media": {
+                    "id": "e-esa-media",
+                    "from": "esa",
+                    "to": "media",
+                    "label": "assets"
+                  },
+                  "e-web-logs": {
+                    "id": "e-web-logs",
+                    "from": "web",
+                    "to": "logs",
+                    "kind": "control"
+                  },
+                  "e-web-monitor": {
+                    "id": "e-web-monitor",
+                    "from": "web",
+                    "to": "monitor",
+                    "kind": "control"
+                  },
+                  "e-users-httpdns": {
+                    "id": "e-users-httpdns",
+                    "from": "users",
+                    "to": "httpdns",
+                    "kind": "resolve"
+                  },
+                  "e-esa-nlb": {
+                    "id": "e-esa-nlb",
+                    "from": "esa",
+                    "to": "nlb",
+                    "label": "origin"
+                  },
+                  "e-nlb-web": {
+                    "id": "e-nlb-web",
+                    "from": "nlb",
+                    "to": "web"
+                  },
+                  "e-workers-db": {
+                    "id": "e-workers-db",
+                    "from": "workers",
+                    "to": "db",
+                    "label": "persist",
+                    "kind": "async"
+                  },
+                  "e-mq-workers": {
+                    "id": "e-mq-workers",
+                    "from": "mq",
+                    "to": "workers",
+                    "label": "consume",
+                    "kind": "async"
+                  },
+                  "e-workers-cache": {
+                    "id": "e-workers-cache",
+                    "from": "workers",
+                    "to": "cache",
+                    "label": "inventory"
+                  },
+                  "e-workers-logs": {
+                    "id": "e-workers-logs",
+                    "from": "workers",
+                    "to": "logs",
+                    "kind": "control"
+                  },
+                  "e-workers-monitor": {
+                    "id": "e-workers-monitor",
+                    "from": "workers",
+                    "to": "monitor",
+                    "kind": "control"
+                  },
+                  "e-users-dns": {
+                    "id": "e-users-dns",
+                    "from": "users",
+                    "to": "dns",
+                    "kind": "resolve"
+                  }
+                },
+                "recs": []
+              },
+              "tombstones": [
+                {
+                  "id": "e-esa-alb",
+                  "from": "esa",
+                  "to": "alb",
+                  "label": "origin"
+                },
+                {
+                  "id": "e-alb-web",
+                  "from": "alb",
+                  "to": "web"
+                },
+                {
+                  "id": "e-mq-db",
+                  "from": "mq",
+                  "to": "db",
+                  "label": "persist",
+                  "kind": "async"
+                }
+              ],
+              "constraints": [
+                {
+                  "text": "Retailer based in Indonesia",
+                  "regions": [
+                    "ap-southeast-5"
+                  ]
+                }
+              ],
+              "assumptions": [
+                {
+                  "id": "public-site",
+                  "text": "Public-facing e-commerce site",
+                  "alt": "Internal only"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "checkout-backend",
+                  "text": "How is your checkout backend built today?",
+                  "options": [
+                    "Java / Spring Boot",
+                    "Node.js / PHP",
+                    "Containers / Kubernetes",
+                    "Monolith on VMs"
+                  ]
+                },
+                {
+                  "id": "peak-orders",
+                  "text": "What's your peak order rate during a flash sale?",
+                  "options": [
+                    "Under 1k per minute",
+                    "1k - 10k per minute",
+                    "Over 10k per minute"
+                  ]
+                }
+              ]
+            },
+            "changes": "+httpdns(httpdns) +nlb(nlb, zones a,b) +workers(ecs, zones a,b) +worker-scaling(ess, badge on workers) +e-users-httpdns +e-esa-nlb +e-nlb-web +e-workers-db +e-mq-workers +e-workers-cache +e-workers-logs +e-workers-monitor ~users(mobile-app) -e-esa-alb -e-alb-web -e-mq-db",
+            "warnings": [
+              {
+                "code": "orphan-node",
+                "ids": [
+                  "alb"
+                ],
+                "msg": "'alb' (alb) has no connections",
+                "severity": "warn",
+                "repaired": false
+              }
+            ]
+          }
+        ]
+      ]
+    }
+  ]
+}

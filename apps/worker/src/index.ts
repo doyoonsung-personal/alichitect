@@ -5,11 +5,11 @@
 //                   /verify/resend, /reset/resend, /auth/logout, GET /api/health, /robots.txt, /_auth/* (the pages'
 //                   CSS and script), the two Alibaba Cloud logo files
 //   signed in       GET /pending (the status; POST updates the note), GET /account, POST /account/password
-//   approved        the SPA (apps/web/dist), POST /api/turn, GET /api/me
+//   approved        the SPA (apps/web/dist), POST /api/turn, POST /api/proposal, GET /api/me
 //   admin           /admin, POST /admin/users/:id/:action, POST /admin/pending/deny-old, /admin/api/*
 //
-// Pages answer 302 (to /login or /pending); the API answers 401 or 403 JSON (POST /api/turn's body is a fatal
-// ServerEvent, so the SPA shows it). GET /api/health is public but anonymous callers only learn { ok: true }. State-changing requests must come from this origin (Origin check; Sec-Fetch-Site
+// Pages answer 302 (to /login or /pending); the API answers 401 or 403 JSON (the bodies of POST /api/turn and POST
+// /api/proposal are a fatal event, so the SPA shows it). GET /api/health is public but anonymous callers only learn { ok: true }. State-changing requests must come from this origin (Origin check; Sec-Fetch-Site
 // when sent) and the session cookie is SameSite=Lax. Every response carries the security headers (http.ts secure).
 import type { Env, ExecutionContextLike } from './env.ts';
 import { allowedOrigin, isSharedAccount, sessionSecret, turnsPerDay } from './env.ts';
@@ -20,6 +20,7 @@ import type { Signed } from './session.ts';
 import * as db from './db.ts';
 import { FLASH_COOKIE, adminApi, adminDenyOld, adminFormAction, adminNotice, updatePendingNote } from './admin.ts';
 import { handleTurn, health, reject, sharedTurnState, workerFatalMessage } from './turn.ts';
+import { handleProposal } from './proposal.ts';
 import { authAsset } from './pages/assets.ts';
 import { LANG_COOKIE, isLang, langOfRequest } from './pages/i18n.ts';
 import { accountPage, adminPage, loginPage, pendingPage } from './pages/views.ts';
@@ -38,6 +39,8 @@ const WORKER_SCRIPT_RE = /^\/assets\/[\w.-]+\.worker-[\w-]+\.js$/;
 
 const isApi = (p: string): boolean => p.startsWith('/api/') || p.startsWith('/admin/api/');
 const isGet = (m: string): boolean => m === 'GET' || m === 'HEAD';
+/** The streaming endpoints: their error bodies are fatal events the SPA shows. */
+const isStreamApi = (p: string): boolean => p === '/api/turn' || p === '/api/proposal';
 /** Static files of the SPA: may use the 15 s session cache. Pages, the API and the admin area never do. */
 const isStatic = (p: string, m: string): boolean => isGet(m) && !isApi(p) && !p.startsWith('/admin') && (p.startsWith('/assets/') || STATIC_RE.test(p));
 
@@ -68,9 +71,9 @@ function sameOriginWrite(request: Request, origin: string): boolean {
   return site === null || site === 'same-origin';
 }
 
-/** 401 for the API (a fatal event for /api/turn), else a 302 to /login that returns here afterwards. */
+/** 401 for the API (a fatal event for /api/turn and /api/proposal), else a 302 to /login that returns here afterwards. */
 function needSignIn(request: Request, url: URL): Response {
-  if (url.pathname === '/api/turn') return reject(401, 'signed-out', workerFatalMessage('signed-out', langOfRequest(request, url).lang));
+  if (isStreamApi(url.pathname)) return reject(401, 'signed-out', workerFatalMessage(url.pathname === '/api/proposal' ? 'proposal-signed-out' : 'signed-out', langOfRequest(request, url).lang));
   if (isApi(url.pathname) || !isGet(request.method)) return json(401, { error: 'signed-out', message: 'Sign in first', login: '/login' });
   const next = safeNext(url.pathname + url.search);
   return redirect(next === '/' ? '/login' : `/login?next=${encodeURIComponent(next)}`);
@@ -165,7 +168,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
   }
 
   if (me.status !== 'approved') {
-    if (path === '/api/turn') return reject(403, 'not-approved', workerFatalMessage('not-approved', langOfRequest(request, url).lang));
+    if (isStreamApi(path)) return reject(403, 'not-approved', workerFatalMessage(path === '/api/proposal' ? 'proposal-not-approved' : 'not-approved', langOfRequest(request, url).lang));
     if (isApi(path) || !isGet(method)) return json(403, { error: 'not-approved', status: me.status, message: 'This account is not approved', pending: '/pending' });
     return redirect('/pending');
   }
@@ -188,6 +191,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
     });
   }
   if (path === '/api/turn') return method === 'POST' ? handleTurn(request, env, ctx, me) : reject(405, 'method-not-allowed', 'use POST', { Allow: 'POST' });
+  if (path === '/api/proposal') return method === 'POST' ? handleProposal(request, env, ctx, me) : reject(405, 'method-not-allowed', 'use POST', { Allow: 'POST' });
   if (path.startsWith('/api/')) return json(404, { error: 'not-found', message: 'no such route' });
 
   // ---------- admin ----------

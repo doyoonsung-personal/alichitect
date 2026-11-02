@@ -1,6 +1,7 @@
-// Strings for the sign-in, sign-up, email-code, password and admin pages, the notification emails and the turn
-// endpoint's own fatal messages. English is the source. Korean and Chinese: first drafts by Qwen (tools/qwen/ask.ts,
-// qwen3.8-flash), reviewed and corrected by hand; the code-mail wording follows the WonderClip platform's mail-i18n.
+// Strings for the sign-in, sign-up, email-code, password and admin pages, the notification emails and the turn and
+// proposal endpoints' own fatal messages. English is the source. Korean and Chinese: first drafts by Qwen
+// (tools/qwen/ask.ts, qwen3.8-flash), reviewed and corrected by hand; the code-mail wording follows the WonderClip
+// platform's mail-i18n.
 // app.name, app.lead and app.footer are copied from apps/web/src/i18n/strings.json (app.name, landing.lead,
 // landing.footer) so these pages read like the app.
 // One table per language with the same keys (test/pages.test.ts checks keys and placeholders).
@@ -178,6 +179,10 @@ export const EN = {
   "fatal.not-approved": "This account is not approved yet. Your diagram is unchanged.",
   "fatal.quota-exceeded": "You have used today's {n} turns. The limit resets at 00:00 UTC. Your diagram is unchanged.",
   "fatal.user-busy": "Another of your turns is still running, maybe in another tab. Wait for it to finish. Your diagram is unchanged.",
+  "fatal.proposal-quota-exceeded": "You have used today's {n} turns, and writing a proposal counts as one. The limit resets at 00:00 UTC. You can still download the basic version.",
+  "fatal.proposal-user-busy": "Another of your requests is still running, maybe in another tab. Wait for it to finish, then try again.",
+  "fatal.proposal-signed-out": "You are signed out. Sign in again to write the proposal. You can still download the basic version.",
+  "fatal.proposal-not-approved": "This account is not approved yet, so the proposal cannot be written. You can still download the basic version.",
   "mail.request.subject": "[Architecture Builder] New access request · {name} ({email})",
   "mail.request.title": "New access request",
   "mail.request.body": "Someone confirmed their email address and is waiting for your approval.",
@@ -382,6 +387,10 @@ export const KO = {
   "fatal.not-approved": "이 계정은 아직 승인되지 않았습니다. 다이어그램은 변경되지 않았습니다.",
   "fatal.quota-exceeded": "오늘의 요청 {n}회를 모두 사용했습니다. 제한은 00:00 UTC에 초기화됩니다. 다이어그램은 변경되지 않았습니다.",
   "fatal.user-busy": "다른 요청이 아직 실행 중입니다(다른 탭일 수 있습니다). 끝날 때까지 기다려 주세요. 다이어그램은 변경되지 않았습니다.",
+  "fatal.proposal-quota-exceeded": "오늘의 요청 {n}회를 모두 사용했습니다(제안서 작성도 1회로 계산됩니다). 제한은 00:00 UTC에 초기화됩니다. 기본 버전은 계속 다운로드할 수 있습니다.",
+  "fatal.proposal-user-busy": "다른 요청이 아직 실행 중입니다(다른 탭일 수 있습니다). 끝난 후 다시 시도해 주세요.",
+  "fatal.proposal-signed-out": "로그아웃되었습니다. 제안서를 작성하려면 다시 로그인하세요. 기본 버전은 계속 다운로드할 수 있습니다.",
+  "fatal.proposal-not-approved": "이 계정은 아직 승인되지 않아 제안서를 작성할 수 없습니다. 기본 버전은 계속 다운로드할 수 있습니다.",
   "mail.request.subject": "[아키텍처 빌더] 새 액세스 요청 · {name} ({email})",
   "mail.request.title": "새 액세스 요청",
   "mail.request.body": "새 사용자가 이메일 인증을 마치고 승인을 기다리고 있습니다.",
@@ -586,6 +595,10 @@ export const ZH = {
   "fatal.not-approved": "此账号尚未获得批准。您的图表未更改。",
   "fatal.quota-exceeded": "您已用完今天的 {n} 次请求。限制将在 00:00 UTC 重置。您的图表未更改。",
   "fatal.user-busy": "您的另一个请求仍在运行，可能在其他标签页中。请等待其完成。您的图表未更改。",
+  "fatal.proposal-quota-exceeded": "您已用完今天的 {n} 次请求（撰写提案计为 1 次）。限制将在 00:00 UTC 重置。您仍可下载基础版。",
+  "fatal.proposal-user-busy": "您的另一个请求仍在运行，可能在其他标签页中。请等待其完成后再试。",
+  "fatal.proposal-signed-out": "您已退出登录。请重新登录以撰写提案。您仍可下载基础版。",
+  "fatal.proposal-not-approved": "此账号尚未获得批准，因此无法撰写提案。您仍可下载基础版。",
   "mail.request.subject": "[架构构建器] 新的访问申请 · {name}（{email}）",
   "mail.request.title": "新的访问申请",
   "mail.request.body": "有用户已完成邮箱验证，正在等待您的审批。",

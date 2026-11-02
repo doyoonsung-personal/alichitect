@@ -1,0 +1,336 @@
+{
+  "id": "en-ai",
+  "lang": "en",
+  "outcome": "done",
+  "stats": {
+    "model": "qwen3.8-max",
+    "servedBy": "qwen",
+    "fallbackUsed": false,
+    "backupUsed": false,
+    "calls": 2,
+    "costUsd": 0.019304,
+    "ms": 35746,
+    "sections": 25,
+    "rejectedLines": 4,
+    "lint": {
+      "jargon": 1,
+      "absolute": 2,
+      "requirement": 1
+    },
+    "heldUsed": 0,
+    "missing": [],
+    "promptTokens": 9570,
+    "completionTokens": 1558
+  },
+  "statuses": [
+    {
+      "ms": 29253,
+      "code": "finish"
+    }
+  ],
+  "draft": {
+    "lang": "en",
+    "exec": "Straits Commerce Bank needs an internal agent platform where staff can run AI agents safely over bank documents, while keeping all data in Singapore.\n\nThis proposal places the entire platform inside a private network in Singapore. It isolates agent code execution, serves a post-trained model for document search, and logs every action.\n\nThe result is a governed environment where staff use AI without exposing internal data. To move forward, confirm which open model you plan to post-train so the team can size the compute.",
+    "needs": [
+      {
+        "id": "n1",
+        "need": "Search over internal documents using RAG.",
+        "source": "stated",
+        "quote": "RAG over internal documents",
+        "answer": "A dedicated service retrieves answers from your documents using a tuned model. Staff get accurate responses grounded in bank knowledge rather than public internet data.",
+        "products": [
+          "pai-eas",
+          "elasticsearch"
+        ]
+      },
+      {
+        "id": "n2",
+        "need": "Post-training of an open model on bank data.",
+        "source": "stated",
+        "quote": "post-training of an open model",
+        "answer": "Managed training jobs fine-tune the model on your documents without running permanent clusters. Compute scales down when training finishes, reducing idle spend.",
+        "products": [
+          "pai-dlc"
+        ]
+      },
+      {
+        "id": "n3",
+        "need": "Sandboxed code execution for agents.",
+        "source": "stated",
+        "quote": "sandboxed code execution for agents",
+        "answer": "Agents run in isolated environments that keep generated code away from the rest of the bank network. This lowers the risk of accidental or malicious actions during internal workflows.",
+        "products": [
+          "acs-agent-sandbox"
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "title": "Isolated agent execution",
+        "text": "Each agent runs in its own sandbox, separated from other workloads. This limits the blast radius if generated code behaves unexpectedly during internal tasks."
+      },
+      {
+        "title": "Variable training costs",
+        "text": "Post-training uses managed GPU jobs that run only when needed. You avoid paying for idle training infrastructure between tuning cycles."
+      },
+      {
+        "title": "Governed model access",
+        "text": "A central gateway enforces token limits and guardrails on every model call. This prevents runaway usage and keeps internal queries within policy."
+      },
+      {
+        "title": "Centralized activity log",
+        "text": "Agent actions, model calls and training jobs write to a single log store. This gives your teams one place to review platform activity."
+      }
+    ],
+    "why": {
+      "ack": "Your team needs a foundation to host the agent platform, gateways and services across two zones in Singapore. A managed Kubernetes cluster reduces the operational effort of running this infrastructure yourselves.",
+      "acs-agent-sandbox": "You asked for sandboxed code execution for agents. VM-isolated pods with warm pools let agents run generated code safely, lowering the risk to internal systems without slowing down staff.",
+      "ai-gateway": "Multiple agents and services will call your models. Central routing with token limits and guardrails controls spend and reduces the chance of misuse across the bank.",
+      "elasticsearch": "You need retrieval-augmented generation over internal documents. A managed vector store handles hybrid search for your RAG workflows, saving the team from operating search infrastructure themselves.",
+      "nat": "Base models must be downloaded from the internet while data stays in Singapore. Controlled outbound access lets training jobs fetch weights without opening inbound paths to your private network.",
+      "oss": "Internal documents, training datasets and model weights need durable storage within Singapore. Object storage holds these assets at low cost and feeds them directly into training and retrieval jobs.",
+      "agentcore": "You are building an internal agent platform for bank workflows. An enterprise orchestration layer governs how agents use skills and tools, reducing the effort to manage them manually.",
+      "pai-eas": "You requested RAG over internal documents and post-training of an open model. Managed serving hosts both the tuned model and the retrieval service behind private endpoints, scaling with demand.",
+      "pai-dlc": "You asked for post-training of an open model. Managed training jobs provide GPUs only when fine-tuning runs, avoiding the fixed cost of permanent training clusters.",
+      "acr": "Agent sandboxes and services require private container images. A managed registry with scanning stores these images securely, reducing the effort of maintaining your own image pipeline.",
+      "sls": "Banks typically need to trace internal platform activity. Centralized logging captures agent actions and model calls, giving compliance teams searchable records without building a log system from scratch."
+    },
+    "tradeoffs": [
+      {
+        "text": "The design assumes your team can operate Kubernetes. If not, managing the cluster adds operational burden.",
+        "mitigation": "Evaluate whether your team has this skill, or discuss a serverless container alternative with the account team."
+      },
+      {
+        "text": "The platform assumes internal bank staff only, with no public exposure.",
+        "mitigation": "Confirm whether partners will ever access the agents; if so, the gateway configuration needs adjustment."
+      },
+      {
+        "text": "Training jobs fetch base models through outbound internet access.",
+        "mitigation": "NAT Gateway restricts this to outbound traffic only, and all internal data remains in Singapore."
+      }
+    ],
+    "next": [
+      "Schedule a cost-estimate session with the account team once the model and ingestion method are chosen.",
+      "Confirm which open model you plan to post-train so the team can size the compute for training and serving.",
+      "Decide how internal documents will be ingested into the vector store, such as batch upload or real-time sync."
+    ],
+    "complete": true
+  },
+  "sections": [
+    {
+      "ms": 4354,
+      "section": {
+        "k": "exec",
+        "text": "Straits Commerce Bank needs an internal agent platform where staff can run AI agents safely over bank documents, while keeping all data in Singapore.\n\nThis proposal places the entire platform inside a private network in Singapore. It isolates agent code execution, serves a post-trained model for document search, and logs every action.\n\nThe result is a governed environment where staff use AI without exposing internal data. To move forward, confirm which open model you plan to post-train so the team can size the compute."
+      }
+    },
+    {
+      "ms": 7562,
+      "section": {
+        "k": "need",
+        "id": "n1",
+        "need": "Search over internal documents using RAG.",
+        "source": "stated",
+        "quote": "RAG over internal documents",
+        "answer": "A dedicated service retrieves answers from your documents using a tuned model. Staff get accurate responses grounded in bank knowledge rather than public internet data.",
+        "products": [
+          "pai-eas",
+          "elasticsearch"
+        ]
+      }
+    },
+    {
+      "ms": 9103,
+      "section": {
+        "k": "need",
+        "id": "n2",
+        "need": "Post-training of an open model on bank data.",
+        "source": "stated",
+        "quote": "post-training of an open model",
+        "answer": "Managed training jobs fine-tune the model on your documents without running permanent clusters. Compute scales down when training finishes, reducing idle spend.",
+        "products": [
+          "pai-dlc"
+        ]
+      }
+    },
+    {
+      "ms": 11971,
+      "section": {
+        "k": "outcome",
+        "title": "Isolated agent execution",
+        "text": "Each agent runs in its own sandbox, separated from other workloads. This limits the blast radius if generated code behaves unexpectedly during internal tasks."
+      }
+    },
+    {
+      "ms": 12904,
+      "section": {
+        "k": "outcome",
+        "title": "Variable training costs",
+        "text": "Post-training uses managed GPU jobs that run only when needed. You avoid paying for idle training infrastructure between tuning cycles."
+      }
+    },
+    {
+      "ms": 13722,
+      "section": {
+        "k": "outcome",
+        "title": "Governed model access",
+        "text": "A central gateway enforces token limits and guardrails on every model call. This prevents runaway usage and keeps internal queries within policy."
+      }
+    },
+    {
+      "ms": 15612,
+      "section": {
+        "k": "why",
+        "product": "ack",
+        "text": "Your team needs a foundation to host the agent platform, gateways and services across two zones in Singapore. A managed Kubernetes cluster reduces the operational effort of running this infrastructure yourselves."
+      }
+    },
+    {
+      "ms": 16790,
+      "section": {
+        "k": "why",
+        "product": "acs-agent-sandbox",
+        "text": "You asked for sandboxed code execution for agents. VM-isolated pods with warm pools let agents run generated code safely, lowering the risk to internal systems without slowing down staff."
+      }
+    },
+    {
+      "ms": 17602,
+      "section": {
+        "k": "why",
+        "product": "ai-gateway",
+        "text": "Multiple agents and services will call your models. Central routing with token limits and guardrails controls spend and reduces the chance of misuse across the bank."
+      }
+    },
+    {
+      "ms": 18626,
+      "section": {
+        "k": "why",
+        "product": "elasticsearch",
+        "text": "You need retrieval-augmented generation over internal documents. A managed vector store handles hybrid search for your RAG workflows, saving the team from operating search infrastructure themselves."
+      }
+    },
+    {
+      "ms": 19481,
+      "section": {
+        "k": "why",
+        "product": "nat",
+        "text": "Base models must be downloaded from the internet while data stays in Singapore. Controlled outbound access lets training jobs fetch weights without opening inbound paths to your private network."
+      }
+    },
+    {
+      "ms": 20421,
+      "section": {
+        "k": "why",
+        "product": "oss",
+        "text": "Internal documents, training datasets and model weights need durable storage within Singapore. Object storage holds these assets at low cost and feeds them directly into training and retrieval jobs."
+      }
+    },
+    {
+      "ms": 21249,
+      "section": {
+        "k": "why",
+        "product": "agentcore",
+        "text": "You are building an internal agent platform for bank workflows. An enterprise orchestration layer governs how agents use skills and tools, reducing the effort to manage them manually."
+      }
+    },
+    {
+      "ms": 22220,
+      "section": {
+        "k": "why",
+        "product": "pai-eas",
+        "text": "You requested RAG over internal documents and post-training of an open model. Managed serving hosts both the tuned model and the retrieval service behind private endpoints, scaling with demand."
+      }
+    },
+    {
+      "ms": 23163,
+      "section": {
+        "k": "why",
+        "product": "pai-dlc",
+        "text": "You asked for post-training of an open model. Managed training jobs provide GPUs only when fine-tuning runs, avoiding the fixed cost of permanent training clusters."
+      }
+    },
+    {
+      "ms": 23963,
+      "section": {
+        "k": "why",
+        "product": "acr",
+        "text": "Agent sandboxes and services require private container images. A managed registry with scanning stores these images securely, reducing the effort of maintaining your own image pipeline."
+      }
+    },
+    {
+      "ms": 24900,
+      "section": {
+        "k": "why",
+        "product": "sls",
+        "text": "Banks typically need to trace internal platform activity. Centralized logging captures agent actions and model calls, giving compliance teams searchable records without building a log system from scratch."
+      }
+    },
+    {
+      "ms": 25951,
+      "section": {
+        "k": "tradeoff",
+        "text": "The design assumes your team can operate Kubernetes. If not, managing the cluster adds operational burden.",
+        "mitigation": "Evaluate whether your team has this skill, or discuss a serverless container alternative with the account team."
+      }
+    },
+    {
+      "ms": 26841,
+      "section": {
+        "k": "tradeoff",
+        "text": "The platform assumes internal bank staff only, with no public exposure.",
+        "mitigation": "Confirm whether partners will ever access the agents; if so, the gateway configuration needs adjustment."
+      }
+    },
+    {
+      "ms": 27764,
+      "section": {
+        "k": "tradeoff",
+        "text": "Training jobs fetch base models through outbound internet access.",
+        "mitigation": "NAT Gateway restricts this to outbound traffic only, and all internal data remains in Singapore."
+      }
+    },
+    {
+      "ms": 28332,
+      "section": {
+        "k": "next",
+        "text": "Confirm which open model you plan to post-train so the team can size the compute for training and serving."
+      }
+    },
+    {
+      "ms": 28713,
+      "section": {
+        "k": "next",
+        "text": "Decide how internal documents will be ingested into the vector store, such as batch upload or real-time sync."
+      }
+    },
+    {
+      "ms": 29253,
+      "section": {
+        "k": "next",
+        "text": "Schedule a cost-estimate session with the account team once the model and ingestion method are chosen."
+      }
+    },
+    {
+      "ms": 33253,
+      "section": {
+        "k": "need",
+        "id": "n3",
+        "need": "Sandboxed code execution for agents.",
+        "source": "stated",
+        "quote": "sandboxed code execution for agents",
+        "answer": "Agents run in isolated environments that keep generated code away from the rest of the bank network. This lowers the risk of accidental or malicious actions during internal workflows.",
+        "products": [
+          "acs-agent-sandbox"
+        ]
+      }
+    },
+    {
+      "ms": 35746,
+      "section": {
+        "k": "outcome",
+        "title": "Centralized activity log",
+        "text": "Agent actions, model calls and training jobs write to a single log store. This gives your teams one place to review platform activity."
+      }
+    }
+  ]
+}

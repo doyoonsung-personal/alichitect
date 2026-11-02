@@ -779,6 +779,8 @@ export interface CompleteOptions {
   totalTimeoutMs?: number;
   prices?: Record<string, Price>;
   fetchImpl?: typeof fetch;
+  /** Each content delta as it arrives (proposal.ts parses NDJSON lines while the text streams). Listener errors are ignored. */
+  onDelta?: (text: string) => void;
 }
 
 export interface CompleteResult {
@@ -812,6 +814,13 @@ export async function complete(o: CompleteOptions): Promise<CompleteResult> {
       onContent(delta: string, ms: number) {
         if (out.firstContentMs === null) out.firstContentMs = ms;
         out.text += delta;
+        if (o.onDelta) {
+          try {
+            o.onDelta(delta);
+          } catch {
+            /* a listener error must not break the stream */
+          }
+        }
       },
       onReasoning(delta: string) {
         out.reasoningChars += delta.length;
@@ -901,6 +910,29 @@ export interface BackupProvider {
   provider: Provider;
   model: string;
   stream(o: BackupStreamOptions): Promise<StreamResult>;
+  /** One plain-text call (proposal.ts drafts the proposal's narrative with it when the content filter stops Qwen). Optional: a backup without it rescues turns only. */
+  complete?(o: BackupCompleteOptions): Promise<BackupCompleteResult>;
+}
+
+/** What a backup's plain-text call takes: Chat Completions messages, an output cap, the caller's signal and a text listener. */
+export interface BackupCompleteOptions {
+  messages: ChatMessage[];
+  maxTokens?: number;
+  signal?: AbortSignal;
+  /** Each text delta as it arrives. Listener errors are ignored. */
+  onText?: (delta: string) => void;
+  prices?: Record<string, Price>;
+}
+
+/** A backup's plain-text call, collected. `servedModel`: the model that answered when it differs from the requested one. */
+export interface BackupCompleteResult {
+  text: string;
+  usage: Usage | null;
+  costUsd: number;
+  costEstimated: boolean;
+  finishReason: string | null;
+  servedModel?: string;
+  error?: TurnError;
 }
 
 /**

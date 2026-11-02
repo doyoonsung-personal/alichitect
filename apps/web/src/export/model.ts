@@ -1,7 +1,8 @@
 // The proposal as data (pure): everything the PDF prints, assembled from the session record, the drawn graph and the
 // catalog. Nothing here draws or measures. Names, reasons, prices and links come from the same builders the console,
-// the canvas popover and the products panel use, so the document says what the screen says.
-import type { Catalog, CatalogEntry, Graph } from '@ali/core/types.ts';
+// the canvas popover and the products panel use, so the document says what the screen says. A drafted narrative
+// (POST /api/proposal), when there is one, adds the business "why" on top; without one the model is exactly as before.
+import type { Catalog, CatalogEntry, Graph, NeedSource, ProposalDraft } from '@ali/core/types.ts';
 import type { LayoutState } from '@ali/core/layout.ts';
 import { regionLabel } from '@ali/core/regions.ts';
 import type { Lang } from '../i18n/t.ts';
@@ -29,6 +30,8 @@ export interface ProposalInput {
   /** Customer name; empty leaves the line out. */
   customer?: string;
   now: Date;
+  /** The drafted narrative; null or absent prints the document without it. */
+  draft?: ProposalDraft | null;
 }
 
 export interface RequirementItem {
@@ -80,6 +83,10 @@ export interface ComponentEntry {
   docs: string | null;
   fit?: 'primary' | 'complement';
   addedIn?: number;
+  /** Why it is in this design for this customer, from the drafted narrative. Present only with a draft. */
+  draftWhy?: string;
+  /** Not a product (users, a mobile app, a data center): its entry has no documentation row. Present only with a draft. */
+  construct?: boolean;
 }
 
 export interface RecEntry {
@@ -90,6 +97,38 @@ export interface RecEntry {
   why: string;
   price: string | null;
   docs: string | null;
+  /** The drafted why for this customer. Present only with a draft. */
+  draftWhy?: string;
+}
+
+export interface NeedItem {
+  need: string;
+  source: NeedSource;
+  /**
+   * The customer's words in quotation marks (marked "original wording" when they are in another language than the
+   * document), "Implied by what you described", or "Typical for businesses like yours".
+   */
+  sourceText: string;
+  answer: string;
+  /** Official names of the products in the design that answer it. */
+  products: string[];
+}
+
+/** The drafted narrative, ready to print: the business case first, the honest trade-offs and next steps after. */
+export interface NarrativeModel {
+  /** Executive summary paragraphs. */
+  exec: string[];
+  outcomes: Array<{ title: string; text: string }>;
+  needs: NeedItem[];
+  tradeoffs: Array<{ text: string; mitigation?: string }>;
+  next: string[];
+  /**
+   * Fewer than half of the needs are the customer's own words (a one-line request, say): the needs page is headed as
+   * what businesses like theirs usually need, not "What you told us".
+   */
+  mostlyTypical: boolean;
+  /** "Pricing: your account team will prepare a cost estimate", when no product of the design has a catalog price. */
+  pricingNote: string | null;
 }
 
 export interface ConnectionRow {
@@ -129,6 +168,8 @@ export interface ProposalModel {
   gaps: Array<{ need: string; note: string }>;
   connections: ConnectionRow[];
   revisions: RevisionEntry[];
+  /** Present only when a drafted narrative was given. */
+  narrative?: NarrativeModel;
 }
 
 const pad = (n: number): string => String(n).padStart(2, '0');
@@ -301,6 +342,20 @@ export function buildProposal(i: ProposalInput): ProposalModel {
     };
   });
 
+  // ---- the drafted narrative ----
+  const narrative = i.draft ? buildNarrative(i.draft, components, recs, xt, lang) : null;
+  if (i.draft) {
+    for (const c of components) {
+      const w = i.draft.why[c.product]?.trim();
+      if (w) c.draftWhy = w;
+      if (entryFor(catalog, c.product)?.kind === 'construct') c.construct = true;
+    }
+    for (const r of recs) {
+      const w = i.draft.why[r.product]?.trim();
+      if (w) r.draftWhy = w;
+    }
+  }
+
   return {
     lang,
     title,
@@ -317,6 +372,57 @@ export function buildProposal(i: ProposalInput): ProposalModel {
     gaps: [...gaps.values()],
     connections,
     revisions,
+    ...(narrative ? { narrative } : {}),
+  };
+}
+
+const paragraphs = (text: string): string[] =>
+  text
+    .split(/\n\s*\n/)
+    .map((p) => p.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+const oneLine = (text: string): string => text.replace(/\s+/g, ' ').trim();
+
+/** The script a text is written in, as far as the document languages go: Hangul, Han (with no Hangul), or other. */
+function scriptOf(text: string): Lang {
+  if (/[가-힯ᄀ-ᇿ㄰-㆏]/u.test(text)) return 'ko';
+  if (/[一-鿿㐀-䶿]/u.test(text)) return 'zh';
+  return 'en';
+}
+
+/** The draft as printable parts. A need names only products that are in the design, by their official names. */
+function buildNarrative(d: ProposalDraft, components: ComponentEntry[], recs: RecEntry[], xt: XT, lang: Lang): NarrativeModel {
+  const names = new Map<string, string>();
+  for (const r of recs) names.set(r.product, r.name);
+  for (const c of components) names.set(c.product, c.name);
+  const sourceText = (n: ProposalDraft['needs'][number]): string => {
+    if (n.source === 'stated') {
+      const q = oneLine(n.quote ?? '');
+      if (!q) return xt('needs.stated');
+      // a Korean quote under Chinese text (or the other way round) is marked as the customer's original wording; the
+      // need line above it carries its meaning in the document's language
+      const foreign = scriptOf(q) !== lang && (scriptOf(q) !== 'en' || lang === 'en');
+      return xt(foreign ? 'needs.quoteOriginal' : 'needs.quote', { quote: q });
+    }
+    return xt(n.source === 'inferred' ? 'needs.inferred' : 'needs.general');
+  };
+  const priced = components.some((c) => c.price) || recs.some((r) => r.price);
+  const needs = d.needs.filter((n) => n.need.trim() && n.answer.trim());
+  return {
+    exec: paragraphs(d.exec),
+    outcomes: d.outcomes.map((o) => ({ title: oneLine(o.title), text: oneLine(o.text) })).filter((o) => o.title && o.text),
+    needs: needs
+      .map((n) => ({
+        need: oneLine(n.need),
+        source: n.source,
+        sourceText: sourceText(n),
+        answer: oneLine(n.answer),
+        products: [...new Set(n.products)].map((p) => names.get(p)).filter((x): x is string => !!x),
+      })),
+    tradeoffs: d.tradeoffs.filter((t) => t.text.trim()).map((t) => (t.mitigation?.trim() ? { text: oneLine(t.text), mitigation: oneLine(t.mitigation) } : { text: oneLine(t.text) })),
+    next: d.next.map(oneLine).filter(Boolean),
+    mostlyTypical: needs.filter((n) => n.source === 'stated').length * 2 < needs.length,
+    pricingNote: priced ? null : xt('next.pricing'),
   };
 }
 

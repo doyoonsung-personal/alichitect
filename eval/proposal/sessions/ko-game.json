@@ -1,0 +1,2644 @@
+{
+  "steps": [
+    {
+      "kind": "ask",
+      "text": "글로벌 모바일 게임을 출시합니다. 동남아와 한국 유저가 주 대상이고, 출시 첫 주 트래픽 폭증과 지연이 걱정입니다."
+    },
+    {
+      "kind": "ask",
+      "text": "실시간 매치메이킹과 랭킹이 필요하고, 결제는 앱스토어 인앱 결제로 처리합니다. 서버 운영 인력은 3명뿐이라 관리가 쉬웠으면 합니다."
+    }
+  ],
+  "memory": {
+    "turns": [
+      {
+        "role": "user",
+        "text": "글로벌 모바일 게임을 출시합니다. 동남아와 한국 유저가 주 대상이고, 출시 첫 주 트래픽 폭증과 지연이 걱정입니다."
+      },
+      {
+        "role": "assistant",
+        "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르 리전을 기반으로 ESA와 GA로 지연을 줄이고, 첫 주 트래픽 폭증에 대비해 ACK와 Auto Scaling을 구성합니다.\n게임 세션은 Tair로 빠르게 처리하고, 플레이어 데이터는 PolarDB에 저장하며 멀티 AZ로 고가용성을 확보합니다.\n모니터링과 로그 수집을 추가하여 출시 초기 장애에 신속히 대응할 수 있도록 합니다.",
+        "changes": "+internet[external] +edge[edge] +sg[region] +vpc[vpc] +mobile-app(mobile-app) +dns(dns) +esa(esa) +ga(ga) +alb(alb, zones a,b) +waf(waf, badge on alb) +game-server(ack, zones a,b) +cache(tair, zones a,b) +db(polardb, zones a,b) +media(oss) +nat(nat) +logs(sls) +metrics(prometheus) +e-mobile-app-dns +e-mobile-app-esa +e-mobile-app-ga +e-ga-alb +e-esa-alb +e-alb-game-server +e-game-server-cache +e-game-server-db +e-esa-media +e-game-server-nat +e-game-server-logs +e-game-server-metrics"
+      },
+      {
+        "role": "user",
+        "text": "실시간 매치메이킹과 랭킹이 필요하고, 결제는 앱스토어 인앱 결제로 처리합니다. 서버 운영 인력은 3명뿐이라 관리가 쉬웠으면 합니다."
+      },
+      {
+        "role": "assistant",
+        "text": "운영 인력 3명을 고려해 ACK 대신 관리 부담이 적은 SAE로 전환하고, NLB를 추가해 실시간 소켓 통신을 처리합니다.",
+        "changes": "+nlb(nlb, zones a,b) +matchmaking(tair, zones a,b) +ranking(tablestore) +events(rocketmq) +e-ga-nlb +e-nlb-game-server +e-game-server-matchmaking +e-game-server-ranking +e-game-server-events ~game-server(sae, zones a,b) -e-ga-alb"
+      }
+    ],
+    "requirements": [
+      "서버 운영 인력 3명, 관리 용이성 필수"
+    ],
+    "graph": {
+      "groups": {
+        "internet": {
+          "id": "internet",
+          "kind": "external",
+          "label": "Internet",
+          "parent": null
+        },
+        "edge": {
+          "id": "edge",
+          "kind": "edge",
+          "label": "Edge",
+          "parent": null
+        },
+        "sg": {
+          "id": "sg",
+          "kind": "region",
+          "label": "Singapore (ap-southeast-1)",
+          "parent": null
+        },
+        "vpc": {
+          "id": "vpc",
+          "kind": "vpc",
+          "label": "Game VPC",
+          "parent": "sg"
+        }
+      },
+      "nodes": {
+        "mobile-app": {
+          "id": "mobile-app",
+          "product": "mobile-app",
+          "label": "모바일 게임 클라이언트",
+          "group": "internet",
+          "why": "동남아 및 한국 유저가 접속하는 게임 앱"
+        },
+        "dns": {
+          "id": "dns",
+          "product": "dns",
+          "label": "Alibaba Cloud DNS",
+          "group": null,
+          "why": "게임 도메인을 ESA 및 GA 엔드포인트로 해석"
+        },
+        "esa": {
+          "id": "esa",
+          "product": "esa",
+          "label": "ESA (정적/웹 API)",
+          "group": "edge",
+          "why": "패치 파일, 공지사항 등 정적 콘텐츠 캐싱 및 DDoS 방어"
+        },
+        "ga": {
+          "id": "ga",
+          "product": "ga",
+          "label": "Global Accelerator",
+          "group": "edge",
+          "why": "한국 및 동남아 유저의 게임 실시간 트래픽을 알리바바 백본으로 가속"
+        },
+        "alb": {
+          "id": "alb",
+          "product": "alb",
+          "label": "ALB",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "GA와 ESA에서 유입되는 트래픽을 게임 서버로 분산"
+        },
+        "waf": {
+          "id": "waf",
+          "product": "waf",
+          "label": "WAF",
+          "group": "vpc",
+          "attachTo": "alb",
+          "why": "API 악용 및 봇 공격 차단"
+        },
+        "game-server": {
+          "id": "game-server",
+          "product": "sae",
+          "label": "게임 서버 (SAE)",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "K8s 관리 없이 자동 확장되는 서버리스 앱 엔진"
+        },
+        "cache": {
+          "id": "cache",
+          "product": "tair",
+          "label": "세션 캐시 (Tair)",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "게임 세션 및 리더보드 등 빈번한 읽기 데이터 캐싱"
+        },
+        "db": {
+          "id": "db",
+          "product": "polardb",
+          "label": "플레이어 DB (PolarDB)",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "대규모 동접 쓰기를 감당하는 플레이어 데이터 저장소"
+        },
+        "media": {
+          "id": "media",
+          "product": "oss",
+          "label": "게임 에셋 (OSS)",
+          "group": "sg",
+          "why": "게임 패치, 이미지, 설치 파일 저장"
+        },
+        "nat": {
+          "id": "nat",
+          "product": "nat",
+          "label": "NAT Gateway",
+          "group": "vpc",
+          "why": "게임 서버의 외부 API 호출 및 패치 다운로드를 위한 아웃바운드 통신"
+        },
+        "logs": {
+          "id": "logs",
+          "product": "sls",
+          "label": "로그 서비스 (SLS)",
+          "group": "sg",
+          "why": "게임 서버 로그 중앙 집중화 및 이상 탐지"
+        },
+        "metrics": {
+          "id": "metrics",
+          "product": "prometheus",
+          "label": "Prometheus",
+          "group": "sg",
+          "why": "ACK 클러스터 및 게임 서버 메트릭 모니터링"
+        },
+        "nlb": {
+          "id": "nlb",
+          "product": "nlb",
+          "label": "NLB (실시간 소켓)",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "TCP/UDP 실시간 게임 트래픽 라우팅"
+        },
+        "matchmaking": {
+          "id": "matchmaking",
+          "product": "tair",
+          "label": "매치메이킹 큐 (Tair)",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "빠른 매칭 로직과 대기열 상태 저장"
+        },
+        "ranking": {
+          "id": "ranking",
+          "product": "tablestore",
+          "label": "랭킹 데이터 (Tablestore)",
+          "group": "vpc",
+          "why": "대규모 플레이어 랭킹 및 전적 NoSQL 저장"
+        },
+        "events": {
+          "id": "events",
+          "product": "rocketmq",
+          "label": "게임 이벤트 (RocketMQ)",
+          "group": "vpc",
+          "why": "비동기 이벤트 처리로 서버 부하 분산"
+        }
+      },
+      "edges": {
+        "e-mobile-app-dns": {
+          "id": "e-mobile-app-dns",
+          "from": "mobile-app",
+          "to": "dns",
+          "kind": "resolve"
+        },
+        "e-mobile-app-esa": {
+          "id": "e-mobile-app-esa",
+          "from": "mobile-app",
+          "to": "esa",
+          "label": "HTTPS"
+        },
+        "e-mobile-app-ga": {
+          "id": "e-mobile-app-ga",
+          "from": "mobile-app",
+          "to": "ga",
+          "label": "TCP/UDP"
+        },
+        "e-esa-alb": {
+          "id": "e-esa-alb",
+          "from": "esa",
+          "to": "alb",
+          "label": "origin"
+        },
+        "e-alb-game-server": {
+          "id": "e-alb-game-server",
+          "from": "alb",
+          "to": "game-server"
+        },
+        "e-game-server-cache": {
+          "id": "e-game-server-cache",
+          "from": "game-server",
+          "to": "cache"
+        },
+        "e-game-server-db": {
+          "id": "e-game-server-db",
+          "from": "game-server",
+          "to": "db",
+          "label": "SQL"
+        },
+        "e-esa-media": {
+          "id": "e-esa-media",
+          "from": "esa",
+          "to": "media",
+          "label": "assets"
+        },
+        "e-game-server-nat": {
+          "id": "e-game-server-nat",
+          "from": "game-server",
+          "to": "nat",
+          "kind": "control"
+        },
+        "e-game-server-logs": {
+          "id": "e-game-server-logs",
+          "from": "game-server",
+          "to": "logs",
+          "kind": "control"
+        },
+        "e-game-server-metrics": {
+          "id": "e-game-server-metrics",
+          "from": "game-server",
+          "to": "metrics",
+          "kind": "control"
+        },
+        "e-ga-nlb": {
+          "id": "e-ga-nlb",
+          "from": "ga",
+          "to": "nlb",
+          "label": "TCP/UDP"
+        },
+        "e-nlb-game-server": {
+          "id": "e-nlb-game-server",
+          "from": "nlb",
+          "to": "game-server",
+          "label": "socket"
+        },
+        "e-game-server-matchmaking": {
+          "id": "e-game-server-matchmaking",
+          "from": "game-server",
+          "to": "matchmaking",
+          "label": "match"
+        },
+        "e-game-server-ranking": {
+          "id": "e-game-server-ranking",
+          "from": "game-server",
+          "to": "ranking",
+          "label": "rank"
+        },
+        "e-game-server-events": {
+          "id": "e-game-server-events",
+          "from": "game-server",
+          "to": "events",
+          "kind": "async"
+        }
+      },
+      "recs": []
+    },
+    "tombstones": [
+      {
+        "id": "e-ga-alb",
+        "from": "ga",
+        "to": "alb"
+      }
+    ],
+    "constraints": [
+      {
+        "text": "서버 운영 인력 3명, 관리 용이성 필수",
+        "avoid": [
+          "ack",
+          "acs",
+          "asm",
+          "ack-one",
+          "ack-serverless",
+          "ack-dedicated",
+          "ack-edge",
+          "dify-on-ack"
+        ]
+      }
+    ],
+    "assumptions": [
+      {
+        "id": "game-backend",
+        "text": "게임 백엔드는 컨테이너 기반(ACK)으로 구성",
+        "alt": "서버리스(SAE)로 구성"
+      },
+      {
+        "id": "db-scale",
+        "text": "출시 첫 주 대규모 동접을 위해 PolarDB 사용",
+        "alt": "일반 RDS 사용"
+      }
+    ],
+    "questions": [
+      {
+        "id": "game-protocol",
+        "text": "게임 서버와 클라이언트 간 주요 통신 프로토콜이 무엇인가요?",
+        "options": [
+          "TCP/UDP (실시간 소켓)",
+          "HTTP/HTTPS (REST API)",
+          "gRPC"
+        ]
+      },
+      {
+        "id": "multi-region",
+        "text": "한국 유저 지연시간 단축을 위해 서울 리전 복제가 필요할까요?",
+        "options": [
+          "싱가포르 단일 리전",
+          "서울 리전 복제 추가"
+        ]
+      }
+    ]
+  },
+  "turns": [
+    {
+      "ask": "글로벌 모바일 게임을 출시합니다. 동남아와 한국 유저가 주 대상이고, 출시 첫 주 트래픽 폭증과 지연이 걱정입니다.",
+      "ev": [
+        [
+          2169,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2170,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2218,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저를 위한 글로벌 모바일",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2220,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2297,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2482,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2483,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르 리전을 기반으로 ESA",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2709,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르 리전을 기반으로 ESA와 GA로 지연",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2710,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르 리전을 기반으로 ESA와 GA로 지연을 줄",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2711,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르 리전을 기반으로 ESA와 GA로 지연을 줄이고, 첫 주",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2712,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르 리전을 기반으로 ESA와 GA로 지연을 줄이고, 첫 주 트",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2885,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르 리전을 기반으로 ESA와 GA로 지연을 줄이고, 첫 주 트래픽 폭증",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2886,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르 리전을 기반으로 ESA와 GA로 지연을 줄이고, 첫 주 트래픽 폭증에 대비해 ACK",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          3109,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르 리전을 기반으로 ESA와 GA로 지연을 줄이고, 첫 주 트래픽 폭증에 대비해 ACK와 Auto Scaling을",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          3110,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르 리전을 기반으로 ESA와 GA로 지연을 줄이고, 첫 주 트래픽 폭증에 대비해 ACK와 Auto Scaling을 구성합니다.",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          3112,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르 리전을 기반으로 ESA와 GA로 지연을 줄이고, 첫 주 트래픽 폭증에 대비해 ACK와 Auto Scaling을 구성합니다.",
+            "final": true,
+            "phase": "main"
+          }
+        ],
+        [
+          3112,
+          {
+            "type": "op",
+            "seq": 1,
+            "op": {
+              "t": "say",
+              "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르 리전을 기반으로 ESA와 GA로 지연을 줄이고, 첫 주 트래픽 폭증에 대비해 ACK와 Auto Scaling을 구성합니다."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          4057,
+          {
+            "type": "op",
+            "seq": 2,
+            "op": {
+              "t": "plan",
+              "products": [
+                "mobile-app",
+                "dns",
+                "esa",
+                "ga",
+                "alb",
+                "waf",
+                "ack",
+                "tair",
+                "polardb",
+                "oss",
+                "nat",
+                "sls",
+                "prometheus"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          4739,
+          {
+            "type": "op",
+            "seq": 3,
+            "op": {
+              "t": "assume",
+              "id": "game-backend",
+              "text": "게임 백엔드는 컨테이너 기반(ACK)으로 구성",
+              "alt": "서버리스(SAE)로 구성"
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          5442,
+          {
+            "type": "op",
+            "seq": 4,
+            "op": {
+              "t": "assume",
+              "id": "db-scale",
+              "text": "출시 첫 주 대규모 동접을 위해 PolarDB 사용",
+              "alt": "일반 RDS 사용"
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          5981,
+          {
+            "type": "op",
+            "seq": 5,
+            "op": {
+              "t": "group",
+              "id": "internet",
+              "kind": "external",
+              "label": "Internet",
+              "parent": null
+            },
+            "added": [
+              "internet"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          6794,
+          {
+            "type": "op",
+            "seq": 6,
+            "op": {
+              "t": "node",
+              "id": "mobile-app",
+              "product": "mobile-app",
+              "label": "모바일 게임 클라이언트",
+              "group": "internet",
+              "why": "동남아 및 한국 유저가 접속하는 게임 앱"
+            },
+            "added": [
+              "mobile-app"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          7467,
+          {
+            "type": "op",
+            "seq": 7,
+            "op": {
+              "t": "node",
+              "id": "dns",
+              "product": "dns",
+              "label": "Alibaba Cloud DNS",
+              "group": null,
+              "why": "게임 도메인을 ESA 및 GA 엔드포인트로 해석"
+            },
+            "added": [
+              "dns"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          7920,
+          {
+            "type": "op",
+            "seq": 8,
+            "op": {
+              "t": "edge",
+              "id": "e-mobile-app-dns",
+              "from": "mobile-app",
+              "to": "dns",
+              "kind": "resolve"
+            },
+            "added": [
+              "e-mobile-app-dns"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          8345,
+          {
+            "type": "op",
+            "seq": 9,
+            "op": {
+              "t": "group",
+              "id": "edge",
+              "kind": "edge",
+              "label": "Edge",
+              "parent": null
+            },
+            "added": [
+              "edge"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          9363,
+          {
+            "type": "op",
+            "seq": 10,
+            "op": {
+              "t": "node",
+              "id": "esa",
+              "product": "esa",
+              "label": "ESA (정적/웹 API)",
+              "group": "edge",
+              "why": "패치 파일, 공지사항 등 정적 콘텐츠 캐싱 및 DDoS 방어"
+            },
+            "added": [
+              "esa"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          9891,
+          {
+            "type": "op",
+            "seq": 11,
+            "op": {
+              "t": "edge",
+              "id": "e-mobile-app-esa",
+              "from": "mobile-app",
+              "to": "esa",
+              "label": "HTTPS"
+            },
+            "added": [
+              "e-mobile-app-esa"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          10769,
+          {
+            "type": "op",
+            "seq": 12,
+            "op": {
+              "t": "node",
+              "id": "ga",
+              "product": "ga",
+              "label": "Global Accelerator",
+              "group": "edge",
+              "why": "한국 및 동남아 유저의 게임 실시간 트래픽을 알리바바 백본으로 가속"
+            },
+            "added": [
+              "ga"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          11187,
+          {
+            "type": "op",
+            "seq": 13,
+            "op": {
+              "t": "edge",
+              "id": "e-mobile-app-ga",
+              "from": "mobile-app",
+              "to": "ga",
+              "label": "TCP/UDP"
+            },
+            "added": [
+              "e-mobile-app-ga"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          11690,
+          {
+            "type": "op",
+            "seq": 14,
+            "op": {
+              "t": "group",
+              "id": "sg",
+              "kind": "region",
+              "label": "Singapore (ap-southeast-1)",
+              "parent": null
+            },
+            "added": [
+              "sg"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          12066,
+          {
+            "type": "op",
+            "seq": 15,
+            "op": {
+              "t": "group",
+              "id": "vpc",
+              "kind": "vpc",
+              "label": "Game VPC",
+              "parent": "sg"
+            },
+            "added": [
+              "vpc"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          12997,
+          {
+            "type": "op",
+            "seq": 16,
+            "op": {
+              "t": "node",
+              "id": "alb",
+              "product": "alb",
+              "label": "ALB",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "GA와 ESA에서 유입되는 트래픽을 게임 서버로 분산"
+            },
+            "added": [
+              "alb"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          13415,
+          {
+            "type": "op",
+            "seq": 17,
+            "op": {
+              "t": "edge",
+              "id": "e-ga-alb",
+              "from": "ga",
+              "to": "alb"
+            },
+            "added": [
+              "e-ga-alb"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          13897,
+          {
+            "type": "op",
+            "seq": 18,
+            "op": {
+              "t": "edge",
+              "id": "e-esa-alb",
+              "from": "esa",
+              "to": "alb",
+              "label": "origin"
+            },
+            "added": [
+              "e-esa-alb"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          14615,
+          {
+            "type": "op",
+            "seq": 19,
+            "op": {
+              "t": "node",
+              "id": "waf",
+              "product": "waf",
+              "label": "WAF",
+              "group": "vpc",
+              "attachTo": "alb",
+              "why": "API 악용 및 봇 공격 차단"
+            },
+            "added": [
+              "waf"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          15646,
+          {
+            "type": "op",
+            "seq": 20,
+            "op": {
+              "t": "node",
+              "id": "game-server",
+              "product": "ack",
+              "label": "게임 서버 (ACK)",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "첫 주 트래픽 폭증에 맞춰 자동 확장되는 게임 로직 컨테이너"
+            },
+            "added": [
+              "game-server"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          16106,
+          {
+            "type": "op",
+            "seq": 21,
+            "op": {
+              "t": "edge",
+              "id": "e-alb-game-server",
+              "from": "alb",
+              "to": "game-server"
+            },
+            "added": [
+              "e-alb-game-server"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          16237,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "게임",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          16238,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "게임 세션은 T",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          16239,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "게임 세션은 Tair로",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          16449,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "게임 세션은 Tair로 빠르게 처리하고,",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          16450,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "게임 세션은 Tair로 빠르게 처리하고, 플레이어",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          16616,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "게임 세션은 Tair로 빠르게 처리하고, 플레이어 데이터는 PolarDB",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          16617,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "게임 세션은 Tair로 빠르게 처리하고, 플레이어 데이터는 PolarDB에",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          16617,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "게임 세션은 Tair로 빠르게 처리하고, 플레이어 데이터는 PolarDB에 저장하며 멀티 AZ",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          16618,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "게임 세션은 Tair로 빠르게 처리하고, 플레이어 데이터는 PolarDB에 저장하며 멀티 AZ로",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          16834,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "게임 세션은 Tair로 빠르게 처리하고, 플레이어 데이터는 PolarDB에 저장하며 멀티 AZ로 고가용성을",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          16836,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "게임 세션은 Tair로 빠르게 처리하고, 플레이어 데이터는 PolarDB에 저장하며 멀티 AZ로 고가용성을 확보합니다.",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          16836,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "게임 세션은 Tair로 빠르게 처리하고, 플레이어 데이터는 PolarDB에 저장하며 멀티 AZ로 고가용성을 확보합니다.",
+            "final": true,
+            "phase": "main"
+          }
+        ],
+        [
+          16836,
+          {
+            "type": "op",
+            "seq": 22,
+            "op": {
+              "t": "say",
+              "text": "게임 세션은 Tair로 빠르게 처리하고, 플레이어 데이터는 PolarDB에 저장하며 멀티 AZ로 고가용성을 확보합니다."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          17771,
+          {
+            "type": "op",
+            "seq": 23,
+            "op": {
+              "t": "node",
+              "id": "cache",
+              "product": "tair",
+              "label": "세션 캐시 (Tair)",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "게임 세션 및 리더보드 등 빈번한 읽기 데이터 캐싱"
+            },
+            "added": [
+              "cache"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          18182,
+          {
+            "type": "op",
+            "seq": 24,
+            "op": {
+              "t": "edge",
+              "id": "e-game-server-cache",
+              "from": "game-server",
+              "to": "cache"
+            },
+            "added": [
+              "e-game-server-cache"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          19208,
+          {
+            "type": "op",
+            "seq": 25,
+            "op": {
+              "t": "node",
+              "id": "db",
+              "product": "polardb",
+              "label": "플레이어 DB (PolarDB)",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "대규모 동접 쓰기를 감당하는 플레이어 데이터 저장소"
+            },
+            "added": [
+              "db"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          19606,
+          {
+            "type": "op",
+            "seq": 26,
+            "op": {
+              "t": "edge",
+              "id": "e-game-server-db",
+              "from": "game-server",
+              "to": "db",
+              "label": "SQL"
+            },
+            "added": [
+              "e-game-server-db"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          20309,
+          {
+            "type": "op",
+            "seq": 27,
+            "op": {
+              "t": "node",
+              "id": "media",
+              "product": "oss",
+              "label": "게임 에셋 (OSS)",
+              "group": "sg",
+              "why": "게임 패치, 이미지, 설치 파일 저장"
+            },
+            "added": [
+              "media"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          20787,
+          {
+            "type": "op",
+            "seq": 28,
+            "op": {
+              "t": "edge",
+              "id": "e-esa-media",
+              "from": "esa",
+              "to": "media",
+              "label": "assets"
+            },
+            "added": [
+              "e-esa-media"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          21532,
+          {
+            "type": "op",
+            "seq": 29,
+            "op": {
+              "t": "node",
+              "id": "nat",
+              "product": "nat",
+              "label": "NAT Gateway",
+              "group": "vpc",
+              "why": "게임 서버의 외부 API 호출 및 패치 다운로드를 위한 아웃바운드 통신"
+            },
+            "added": [
+              "nat"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          21901,
+          {
+            "type": "op",
+            "seq": 30,
+            "op": {
+              "t": "edge",
+              "id": "e-game-server-nat",
+              "from": "game-server",
+              "to": "nat",
+              "kind": "control"
+            },
+            "added": [
+              "e-game-server-nat"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          21984,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "모",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          22188,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "모니터링과 로그",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          22189,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "모니터링과 로그 수집을 추가하여",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          22384,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "모니터링과 로그 수집을 추가하여 출시 초기 장애에",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          22384,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "모니터링과 로그 수집을 추가하여 출시 초기 장애에 신속히 대응할",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          22535,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "모니터링과 로그 수집을 추가하여 출시 초기 장애에 신속히 대응할 수 있도록 합니다.",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          22536,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "모니터링과 로그 수집을 추가하여 출시 초기 장애에 신속히 대응할 수 있도록 합니다.",
+            "final": true,
+            "phase": "main"
+          }
+        ],
+        [
+          22536,
+          {
+            "type": "op",
+            "seq": 31,
+            "op": {
+              "t": "say",
+              "text": "모니터링과 로그 수집을 추가하여 출시 초기 장애에 신속히 대응할 수 있도록 합니다."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          23244,
+          {
+            "type": "op",
+            "seq": 32,
+            "op": {
+              "t": "node",
+              "id": "logs",
+              "product": "sls",
+              "label": "로그 서비스 (SLS)",
+              "group": "sg",
+              "why": "게임 서버 로그 중앙 집중화 및 이상 탐지"
+            },
+            "added": [
+              "logs"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          23652,
+          {
+            "type": "op",
+            "seq": 33,
+            "op": {
+              "t": "edge",
+              "id": "e-game-server-logs",
+              "from": "game-server",
+              "to": "logs",
+              "kind": "control"
+            },
+            "added": [
+              "e-game-server-logs"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          24429,
+          {
+            "type": "op",
+            "seq": 34,
+            "op": {
+              "t": "node",
+              "id": "metrics",
+              "product": "prometheus",
+              "label": "Prometheus",
+              "group": "sg",
+              "why": "ACK 클러스터 및 게임 서버 메트릭 모니터링"
+            },
+            "added": [
+              "metrics"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          24840,
+          {
+            "type": "op",
+            "seq": 35,
+            "op": {
+              "t": "edge",
+              "id": "e-game-server-metrics",
+              "from": "game-server",
+              "to": "metrics",
+              "kind": "control"
+            },
+            "added": [
+              "e-game-server-metrics"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          26324,
+          {
+            "type": "op",
+            "seq": 36,
+            "op": {
+              "t": "ask",
+              "id": "game-protocol",
+              "text": "게임 서버와 클라이언트 간 주요 통신 프로토콜이 무엇인가요? (NLB로 변경해야 할 수 있습니다)",
+              "options": [
+                "HTTP/HTTPS (REST API)",
+                "TCP/UDP (실시간 소켓)",
+                "gRPC"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          27174,
+          {
+            "type": "op",
+            "seq": 37,
+            "op": {
+              "t": "ask",
+              "id": "matchmaking",
+              "text": "글로벌 매치메이킹이나 다중 리전 동기화가 필요한가요?",
+              "options": [
+                "싱글 리전(싱가포르) 충분",
+                "다중 리전 동기화 필요"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          28294,
+          {
+            "type": "op",
+            "seq": 38,
+            "op": {
+              "t": "done",
+              "summary": "동남아/한국 대상 모바일 게임을 위해 ESA, GA로 지연을 최소화하고 ACK, Tair, PolarDB로 트래픽 폭증에 대비한 싱가포르 리전 아키텍처입니다."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          28294,
+          {
+            "type": "usage",
+            "usage": {
+              "completion_tokens": 1403,
+              "prompt_tokens": 15334,
+              "prompt_tokens_details": {
+                "cached_tokens": 15232,
+                "text_tokens": 15334
+              },
+              "total_tokens": 16737
+            },
+            "costUsd": 0.01243,
+            "phase": "main"
+          }
+        ],
+        [
+          28294,
+          {
+            "type": "done",
+            "summary": "동남아/한국 대상 모바일 게임을 위해 ESA, GA로 지연을 최소화하고 ACK, Tair, PolarDB로 트래픽 폭증에 대비한 싱가포르 리전 아키텍처입니다.",
+            "timings": {
+              "headersMs": 1849,
+              "firstByteMs": 1850,
+              "firstContentMs": 1850,
+              "firstSayMs": 2164,
+              "firstOpMs": 3107,
+              "firstNodeMs": 6789,
+              "lastOpMs": 28289,
+              "totalMs": 28288,
+              "maxGapMs": 282,
+              "hedgeAtMs": null
+            },
+            "finishReason": "stop",
+            "truncated": false,
+            "phase": "main"
+          }
+        ],
+        [
+          28299,
+          {
+            "type": "commit",
+            "memory": {
+              "turns": [
+                {
+                  "role": "user",
+                  "text": "글로벌 모바일 게임을 출시합니다. 동남아와 한국 유저가 주 대상이고, 출시 첫 주 트래픽 폭증과 지연이 걱정입니다."
+                },
+                {
+                  "role": "assistant",
+                  "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르 리전을 기반으로 ESA와 GA로 지연을 줄이고, 첫 주 트래픽 폭증에 대비해 ACK와 Auto Scaling을 구성합니다.\n게임 세션은 Tair로 빠르게 처리하고, 플레이어 데이터는 PolarDB에 저장하며 멀티 AZ로 고가용성을 확보합니다.\n모니터링과 로그 수집을 추가하여 출시 초기 장애에 신속히 대응할 수 있도록 합니다.",
+                  "changes": "+internet[external] +edge[edge] +sg[region] +vpc[vpc] +mobile-app(mobile-app) +dns(dns) +esa(esa) +ga(ga) +alb(alb, zones a,b) +waf(waf, badge on alb) +game-server(ack, zones a,b) +cache(tair, zones a,b) +db(polardb, zones a,b) +media(oss) +nat(nat) +logs(sls) +metrics(prometheus) +e-mobile-app-dns +e-mobile-app-esa +e-mobile-app-ga +e-ga-alb +e-esa-alb +e-alb-game-server +e-game-server-cache +e-game-server-db +e-esa-media +e-game-server-nat +e-game-server-logs +e-game-server-metrics"
+                }
+              ],
+              "requirements": [],
+              "graph": {
+                "groups": {
+                  "internet": {
+                    "id": "internet",
+                    "kind": "external",
+                    "label": "Internet",
+                    "parent": null
+                  },
+                  "edge": {
+                    "id": "edge",
+                    "kind": "edge",
+                    "label": "Edge",
+                    "parent": null
+                  },
+                  "sg": {
+                    "id": "sg",
+                    "kind": "region",
+                    "label": "Singapore (ap-southeast-1)",
+                    "parent": null
+                  },
+                  "vpc": {
+                    "id": "vpc",
+                    "kind": "vpc",
+                    "label": "Game VPC",
+                    "parent": "sg"
+                  }
+                },
+                "nodes": {
+                  "mobile-app": {
+                    "id": "mobile-app",
+                    "product": "mobile-app",
+                    "label": "모바일 게임 클라이언트",
+                    "group": "internet",
+                    "why": "동남아 및 한국 유저가 접속하는 게임 앱"
+                  },
+                  "dns": {
+                    "id": "dns",
+                    "product": "dns",
+                    "label": "Alibaba Cloud DNS",
+                    "group": null,
+                    "why": "게임 도메인을 ESA 및 GA 엔드포인트로 해석"
+                  },
+                  "esa": {
+                    "id": "esa",
+                    "product": "esa",
+                    "label": "ESA (정적/웹 API)",
+                    "group": "edge",
+                    "why": "패치 파일, 공지사항 등 정적 콘텐츠 캐싱 및 DDoS 방어"
+                  },
+                  "ga": {
+                    "id": "ga",
+                    "product": "ga",
+                    "label": "Global Accelerator",
+                    "group": "edge",
+                    "why": "한국 및 동남아 유저의 게임 실시간 트래픽을 알리바바 백본으로 가속"
+                  },
+                  "alb": {
+                    "id": "alb",
+                    "product": "alb",
+                    "label": "ALB",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "GA와 ESA에서 유입되는 트래픽을 게임 서버로 분산"
+                  },
+                  "waf": {
+                    "id": "waf",
+                    "product": "waf",
+                    "label": "WAF",
+                    "group": "vpc",
+                    "attachTo": "alb",
+                    "why": "API 악용 및 봇 공격 차단"
+                  },
+                  "game-server": {
+                    "id": "game-server",
+                    "product": "ack",
+                    "label": "게임 서버 (ACK)",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "첫 주 트래픽 폭증에 맞춰 자동 확장되는 게임 로직 컨테이너"
+                  },
+                  "cache": {
+                    "id": "cache",
+                    "product": "tair",
+                    "label": "세션 캐시 (Tair)",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "게임 세션 및 리더보드 등 빈번한 읽기 데이터 캐싱"
+                  },
+                  "db": {
+                    "id": "db",
+                    "product": "polardb",
+                    "label": "플레이어 DB (PolarDB)",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "대규모 동접 쓰기를 감당하는 플레이어 데이터 저장소"
+                  },
+                  "media": {
+                    "id": "media",
+                    "product": "oss",
+                    "label": "게임 에셋 (OSS)",
+                    "group": "sg",
+                    "why": "게임 패치, 이미지, 설치 파일 저장"
+                  },
+                  "nat": {
+                    "id": "nat",
+                    "product": "nat",
+                    "label": "NAT Gateway",
+                    "group": "vpc",
+                    "why": "게임 서버의 외부 API 호출 및 패치 다운로드를 위한 아웃바운드 통신"
+                  },
+                  "logs": {
+                    "id": "logs",
+                    "product": "sls",
+                    "label": "로그 서비스 (SLS)",
+                    "group": "sg",
+                    "why": "게임 서버 로그 중앙 집중화 및 이상 탐지"
+                  },
+                  "metrics": {
+                    "id": "metrics",
+                    "product": "prometheus",
+                    "label": "Prometheus",
+                    "group": "sg",
+                    "why": "ACK 클러스터 및 게임 서버 메트릭 모니터링"
+                  }
+                },
+                "edges": {
+                  "e-mobile-app-dns": {
+                    "id": "e-mobile-app-dns",
+                    "from": "mobile-app",
+                    "to": "dns",
+                    "kind": "resolve"
+                  },
+                  "e-mobile-app-esa": {
+                    "id": "e-mobile-app-esa",
+                    "from": "mobile-app",
+                    "to": "esa",
+                    "label": "HTTPS"
+                  },
+                  "e-mobile-app-ga": {
+                    "id": "e-mobile-app-ga",
+                    "from": "mobile-app",
+                    "to": "ga",
+                    "label": "TCP/UDP"
+                  },
+                  "e-ga-alb": {
+                    "id": "e-ga-alb",
+                    "from": "ga",
+                    "to": "alb"
+                  },
+                  "e-esa-alb": {
+                    "id": "e-esa-alb",
+                    "from": "esa",
+                    "to": "alb",
+                    "label": "origin"
+                  },
+                  "e-alb-game-server": {
+                    "id": "e-alb-game-server",
+                    "from": "alb",
+                    "to": "game-server"
+                  },
+                  "e-game-server-cache": {
+                    "id": "e-game-server-cache",
+                    "from": "game-server",
+                    "to": "cache"
+                  },
+                  "e-game-server-db": {
+                    "id": "e-game-server-db",
+                    "from": "game-server",
+                    "to": "db",
+                    "label": "SQL"
+                  },
+                  "e-esa-media": {
+                    "id": "e-esa-media",
+                    "from": "esa",
+                    "to": "media",
+                    "label": "assets"
+                  },
+                  "e-game-server-nat": {
+                    "id": "e-game-server-nat",
+                    "from": "game-server",
+                    "to": "nat",
+                    "kind": "control"
+                  },
+                  "e-game-server-logs": {
+                    "id": "e-game-server-logs",
+                    "from": "game-server",
+                    "to": "logs",
+                    "kind": "control"
+                  },
+                  "e-game-server-metrics": {
+                    "id": "e-game-server-metrics",
+                    "from": "game-server",
+                    "to": "metrics",
+                    "kind": "control"
+                  }
+                },
+                "recs": []
+              },
+              "tombstones": [],
+              "assumptions": [
+                {
+                  "id": "game-backend",
+                  "text": "게임 백엔드는 컨테이너 기반(ACK)으로 구성",
+                  "alt": "서버리스(SAE)로 구성"
+                },
+                {
+                  "id": "db-scale",
+                  "text": "출시 첫 주 대규모 동접을 위해 PolarDB 사용",
+                  "alt": "일반 RDS 사용"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "game-protocol",
+                  "text": "게임 서버와 클라이언트 간 주요 통신 프로토콜이 무엇인가요? (NLB로 변경해야 할 수 있습니다)",
+                  "options": [
+                    "HTTP/HTTPS (REST API)",
+                    "TCP/UDP (실시간 소켓)",
+                    "gRPC"
+                  ]
+                },
+                {
+                  "id": "matchmaking",
+                  "text": "글로벌 매치메이킹이나 다중 리전 동기화가 필요한가요?",
+                  "options": [
+                    "싱글 리전(싱가포르) 충분",
+                    "다중 리전 동기화 필요"
+                  ]
+                }
+              ]
+            },
+            "changes": "+internet[external] +edge[edge] +sg[region] +vpc[vpc] +mobile-app(mobile-app) +dns(dns) +esa(esa) +ga(ga) +alb(alb, zones a,b) +waf(waf, badge on alb) +game-server(ack, zones a,b) +cache(tair, zones a,b) +db(polardb, zones a,b) +media(oss) +nat(nat) +logs(sls) +metrics(prometheus) +e-mobile-app-dns +e-mobile-app-esa +e-mobile-app-ga +e-ga-alb +e-esa-alb +e-alb-game-server +e-game-server-cache +e-game-server-db +e-esa-media +e-game-server-nat +e-game-server-logs +e-game-server-metrics",
+            "warnings": []
+          }
+        ]
+      ]
+    },
+    {
+      "ask": "실시간 매치메이킹과 랭킹이 필요하고, 결제는 앱스토어 인앱 결제로 처리합니다. 서버 운영 인력은 3명뿐이라 관리가 쉬웠으면 합니다.",
+      "ev": [
+        [
+          1871,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "운영 인력 ",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          1872,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "운영 인력 3명을 고려해",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2072,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "운영 인력 3명을 고려해 ACK 대신 관리 부담",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2072,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "운영 인력 3명을 고려해 ACK 대신 관리 부담이 적은",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2073,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "운영 인력 3명을 고려해 ACK 대신 관리 부담이 적은 SAE로 전환",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2264,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "운영 인력 3명을 고려해 ACK 대신 관리 부담이 적은 SAE로 전환하고, NLB",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2265,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "운영 인력 3명을 고려해 ACK 대신 관리 부담이 적은 SAE로 전환하고, NLB를",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2267,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "운영 인력 3명을 고려해 ACK 대신 관리 부담이 적은 SAE로 전환하고, NLB를 추가해 실시간 소",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2417,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "운영 인력 3명을 고려해 ACK 대신 관리 부담이 적은 SAE로 전환하고, NLB를 추가해 실시간 소켓 통신을 처리",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2418,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "운영 인력 3명을 고려해 ACK 대신 관리 부담이 적은 SAE로 전환하고, NLB를 추가해 실시간 소켓 통신을 처리합니다.",
+            "final": true,
+            "phase": "main"
+          }
+        ],
+        [
+          2418,
+          {
+            "type": "op",
+            "seq": 1,
+            "op": {
+              "t": "say",
+              "text": "운영 인력 3명을 고려해 ACK 대신 관리 부담이 적은 SAE로 전환하고, NLB를 추가해 실시간 소켓 통신을 처리합니다."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          2992,
+          {
+            "type": "op",
+            "seq": 2,
+            "op": {
+              "t": "req",
+              "text": "서버 운영 인력 3명, 관리 용이성 필수",
+              "avoid": [
+                "ack",
+                "acs",
+                "asm",
+                "ack-one",
+                "ack-serverless",
+                "ack-dedicated",
+                "ack-edge",
+                "dify-on-ack"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          3509,
+          {
+            "type": "op",
+            "seq": 3,
+            "op": {
+              "t": "plan",
+              "products": [
+                "sae",
+                "nlb",
+                "tair",
+                "rocketmq",
+                "tablestore"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          4488,
+          {
+            "type": "op",
+            "seq": 4,
+            "op": {
+              "t": "node",
+              "id": "game-server",
+              "product": "sae",
+              "label": "게임 서버 (SAE)",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "K8s 관리 없이 자동 확장되는 서버리스 앱 엔진"
+            },
+            "added": [],
+            "updated": [
+              "game-server"
+            ],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          5425,
+          {
+            "type": "op",
+            "seq": 5,
+            "op": {
+              "t": "node",
+              "id": "nlb",
+              "product": "nlb",
+              "label": "NLB (실시간 소켓)",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "TCP/UDP 실시간 게임 트래픽 라우팅"
+            },
+            "added": [
+              "nlb"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          5832,
+          {
+            "type": "op",
+            "seq": 6,
+            "op": {
+              "t": "edge",
+              "id": "e-ga-nlb",
+              "from": "ga",
+              "to": "nlb",
+              "label": "TCP/UDP"
+            },
+            "added": [
+              "e-ga-nlb"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          6514,
+          {
+            "type": "op",
+            "seq": 7,
+            "op": {
+              "t": "edge",
+              "id": "e-nlb-game-server",
+              "from": "nlb",
+              "to": "game-server",
+              "label": "socket"
+            },
+            "added": [
+              "e-nlb-game-server"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          6597,
+          {
+            "type": "op",
+            "seq": 8,
+            "op": {
+              "t": "remove",
+              "id": "e-ga-alb"
+            },
+            "added": [],
+            "updated": [],
+            "removed": [
+              "e-ga-alb"
+            ],
+            "phase": "main"
+          }
+        ],
+        [
+          7760,
+          {
+            "type": "op",
+            "seq": 9,
+            "op": {
+              "t": "node",
+              "id": "matchmaking",
+              "product": "tair",
+              "label": "매치메이킹 큐 (Tair)",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "빠른 매칭 로직과 대기열 상태 저장"
+            },
+            "added": [
+              "matchmaking"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          8229,
+          {
+            "type": "op",
+            "seq": 10,
+            "op": {
+              "t": "edge",
+              "id": "e-game-server-matchmaking",
+              "from": "game-server",
+              "to": "matchmaking",
+              "label": "match"
+            },
+            "added": [
+              "e-game-server-matchmaking"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          9049,
+          {
+            "type": "op",
+            "seq": 11,
+            "op": {
+              "t": "node",
+              "id": "ranking",
+              "product": "tablestore",
+              "label": "랭킹 데이터 (Tablestore)",
+              "group": "vpc",
+              "why": "대규모 플레이어 랭킹 및 전적 NoSQL 저장"
+            },
+            "added": [
+              "ranking"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          9635,
+          {
+            "type": "op",
+            "seq": 12,
+            "op": {
+              "t": "edge",
+              "id": "e-game-server-ranking",
+              "from": "game-server",
+              "to": "ranking",
+              "label": "rank"
+            },
+            "added": [
+              "e-game-server-ranking"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          10536,
+          {
+            "type": "op",
+            "seq": 13,
+            "op": {
+              "t": "node",
+              "id": "events",
+              "product": "rocketmq",
+              "label": "게임 이벤트 (RocketMQ)",
+              "group": "vpc",
+              "why": "비동기 이벤트 처리로 서버 부하 분산"
+            },
+            "added": [
+              "events"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          11130,
+          {
+            "type": "op",
+            "seq": 14,
+            "op": {
+              "t": "edge",
+              "id": "e-game-server-events",
+              "from": "game-server",
+              "to": "events",
+              "kind": "async"
+            },
+            "added": [
+              "e-game-server-events"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          11970,
+          {
+            "type": "op",
+            "seq": 15,
+            "op": {
+              "t": "ask",
+              "id": "game-protocol",
+              "text": "게임 서버와 클라이언트 간 주요 통신 프로토콜이 무엇인가요?",
+              "options": [
+                "TCP/UDP (실시간 소켓)",
+                "HTTP/HTTPS (REST API)",
+                "gRPC"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          12769,
+          {
+            "type": "op",
+            "seq": 16,
+            "op": {
+              "t": "ask",
+              "id": "multi-region",
+              "text": "한국 유저 지연시간 단축을 위해 서울 리전 복제가 필요할까요?",
+              "options": [
+                "싱가포르 단일 리전",
+                "서울 리전 복제 추가"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          13433,
+          {
+            "type": "op",
+            "seq": 17,
+            "op": {
+              "t": "done",
+              "summary": "SAE 기반 서버리스 전환, NLB 실시간 소켓 추가, Tair 매치메이킹 및 Tablestore 랭킹 구성 완료."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          13433,
+          {
+            "type": "usage",
+            "usage": {
+              "completion_tokens": 620,
+              "prompt_tokens": 16527,
+              "prompt_tokens_details": {
+                "cached_tokens": 15232,
+                "text_tokens": 16527
+              },
+              "total_tokens": 17147
+            },
+            "costUsd": 0.010118,
+            "phase": "main"
+          }
+        ],
+        [
+          13433,
+          {
+            "type": "done",
+            "summary": "SAE 기반 서버리스 전환, NLB 실시간 소켓 추가, Tair 매치메이킹 및 Tablestore 랭킹 구성 완료.",
+            "timings": {
+              "headersMs": 1612,
+              "firstByteMs": 1612,
+              "firstContentMs": 1612,
+              "firstSayMs": 1871,
+              "firstOpMs": 2418,
+              "firstNodeMs": 4487,
+              "lastOpMs": 13433,
+              "totalMs": 13432,
+              "maxGapMs": 272,
+              "hedgeAtMs": null
+            },
+            "finishReason": "stop",
+            "truncated": false,
+            "phase": "main"
+          }
+        ],
+        [
+          13436,
+          {
+            "type": "commit",
+            "memory": {
+              "turns": [
+                {
+                  "role": "user",
+                  "text": "글로벌 모바일 게임을 출시합니다. 동남아와 한국 유저가 주 대상이고, 출시 첫 주 트래픽 폭증과 지연이 걱정입니다."
+                },
+                {
+                  "role": "assistant",
+                  "text": "동남아와 한국 유저를 위한 글로벌 모바일 게임 아키텍처를 설계합니다. 싱가포르 리전을 기반으로 ESA와 GA로 지연을 줄이고, 첫 주 트래픽 폭증에 대비해 ACK와 Auto Scaling을 구성합니다.\n게임 세션은 Tair로 빠르게 처리하고, 플레이어 데이터는 PolarDB에 저장하며 멀티 AZ로 고가용성을 확보합니다.\n모니터링과 로그 수집을 추가하여 출시 초기 장애에 신속히 대응할 수 있도록 합니다.",
+                  "changes": "+internet[external] +edge[edge] +sg[region] +vpc[vpc] +mobile-app(mobile-app) +dns(dns) +esa(esa) +ga(ga) +alb(alb, zones a,b) +waf(waf, badge on alb) +game-server(ack, zones a,b) +cache(tair, zones a,b) +db(polardb, zones a,b) +media(oss) +nat(nat) +logs(sls) +metrics(prometheus) +e-mobile-app-dns +e-mobile-app-esa +e-mobile-app-ga +e-ga-alb +e-esa-alb +e-alb-game-server +e-game-server-cache +e-game-server-db +e-esa-media +e-game-server-nat +e-game-server-logs +e-game-server-metrics"
+                },
+                {
+                  "role": "user",
+                  "text": "실시간 매치메이킹과 랭킹이 필요하고, 결제는 앱스토어 인앱 결제로 처리합니다. 서버 운영 인력은 3명뿐이라 관리가 쉬웠으면 합니다."
+                },
+                {
+                  "role": "assistant",
+                  "text": "운영 인력 3명을 고려해 ACK 대신 관리 부담이 적은 SAE로 전환하고, NLB를 추가해 실시간 소켓 통신을 처리합니다.",
+                  "changes": "+nlb(nlb, zones a,b) +matchmaking(tair, zones a,b) +ranking(tablestore) +events(rocketmq) +e-ga-nlb +e-nlb-game-server +e-game-server-matchmaking +e-game-server-ranking +e-game-server-events ~game-server(sae, zones a,b) -e-ga-alb"
+                }
+              ],
+              "requirements": [
+                "서버 운영 인력 3명, 관리 용이성 필수"
+              ],
+              "graph": {
+                "groups": {
+                  "internet": {
+                    "id": "internet",
+                    "kind": "external",
+                    "label": "Internet",
+                    "parent": null
+                  },
+                  "edge": {
+                    "id": "edge",
+                    "kind": "edge",
+                    "label": "Edge",
+                    "parent": null
+                  },
+                  "sg": {
+                    "id": "sg",
+                    "kind": "region",
+                    "label": "Singapore (ap-southeast-1)",
+                    "parent": null
+                  },
+                  "vpc": {
+                    "id": "vpc",
+                    "kind": "vpc",
+                    "label": "Game VPC",
+                    "parent": "sg"
+                  }
+                },
+                "nodes": {
+                  "mobile-app": {
+                    "id": "mobile-app",
+                    "product": "mobile-app",
+                    "label": "모바일 게임 클라이언트",
+                    "group": "internet",
+                    "why": "동남아 및 한국 유저가 접속하는 게임 앱"
+                  },
+                  "dns": {
+                    "id": "dns",
+                    "product": "dns",
+                    "label": "Alibaba Cloud DNS",
+                    "group": null,
+                    "why": "게임 도메인을 ESA 및 GA 엔드포인트로 해석"
+                  },
+                  "esa": {
+                    "id": "esa",
+                    "product": "esa",
+                    "label": "ESA (정적/웹 API)",
+                    "group": "edge",
+                    "why": "패치 파일, 공지사항 등 정적 콘텐츠 캐싱 및 DDoS 방어"
+                  },
+                  "ga": {
+                    "id": "ga",
+                    "product": "ga",
+                    "label": "Global Accelerator",
+                    "group": "edge",
+                    "why": "한국 및 동남아 유저의 게임 실시간 트래픽을 알리바바 백본으로 가속"
+                  },
+                  "alb": {
+                    "id": "alb",
+                    "product": "alb",
+                    "label": "ALB",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "GA와 ESA에서 유입되는 트래픽을 게임 서버로 분산"
+                  },
+                  "waf": {
+                    "id": "waf",
+                    "product": "waf",
+                    "label": "WAF",
+                    "group": "vpc",
+                    "attachTo": "alb",
+                    "why": "API 악용 및 봇 공격 차단"
+                  },
+                  "game-server": {
+                    "id": "game-server",
+                    "product": "sae",
+                    "label": "게임 서버 (SAE)",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "K8s 관리 없이 자동 확장되는 서버리스 앱 엔진"
+                  },
+                  "cache": {
+                    "id": "cache",
+                    "product": "tair",
+                    "label": "세션 캐시 (Tair)",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "게임 세션 및 리더보드 등 빈번한 읽기 데이터 캐싱"
+                  },
+                  "db": {
+                    "id": "db",
+                    "product": "polardb",
+                    "label": "플레이어 DB (PolarDB)",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "대규모 동접 쓰기를 감당하는 플레이어 데이터 저장소"
+                  },
+                  "media": {
+                    "id": "media",
+                    "product": "oss",
+                    "label": "게임 에셋 (OSS)",
+                    "group": "sg",
+                    "why": "게임 패치, 이미지, 설치 파일 저장"
+                  },
+                  "nat": {
+                    "id": "nat",
+                    "product": "nat",
+                    "label": "NAT Gateway",
+                    "group": "vpc",
+                    "why": "게임 서버의 외부 API 호출 및 패치 다운로드를 위한 아웃바운드 통신"
+                  },
+                  "logs": {
+                    "id": "logs",
+                    "product": "sls",
+                    "label": "로그 서비스 (SLS)",
+                    "group": "sg",
+                    "why": "게임 서버 로그 중앙 집중화 및 이상 탐지"
+                  },
+                  "metrics": {
+                    "id": "metrics",
+                    "product": "prometheus",
+                    "label": "Prometheus",
+                    "group": "sg",
+                    "why": "ACK 클러스터 및 게임 서버 메트릭 모니터링"
+                  },
+                  "nlb": {
+                    "id": "nlb",
+                    "product": "nlb",
+                    "label": "NLB (실시간 소켓)",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "TCP/UDP 실시간 게임 트래픽 라우팅"
+                  },
+                  "matchmaking": {
+                    "id": "matchmaking",
+                    "product": "tair",
+                    "label": "매치메이킹 큐 (Tair)",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "빠른 매칭 로직과 대기열 상태 저장"
+                  },
+                  "ranking": {
+                    "id": "ranking",
+                    "product": "tablestore",
+                    "label": "랭킹 데이터 (Tablestore)",
+                    "group": "vpc",
+                    "why": "대규모 플레이어 랭킹 및 전적 NoSQL 저장"
+                  },
+                  "events": {
+                    "id": "events",
+                    "product": "rocketmq",
+                    "label": "게임 이벤트 (RocketMQ)",
+                    "group": "vpc",
+                    "why": "비동기 이벤트 처리로 서버 부하 분산"
+                  }
+                },
+                "edges": {
+                  "e-mobile-app-dns": {
+                    "id": "e-mobile-app-dns",
+                    "from": "mobile-app",
+                    "to": "dns",
+                    "kind": "resolve"
+                  },
+                  "e-mobile-app-esa": {
+                    "id": "e-mobile-app-esa",
+                    "from": "mobile-app",
+                    "to": "esa",
+                    "label": "HTTPS"
+                  },
+                  "e-mobile-app-ga": {
+                    "id": "e-mobile-app-ga",
+                    "from": "mobile-app",
+                    "to": "ga",
+                    "label": "TCP/UDP"
+                  },
+                  "e-esa-alb": {
+                    "id": "e-esa-alb",
+                    "from": "esa",
+                    "to": "alb",
+                    "label": "origin"
+                  },
+                  "e-alb-game-server": {
+                    "id": "e-alb-game-server",
+                    "from": "alb",
+                    "to": "game-server"
+                  },
+                  "e-game-server-cache": {
+                    "id": "e-game-server-cache",
+                    "from": "game-server",
+                    "to": "cache"
+                  },
+                  "e-game-server-db": {
+                    "id": "e-game-server-db",
+                    "from": "game-server",
+                    "to": "db",
+                    "label": "SQL"
+                  },
+                  "e-esa-media": {
+                    "id": "e-esa-media",
+                    "from": "esa",
+                    "to": "media",
+                    "label": "assets"
+                  },
+                  "e-game-server-nat": {
+                    "id": "e-game-server-nat",
+                    "from": "game-server",
+                    "to": "nat",
+                    "kind": "control"
+                  },
+                  "e-game-server-logs": {
+                    "id": "e-game-server-logs",
+                    "from": "game-server",
+                    "to": "logs",
+                    "kind": "control"
+                  },
+                  "e-game-server-metrics": {
+                    "id": "e-game-server-metrics",
+                    "from": "game-server",
+                    "to": "metrics",
+                    "kind": "control"
+                  },
+                  "e-ga-nlb": {
+                    "id": "e-ga-nlb",
+                    "from": "ga",
+                    "to": "nlb",
+                    "label": "TCP/UDP"
+                  },
+                  "e-nlb-game-server": {
+                    "id": "e-nlb-game-server",
+                    "from": "nlb",
+                    "to": "game-server",
+                    "label": "socket"
+                  },
+                  "e-game-server-matchmaking": {
+                    "id": "e-game-server-matchmaking",
+                    "from": "game-server",
+                    "to": "matchmaking",
+                    "label": "match"
+                  },
+                  "e-game-server-ranking": {
+                    "id": "e-game-server-ranking",
+                    "from": "game-server",
+                    "to": "ranking",
+                    "label": "rank"
+                  },
+                  "e-game-server-events": {
+                    "id": "e-game-server-events",
+                    "from": "game-server",
+                    "to": "events",
+                    "kind": "async"
+                  }
+                },
+                "recs": []
+              },
+              "tombstones": [
+                {
+                  "id": "e-ga-alb",
+                  "from": "ga",
+                  "to": "alb"
+                }
+              ],
+              "constraints": [
+                {
+                  "text": "서버 운영 인력 3명, 관리 용이성 필수",
+                  "avoid": [
+                    "ack",
+                    "acs",
+                    "asm",
+                    "ack-one",
+                    "ack-serverless",
+                    "ack-dedicated",
+                    "ack-edge",
+                    "dify-on-ack"
+                  ]
+                }
+              ],
+              "assumptions": [
+                {
+                  "id": "game-backend",
+                  "text": "게임 백엔드는 컨테이너 기반(ACK)으로 구성",
+                  "alt": "서버리스(SAE)로 구성"
+                },
+                {
+                  "id": "db-scale",
+                  "text": "출시 첫 주 대규모 동접을 위해 PolarDB 사용",
+                  "alt": "일반 RDS 사용"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "game-protocol",
+                  "text": "게임 서버와 클라이언트 간 주요 통신 프로토콜이 무엇인가요?",
+                  "options": [
+                    "TCP/UDP (실시간 소켓)",
+                    "HTTP/HTTPS (REST API)",
+                    "gRPC"
+                  ]
+                },
+                {
+                  "id": "multi-region",
+                  "text": "한국 유저 지연시간 단축을 위해 서울 리전 복제가 필요할까요?",
+                  "options": [
+                    "싱가포르 단일 리전",
+                    "서울 리전 복제 추가"
+                  ]
+                }
+              ]
+            },
+            "changes": "+nlb(nlb, zones a,b) +matchmaking(tair, zones a,b) +ranking(tablestore) +events(rocketmq) +e-ga-nlb +e-nlb-game-server +e-game-server-matchmaking +e-game-server-ranking +e-game-server-events ~game-server(sae, zones a,b) -e-ga-alb",
+            "warnings": []
+          }
+        ]
+      ]
+    }
+  ]
+}

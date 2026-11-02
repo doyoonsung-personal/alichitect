@@ -5,6 +5,8 @@
 // a browser never learns who finished a turn.
 import { detectReplyLanguage } from '../../../packages/core/src/prompt.ts';
 import type { StatusCode } from '../../../packages/core/src/llm.ts';
+import type { DraftProposalResult } from '../../../packages/core/src/proposal.ts';
+import type { ProposalEvent } from '../../../packages/core/src/types.ts';
 
 export type Lang = 'en' | 'ko' | 'zh';
 type Copy = Record<Lang, string>;
@@ -134,4 +136,58 @@ export function fatalMessage(code: string, lang: Lang): string {
 /** The status line for a code. */
 export function statusMessage(code: StatusCode, lang: Lang): string {
   return STATUS_COPY[code][lang];
+}
+
+/* ---------- POST /api/proposal ---------- */
+
+export type ProposalFatal = 'content-filtered' | 'draft-timeout' | 'draft-failed' | 'internal';
+
+export const PROPOSAL_FATAL_COPY: Record<ProposalFatal, Copy> = {
+  // the content filter stopped the draft and the second pass could not finish it; the words say neither
+  'content-filtered': {
+    en: 'This proposal could not be written automatically. You can still download the basic version.',
+    ko: '이 제안서는 자동으로 작성하지 못했습니다. 기본 버전은 계속 다운로드할 수 있습니다.',
+    zh: '无法自动撰写此提案。您仍可下载基础版。',
+  },
+  'draft-timeout': {
+    en: 'Writing the proposal took too long and was stopped. Try again, or download the basic version.',
+    ko: '제안서 작성 시간이 초과되어 중단되었습니다. 다시 시도하거나 기본 버전을 다운로드해 주세요.',
+    zh: '撰写提案耗时过长，已停止。请重试或下载基础版。',
+  },
+  'draft-failed': {
+    en: 'The proposal could not be written this time. Try again, or download the basic version.',
+    ko: '이번에는 제안서를 작성하지 못했습니다. 다시 시도하거나 기본 버전을 다운로드해 주세요.',
+    zh: '本次未能撰写提案。请重试或下载基础版。',
+  },
+  internal: {
+    en: 'Something went wrong while writing the proposal. Try again, or download the basic version.',
+    ko: '제안서 작성 중 문제가 발생했습니다. 다시 시도하거나 기본 버전을 다운로드해 주세요.',
+    zh: '撰写提案时出现问题。请重试或下载基础版。',
+  },
+};
+
+/** 'finish' also covers the second pass after the content filter: one calm line, as for turns. */
+export const PROPOSAL_STATUS_COPY: Record<'retry' | 'finish', Copy> = {
+  retry: { en: 'Taking longer than usual, trying again…', ko: '평소보다 오래 걸려 다시 시도하는 중…', zh: '耗时比平时长，正在重试…' },
+  finish: { en: 'Still writing the proposal…', ko: '제안서를 계속 작성하는 중…', zh: '仍在撰写提案…' },
+};
+
+export function proposalStatusEvent(code: 'retry' | 'finish', lang: Lang): ProposalEvent {
+  return { type: 'status', code, text: PROPOSAL_STATUS_COPY[code][lang] };
+}
+
+export function proposalFatalEvent(code: ProposalFatal, lang: Lang): ProposalEvent {
+  return { type: 'fatal', code, message: PROPOSAL_FATAL_COPY[code][lang], retryable: code !== 'content-filtered' };
+}
+
+/**
+ * The last line of a draft's stream: 'done' with the draft, or the fatal for how it failed. An abort is a timeout when
+ * the deadline fired and nothing when the browser left (no one reads the line). The draft's own error text is never
+ * sent: it stays in the logs.
+ */
+export function proposalEndEvent(r: Pick<DraftProposalResult, 'outcome' | 'draft' | 'error'>, x: { deadlineHit: boolean; clientGone: boolean }, lang: Lang): ProposalEvent | null {
+  if (r.outcome === 'done' && r.draft) return { type: 'done', draft: r.draft };
+  if (r.outcome === 'aborted' || (r.outcome === 'done' && !r.draft)) return x.deadlineHit && !x.clientGone ? proposalFatalEvent('draft-timeout', lang) : x.clientGone ? null : proposalFatalEvent('draft-failed', lang);
+  const code = r.error?.code;
+  return proposalFatalEvent(code === 'content-filtered' ? 'content-filtered' : code === 'timeout' ? 'draft-timeout' : 'draft-failed', lang);
 }

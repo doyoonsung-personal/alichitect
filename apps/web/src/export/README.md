@@ -1,8 +1,12 @@
 # src/export
 
-"Export proposal": one click in the header downloads a PDF with the diagram, each product's role and its official documentation link. It is built in the browser tab (no server, no headless Chrome, no print dialog), so it moves to serverless hosting unchanged.
+"Export proposal": Download in the header's dialog writes the proposal's narrative on the server (`POST /api/proposal`, about a minute, under a modal overlay with live steps and Stop), then lays out the PDF in the browser tab with it (no headless Chrome, no print dialog). The narrative explains *why*: an executive summary, the customer's needs and how the design answers each one (quoting the customer where they said it), why each product is here, trade-offs and next steps. When no narrative can be written (a replay, offline, an older server, Stop, a failure), the overlay offers the basic version: the PDF exactly as it was before the narrative existed.
 
 ## What is in the PDF
+
+With a narrative, the business reader comes first: cover, **Executive summary** (lead paragraph, then the outcomes as titled blocks, then **What we propose next**: the first two next steps), **What you told us, and how the design answers it** (or, when fewer than half of the needs are the customer's own words, **What businesses like yours usually need, and how the design answers it**; each need with its source: the customer's words in quotation marks, marked "(original wording)" when they are in another language than the document, "Implied by what you described", or "Typical for businesses like yours"; then the answer and the products involved), the diagram, components led by **Why it's here** (a construct such as users or a mobile app has no documentation row), recommendations (with the drafted why), **Considerations and next steps** (trade-offs with how each is handled, numbered next steps, and, when no product has a catalog price, a line saying the account team prepares the cost estimate), then the summary renamed **Design record** (its first chat reply titled **Architect's first notes**), connections and revision history.
+
+The basic version (no narrative):
 
 1. **Cover**: Alibaba Cloud logo (English or Chinese file from `public/brand`), the title (the first ask, editable in the dialog), the customer (optional), a ruled title block (date, revisions, products, catalog date), "Prepared with Architecture Builder" and the AI-generated line.
 2. **Summary**: the first revision's narration, pinned requirements with their state, constraints (pinned regions, ruled-out products), assumptions with their alternative, open questions.
@@ -24,7 +28,10 @@ Every page has "Page n of N" and "Catalog checked <date>". File name: `<title>-a
 | `typeset.ts` | Line breaking for Latin, Korean (at spaces) and Chinese (between characters, with the punctuation rules), and drawing one text call per font face. |
 | `pdf.ts` | The pages. Runs twice: a dry pass on `stub.ts` lets the font set learn which glyphs are needed, then the real pass. |
 | `generate.ts` | The pipeline. `browser.ts` is the browser end (Vite font source, libavoid worker, logo fetch, download) and is loaded with `import()` on the first click, so none of this is in the app's first load. |
-| `ExportButton.tsx`, `export.css` | The header control and its small dialog. |
+| `ExportButton.tsx`, `export.css` | The header control and its small dialog; it runs the draft, the overlay and the layout. |
+| `draft-client.ts` | `POST /api/proposal`: builds the `ProposalRequest`, reads the NDJSON `ProposalEvent`s with the turn client's line reader, and ends in the `ProposalDraft` or a typed `DraftError` (fatal with the server's message, unavailable, network, incomplete, aborted). |
+| `draft-flow.ts` | Pure: the overlay's state machine (steps from the sections that arrived, the calm latest line, the quiet slow note, failure, the basic version). |
+| `DraftOverlay.tsx`, `overlay.css` | The modal overlay that draws it: steps, elapsed time, latest line, Stop; on failure, Download basic version, Try again and Close. The workspace is inert behind it. |
 | `strings.json`, `strings.ts` | The document's words in English, Korean and Chinese (Korean and Chinese drafted by Qwen against the app's own wording, then checked). |
 | `tokens.ts` | The PDF's colours; `tokens.test.ts` fails if they drift from `src/styles/tokens.css`. |
 
@@ -32,7 +39,9 @@ Every page has "Page n of N" and "Catalog checked <date>". File name: `<title>-a
 
 - `npm test`: model, SVG structure (every card, badge, frame and edge, plus a snapshot in `__snapshots__`; refresh with `UPDATE_SNAPSHOTS=1`), typesetting, fonts, file names, token drift, and `scripts/export/pdf.test.ts`, which generates PDFs in Node and reads them back with pdf.js (pages, text, link annotations, vector diagram, speed).
 - `npm run export:samples`: English, Korean, Chinese and a product-need sample, checked and rendered to PNG in `screenshots/export/samples/`, plus the 25-plus-card speed run.
-- `node scripts/export/e2e-browser.mjs`, `e2e-perf.mjs`, `e2e-header.mjs`: the real app in headless Chrome against your own Vite port (see the script headers).
+- `node scripts/export/e2e-browser.mjs`, `e2e-perf.mjs`, `e2e-header.mjs`: the real app in headless Chrome against your own Vite port (see the script headers). `e2e-browser.mjs` runs a replay, so it downloads the basic version.
+- `node --import ./scripts/alias.mjs scripts/export/e2e-overlay.mjs [url]`: the overlay with `/api/health` and `/api/proposal` stubbed in the page; screenshots in `screenshots/export/overlay/` (in progress, failed, quota, slow, unavailable; light and dark; 1440x900 and 1040x800; en and ko) and behaviour checks (modal and inert, Escape does not stop, Stop downloads nothing, a finished draft downloads twice in a row, a replay offers the basic version).
+- Draft fixtures: `scripts/export/drafts/*.json` (en, ko, zh and one long), drafted by Qwen from the recorded sessions, checked against the contract and edited by hand. `npm run export:samples` renders each sample with and without one; `checks.ts` checks the section order, every need, quote and reason, no text past the margins or into the footer, no orphaned sub-heading, and no hidden word.
 
 ## Known limits
 

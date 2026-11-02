@@ -1,7 +1,7 @@
 // The browser end of the export: the Vite font source, the libavoid router (with the channel router as the fallback),
 // the logo file, and the download. This module is loaded with import() when the person asks for the PDF, so pdfkit,
 // svg-to-pdfkit, fontkit and the router stay out of the app's first load.
-import type { Catalog } from '@ali/core/types.ts';
+import type { Catalog, ProposalDraft } from '@ali/core/types.ts';
 import { LOGOS } from '../icons/brand.generated.ts';
 import { routeWithBudget } from '../routing/budget.ts';
 import { createAvoidPort } from '../routing/avoid-port.ts';
@@ -41,9 +41,11 @@ export interface ExportRequest {
   catalog: Catalog;
   title: string;
   customer: string;
+  /** The drafted narrative; null or absent lays out the basic version. */
+  draft?: ProposalDraft | null;
 }
 
-/** Builds the PDF for the session on screen. Nothing is sent anywhere: it all happens in this tab. */
+/** Lays out the PDF for the session on screen, in this tab. The narrative, when there is one, was drafted before this. */
 export async function exportProposalPdf(r: ExportRequest): Promise<GenerateResult> {
   const { state } = r;
   return generateProposalPdf({
@@ -58,6 +60,7 @@ export async function exportProposalPdf(r: ExportRequest): Promise<GenerateResul
     fontSource: webFontSource(),
     route,
     logo: await loadLogo(state.lang),
+    draft: r.draft ?? null,
   });
 }
 

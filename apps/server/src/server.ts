@@ -1,6 +1,7 @@
 // The local turn server: node:http, no framework, bound to 127.0.0.1.
 //   GET  /api/health  status, catalog version, whether a key is configured (never a key; nothing about the backup)
 //   POST /api/turn    TurnRequest JSON in, NDJSON out (application/x-ndjson, one event per line, flushed per line)
+//   POST /api/proposal  ProposalRequest JSON in, NDJSON of ProposalEvent out (the PDF's drafted narrative; see below)
 // Request checks, in order: Host header (DNS rebinding), Origin allowlist (a request without Origin is a local
 // non-browser client), route and method, JSON content type, 512 KB body limit, JSON parse, TurnRequest shape and
 // limits, key configured, one in-flight turn per session (409), at most maxInFlight turns overall (429). A rejection
@@ -8,19 +9,25 @@
 // is a line: commit or fatal. The upstream request is aborted when the client disconnects or the turn deadline
 // passes. Errors never carry stack traces, and every outgoing line and log line passes through the key redactor, which
 // knows both keys (Model Studio and, when the backup is configured, Anthropic).
+// POST /api/proposal runs the same checks up to the JSON parse, then the ProposalRequest shape, key configured and the
+// overall in-flight cap (a draft counts as one request in flight; there is no per-session lock or daily quota here).
+// It streams packages/core draftProposal's sections, 'retry' / 'finish' statuses and a final 'done' or 'fatal'; as on
+// /api/turn the wire never names who wrote a line, and the draft is aborted on disconnect or its deadline.
 import http from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { Catalog, ServerEvent } from '../../../packages/core/src/types.ts';
+import type { Catalog, ProposalEvent, ProposalRequest, ServerEvent } from '../../../packages/core/src/types.ts';
 import { buildSystemPrompt } from '../../../packages/core/src/prompt.ts';
 import { createCacheTracker } from '../../../packages/core/src/llm.ts';
 import type { CacheTracker, ConstraintChecker, RunTurnOptions } from '../../../packages/core/src/llm.ts';
 import { createClaudeBackup } from '../../../packages/core/src/claude.ts';
+import { draftProposal } from '../../../packages/core/src/proposal.ts';
+import type { DraftProposalResult } from '../../../packages/core/src/proposal.ts';
 import type { ClaudeBackupOptions } from '../../../packages/core/src/claude.ts';
 import type { ServerConfig } from './config.ts';
 import { createTurnLog, makeRedactor, sessionTag } from './log.ts';
 import type { TurnLog } from './log.ts';
-import { fatalMessage, langOf } from './messages.ts';
-import { LIMITS, checkTurnRequest } from './request.ts';
+import { fatalMessage, langOf, proposalEndEvent, proposalFatalEvent, proposalStatusEvent } from './messages.ts';
+import { LIMITS, checkProposalRequest, checkTurnRequest } from './request.ts';
 import { executeTurn } from './turn.ts';
 import type { TurnOutcome, WireEvent } from './turn.ts';
 
@@ -43,6 +50,10 @@ export interface ServerDeps {
   log?: TurnLog;
   /** One metadata line per request (main.ts prints it); never content or the key. */
   onLine?: (line: string) => void;
+  /** The proposal drafting engine (tests inject a fake); default draftProposal. */
+  draft?: typeof draftProposal;
+  /** Hard stop for one proposal draft (default 200 s, as on the Worker). */
+  proposalDeadlineMs?: number;
 }
 
 export interface TurnServer {
@@ -66,6 +77,7 @@ class HttpError extends Error {
 
 const BASE_HEADERS: Record<string, string> = { 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' };
 const JSON_RE = /^application\/json\s*(;.*)?$/i;
+const PROPOSAL_DEADLINE_MS = 200_000;
 
 /** An oversized body is read and discarded up to this many bytes, so the client finishes sending and can read the 413; beyond it the socket is destroyed. */
 const DRAIN_CAP = 8 * 1024 * 1024;
@@ -141,7 +153,7 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
     if (!config.allowedHosts.includes(host)) return reject(403, 'bad-host', 'Host header not allowed');
     if (origin !== undefined && !config.allowedOrigins.includes(origin)) return reject(403, 'bad-origin', 'Origin not allowed');
     const cors: Record<string, string> = origin ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {};
-    if (route !== '/api/turn' && route !== '/api/health') return reject(404, 'not-found', 'no such route', {}, cors);
+    if (route !== '/api/turn' && route !== '/api/proposal' && route !== '/api/health') return reject(404, 'not-found', 'no such route', {}, cors);
     if (req.method === 'OPTIONS') {
       res.writeHead(204, { ...BASE_HEADERS, ...cors, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '600' });
       res.end();
@@ -182,6 +194,13 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
       body = JSON.parse(raw.toString('utf8'));
     } catch {
       return reject(400, 'bad-json', 'body is not valid JSON', {}, cors);
+    }
+    if (route === '/api/proposal') {
+      const checkedP = checkProposalRequest(body);
+      if (!checkedP.ok) return reject(400, checkedP.code, checkedP.message, {}, cors);
+      if (!deps.apiKey) return reject(503, 'no-key', fatalMessage('no-key', checkedP.value.lang), {}, cors);
+      if (turns >= config.maxInFlight) return reject(429, 'server-busy', fatalMessage('server-busy', checkedP.value.lang), { 'Retry-After': '2' }, cors);
+      return proposal(checkedP.value, deps.apiKey, res, cors, t0);
     }
     const checked = checkTurnRequest(body);
     if (!checked.ok) return reject(400, checked.code, checked.message, {}, cors);
@@ -248,6 +267,94 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
     log.write(turnLogEntry(turnReq.sessionId, turnReq.ask, outcome, { serverMs: Date.now() - t0, clientGone, deadlineHit, internal, content: config.logContent }));
     const s = outcome.stats;
     line(`POST /api/turn ${outcome.outcome}${outcome.fatalCode ? ' ' + outcome.fatalCode : ''} ${s ? `${s.model} first-op ${s.firstOpMs ?? '-'} ms, turn ${s.turnMs} ms, $${s.costUsd.toFixed(4)}` : ''}`.trim());
+  }
+
+  /** POST /api/proposal after its checks: streams the draft as NDJSON, one ProposalEvent per line. */
+  async function proposal(propReq: ProposalRequest, apiKey: string, res: ServerResponse, cors: Record<string, string>, t0: number): Promise<void> {
+    const lang = propReq.lang;
+    const deadlineMs = deps.proposalDeadlineMs ?? PROPOSAL_DEADLINE_MS;
+    turns++;
+    const ac = new AbortController();
+    let clientGone = false;
+    let deadlineHit = false;
+    const onClose = (): void => {
+      if (!res.writableEnded) {
+        clientGone = true;
+        ac.abort();
+      }
+    };
+    res.on('close', onClose);
+    const timer = setTimeout(() => {
+      deadlineHit = true;
+      ac.abort();
+    }, deadlineMs);
+    const emit = (e: ProposalEvent): void => {
+      if (res.writableEnded || res.destroyed) return;
+      res.write(redact(JSON.stringify(e)) + '\n');
+    };
+    let result: DraftProposalResult | null = null;
+    let fatal: string | null = null;
+    let internal = false;
+    try {
+      res.writeHead(200, { ...BASE_HEADERS, ...cors, 'Content-Type': 'application/x-ndjson; charset=utf-8', 'X-Accel-Buffering': 'no' });
+      res.flushHeaders();
+      result = await (deps.draft ?? draftProposal)(propReq, catalog, {
+        apiKey,
+        baseUrl: config.baseUrl,
+        model: config.model,
+        fallbackModel: config.fallbackModel,
+        backup,
+        msLeft: () => deadlineMs - (Date.now() - t0),
+        signal: ac.signal,
+        onSection: (section) => emit({ type: 'section', section }),
+        onStatus: (code) => emit(proposalStatusEvent(code, lang)),
+        ...(deps.fetchImpl ? { fetchImpl: deps.fetchImpl } : {}),
+      });
+      const end = proposalEndEvent(result, { deadlineHit, clientGone }, lang);
+      if (end) {
+        if (end.type === 'fatal') fatal = end.code;
+        emit(end);
+      }
+    } catch {
+      // never a stack trace or an exception message on the wire
+      internal = true;
+      fatal = 'internal';
+      emit(proposalFatalEvent('internal', lang));
+    } finally {
+      clearTimeout(timer);
+      turns--;
+      if (!res.writableEnded && !res.destroyed) res.end();
+    }
+    // metadata only: never the session or any drafted text, whatever LOG_CONTENT says
+    const s = result?.stats;
+    const outcome = internal ? 'internal' : (result?.outcome ?? 'aborted');
+    log.write({
+      ts: new Date().toISOString(),
+      route: '/api/proposal',
+      session: sessionTag(propReq.sessionId),
+      outcome,
+      fatal,
+      error: result?.error?.code ?? null,
+      lang,
+      clientGone,
+      deadlineHit,
+      serverMs: Date.now() - t0,
+      model: s?.model ?? null,
+      servedBy: s?.servedBy ?? null,
+      calls: s?.calls ?? null,
+      sections: s?.sections ?? 0,
+      rejectedLines: s?.rejectedLines ?? 0,
+      lint: s?.lint ?? null,
+      heldUsed: s?.heldUsed ?? 0,
+      missing: s?.missing.length ?? null,
+      complete: result?.draft?.complete ?? null,
+      fallbackUsed: s?.fallbackUsed ?? null,
+      backupUsed: s?.backupUsed ?? null,
+      backupSkipped: s?.backupSkipped ?? null,
+      tokens: s ? { prompt: s.promptTokens, completion: s.completionTokens } : null,
+      costUsd: Number((s?.costUsd ?? 0).toFixed(6)),
+    });
+    line(`POST /api/proposal ${outcome}${fatal ? ' ' + fatal : ''} ${s ? `${s.sections} sections, ${s.calls} calls, ${Date.now() - t0} ms, $${s.costUsd.toFixed(4)}` : ''}`.trim());
   }
 
   const server = http.createServer((req, res) => {

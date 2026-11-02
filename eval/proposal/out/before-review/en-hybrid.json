@@ -1,0 +1,182 @@
+{
+  "id": "en-hybrid",
+  "lang": "en",
+  "outcome": "done",
+  "stats": {
+    "model": "qwen3.8-max",
+    "servedBy": "qwen",
+    "fallbackUsed": false,
+    "backupUsed": false,
+    "calls": 1,
+    "costUsd": 0.005852,
+    "ms": 16046,
+    "sections": 12,
+    "rejectedLines": 1,
+    "missing": [],
+    "promptTokens": 1899,
+    "completionTokens": 641
+  },
+  "statuses": [],
+  "draft": {
+    "lang": "en",
+    "exec": "You run your applications on AWS but must keep database records in Jakarta to meet data residency rules.\n\nThis proposal places a managed MySQL instance in Alibaba Cloud Jakarta and links it to your AWS servers over a dedicated private connection.\n\nYour data stays in the required region while your existing AWS applications continue operating without migration.",
+    "needs": [
+      {
+        "id": "n1",
+        "need": "Database records must remain in Jakarta to satisfy data residency requirements.",
+        "source": "stated",
+        "quote": "data residency",
+        "answer": "ApsaraDB RDS stores the MySQL data in the Jakarta region across two zones. Your applications stay on AWS while the data meets local placement rules.",
+        "products": [
+          "rds"
+        ]
+      },
+      {
+        "id": "n2",
+        "need": "AWS application servers must reach the Jakarta database securely and reliably.",
+        "source": "stated",
+        "quote": "connected to our AWS apps",
+        "answer": "Express Connect provides a dedicated private link between AWS and the Jakarta VPC. This keeps database traffic off the public internet, reducing exposure to interception.",
+        "products": [
+          "express-connect"
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "title": "Data residency met without app migration",
+        "text": "The design places only the database in Jakarta. Your team avoids rewriting or moving the existing AWS applications, saving migration effort and keeping current operations running."
+      },
+      {
+        "title": "Private cross-cloud database access",
+        "text": "A dedicated physical line carries MySQL traffic between AWS and Alibaba Cloud. This reduces the risk of exposing database queries to the public internet."
+      },
+      {
+        "title": "Database availability across two zones",
+        "text": "The managed MySQL runs in Jakarta zones A and B. If one zone fails, the database remains available, reducing the chance of application outages."
+      }
+    ],
+    "why": {
+      "rds": "Keeps your MySQL data in Jakarta to satisfy data residency rules while removing the burden of managing database servers yourself. Without it, you would need to build and maintain a custom database setup in the region.",
+      "express-connect": "Provides a stable, private path for your AWS applications to query the Jakarta database, avoiding public internet risks. Without it, you would rely on less predictable connections that increase exposure and latency."
+    },
+    "tradeoffs": [
+      {
+        "text": "Express Connect bandwidth pricing depends on the steady traffic volume between AWS and Jakarta.",
+        "mitigation": "Answer the open question on traffic volume (under 1 Gbps, 1-10 Gbps, or over 10 Gbps) to finalize costs."
+      }
+    ],
+    "next": [
+      "Confirm the steady traffic volume between AWS and Jakarta to size the Express Connect link.",
+      "Validate that this architecture satisfies your specific data residency obligations with your compliance team.",
+      "Review the catalog pricing for ApsaraDB RDS and Express Connect attached below."
+    ],
+    "complete": true
+  },
+  "sections": [
+    {
+      "ms": 2790,
+      "section": {
+        "k": "exec",
+        "text": "You run your applications on AWS but must keep database records in Jakarta to meet data residency rules.\n\nThis proposal places a managed MySQL instance in Alibaba Cloud Jakarta and links it to your AWS servers over a dedicated private connection.\n\nYour data stays in the required region while your existing AWS applications continue operating without migration."
+      }
+    },
+    {
+      "ms": 4564,
+      "section": {
+        "k": "need",
+        "id": "n1",
+        "need": "Database records must remain in Jakarta to satisfy data residency requirements.",
+        "source": "stated",
+        "quote": "data residency",
+        "answer": "ApsaraDB RDS stores the MySQL data in the Jakarta region across two zones. Your applications stay on AWS while the data meets local placement rules.",
+        "products": [
+          "rds"
+        ]
+      }
+    },
+    {
+      "ms": 6461,
+      "section": {
+        "k": "need",
+        "id": "n2",
+        "need": "AWS application servers must reach the Jakarta database securely and reliably.",
+        "source": "stated",
+        "quote": "connected to our AWS apps",
+        "answer": "Express Connect provides a dedicated private link between AWS and the Jakarta VPC. This keeps database traffic off the public internet, reducing exposure to interception.",
+        "products": [
+          "express-connect"
+        ]
+      }
+    },
+    {
+      "ms": 7893,
+      "section": {
+        "k": "outcome",
+        "title": "Data residency met without app migration",
+        "text": "The design places only the database in Jakarta. Your team avoids rewriting or moving the existing AWS applications, saving migration effort and keeping current operations running."
+      }
+    },
+    {
+      "ms": 8919,
+      "section": {
+        "k": "outcome",
+        "title": "Private cross-cloud database access",
+        "text": "A dedicated physical line carries MySQL traffic between AWS and Alibaba Cloud. This reduces the risk of exposing database queries to the public internet."
+      }
+    },
+    {
+      "ms": 9983,
+      "section": {
+        "k": "outcome",
+        "title": "Database availability across two zones",
+        "text": "The managed MySQL runs in Jakarta zones A and B. If one zone fails, the database remains available, reducing the chance of application outages."
+      }
+    },
+    {
+      "ms": 11222,
+      "section": {
+        "k": "why",
+        "product": "rds",
+        "text": "Keeps your MySQL data in Jakarta to satisfy data residency rules while removing the burden of managing database servers yourself. Without it, you would need to build and maintain a custom database setup in the region."
+      }
+    },
+    {
+      "ms": 12550,
+      "section": {
+        "k": "why",
+        "product": "express-connect",
+        "text": "Provides a stable, private path for your AWS applications to query the Jakarta database, avoiding public internet risks. Without it, you would rely on less predictable connections that increase exposure and latency."
+      }
+    },
+    {
+      "ms": 14583,
+      "section": {
+        "k": "tradeoff",
+        "text": "Express Connect bandwidth pricing depends on the steady traffic volume between AWS and Jakarta.",
+        "mitigation": "Answer the open question on traffic volume (under 1 Gbps, 1-10 Gbps, or over 10 Gbps) to finalize costs."
+      }
+    },
+    {
+      "ms": 15127,
+      "section": {
+        "k": "next",
+        "text": "Confirm the steady traffic volume between AWS and Jakarta to size the Express Connect link."
+      }
+    },
+    {
+      "ms": 15603,
+      "section": {
+        "k": "next",
+        "text": "Validate that this architecture satisfies your specific data residency obligations with your compliance team."
+      }
+    },
+    {
+      "ms": 16045,
+      "section": {
+        "k": "next",
+        "text": "Review the catalog pricing for ApsaraDB RDS and Express Connect attached below."
+      }
+    }
+  ]
+}

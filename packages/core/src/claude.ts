@@ -26,7 +26,7 @@
 // Node-only module to a browser stub, nothing here imports a Node built-in, and a live call ran in workerd (2026-11-01).
 import Anthropic from '@anthropic-ai/sdk';
 import { streamOps } from './llm.ts';
-import type { BackupProvider, BackupStreamOptions, RawStreamHandlers, RawStreamOutcome, StreamResult, TurnError, Usage } from './llm.ts';
+import type { BackupCompleteOptions, BackupCompleteResult, BackupProvider, BackupStreamOptions, RawStreamHandlers, RawStreamOutcome, StreamResult, TurnError, Usage } from './llm.ts';
 import { costOf, isClaudeModelId } from './pricing.ts';
 import type { Price } from './pricing.ts';
 import type { ChatMessage } from './prompt.ts';
@@ -118,8 +118,11 @@ export function toClaudeMessages(messages: readonly ChatMessage[]): { system: st
  */
 export const BACKUP_VOICE_NOTE = 'Write as the same assistant that began this answer. In say lines and summaries never name an AI model, a model family or a company behind it, and never mention that another model started or stopped the answer.';
 
-/** The request body of one backup call. */
-export function claudeRequest(model: string, messages: readonly ChatMessage[], o: { effort?: ClaudeEffort; maxTokens?: number } = {}): ClaudeRequest {
+/** BACKUP_VOICE_NOTE for a plain-text call (complete()): a document such as the drafted proposal, in one voice. */
+export const BACKUP_TEXT_VOICE_NOTE = 'Write as the same writer who began this text. Never name an AI model, a model family or a company behind the writing, never say that the text was generated, and never mention that another writer started it.';
+
+/** The request body of one backup call. `voice` replaces BACKUP_VOICE_NOTE at the end of the system prompt. */
+export function claudeRequest(model: string, messages: readonly ChatMessage[], o: { effort?: ClaudeEffort; maxTokens?: number; voice?: string } = {}): ClaudeRequest {
   const c = toClaudeMessages(messages);
   return {
     model,
@@ -128,7 +131,7 @@ export function claudeRequest(model: string, messages: readonly ChatMessage[], o
     // The system prompt is the same for every session: an explicit breakpoint on it gives every turn a cache read point.
     system: [{ type: 'text', text: `${c.system}
 
-${BACKUP_VOICE_NOTE}`, cache_control: { type: 'ephemeral' } }],
+${o.voice ?? BACKUP_VOICE_NOTE}`, cache_control: { type: 'ephemeral' } }],
     messages: c.messages,
     // Top-level automatic caching: a breakpoint on the last block, so the follow-up call of the same turn hits the cache.
     cache_control: { type: 'ephemeral' },
@@ -347,7 +350,8 @@ async function claudeSource(client: Anthropic, req: ClaudeRequest, signal: Abort
 
 /**
  * The Claude backup for runTurn (opts.backup). One SDK client per backup; each stream() call is one request whose
- * text goes through streamOps. The key stays inside the SDK client.
+ * text goes through streamOps, and each complete() call one request collected as text (proposal.ts), with the same
+ * watchdogs, output budget and pricing. The key stays inside the SDK client.
  */
 export function createClaudeBackup(o: ClaudeBackupOptions): BackupProvider {
   const apiKey = o.apiKey.trim();
@@ -374,6 +378,40 @@ export function createClaudeBackup(o: ClaudeBackupOptions): BackupProvider {
     stream(so: BackupStreamOptions): Promise<StreamResult> {
       const req = claudeRequest(model, so.messages, { effort: o.effort, maxTokens: o.maxTokens });
       return streamOps({ model, provider: 'claude', messages: so.messages, catalog: so.catalog, graph: so.graph, ctx: so.ctx, onEvent: so.onEvent, prices: so.prices }, (h) => claudeSource(client, req, so.signal, dog, maxOutputChars, so.prices, h));
+    },
+    async complete(co: BackupCompleteOptions): Promise<BackupCompleteResult> {
+      const req = claudeRequest(model, co.messages, { effort: o.effort, maxTokens: co.maxTokens ?? o.maxTokens, voice: BACKUP_TEXT_VOICE_NOTE });
+      let text = '';
+      let usage: Usage | null = null;
+      let finishReason: string | null = null;
+      const out = await claudeSource(client, req, co.signal, dog, maxOutputChars, co.prices, {
+        onContent(delta: string) {
+          text += delta;
+          if (co.onText) {
+            try {
+              co.onText(delta);
+            } catch {
+              /* a listener error must not break the stream */
+            }
+          }
+        },
+        onUsage(u: Usage) {
+          usage = u;
+        },
+        onFinish(reason: string) {
+          finishReason = reason;
+        },
+      });
+      // claudeSource prices every call that reported usage; a call with no event at all books nothing.
+      return {
+        text,
+        usage,
+        costUsd: out.costUsd ?? 0,
+        costEstimated: !!out.costEstimated,
+        finishReason,
+        ...(out.servedModel ? { servedModel: out.servedModel } : {}),
+        ...(out.error ? { error: out.error } : {}),
+      };
     },
   };
 }

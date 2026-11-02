@@ -1,0 +1,405 @@
+{
+  "id": "ticketing-en",
+  "lang": "en",
+  "outcome": "done",
+  "stats": {
+    "model": "qwen3.8-max",
+    "servedBy": "qwen",
+    "fallbackUsed": false,
+    "backupUsed": false,
+    "calls": 1,
+    "costUsd": 0.015262,
+    "ms": 28981,
+    "sections": 29,
+    "rejectedLines": 0,
+    "missing": [],
+    "promptTokens": 3125,
+    "completionTokens": 1502
+  },
+  "statuses": [],
+  "draft": {
+    "lang": "en",
+    "exec": "Seoul Live Tickets lost 40 minutes of sales during a March on-sale while bots grabbed seats. This proposal moves your ticketing platform to Alibaba Cloud in Singapore.\n\nThe architecture absorbs 30x traffic spikes, blocks scalper bots and keeps your team on PostgreSQL.\n\nFans buy tickets without outages, revenue stays protected and all data remains in Singapore.",
+    "needs": [
+      {
+        "id": "n1",
+        "need": "Site went down for 40 minutes during a big sale, losing revenue and fan trust.",
+        "source": "stated",
+        "quote": "the site went down for 40 minutes during a big sale",
+        "answer": "SAE scales from 5 to 300 instances in seconds while RocketMQ buffers orders so the database never stalls. Fans complete purchases even when traffic jumps 30x.",
+        "products": [
+          "sae",
+          "rocketmq",
+          "alb"
+        ]
+      },
+      {
+        "id": "n2",
+        "need": "Bots buy up seats for scalpers, leaving real fans empty-handed.",
+        "source": "stated",
+        "quote": "Bots also buy up seats for scalpers",
+        "answer": "WAF blocks known bot signatures at the edge and Captcha challenges suspicious users at login and checkout. Real fans get fair access to seats.",
+        "products": [
+          "waf",
+          "captcha",
+          "esa"
+        ]
+      },
+      {
+        "id": "n3",
+        "need": "Team knows PostgreSQL well; switching databases would slow delivery and add risk.",
+        "source": "stated",
+        "quote": "our team knows it well, so please keep PostgreSQL",
+        "answer": "PolarDB runs the PostgreSQL engine your team already uses while adding zone-level high availability. No retraining or code rewrites are needed.",
+        "products": [
+          "polardb"
+        ]
+      },
+      {
+        "id": "n4",
+        "need": "Customer data must stay in Singapore to meet compliance requirements.",
+        "source": "stated",
+        "quote": "We run an online concert ticketing site for fans across Southeast Asia, hosted on-prem in Singapore today",
+        "answer": "Every component, including compute, database, cache and storage, is deployed in the Singapore region. Fan data never leaves the jurisdiction you require.",
+        "products": [
+          "dns",
+          "esa",
+          "waf",
+          "alb",
+          "sae",
+          "tair",
+          "polardb",
+          "rocketmq",
+          "oss",
+          "arms",
+          "sls",
+          "cloud-backup",
+          "captcha"
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "title": "No downtime during flash sales",
+        "text": "SAE autoscaling and RocketMQ order buffering absorb 30x spikes, preventing the 40-minute outage Seoul Live Tickets experienced last March."
+      },
+      {
+        "title": "Fair ticket access for fans",
+        "text": "WAF and Captcha stop scalper bots before they reach checkout, protecting brand reputation and keeping real fans loyal."
+      },
+      {
+        "title": "Faster pages across Southeast Asia",
+        "text": "ESA caches static assets and accelerates dynamic APIs at the edge, reducing wait times for fans buying tickets from any country in the region."
+      },
+      {
+        "title": "Zero database migration effort",
+        "text": "PolarDB keeps the PostgreSQL engine your team already operates, avoiding months of retraining and application rewrites."
+      }
+    ],
+    "why": {
+      "dns": "Routes fans to the correct edge nodes in Singapore. Without it, browsers cannot find your ticketing site and no one can buy tickets.",
+      "esa": "Caches event media and accelerates API calls for fans across Southeast Asia while absorbing DDoS attacks. Without it, page loads slow down and origin servers face direct attack traffic.",
+      "waf": "Blocks automated scalper bots and web attacks at the edge before they hit your application. Without it, bots bypass defenses and grab inventory meant for real fans.",
+      "alb": "Spreads incoming fan traffic across two availability zones so a single server failure does not stop sales. Without it, you have no automatic failover during an on-sale.",
+      "sae": "Runs the ticketing app and order workers, scaling instantly from 5 to 300 instances during 30x spikes. Without it, you pay for peak capacity all day or crash during sales.",
+      "tair": "Holds temporary seat locks and user sessions with sub-millisecond speed so two fans cannot book the same seat. Without it, you oversell tickets and issue refunds.",
+      "polardb": "Stores orders durably using the PostgreSQL engine your team already knows, with zone-level failover. Without it, you lose transactions or force your team to learn a new database.",
+      "rocketmq": "Buffers purchase requests during flash sales so the database processes them steadily instead of crashing. Without it, a 30x spike overwhelms the database and stops checkout.",
+      "oss": "Stores concert images and PDFs cheaply so ESA can serve them quickly to fans. Without it, your application servers waste resources delivering static files.",
+      "arms": "Traces latency spikes and alerts your team before fans notice slowdowns. Without it, you only discover problems after social media complaints start.",
+      "sls": "Centralizes access and application logs for troubleshooting and audits. Without it, finding the cause of a failed transaction takes hours instead of minutes.",
+      "cloud-backup": "Creates scheduled backups of PolarDB and OSS to prevent permanent data loss. Without it, accidental deletion or corruption means lost orders and revenue.",
+      "captcha": "Challenges suspicious users at login and checkout to stop scalper bots that WAF misses. Without it, automated scripts still buy up seats during high-demand sales."
+    },
+    "tradeoffs": [
+      {
+        "text": "The design assumes about 500k fans during peak on-sale. If concurrent fans exceed 2 million, SAE maximum instance limits and PolarDB capacity may need adjustment.",
+        "mitigation": "Confirm expected peak concurrency before launch to size SAE scaling limits and database nodes correctly."
+      },
+      {
+        "text": "RocketMQ adds asynchronous processing, meaning fans see a brief pending state before order confirmation.",
+        "mitigation": "Design the frontend to show a clear waiting message so fans do not click buy repeatedly."
+      },
+      {
+        "text": "Running WAF as a badge on ESA simplifies architecture but ties security policies to the edge layer.",
+        "mitigation": "Review WAF rules regularly to ensure bot signatures stay current for new scalper tactics."
+      }
+    ],
+    "next": [
+      "Confirm whether peak on-sale traffic reaches 500k or over 2 million concurrent fans.",
+      "Validate that existing PostgreSQL queries run correctly on PolarDB PostgreSQL-compatible edition.",
+      "Set SAE autoscaling thresholds based on load test results simulating a 30x spike.",
+      "Configure Captcha difficulty levels for login and checkout flows to balance bot blocking and fan experience."
+    ],
+    "complete": true
+  },
+  "sections": [
+    {
+      "ms": 2720,
+      "section": {
+        "k": "exec",
+        "text": "Seoul Live Tickets lost 40 minutes of sales during a March on-sale while bots grabbed seats. This proposal moves your ticketing platform to Alibaba Cloud in Singapore.\n\nThe architecture absorbs 30x traffic spikes, blocks scalper bots and keeps your team on PostgreSQL.\n\nFans buy tickets without outages, revenue stays protected and all data remains in Singapore."
+      }
+    },
+    {
+      "ms": 4471,
+      "section": {
+        "k": "need",
+        "id": "n1",
+        "need": "Site went down for 40 minutes during a big sale, losing revenue and fan trust.",
+        "source": "stated",
+        "quote": "the site went down for 40 minutes during a big sale",
+        "answer": "SAE scales from 5 to 300 instances in seconds while RocketMQ buffers orders so the database never stalls. Fans complete purchases even when traffic jumps 30x.",
+        "products": [
+          "sae",
+          "rocketmq",
+          "alb"
+        ]
+      }
+    },
+    {
+      "ms": 5894,
+      "section": {
+        "k": "need",
+        "id": "n2",
+        "need": "Bots buy up seats for scalpers, leaving real fans empty-handed.",
+        "source": "stated",
+        "quote": "Bots also buy up seats for scalpers",
+        "answer": "WAF blocks known bot signatures at the edge and Captcha challenges suspicious users at login and checkout. Real fans get fair access to seats.",
+        "products": [
+          "waf",
+          "captcha",
+          "esa"
+        ]
+      }
+    },
+    {
+      "ms": 7484,
+      "section": {
+        "k": "need",
+        "id": "n3",
+        "need": "Team knows PostgreSQL well; switching databases would slow delivery and add risk.",
+        "source": "stated",
+        "quote": "our team knows it well, so please keep PostgreSQL",
+        "answer": "PolarDB runs the PostgreSQL engine your team already uses while adding zone-level high availability. No retraining or code rewrites are needed.",
+        "products": [
+          "polardb"
+        ]
+      }
+    },
+    {
+      "ms": 9527,
+      "section": {
+        "k": "need",
+        "id": "n4",
+        "need": "Customer data must stay in Singapore to meet compliance requirements.",
+        "source": "stated",
+        "quote": "We run an online concert ticketing site for fans across Southeast Asia, hosted on-prem in Singapore today",
+        "answer": "Every component, including compute, database, cache and storage, is deployed in the Singapore region. Fan data never leaves the jurisdiction you require.",
+        "products": [
+          "dns",
+          "esa",
+          "waf",
+          "alb",
+          "sae",
+          "tair",
+          "polardb",
+          "rocketmq",
+          "oss",
+          "arms",
+          "sls",
+          "cloud-backup",
+          "captcha"
+        ]
+      }
+    },
+    {
+      "ms": 10317,
+      "section": {
+        "k": "outcome",
+        "title": "No downtime during flash sales",
+        "text": "SAE autoscaling and RocketMQ order buffering absorb 30x spikes, preventing the 40-minute outage Seoul Live Tickets experienced last March."
+      }
+    },
+    {
+      "ms": 11126,
+      "section": {
+        "k": "outcome",
+        "title": "Fair ticket access for fans",
+        "text": "WAF and Captcha stop scalper bots before they reach checkout, protecting brand reputation and keeping real fans loyal."
+      }
+    },
+    {
+      "ms": 11918,
+      "section": {
+        "k": "outcome",
+        "title": "Faster pages across Southeast Asia",
+        "text": "ESA caches static assets and accelerates dynamic APIs at the edge, reducing wait times for fans buying tickets from any country in the region."
+      }
+    },
+    {
+      "ms": 12546,
+      "section": {
+        "k": "outcome",
+        "title": "Zero database migration effort",
+        "text": "PolarDB keeps the PostgreSQL engine your team already operates, avoiding months of retraining and application rewrites."
+      }
+    },
+    {
+      "ms": 13295,
+      "section": {
+        "k": "why",
+        "product": "dns",
+        "text": "Routes fans to the correct edge nodes in Singapore. Without it, browsers cannot find your ticketing site and no one can buy tickets."
+      }
+    },
+    {
+      "ms": 14295,
+      "section": {
+        "k": "why",
+        "product": "esa",
+        "text": "Caches event media and accelerates API calls for fans across Southeast Asia while absorbing DDoS attacks. Without it, page loads slow down and origin servers face direct attack traffic."
+      }
+    },
+    {
+      "ms": 15171,
+      "section": {
+        "k": "why",
+        "product": "waf",
+        "text": "Blocks automated scalper bots and web attacks at the edge before they hit your application. Without it, bots bypass defenses and grab inventory meant for real fans."
+      }
+    },
+    {
+      "ms": 16046,
+      "section": {
+        "k": "why",
+        "product": "alb",
+        "text": "Spreads incoming fan traffic across two availability zones so a single server failure does not stop sales. Without it, you have no automatic failover during an on-sale."
+      }
+    },
+    {
+      "ms": 17073,
+      "section": {
+        "k": "why",
+        "product": "sae",
+        "text": "Runs the ticketing app and order workers, scaling instantly from 5 to 300 instances during 30x spikes. Without it, you pay for peak capacity all day or crash during sales."
+      }
+    },
+    {
+      "ms": 18001,
+      "section": {
+        "k": "why",
+        "product": "tair",
+        "text": "Holds temporary seat locks and user sessions with sub-millisecond speed so two fans cannot book the same seat. Without it, you oversell tickets and issue refunds."
+      }
+    },
+    {
+      "ms": 18983,
+      "section": {
+        "k": "why",
+        "product": "polardb",
+        "text": "Stores orders durably using the PostgreSQL engine your team already knows, with zone-level failover. Without it, you lose transactions or force your team to learn a new database."
+      }
+    },
+    {
+      "ms": 19819,
+      "section": {
+        "k": "why",
+        "product": "rocketmq",
+        "text": "Buffers purchase requests during flash sales so the database processes them steadily instead of crashing. Without it, a 30x spike overwhelms the database and stops checkout."
+      }
+    },
+    {
+      "ms": 20719,
+      "section": {
+        "k": "why",
+        "product": "oss",
+        "text": "Stores concert images and PDFs cheaply so ESA can serve them quickly to fans. Without it, your application servers waste resources delivering static files."
+      }
+    },
+    {
+      "ms": 21429,
+      "section": {
+        "k": "why",
+        "product": "arms",
+        "text": "Traces latency spikes and alerts your team before fans notice slowdowns. Without it, you only discover problems after social media complaints start."
+      }
+    },
+    {
+      "ms": 22182,
+      "section": {
+        "k": "why",
+        "product": "sls",
+        "text": "Centralizes access and application logs for troubleshooting and audits. Without it, finding the cause of a failed transaction takes hours instead of minutes."
+      }
+    },
+    {
+      "ms": 22949,
+      "section": {
+        "k": "why",
+        "product": "cloud-backup",
+        "text": "Creates scheduled backups of PolarDB and OSS to prevent permanent data loss. Without it, accidental deletion or corruption means lost orders and revenue."
+      }
+    },
+    {
+      "ms": 23738,
+      "section": {
+        "k": "why",
+        "product": "captcha",
+        "text": "Challenges suspicious users at login and checkout to stop scalper bots that WAF misses. Without it, automated scripts still buy up seats during high-demand sales."
+      }
+    },
+    {
+      "ms": 24980,
+      "section": {
+        "k": "tradeoff",
+        "text": "The design assumes about 500k fans during peak on-sale. If concurrent fans exceed 2 million, SAE maximum instance limits and PolarDB capacity may need adjustment.",
+        "mitigation": "Confirm expected peak concurrency before launch to size SAE scaling limits and database nodes correctly."
+      }
+    },
+    {
+      "ms": 25913,
+      "section": {
+        "k": "tradeoff",
+        "text": "RocketMQ adds asynchronous processing, meaning fans see a brief pending state before order confirmation.",
+        "mitigation": "Design the frontend to show a clear waiting message so fans do not click buy repeatedly."
+      }
+    },
+    {
+      "ms": 26840,
+      "section": {
+        "k": "tradeoff",
+        "text": "Running WAF as a badge on ESA simplifies architecture but ties security policies to the edge layer.",
+        "mitigation": "Review WAF rules regularly to ensure bot signatures stay current for new scalper tactics."
+      }
+    },
+    {
+      "ms": 27532,
+      "section": {
+        "k": "next",
+        "text": "Confirm whether peak on-sale traffic reaches 500k or over 2 million concurrent fans."
+      }
+    },
+    {
+      "ms": 27764,
+      "section": {
+        "k": "next",
+        "text": "Validate that existing PostgreSQL queries run correctly on PolarDB PostgreSQL-compatible edition."
+      }
+    },
+    {
+      "ms": 28284,
+      "section": {
+        "k": "next",
+        "text": "Set SAE autoscaling thresholds based on load test results simulating a 30x spike."
+      }
+    },
+    {
+      "ms": 28981,
+      "section": {
+        "k": "next",
+        "text": "Configure Captcha difficulty levels for login and checkout flows to balance bot blocking and fan experience."
+      }
+    }
+  ]
+}

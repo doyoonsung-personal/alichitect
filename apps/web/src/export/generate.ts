@@ -2,7 +2,7 @@
 // PDF bytes. Pure TypeScript over pdfkit; the browser and Node differ only in the font source, the logo and the router,
 // which the caller passes in. Nothing here touches the DOM.
 import PDFDocument from 'pdfkit';
-import type { Catalog, Graph } from '@ali/core/types.ts';
+import type { Catalog, Graph, ProposalDraft } from '@ali/core/types.ts';
 import type { LayoutState } from '@ali/core/layout.ts';
 import type { Lang } from '../i18n/t.ts';
 import type { SessionRecord } from '../store/types.ts';
@@ -31,6 +31,8 @@ export interface GenerateInput {
   route: RouteFn;
   /** The Alibaba Cloud logo as SVG text (the English or the Chinese one) and its width / height. */
   logo: { svg: string; aspect: number } | null;
+  /** The drafted narrative (POST /api/proposal). Absent or null makes the basic document. */
+  draft?: ProposalDraft | null;
 }
 
 export interface GenerateResult {
@@ -55,7 +57,7 @@ type Drawn = ReturnType<typeof drawDiagram>;
 
 export async function generateProposalPdf(i: GenerateInput): Promise<GenerateResult> {
   const t0 = now();
-  const model = buildProposal({ session: i.session, graph: i.graph, layout: i.layout, catalog: i.catalog, lang: i.lang, title: i.title, customer: i.customer, now: i.now });
+  const model = buildProposal({ session: i.session, graph: i.graph, layout: i.layout, catalog: i.catalog, lang: i.lang, title: i.title, customer: i.customer, now: i.now, draft: i.draft });
   const fonts = createFontSet(i.fontSource);
   const routed = i.layout && hasContent(i.graph) ? await routeDiagram(i.graph, i.layout, i.catalog, i.lang, i.route) : null;
 

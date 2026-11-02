@@ -4,9 +4,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateProposalPdf } from '../../src/export/generate.ts';
 import { nodeFontSource } from '../../src/export/fonts-node.ts';
-import { avoidRoute, catalog, generateFromState, logoFor, playFixture } from './node-env.ts';
+import { avoidRoute, catalog, generateFromState, loadDraft, logoFor, playFixture } from './node-env.ts';
 import { bigGraph } from './big.ts';
-import { checkPdf } from './checks.ts';
+import { HIDDEN, checkPdf } from './checks.ts';
 import { inspectPdf, pageOps } from './inspect.ts';
 
 test('English: a four-revision session makes a complete, checkable PDF', async () => {
@@ -143,5 +143,84 @@ test('a proposal from a revision that was finished after a content-filter stop n
     assert.doesNotMatch(r.fileName, hidden, `${id}: file name`);
     // the history lists the revision as an ordinary one: no attribution, no mention of a filter or a second pass
     assert.doesNotMatch(info.text, /content[- ]filter|finished by|second pass/i, `${id}: no attribution`);
+  }
+});
+
+// ---------- with a drafted narrative (POST /api/proposal) ----------
+
+
+test('with a draft, the business reader comes first: summary, needs, diagram, components led by why, trade-offs, then the record', async () => {
+  const state = playFixture('residency', 'en').getState();
+  const draft = loadDraft('residency-en');
+  const r = await generateFromState(state, { title: 'Customer portal', customer: 'Acme Pay Pte Ltd', draft });
+  const check = await checkPdf(r.bytes, state, { title: 'Customer portal', customer: 'Acme Pay Pte Ltd', draft });
+  assert.deepEqual(check.problems, [], 'sections in order, every need, quote and reason present, links resolve, nothing overflows');
+  const text = check.info.text;
+  assert.ok(text.includes('“customer data must stay in Singapore”'), 'a stated need quotes the customer');
+  assert.ok(!text.includes('Role in this design'), "components lead with Why it's here instead");
+  assert.equal((text.match(/Why it's here/g) ?? []).length, check.model.components.length, 'every component entry leads with it');
+  assert.ok(text.includes('Design record'), 'the summary page is the design record');
+  // the technical record keeps everything it had
+  for (const h of ['Pinned requirements', 'Connections', 'Revision history']) assert.ok(text.includes(h), h);
+  assert.equal(check.summary.links, check.summary.expectedLinks, 'the documentation links all resolve');
+  assert.equal(r.fileName, 'Customer-portal-architecture-proposal-2026-10-31.pdf');
+});
+
+test('without a draft the document is exactly the basic one: same pages, same text, same links', async () => {
+  const state = playFixture('residency', 'en').getState();
+  const a = await inspectPdf((await generateFromState(state, { title: 'T', customer: 'C' })).bytes);
+  const b = await inspectPdf((await generateFromState(state, { title: 'T', customer: 'C', draft: null })).bytes);
+  assert.deepEqual(b.pages.map((p) => [p.width, p.height, p.text, p.links]), a.pages.map((p) => [p.width, p.height, p.text, p.links]));
+  assert.ok(a.pages[1].text.includes('Summary'), 'the summary is still page 2');
+  assert.ok(!a.text.includes('Executive summary') && !a.text.includes('Why it') && !a.text.includes('Design record'));
+});
+
+test("Korean and Chinese drafts: CJK text, quotes in the customer's words, every check passes", async () => {
+  for (const [fx, lang, id, customer] of [['korean', 'ko', 'korean-ko', '한빛푸드'], ['chinese', 'zh', 'chinese-zh', '星河餐饮有限公司']] as const) {
+    const state = playFixture(fx, lang).getState();
+    const draft = loadDraft(id);
+    const r = await generateFromState(state, { title: fx, customer, draft });
+    const check = await checkPdf(r.bytes, state, { title: fx, customer, draft });
+    assert.deepEqual(check.problems, [], lang);
+    const quote = draft.needs.find((n) => n.quote)!.quote!;
+    assert.ok(check.info.text.replace(/\s+/g, '').includes(quote.replace(/\s+/g, '')), `${lang}: the quote is printed`);
+  }
+});
+
+test('a long draft paginates cleanly: no overflow, no orphaned sub-heading, every part present', async () => {
+  const state = playFixture('ecommerce', 'en').getState();
+  const draft = loadDraft('ecommerce-en-long');
+  const r = await generateFromState(state, { title: 'Cross-border e-commerce', customer: 'Lumen Retail Group', draft });
+  const check = await checkPdf(r.bytes, state, { title: 'Cross-border e-commerce', customer: 'Lumen Retail Group', draft });
+  assert.deepEqual(check.problems, []);
+  assert.ok(check.info.pages.length >= 16, `${check.info.pages.length} pages`);
+});
+
+test("a product the draft gave no reason for keeps the drawing's reason under Why it's here; a recommendation takes the drafted why", async () => {
+  const state = playFixture('residency', 'en').getState();
+  const draft = { ...loadDraft('residency-en'), why: {} };
+  const r = await generateFromState(state, { draft });
+  const check = await checkPdf(r.bytes, state, { draft });
+  assert.deepEqual(check.problems, []);
+  const alb = Object.values(state.display.graph.nodes).find((n) => n.product === 'alb')!;
+  assert.ok(check.info.text.includes(alb.why!), "the drawing model's reason stands in");
+
+  const sol = playFixture('ai-agent', 'en').getState();
+  const recDraft = { lang: 'en' as const, exec: 'Fifteen developers get an agent.', needs: [], outcomes: [], why: { 'qoder-teams': 'Your fifteen developers share one admin console and single sign-on.' }, tradeoffs: [], next: [], complete: false };
+  const rr = await generateFromState(sol, { draft: recDraft });
+  const rc = await checkPdf(rr.bytes, sol, { draft: recDraft });
+  assert.deepEqual(rc.problems, []);
+  const recPage = rc.info.pages.find((p) => p.text.includes('Recommendations'))!;
+  assert.ok(recPage.text.includes('Your fifteen developers share one admin console'), 'the recommendation leads with the drafted why');
+  assert.ok(!rc.info.text.includes('What you told us'), 'no needs page when the draft has no needs');
+});
+
+test('a drafted proposal names nobody: no hidden word in its text, title, bytes or file name', async () => {
+  for (const [fx, lang, id] of [['residency', 'en', 'residency-en'], ['korean', 'ko', 'korean-ko'], ['chinese', 'zh', 'chinese-zh'], ['ecommerce', 'en', 'ecommerce-en-long']] as const) {
+    const r = await generateFromState(playFixture(fx, lang).getState(), { title: 'Web tier', customer: 'Acme', draft: loadDraft(id) });
+    const info = await inspectPdf(r.bytes);
+    assert.doesNotMatch(info.text, HIDDEN, `${id}: text`);
+    assert.doesNotMatch(Buffer.from(r.bytes).toString('latin1'), HIDDEN, `${id}: bytes`);
+    assert.doesNotMatch(r.fileName, HIDDEN);
   }
 });

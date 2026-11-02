@@ -9,6 +9,8 @@ export interface PageInfo {
   height: number;
   text: string;
   links: string[];
+  /** Every text run with its left edge, width and baseline, in pt from the page's top-left corner. */
+  items: Array<{ str: string; x: number; w: number; y: number }>;
 }
 
 export interface PdfInfo {
@@ -34,9 +36,10 @@ export async function inspectPdf(bytes: Uint8Array): Promise<PdfInfo> {
     const vp = page.getViewport({ scale: 1 });
     const tc = await page.getTextContent();
     const text = tc.items.map((it) => ('str' in it ? it.str + (it.hasEOL ? ' ' : '') : '')).join('');
+    const items = tc.items.flatMap((it) => ('str' in it && it.str.trim() ? [{ str: it.str, x: it.transform[4], w: it.width, y: vp.height - it.transform[5] }] : []));
     const ann = await page.getAnnotations();
     const links = ann.filter((a) => a.subtype === 'Link' && typeof a.url === 'string').map((a) => a.url as string);
-    pages.push({ n, width: Math.round(vp.width), height: Math.round(vp.height), text, links });
+    pages.push({ n, width: Math.round(vp.width), height: Math.round(vp.height), text, links, items });
   }
   const meta = await pdf.getMetadata();
   const info = meta.info as { Title?: string };

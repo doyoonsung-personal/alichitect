@@ -1,0 +1,398 @@
+{
+  "id": "en-flashsale",
+  "lang": "en",
+  "outcome": "done",
+  "stats": {
+    "model": "qwen3.8-max",
+    "servedBy": "qwen",
+    "fallbackUsed": false,
+    "backupUsed": false,
+    "calls": 1,
+    "costUsd": 0.013324,
+    "ms": 29965,
+    "sections": 30,
+    "rejectedLines": 0,
+    "missing": [],
+    "promptTokens": 3451,
+    "completionTokens": 1369
+  },
+  "statuses": [],
+  "draft": {
+    "lang": "en",
+    "exec": "Nusantara Mart loses orders when the site goes down during flash sales.\n\nThis proposal designs a storefront in Jakarta that absorbs 50x traffic spikes, queues every checkout request and keeps all data local.\n\nThe result is a store that stays up when sales open, protecting revenue and customer trust.",
+    "needs": [
+      {
+        "id": "n1",
+        "need": "Site goes down every flash sale and checkout gets slow.",
+        "source": "stated",
+        "quote": "site goes down every flash sale",
+        "answer": "Web servers scale out automatically while a queue buffers every checkout so the database never stalls. This keeps the storefront open and protects orders.",
+        "products": [
+          "ecs",
+          "ess",
+          "rocketmq",
+          "rds"
+        ]
+      },
+      {
+        "id": "n2",
+        "need": "Lost many orders during the last 11.11 event.",
+        "source": "stated",
+        "quote": "last 11.11 we lost a lot of orders",
+        "answer": "RocketMQ holds checkout requests until workers process them safely. No order is dropped even at peak load, directly recovering the revenue lost on 11.11.",
+        "products": [
+          "rocketmq",
+          "ecs",
+          "ess"
+        ]
+      },
+      {
+        "id": "n3",
+        "need": "Traffic hits 50x normal within five minutes of a sale opening.",
+        "source": "stated",
+        "quote": "50x in the first five minutes",
+        "answer": "NLB handles massive TCP bursts from the app while Auto Scaling adds compute instantly. The storefront survives the spike without manual intervention.",
+        "products": [
+          "nlb",
+          "ess",
+          "ecs"
+        ]
+      },
+      {
+        "id": "n4",
+        "need": "Almost all flash sale traffic comes from the mobile app.",
+        "source": "stated",
+        "quote": "almost all of it comes from our mobile app",
+        "answer": "HTTPDNS prevents DNS hijacking for app users and NLB routes raw TCP efficiently. Mobile shoppers reach the store faster and more reliably.",
+        "products": [
+          "httpdns",
+          "nlb"
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "title": "Orders survive the spike",
+        "text": "RocketMQ buffers checkouts and dedicated workers drain them at a safe pace, so no order is dropped when traffic jumps 50x."
+      },
+      {
+        "title": "Mobile app stays fast",
+        "text": "HTTPDNS resolves domains safely inside the app while NLB handles the raw TCP burst, keeping mobile shoppers connected during the first five minutes."
+      },
+      {
+        "title": "Costs track demand",
+        "text": "Auto Scaling adds web and checkout servers only when needed and removes them after the sale, turning fixed capacity into variable cost."
+      },
+      {
+        "title": "Data stays in Jakarta",
+        "text": "Every component runs in ap-southeast-5, keeping Nusantara Mart data within Indonesia as required."
+      }
+    ],
+    "why": {
+      "dns": "Routes public domain queries to the edge so shoppers find the store. Without it, customers cannot resolve the shop address.",
+      "httpdns": "Prevents DNS hijacking for mobile shoppers who drive almost all flash sale traffic. Without it, app users face connection failures or redirection during sales.",
+      "esa": "Caches product pages and absorbs attack traffic at the edge before it reaches Jakarta. Without it, origin servers face the full 50x spike directly.",
+      "alb": "Distributes HTTP storefront traffic across two zones so one failure does not take the site down. Without it, a single zone outage stops sales.",
+      "waf": "Blocks bot scalpers and injection attacks that target flash sales. Without it, bots buy inventory before real customers and attacks slow checkout.",
+      "nlb": "Handles the massive TCP connection bursts from the mobile app during the first five minutes. Without it, standard load balancing drops connections under 50x load.",
+      "ecs": "Runs the storefront and dedicated checkout workers in Jakarta. Without it, there is no compute to serve pages or process orders.",
+      "ess": "Adds servers automatically when the 50x spike hits and removes them after. Without it, Nusantara Mart either pays for idle capacity or crashes during sales.",
+      "tair": "Holds sessions and hot inventory counts in memory so the database survives flash sale reads. Without it, the database stalls under concurrent shopper load.",
+      "rds": "Stores orders reliably across two zones in Jakarta. Without it, completed checkouts have no durable home and 11.11 losses repeat.",
+      "rocketmq": "Buffers checkout requests so orders are never lost when traffic spikes 50x. Without it, the database overloads and orders drop like last 11.11.",
+      "oss": "Stores product images that ESA caches at the edge. Without it, every image request hits origin servers and slows page loads during sales.",
+      "sls": "Centralizes logs so the team can troubleshoot sale events quickly. Without it, diagnosing why checkout slowed takes hours instead of minutes.",
+      "cloudmonitor": "Alerts on CPU, latency and queue depth before customers notice problems. Without it, the team reacts to outages instead of preventing them."
+    },
+    "tradeoffs": [
+      {
+        "text": "Queue-based checkout adds slight delay before order confirmation appears in the app.",
+        "mitigation": "Show a processing status in the mobile app so shoppers know their order is secured."
+      },
+      {
+        "text": "Auto Scaling needs time to provision instances during the sudden 50x spike.",
+        "mitigation": "Schedule scaling actions just before known flash sale start times."
+      },
+      {
+        "text": "Running separate web and checkout worker fleets increases operational complexity.",
+        "mitigation": "CloudMonitor and SLS provide unified visibility across both fleets."
+      }
+    ],
+    "next": [
+      "Confirm how your checkout backend is built today to size the worker fleet correctly.",
+      "Provide your peak order rate per minute during a flash sale to tune RocketMQ throughput.",
+      "Confirm whether the storefront must be public-facing or internal only.",
+      "Schedule a load test simulating the 50x spike to validate scaling rules before the next sale."
+    ],
+    "complete": true
+  },
+  "sections": [
+    {
+      "ms": 2933,
+      "section": {
+        "k": "exec",
+        "text": "Nusantara Mart loses orders when the site goes down during flash sales.\n\nThis proposal designs a storefront in Jakarta that absorbs 50x traffic spikes, queues every checkout request and keeps all data local.\n\nThe result is a store that stays up when sales open, protecting revenue and customer trust."
+      }
+    },
+    {
+      "ms": 4551,
+      "section": {
+        "k": "need",
+        "id": "n1",
+        "need": "Site goes down every flash sale and checkout gets slow.",
+        "source": "stated",
+        "quote": "site goes down every flash sale",
+        "answer": "Web servers scale out automatically while a queue buffers every checkout so the database never stalls. This keeps the storefront open and protects orders.",
+        "products": [
+          "ecs",
+          "ess",
+          "rocketmq",
+          "rds"
+        ]
+      }
+    },
+    {
+      "ms": 6412,
+      "section": {
+        "k": "need",
+        "id": "n2",
+        "need": "Lost many orders during the last 11.11 event.",
+        "source": "stated",
+        "quote": "last 11.11 we lost a lot of orders",
+        "answer": "RocketMQ holds checkout requests until workers process them safely. No order is dropped even at peak load, directly recovering the revenue lost on 11.11.",
+        "products": [
+          "rocketmq",
+          "ecs",
+          "ess"
+        ]
+      }
+    },
+    {
+      "ms": 8036,
+      "section": {
+        "k": "need",
+        "id": "n3",
+        "need": "Traffic hits 50x normal within five minutes of a sale opening.",
+        "source": "stated",
+        "quote": "50x in the first five minutes",
+        "answer": "NLB handles massive TCP bursts from the app while Auto Scaling adds compute instantly. The storefront survives the spike without manual intervention.",
+        "products": [
+          "nlb",
+          "ess",
+          "ecs"
+        ]
+      }
+    },
+    {
+      "ms": 9499,
+      "section": {
+        "k": "need",
+        "id": "n4",
+        "need": "Almost all flash sale traffic comes from the mobile app.",
+        "source": "stated",
+        "quote": "almost all of it comes from our mobile app",
+        "answer": "HTTPDNS prevents DNS hijacking for app users and NLB routes raw TCP efficiently. Mobile shoppers reach the store faster and more reliably.",
+        "products": [
+          "httpdns",
+          "nlb"
+        ]
+      }
+    },
+    {
+      "ms": 10410,
+      "section": {
+        "k": "outcome",
+        "title": "Orders survive the spike",
+        "text": "RocketMQ buffers checkouts and dedicated workers drain them at a safe pace, so no order is dropped when traffic jumps 50x."
+      }
+    },
+    {
+      "ms": 11511,
+      "section": {
+        "k": "outcome",
+        "title": "Mobile app stays fast",
+        "text": "HTTPDNS resolves domains safely inside the app while NLB handles the raw TCP burst, keeping mobile shoppers connected during the first five minutes."
+      }
+    },
+    {
+      "ms": 12420,
+      "section": {
+        "k": "outcome",
+        "title": "Costs track demand",
+        "text": "Auto Scaling adds web and checkout servers only when needed and removes them after the sale, turning fixed capacity into variable cost."
+      }
+    },
+    {
+      "ms": 13259,
+      "section": {
+        "k": "outcome",
+        "title": "Data stays in Jakarta",
+        "text": "Every component runs in ap-southeast-5, keeping Nusantara Mart data within Indonesia as required."
+      }
+    },
+    {
+      "ms": 14125,
+      "section": {
+        "k": "why",
+        "product": "dns",
+        "text": "Routes public domain queries to the edge so shoppers find the store. Without it, customers cannot resolve the shop address."
+      }
+    },
+    {
+      "ms": 15054,
+      "section": {
+        "k": "why",
+        "product": "httpdns",
+        "text": "Prevents DNS hijacking for mobile shoppers who drive almost all flash sale traffic. Without it, app users face connection failures or redirection during sales."
+      }
+    },
+    {
+      "ms": 15986,
+      "section": {
+        "k": "why",
+        "product": "esa",
+        "text": "Caches product pages and absorbs attack traffic at the edge before it reaches Jakarta. Without it, origin servers face the full 50x spike directly."
+      }
+    },
+    {
+      "ms": 17071,
+      "section": {
+        "k": "why",
+        "product": "alb",
+        "text": "Distributes HTTP storefront traffic across two zones so one failure does not take the site down. Without it, a single zone outage stops sales."
+      }
+    },
+    {
+      "ms": 17881,
+      "section": {
+        "k": "why",
+        "product": "waf",
+        "text": "Blocks bot scalpers and injection attacks that target flash sales. Without it, bots buy inventory before real customers and attacks slow checkout."
+      }
+    },
+    {
+      "ms": 18709,
+      "section": {
+        "k": "why",
+        "product": "nlb",
+        "text": "Handles the massive TCP connection bursts from the mobile app during the first five minutes. Without it, standard load balancing drops connections under 50x load."
+      }
+    },
+    {
+      "ms": 19649,
+      "section": {
+        "k": "why",
+        "product": "ecs",
+        "text": "Runs the storefront and dedicated checkout workers in Jakarta. Without it, there is no compute to serve pages or process orders."
+      }
+    },
+    {
+      "ms": 20556,
+      "section": {
+        "k": "why",
+        "product": "ess",
+        "text": "Adds servers automatically when the 50x spike hits and removes them after. Without it, Nusantara Mart either pays for idle capacity or crashes during sales."
+      }
+    },
+    {
+      "ms": 21495,
+      "section": {
+        "k": "why",
+        "product": "tair",
+        "text": "Holds sessions and hot inventory counts in memory so the database survives flash sale reads. Without it, the database stalls under concurrent shopper load."
+      }
+    },
+    {
+      "ms": 22257,
+      "section": {
+        "k": "why",
+        "product": "rds",
+        "text": "Stores orders reliably across two zones in Jakarta. Without it, completed checkouts have no durable home and 11.11 losses repeat."
+      }
+    },
+    {
+      "ms": 23183,
+      "section": {
+        "k": "why",
+        "product": "rocketmq",
+        "text": "Buffers checkout requests so orders are never lost when traffic spikes 50x. Without it, the database overloads and orders drop like last 11.11."
+      }
+    },
+    {
+      "ms": 23932,
+      "section": {
+        "k": "why",
+        "product": "oss",
+        "text": "Stores product images that ESA caches at the edge. Without it, every image request hits origin servers and slows page loads during sales."
+      }
+    },
+    {
+      "ms": 24685,
+      "section": {
+        "k": "why",
+        "product": "sls",
+        "text": "Centralizes logs so the team can troubleshoot sale events quickly. Without it, diagnosing why checkout slowed takes hours instead of minutes."
+      }
+    },
+    {
+      "ms": 25477,
+      "section": {
+        "k": "why",
+        "product": "cloudmonitor",
+        "text": "Alerts on CPU, latency and queue depth before customers notice problems. Without it, the team reacts to outages instead of preventing them."
+      }
+    },
+    {
+      "ms": 26379,
+      "section": {
+        "k": "tradeoff",
+        "text": "Queue-based checkout adds slight delay before order confirmation appears in the app.",
+        "mitigation": "Show a processing status in the mobile app so shoppers know their order is secured."
+      }
+    },
+    {
+      "ms": 27252,
+      "section": {
+        "k": "tradeoff",
+        "text": "Auto Scaling needs time to provision instances during the sudden 50x spike.",
+        "mitigation": "Schedule scaling actions just before known flash sale start times."
+      }
+    },
+    {
+      "ms": 28009,
+      "section": {
+        "k": "tradeoff",
+        "text": "Running separate web and checkout worker fleets increases operational complexity.",
+        "mitigation": "CloudMonitor and SLS provide unified visibility across both fleets."
+      }
+    },
+    {
+      "ms": 28427,
+      "section": {
+        "k": "next",
+        "text": "Confirm how your checkout backend is built today to size the worker fleet correctly."
+      }
+    },
+    {
+      "ms": 28968,
+      "section": {
+        "k": "next",
+        "text": "Provide your peak order rate per minute during a flash sale to tune RocketMQ throughput."
+      }
+    },
+    {
+      "ms": 29432,
+      "section": {
+        "k": "next",
+        "text": "Confirm whether the storefront must be public-facing or internal only."
+      }
+    },
+    {
+      "ms": 29965,
+      "section": {
+        "k": "next",
+        "text": "Schedule a load test simulating the 50x spike to validate scaling rules before the next sale."
+      }
+    }
+  ]
+}

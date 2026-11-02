@@ -1,12 +1,13 @@
-// Generates the sample proposals (English, Korean, Chinese, plus a product-need answer), reads each one back with pdf.js
-// and checks it (checks.ts), renders every page to PNG, and times a 25-plus-card diagram against the 3 s budget.
+// Generates the sample proposals (English, Korean, Chinese, plus a product-need answer), each without and with a drafted
+// narrative (scripts/export/drafts/, one of them long), reads each one back with pdf.js and checks it (checks.ts),
+// renders every page to PNG, and times a 25-plus-card diagram against the 3 s budget.
 //   npm run export:samples            (in apps/web)
 // Output: screenshots/export/samples/<id>.pdf and <id>-pNN.png. Exit code 1 when a check fails or the budget is missed.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { generateProposalPdf } from '../../src/export/generate.ts';
 import { nodeFontSource } from '../../src/export/fonts-node.ts';
-import { avoidRoute, catalog, logoFor, playFixture } from './node-env.ts';
+import { avoidRoute, catalog, loadDraft, logoFor, playFixture } from './node-env.ts';
 import { bigGraph } from './big.ts';
 import { checkPdf } from './checks.ts';
 import { renderPdf } from './inspect.ts';
@@ -20,13 +21,19 @@ const SAMPLES = [
   { id: 'sample-ko', fixture: 'korean', lang: 'ko' as const, title: '음식 배달 앱 백엔드 제안서', customer: '한빛푸드' },
   { id: 'sample-zh', fixture: 'chinese', lang: 'zh' as const, title: '外卖应用后端架构方案', customer: '星河餐饮有限公司' },
   { id: 'sample-en-solution-map', fixture: 'ai-agent', lang: 'en' as const, title: 'An AI coding agent for 15 developers', customer: '' },
-];
+  // with a drafted narrative: the business sections first, the technical record after
+  { id: 'draft-en', fixture: 'residency', lang: 'en' as const, title: 'Customer portal for a Singapore fintech', customer: 'Acme Pay Pte Ltd', draft: 'residency-en' },
+  { id: 'draft-ko', fixture: 'korean', lang: 'ko' as const, title: '음식 배달 앱 백엔드 제안서', customer: '한빛푸드', draft: 'korean-ko' },
+  { id: 'draft-zh', fixture: 'chinese', lang: 'zh' as const, title: '外卖应用后端架构方案', customer: '星河餐饮有限公司', draft: 'chinese-zh' },
+  { id: 'draft-en-long', fixture: 'ecommerce', lang: 'en' as const, title: 'Cross-border e-commerce for Southeast Asia', customer: 'Lumen Retail Group', draft: 'ecommerce-en-long' },
+] as Array<{ id: string; fixture: string; lang: 'en' | 'ko' | 'zh'; title: string; customer: string; draft?: string }>;
 
 let failed = false;
 const rows: string[] = [];
 
 for (const s of SAMPLES) {
   const state = playFixture(s.fixture, s.lang).getState();
+  const draft = s.draft ? loadDraft(s.draft) : null;
   const result = await generateProposalPdf({
     session: state.session,
     graph: state.display.graph,
@@ -39,9 +46,10 @@ for (const s of SAMPLES) {
     fontSource: nodeFontSource(),
     route: avoidRoute,
     logo: logoFor(s.lang),
+    draft,
   });
   writeFileSync(new URL(`${s.id}.pdf`, OUT), result.bytes);
-  const check = await checkPdf(result.bytes, state, { title: s.title, customer: s.customer });
+  const check = await checkPdf(result.bytes, state, { title: s.title, customer: s.customer, draft });
   const pngs = await renderPdf(result.bytes, OUT, s.id, 1.5);
   const r = result.report;
   rows.push(

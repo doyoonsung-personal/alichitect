@@ -459,6 +459,40 @@ A block below the change list (12 px top margin), with a 1 px `--line-2` border 
 - Bottom-left of the console, 12 px above the composer: white, 1 px `--line-2`, `--shadow-raise`, 0 radius, 13 ink. One action button, auto-dismissed after 6 s (paused on hover or focus), `role="status"`.
 - Used for the unpin undo and for `session.restored`.
 
+### 7.31 Export proposal and the writing overlay
+- **Why it exists (2026-11-02, the owner's feedback):** the proposal must explain *why*, not only *what*, at a level sales and C-level readers follow, and address the customer's own scenario and pain points where the conversation names them. Writing that takes about a minute, so the wait gets an overlay that shows progress and can be stopped.
+- **The export dialog** (header popover, unchanged in form): title, customer, Download PDF, Close. Its hint says the proposal explains why the design fits. Its note reports how the export ended: `dialog.done`, `dialog.doneBasic`, `dialog.stopped` ("Stopped. Nothing was downloaded."), `dialog.closed`.
+- **Download** opens the overlay and posts the session to `POST /api/proposal` (contract: `ProposalRequest` and `ProposalEvent` in `packages/core/src/types.ts`). The PDF code loads while the narrative is written; the PDF is laid out in the tab when it arrives.
+- **The overlay** is modal, over the workspace:
+  - **Container:** `role="dialog"`, `aria-modal="true"`, labelled by its title and described by its hint. The workspace (`#root`) is `inert` behind a veil of `--record` at 84%, so the diagram stays faintly in view in both themes.
+  - **Sheet:** 464 px wide, `--surface-pop`, 1 px `--line-2`, `--r-pop`, `--shadow-raise`, 20 px padding. A 2 px `--action` sweep runs on its top edge while it works, as on the export dialog. Orange never appears: the Cursor belongs to the live build.
+  - **Head:** the title (16/24 weight 500) and the elapsed time (13 ink-3, tabular, `role="timer"`). Under it, `overlay.hint` (13 ink-3): "This usually takes about a minute."
+  - **Steps:** a ruled list like the requirements block, rows at least 32 px, 13/18. Each row has a 16 px mark, the step and a count:
+    - done: a `check` in `--ok`, ink-2 text;
+    - active: a turning `spinner` in `--action`, ink text weight 500, `aria-current="step"`;
+    - pending: a 5 px hairline square, ink-3 text.
+  - **The steps, driven by the sections as they arrive:** Reading the conversation → Executive summary → Customer priorities (count) → Business outcomes (count) → Why each component (k of N, N = the products in the design that get a reason: constructs such as users or a mobile app are not counted) → Trade-offs and next steps → Laying out the PDF.
+  - **Latest:** a 12 ink-3 label over the latest written line (13/18 ink-2, two lines held). The line is the need or outcome title, or the first sentence of anything else; a component's reason is prefixed with the product's name unless it already names it. A new line replaces the shown one no faster than once every 1.6 s and rises in over 300 ms. It is `aria-hidden`, because a polite live region announces only the active step. The sheet is not `aria-busy`, so that region is announced while the proposal is written. When the button that had focus goes away (Stop when the PDF is ready, Try again or Download basic version when work starts again), focus returns to Stop when it is there, else to the sheet.
+  - **Slow:** a `status` event adds `overlay.slow` (12 ink-3, "Taking a little longer…") and nothing else. Nothing on screen ever names who writes.
+  - **Stop:** a secondary button with the `stop` icon, always visible while it works, at the trailing edge. It aborts the request and closes the overlay; nothing downloads, and focus returns to Download. **Escape does not stop:** an accidental key must not throw away a minute of work.
+- **Done:** the title becomes `overlay.ready` and the bar fills. The PDF downloads, the overlay holds for 0.9 s, then it closes, and the dialog notes the file.
+- **Failed:** the title becomes `overlay.failedTitle`. The hint becomes the error (14/20 `--danger`, `role="alert"`): the server's own message for the codes it writes for people (quota, busy, signed out, not approved, the draft's own failures), else ours (`overlay.error.network`, `.incomplete`, `.generic`, `.layout`); a refusal such as bad-json or body-too-large carries developer English and shows `.generic`. A quota refusal is not retryable. Under it, `overlay.basicOffer` says what the basic version holds. Three ways forward:
+  - Download basic version (primary, takes focus): the PDF without the narrative, exactly as before this feature;
+  - Try again (secondary): only when the error is retryable. After a failed layout it lays out the same version again (the basic one after the basic one failed), without writing a new proposal;
+  - Close (ghost, at the trailing edge).
+  - Escape closes in this state.
+- **Unavailable** (a replay, an offline session, a server without the route): `overlay.unavailableTitle` and `overlay.unavailable`, then Download basic version and Close. No request is sent from a replay or an offline session.
+- **Reduced motion:** the spinner and the bar hold still, the sheet fades, and new lines simply appear.
+- **Narrow windows:** the sheet keeps a 16 px gutter and scrolls inside itself when the window is short.
+- **The PDF with a narrative:**
+  - **Order:** cover → Executive summary (the lead paragraph at 12 pt, then body; the outcomes as titled blocks; then "What we propose next", the first two next steps, numbered) → "What you told us, and how the design answers it" (headed "What businesses like yours usually need, and how the design answers it" when fewer than half of the needs are the customer's own words) → diagram → Components → Recommendations → "Considerations and next steps" → Design record (the old Summary; the first chat reply titled "Architect's first notes") → Connections → Revision history.
+  - **Needs:** each one shows its source line: the customer's words in quotation marks (followed by "(original wording)" when they are in another language than the document), "Implied by what you described", or "Typical for businesses like yours".
+  - **Components** lead with "Why it's here" (the drafted reason, else the drawing's), before the catalog facts, the dated price and the documentation link. A construct (users, a mobile app) has no documentation row.
+  - **Trade-offs** carry how each is handled; next steps are numbered. When no product of the design has a catalog price, a line after the next steps says the account team will prepare a cost estimate.
+  - **Without a narrative** the PDF is exactly the basic document.
+- **Strings:** `src/export/strings.json` (`overlay.*`, `dialog.*`, `exec.*`, `needs.*`, `next.*`, `record.*`, `components.why`), mirrored in this spec's `strings.json` under `export.*`.
+- **Evidence:** `apps/web/scripts/export/e2e-overlay.mjs` (screenshots in `apps/web/screenshots/export/overlay/`, plus behaviour checks) and `npm run export:samples` (`draft-*` samples).
+
 ## 8. States
 
 Each state lists what shows in the console, canvas, panel and header. "Rev n" is the revision in progress.
@@ -656,7 +690,7 @@ From [examples.json](examples.json), in this order. Each passed 3 of 3 runs in `
 4. **Session storage:** `localStorage` key `ab.sessions.v1`, wrapped in try/catch; the app works without it.
 5. **Pure logic tested with node:test:** the turn reducer, change-line derivation (op events to ChangeLine kinds), requirement state, the plural `t()`, and the Cursor timer.
 
-**Open, not blocking:** the Sessions menu's design beyond a plain list, and export and share (Phase 2).
+**Open, not blocking:** the Sessions menu's design beyond a plain list, and share links (Phase 2). Export is built: see 7.31.
 
 ## 15. Acceptance checks (what the finish review will look for)
 

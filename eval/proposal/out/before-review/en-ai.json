@@ -1,0 +1,385 @@
+{
+  "id": "en-ai",
+  "lang": "en",
+  "outcome": "done",
+  "stats": {
+    "model": "qwen3.8-max",
+    "servedBy": "qwen",
+    "fallbackUsed": false,
+    "backupUsed": false,
+    "calls": 1,
+    "costUsd": 0.013108,
+    "ms": 29983,
+    "sections": 27,
+    "rejectedLines": 0,
+    "missing": [],
+    "promptTokens": 3157,
+    "completionTokens": 1431
+  },
+  "statuses": [],
+  "draft": {
+    "lang": "en",
+    "exec": "The bank needs an internal agent platform with sandboxed code execution, RAG over internal documents, and open model post-training, where \"Data must stay in Singapore\".\n\nThis proposal deploys the platform on Alibaba Cloud in the Singapore region using managed Kubernetes, isolated agent sandboxes, PAI for model serving and training, and private networking.\n\nBank staff gain a governed AI workspace that keeps all data local, reduces manual document search effort, and lets the team iterate on models without exposing infrastructure.",
+    "needs": [
+      {
+        "id": "n1",
+        "need": "Regulatory and policy constraints require all bank data to remain within Singapore borders.",
+        "source": "stated",
+        "quote": "Data must stay in Singapore",
+        "answer": "Every component runs in the ap-southeast-1 region. Outbound traffic uses NAT Gateway only for pulling base models, keeping customer data inside the VPC. This avoids cross-border transfer risk.",
+        "products": [
+          "ack",
+          "acs-agent-sandbox",
+          "ai-gateway",
+          "elasticsearch",
+          "nat",
+          "oss",
+          "agentcore",
+          "pai-eas",
+          "pai-dlc",
+          "acr",
+          "sls"
+        ]
+      },
+      {
+        "id": "n2",
+        "need": "Agents running arbitrary code can compromise internal systems or leak sensitive banking data.",
+        "source": "stated",
+        "quote": "sandboxed code execution for agents",
+        "answer": "Agent Sandbox Container Edition isolates each agent execution in VM-level pods. A compromised agent cannot reach other workloads or the bank network, reducing blast radius.",
+        "products": [
+          "acs-agent-sandbox",
+          "ack"
+        ]
+      },
+      {
+        "id": "n3",
+        "need": "Staff spend excessive time searching internal policies, procedures, and historical documents manually.",
+        "source": "stated",
+        "quote": "RAG over internal documents",
+        "answer": "PAI-EAS serves retrieval-augmented generation backed by Elasticsearch as the vector store. Staff query natural language and receive grounded answers from bank documents, accelerating daily operations.",
+        "products": [
+          "pai-eas",
+          "elasticsearch",
+          "oss"
+        ]
+      },
+      {
+        "id": "n4",
+        "need": "Generic open models lack the specific terminology and context required for internal banking workflows.",
+        "source": "stated",
+        "quote": "post-training of an open model",
+        "answer": "PAI-DLC fine-tunes the chosen open model on internal datasets stored in OSS. The tuned model is then served via PAI-EAS, giving agents responses aligned with bank processes.",
+        "products": [
+          "pai-dlc",
+          "pai-eas",
+          "oss"
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "title": "Contained AI execution risk",
+        "text": "VM-isolated sandboxes ensure generated code runs without access to the broader bank network, limiting the impact of any single agent failure or exploit."
+      },
+      {
+        "title": "Faster internal knowledge retrieval",
+        "text": "RAG over internal documents gives staff immediate, cited answers instead of manual searches, reducing time spent navigating internal wikis and shared drives."
+      },
+      {
+        "title": "Models tailored to bank context",
+        "text": "Post-training aligns the open model with internal terminology and policies, improving response relevance and reducing hallucination in daily workflows."
+      },
+      {
+        "title": "Governed AI usage",
+        "text": "AI Gateway enforces token limits and guardrails on every LLM call, while centralized audit logs provide traceability for internal reviews."
+      }
+    ],
+    "why": {
+      "ack": "Provides the foundation to run agent hosting, RAG services, and gateways across two zones. Without it, the bank would need to build and maintain its own container orchestration layer, delaying delivery.",
+      "acs-agent-sandbox": "Isolates agent code execution at the VM level so one agent cannot affect others or the bank network. Leaving this out means running untrusted code directly in shared containers, increasing breach risk.",
+      "ai-gateway": "Enforces token limits, guardrails, and routing rules on every LLM call made by agents. Without it, a single runaway agent could exhaust model capacity or bypass content policies.",
+      "elasticsearch": "Stores document embeddings for fast hybrid search during RAG queries. Without a dedicated vector store, retrieval latency increases and answer quality degrades for staff.",
+      "nat": "Allows training jobs to download base models from the internet without exposing the VPC to inbound traffic. Without it, the team cannot fetch open models securely.",
+      "oss": "Holds raw internal documents, training datasets, and model artifacts durably. Without centralized storage, ingestion pipelines and training jobs would lack a reliable data source.",
+      "agentcore": "Orchestrates agents, skills, and tools for bank workflows with governance controls. Without it, developers must build custom agent routing and lifecycle management, slowing iteration.",
+      "pai-eas": "Serves the post-trained model and RAG pipeline behind private endpoints. Without managed serving, the team must provision and scale GPU instances manually, risking downtime during demand spikes.",
+      "pai-dlc": "Runs distributed post-training jobs on GPU pools without maintaining permanent clusters. Without it, the bank pays for idle GPUs between training runs or faces delays provisioning hardware.",
+      "acr": "Stores private container images for sandboxes and agents with scanning. Pulling images from public registries introduces supply chain risk unacceptable for a bank.",
+      "sls": "Collects audit logs from the cluster and training jobs centrally. Without it, the bank lacks the traceability needed for internal reviews of AI system behavior."
+    },
+    "tradeoffs": [
+      {
+        "text": "GPU sizing for PAI-DLC and PAI-EAS depends on the specific open model chosen, which remains undecided.",
+        "mitigation": "Confirm whether Qwen2.5-7B, Llama 3.1-8B, or another model will be used to finalize compute costs."
+      },
+      {
+        "text": "The design assumes the team can operate Kubernetes; if not, ACK management overhead may slow adoption.",
+        "mitigation": "Evaluate moving to serverless containers only if the team lacks Kubernetes experience."
+      },
+      {
+        "text": "Document ingestion method into the vector store is undefined, affecting RAG freshness and pipeline complexity.",
+        "mitigation": "Decide between batch upload to OSS, real-time database sync, or manual UI upload."
+      }
+    ],
+    "next": [
+      "Select the target open model to finalize GPU sizing and cost estimates.",
+      "Define the document ingestion method for the RAG pipeline.",
+      "Confirm the team has Kubernetes operational skills or adjust to serverless containers.",
+      "Review AI Gateway guardrail policies with the security team before deployment."
+    ],
+    "complete": true
+  },
+  "sections": [
+    {
+      "ms": 4056,
+      "section": {
+        "k": "exec",
+        "text": "The bank needs an internal agent platform with sandboxed code execution, RAG over internal documents, and open model post-training, where \"Data must stay in Singapore\".\n\nThis proposal deploys the platform on Alibaba Cloud in the Singapore region using managed Kubernetes, isolated agent sandboxes, PAI for model serving and training, and private networking.\n\nBank staff gain a governed AI workspace that keeps all data local, reduces manual document search effort, and lets the team iterate on models without exposing infrastructure."
+      }
+    },
+    {
+      "ms": 6212,
+      "section": {
+        "k": "need",
+        "id": "n1",
+        "need": "Regulatory and policy constraints require all bank data to remain within Singapore borders.",
+        "source": "stated",
+        "quote": "Data must stay in Singapore",
+        "answer": "Every component runs in the ap-southeast-1 region. Outbound traffic uses NAT Gateway only for pulling base models, keeping customer data inside the VPC. This avoids cross-border transfer risk.",
+        "products": [
+          "ack",
+          "acs-agent-sandbox",
+          "ai-gateway",
+          "elasticsearch",
+          "nat",
+          "oss",
+          "agentcore",
+          "pai-eas",
+          "pai-dlc",
+          "acr",
+          "sls"
+        ]
+      }
+    },
+    {
+      "ms": 7852,
+      "section": {
+        "k": "need",
+        "id": "n2",
+        "need": "Agents running arbitrary code can compromise internal systems or leak sensitive banking data.",
+        "source": "stated",
+        "quote": "sandboxed code execution for agents",
+        "answer": "Agent Sandbox Container Edition isolates each agent execution in VM-level pods. A compromised agent cannot reach other workloads or the bank network, reducing blast radius.",
+        "products": [
+          "acs-agent-sandbox",
+          "ack"
+        ]
+      }
+    },
+    {
+      "ms": 9420,
+      "section": {
+        "k": "need",
+        "id": "n3",
+        "need": "Staff spend excessive time searching internal policies, procedures, and historical documents manually.",
+        "source": "stated",
+        "quote": "RAG over internal documents",
+        "answer": "PAI-EAS serves retrieval-augmented generation backed by Elasticsearch as the vector store. Staff query natural language and receive grounded answers from bank documents, accelerating daily operations.",
+        "products": [
+          "pai-eas",
+          "elasticsearch",
+          "oss"
+        ]
+      }
+    },
+    {
+      "ms": 11180,
+      "section": {
+        "k": "need",
+        "id": "n4",
+        "need": "Generic open models lack the specific terminology and context required for internal banking workflows.",
+        "source": "stated",
+        "quote": "post-training of an open model",
+        "answer": "PAI-DLC fine-tunes the chosen open model on internal datasets stored in OSS. The tuned model is then served via PAI-EAS, giving agents responses aligned with bank processes.",
+        "products": [
+          "pai-dlc",
+          "pai-eas",
+          "oss"
+        ]
+      }
+    },
+    {
+      "ms": 12168,
+      "section": {
+        "k": "outcome",
+        "title": "Contained AI execution risk",
+        "text": "VM-isolated sandboxes ensure generated code runs without access to the broader bank network, limiting the impact of any single agent failure or exploit."
+      }
+    },
+    {
+      "ms": 12962,
+      "section": {
+        "k": "outcome",
+        "title": "Faster internal knowledge retrieval",
+        "text": "RAG over internal documents gives staff immediate, cited answers instead of manual searches, reducing time spent navigating internal wikis and shared drives."
+      }
+    },
+    {
+      "ms": 13880,
+      "section": {
+        "k": "outcome",
+        "title": "Models tailored to bank context",
+        "text": "Post-training aligns the open model with internal terminology and policies, improving response relevance and reducing hallucination in daily workflows."
+      }
+    },
+    {
+      "ms": 14705,
+      "section": {
+        "k": "outcome",
+        "title": "Governed AI usage",
+        "text": "AI Gateway enforces token limits and guardrails on every LLM call, while centralized audit logs provide traceability for internal reviews."
+      }
+    },
+    {
+      "ms": 15752,
+      "section": {
+        "k": "why",
+        "product": "ack",
+        "text": "Provides the foundation to run agent hosting, RAG services, and gateways across two zones. Without it, the bank would need to build and maintain its own container orchestration layer, delaying delivery."
+      }
+    },
+    {
+      "ms": 16843,
+      "section": {
+        "k": "why",
+        "product": "acs-agent-sandbox",
+        "text": "Isolates agent code execution at the VM level so one agent cannot affect others or the bank network. Leaving this out means running untrusted code directly in shared containers, increasing breach risk."
+      }
+    },
+    {
+      "ms": 17865,
+      "section": {
+        "k": "why",
+        "product": "ai-gateway",
+        "text": "Enforces token limits, guardrails, and routing rules on every LLM call made by agents. Without it, a single runaway agent could exhaust model capacity or bypass content policies."
+      }
+    },
+    {
+      "ms": 18789,
+      "section": {
+        "k": "why",
+        "product": "elasticsearch",
+        "text": "Stores document embeddings for fast hybrid search during RAG queries. Without a dedicated vector store, retrieval latency increases and answer quality degrades for staff."
+      }
+    },
+    {
+      "ms": 19535,
+      "section": {
+        "k": "why",
+        "product": "nat",
+        "text": "Allows training jobs to download base models from the internet without exposing the VPC to inbound traffic. Without it, the team cannot fetch open models securely."
+      }
+    },
+    {
+      "ms": 20449,
+      "section": {
+        "k": "why",
+        "product": "oss",
+        "text": "Holds raw internal documents, training datasets, and model artifacts durably. Without centralized storage, ingestion pipelines and training jobs would lack a reliable data source."
+      }
+    },
+    {
+      "ms": 21370,
+      "section": {
+        "k": "why",
+        "product": "agentcore",
+        "text": "Orchestrates agents, skills, and tools for bank workflows with governance controls. Without it, developers must build custom agent routing and lifecycle management, slowing iteration."
+      }
+    },
+    {
+      "ms": 22371,
+      "section": {
+        "k": "why",
+        "product": "pai-eas",
+        "text": "Serves the post-trained model and RAG pipeline behind private endpoints. Without managed serving, the team must provision and scale GPU instances manually, risking downtime during demand spikes."
+      }
+    },
+    {
+      "ms": 23286,
+      "section": {
+        "k": "why",
+        "product": "pai-dlc",
+        "text": "Runs distributed post-training jobs on GPU pools without maintaining permanent clusters. Without it, the bank pays for idle GPUs between training runs or faces delays provisioning hardware."
+      }
+    },
+    {
+      "ms": 24094,
+      "section": {
+        "k": "why",
+        "product": "acr",
+        "text": "Stores private container images for sandboxes and agents with scanning. Pulling images from public registries introduces supply chain risk unacceptable for a bank."
+      }
+    },
+    {
+      "ms": 25018,
+      "section": {
+        "k": "why",
+        "product": "sls",
+        "text": "Collects audit logs from the cluster and training jobs centrally. Without it, the bank lacks the traceability needed for internal reviews of AI system behavior."
+      }
+    },
+    {
+      "ms": 26385,
+      "section": {
+        "k": "tradeoff",
+        "text": "GPU sizing for PAI-DLC and PAI-EAS depends on the specific open model chosen, which remains undecided.",
+        "mitigation": "Confirm whether Qwen2.5-7B, Llama 3.1-8B, or another model will be used to finalize compute costs."
+      }
+    },
+    {
+      "ms": 27362,
+      "section": {
+        "k": "tradeoff",
+        "text": "The design assumes the team can operate Kubernetes; if not, ACK management overhead may slow adoption.",
+        "mitigation": "Evaluate moving to serverless containers only if the team lacks Kubernetes experience."
+      }
+    },
+    {
+      "ms": 28223,
+      "section": {
+        "k": "tradeoff",
+        "text": "Document ingestion method into the vector store is undefined, affecting RAG freshness and pipeline complexity.",
+        "mitigation": "Decide between batch upload to OSS, real-time database sync, or manual UI upload."
+      }
+    },
+    {
+      "ms": 28675,
+      "section": {
+        "k": "next",
+        "text": "Select the target open model to finalize GPU sizing and cost estimates."
+      }
+    },
+    {
+      "ms": 29121,
+      "section": {
+        "k": "next",
+        "text": "Define the document ingestion method for the RAG pipeline."
+      }
+    },
+    {
+      "ms": 29562,
+      "section": {
+        "k": "next",
+        "text": "Confirm the team has Kubernetes operational skills or adjust to serverless containers."
+      }
+    },
+    {
+      "ms": 29983,
+      "section": {
+        "k": "next",
+        "text": "Review AI Gateway guardrail policies with the security team before deployment."
+      }
+    }
+  ]
+}

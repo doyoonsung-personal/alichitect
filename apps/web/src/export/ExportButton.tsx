@@ -1,34 +1,35 @@
-// "Export proposal": a header control that opens a small dialog (title, customer) and downloads the PDF. The PDF is made
-// in this tab; the heavy code (pdfkit, fonts, router) loads only when Download is pressed.
+// "Export proposal": a header control that opens a small dialog (title, customer). Download writes the proposal's
+// narrative on the server (POST /api/proposal, about a minute) under a modal overlay with live steps and Stop, then lays
+// out the PDF in this tab with it. The heavy code (pdfkit, fonts, router) loads while the narrative is being written.
+// When no narrative can be written, the overlay offers the basic version: the same PDF without it.
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent, ReactElement } from 'react';
-import { useAppState, useCatalog, useStore, useT } from '../store/react.tsx';
+import type { ProposalDraft } from '@ali/core/types.ts';
+import { useAppState, useCatalog, useController, useStore, useT } from '../store/react.tsx';
 import { isStreaming, productCount } from '../store/selectors.ts';
 import type { AppState } from '../store/types.ts';
+import { entryFor } from '../canvas/scene.ts';
+import { DownloadIcon } from './DownloadIcon.tsx';
+import { DraftOverlay } from './DraftOverlay.tsx';
+import { DraftError, buildProposalRequest, requestDraft } from './draft-client.ts';
+import { DONE_HOLD_MS, designProducts, reduceFlow, startFlow } from './draft-flow.ts';
+import type { FlowEvent, FlowState } from './draft-flow.ts';
 import { defaultTitle } from './model.ts';
 import { makeXT } from './strings.ts';
 import './export.css';
 
-// Same drawing rules as the UI icon set (16 px grid, 1.5 px stroke, square caps); the set has no download glyph yet.
-function DownloadIcon(): ReactElement {
-  return (
-    <svg className="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter" aria-hidden="true" focusable="false">
-      <line x1="8" y1="2.5" x2="8" y2="10.5" />
-      <polyline points="4.5,7.5 8,11 11.5,7.5" />
-      <line x1="2.5" y1="13.5" x2="13.5" y2="13.5" />
-    </svg>
-  );
-}
-
-type Phase = 'idle' | 'working' | 'done' | 'failed';
+/** 'stopped': Stop, or the overlay was closed after a failure; nothing was downloaded. */
+type Phase = 'idle' | 'working' | 'done' | 'failed' | 'stopped';
 
 const selSession = (s: AppState) => s.session.id;
+const TICK_MS = 500;
 
 export function ExportButton(): ReactElement {
   const { lang } = useT();
   const xt = useMemo(() => makeXT(lang), [lang]);
   const store = useStore();
   const catalog = useCatalog();
+  const controller = useController();
   const streaming = useAppState(isStreaming);
   const products = useAppState(productCount);
   const sessionId = useAppState(selSession);
@@ -37,25 +38,50 @@ export function ExportButton(): ReactElement {
   const [customer, setCustomer] = useState('');
   const [phase, setPhase] = useState<Phase>('idle');
   const [note, setNote] = useState('');
+  const [flow, setFlow] = useState<FlowState | null>(null);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const titleInput = useRef<HTMLInputElement>(null);
+  const download = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const forSession = useRef(sessionId);
+  // one run at a time: Stop, Close or a new run bumps the counter, and anything the old run finishes later is dropped
+  const run = useRef(0);
+  const ac = useRef<AbortController | null>(null);
+  const drafted = useRef<ProposalDraft | null>(null);
+  const overlayUp = useRef(false);
+  overlayUp.current = flow !== null;
+
+  const nameOf = useCallback((id: string): string => entryFor(catalog, id)?.name ?? id, [catalog]);
+  const send = useCallback((ev: FlowEvent) => setFlow((f) => (f ? reduceFlow(f, ev, nameOf) : f)), [nameOf]);
 
   const disabled = streaming || products === 0;
   const disabledTitle = streaming ? xt('dialog.disabledBusy') : products === 0 ? xt('dialog.disabledEmpty') : undefined;
 
-  // a new session starts with a clean dialog
+  // a new session starts with a clean dialog; a draft still being written for the old one is dropped
   useEffect(() => {
     if (forSession.current === sessionId) return;
     forSession.current = sessionId;
+    run.current++;
+    ac.current?.abort();
+    setFlow(null);
     setTitle('');
     setCustomer('');
     setPhase('idle');
     setNote('');
     setOpen(false);
   }, [sessionId]);
+
+  // leaving the page mid-draft aborts the request
+  useEffect(() => () => ac.current?.abort(), []);
+
+  // the overlay's clock: elapsed time, and the latest line's turn to change
+  const ticking = flow?.phase === 'drafting' || flow?.phase === 'layout';
+  useEffect(() => {
+    if (!ticking) return;
+    const h = setInterval(() => send({ type: 'tick', now: Date.now() }), TICK_MS);
+    return () => clearInterval(h);
+  }, [ticking, send]);
 
   const close = useCallback((refocus: boolean) => {
     setOpen(false);
@@ -65,6 +91,8 @@ export function ExportButton(): ReactElement {
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent): void => {
+      // the overlay sits outside this dialog's box: a click on it must not close the dialog underneath
+      if (overlayUp.current) return;
       if (root.current && !root.current.contains(e.target as Node)) close(false);
     };
     document.addEventListener('mousedown', onDown);
@@ -98,22 +126,107 @@ export function ExportButton(): ReactElement {
     }
   };
 
-  const submit = async (e: FormEvent): Promise<void> => {
-    e.preventDefault();
-    if (phase === 'working') return;
-    setPhase('working');
-    setNote(xt('dialog.working'));
+  /** The overlay is done with: it goes, focus returns to Download, and the dialog says what happened. */
+  const finish = (p: Phase, text: string): void => {
+    setFlow(null);
+    setPhase(p);
+    setNote(text);
+  };
+
+  /** Lays out the PDF, with the narrative or without it (the basic version), and downloads it. */
+  const layOut = async (draft: ProposalDraft | null, mine: number): Promise<void> => {
+    send({ type: draft ? 'drafted' : 'basic', now: Date.now() });
     try {
       const { exportProposalPdf, saveBytes } = await import('./browser.ts');
-      const r = await exportProposalPdf({ state: store.getState(), catalog, title, customer });
+      const r = await exportProposalPdf({ state: store.getState(), catalog, title, customer, draft });
+      if (run.current !== mine) return;
       saveBytes(r.bytes, r.fileName);
-      setPhase('done');
-      setNote(xt('dialog.done', { file: r.fileName }));
+      send({ type: 'saved', now: Date.now() });
+      setTimeout(() => {
+        if (run.current === mine) finish('done', xt(draft ? 'dialog.done' : 'dialog.doneBasic', { file: r.fileName }));
+      }, DONE_HOLD_MS);
     } catch (err) {
       console.error('Export proposal failed', err);
-      setPhase('failed');
-      setNote(xt('dialog.failed'));
+      if (run.current === mine) send({ type: 'failed', error: { kind: 'layout', code: 'layout', message: '', retryable: true }, now: Date.now() });
     }
+  };
+
+  const startDraft = (): void => {
+    const st = store.getState();
+    const mine = ++run.current;
+    ac.current?.abort();
+    drafted.current = null;
+    setFlow(startFlow(Date.now(), designProducts(st.display.graph, (id) => {
+      const e = entryFor(catalog, id);
+      return !!e && e.kind !== 'construct';
+    })));
+    setPhase('working');
+    setNote('');
+    // a replay or an offline session has no server to write with: say so, and offer the basic version
+    if (st.replay || st.conn.mode === 'offline') {
+      send({ type: 'failed', error: { kind: 'unavailable', code: st.replay ? 'replay' : 'offline', message: '', retryable: false }, now: Date.now() });
+      return;
+    }
+    // the PDF code loads while the narrative is written, so laying it out is quick
+    void import('./browser.ts').catch(() => {});
+    const mineAc = new AbortController();
+    ac.current = mineAc;
+    requestDraft(buildProposalRequest(st, title, customer), {
+      signal: mineAc.signal,
+      onSection: (section) => {
+        if (run.current === mine) send({ type: 'section', section, now: Date.now() });
+      },
+      onStatus: () => {
+        if (run.current === mine) send({ type: 'status', now: Date.now() });
+      },
+    })
+      .then(
+        (draft) => {
+          if (run.current !== mine) return;
+          drafted.current = draft;
+          void layOut(draft, mine);
+        },
+        (err: unknown) => {
+          if (run.current !== mine) return;
+          const e = err instanceof DraftError ? err : new DraftError('network', 'network', String(err), true);
+          if (e.kind === 'aborted') return;
+          send({ type: 'failed', error: { kind: e.kind, code: e.code, message: e.kind === 'fatal' ? e.message : '', retryable: e.retryable }, now: Date.now() });
+        },
+      )
+      // a draft counts against the day's turns: the account menu's count follows
+      .finally(() => {
+        if (store.getState().account) void controller.loadAccount();
+      });
+  };
+
+  const submit = (e: FormEvent): void => {
+    e.preventDefault();
+    if (phase === 'working' || flow) return;
+    startDraft();
+  };
+
+  const stop = (): void => {
+    run.current++;
+    ac.current?.abort();
+    ac.current = null;
+    finish('stopped', xt('dialog.stopped'));
+  };
+
+  const basic = (): void => {
+    void layOut(null, ++run.current);
+  };
+
+  // A PDF that failed to lay out is laid out again as it was asked for: the basic version again after a failed basic
+  // layout (no new draft, no turn spent), else with the narrative already written. Anything else writes it again.
+  const retry = (): void => {
+    if (flow?.error?.kind === 'layout' && flow.basic) void layOut(null, ++run.current);
+    else if (flow?.error?.kind === 'layout' && drafted.current) void layOut(drafted.current, ++run.current);
+    else startDraft();
+  };
+
+  const closeOverlay = (): void => {
+    run.current++;
+    finish('stopped', xt('dialog.closed'));
   };
 
   return (
@@ -134,8 +247,8 @@ export function ExportButton(): ReactElement {
         <span>{xt('dialog.open')}</span>
       </button>
       {open ? (
-        <form id={panelId} className="xp__panel" role="dialog" aria-label={xt('dialog.title')} aria-busy={phase === 'working'} onSubmit={(e) => void submit(e)}>
-          {/* progress on the dialog's top edge: a sweep while the PDF is made in this tab, a fill when it is saved */}
+        <form id={panelId} className="xp__panel" role="dialog" aria-label={xt('dialog.title')} aria-busy={phase === 'working'} onSubmit={submit}>
+          {/* progress on the dialog's top edge: a sweep while the proposal is made, a fill when it is saved */}
           <span className="xp__bar" data-phase={phase} aria-hidden="true">
             <span />
           </span>
@@ -150,7 +263,7 @@ export function ExportButton(): ReactElement {
             <input className="xp__input" type="text" value={customer} maxLength={80} autoComplete="off" spellCheck={false} onChange={(e) => setCustomer(e.target.value)} />
           </label>
           <div className="xp__actions">
-            <button type="submit" className="btn btn--primary" disabled={phase === 'working'}>
+            <button ref={download} type="submit" className="btn btn--primary" disabled={phase === 'working'}>
               <DownloadIcon />
               <span>{phase === 'working' ? xt('dialog.working') : xt('dialog.download')}</span>
             </button>
@@ -165,6 +278,7 @@ export function ExportButton(): ReactElement {
           </p>
         </form>
       ) : null}
+      {flow ? <DraftOverlay flow={flow} xt={xt} lang={lang} onStop={stop} onBasic={basic} onRetry={retry} onClose={closeOverlay} returnFocus={download} /> : null}
     </div>
   );
 }

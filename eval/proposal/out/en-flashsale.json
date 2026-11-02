@@ -1,0 +1,320 @@
+{
+  "id": "en-flashsale",
+  "lang": "en",
+  "outcome": "done",
+  "stats": {
+    "model": "qwen3.8-max",
+    "servedBy": "qwen",
+    "fallbackUsed": false,
+    "backupUsed": false,
+    "calls": 2,
+    "costUsd": 0.01515,
+    "ms": 35713,
+    "sections": 25,
+    "rejectedLines": 3,
+    "lint": {
+      "jargon": 1,
+      "absolute": 2
+    },
+    "heldUsed": 0,
+    "missing": [],
+    "promptTokens": 10159,
+    "completionTokens": 1528
+  },
+  "statuses": [
+    {
+      "ms": 31304,
+      "code": "finish"
+    }
+  ],
+  "draft": {
+    "lang": "en",
+    "exec": "Nusantara Mart, your site goes down every flash sale and checkout gets slow, costing you orders during events like 11.11.\n\nThis proposal places a Jakarta storefront behind edge caching, separates web browsing from checkout with a holding queue, and scales each layer independently to absorb the 50x mobile surge you described.\n\nThe result is a storefront that stays up while sales run and orders are saved rather than dropped. Approving a load test before your next sale unlocks the build.",
+    "needs": [
+      {
+        "id": "n1",
+        "need": "Site downtime and slow checkout during flash sales cost lost orders.",
+        "source": "stated",
+        "quote": "site goes down every flash sale and checkout gets slow",
+        "answer": "Web servers and checkout workers scale on their own rules. A queue holds each order until it is saved. This keeps the storefront responsive and protects revenue during sales.",
+        "products": [
+          "ecs",
+          "ess",
+          "rocketmq"
+        ]
+      },
+      {
+        "id": "n2",
+        "need": "Flash sale traffic hits 50x in five minutes, mostly from the mobile app.",
+        "source": "stated",
+        "quote": "more like 50x in the first five minutes",
+        "answer": "Edge caching absorbs product page views before they reach Jakarta. A dedicated network layer handles the raw connection burst from the app. This reduces the chance of an outage at launch.",
+        "products": [
+          "esa",
+          "nlb",
+          "httpdns"
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "title": "Cost follows the sale curve",
+        "text": "Compute for web and checkout scales out only when traffic rises and scales back down after the sale, keeping spend tied to actual demand rather than fixed capacity."
+      },
+      {
+        "title": "Faster mobile shopping experience",
+        "text": "Product pages and images load from the edge near shoppers, reducing wait times that drive customers away during the first five minutes of a sale."
+      },
+      {
+        "title": "Fewer dropped orders during peaks",
+        "text": "A queue holds each order until a worker saves it, making it less likely that the surge from your mobile app stalls checkout or drops transactions."
+      }
+    ],
+    "why": {
+      "dns": "Your shop domain needs reliable resolution for all visitors. Alibaba Cloud DNS answers lookups authoritatively without sitting in the data path, sparing your team the effort of running name servers.",
+      "httpdns": "Almost all of your 50x flash sale surge comes from the mobile app. HTTPDNS resolves names over HTTPS inside the app, reducing the risk of hijacked lookups sending shoppers to the wrong place.",
+      "esa": "Product pages and images generate heavy load the moment a sale opens. ESA caches them at the edge and absorbs malicious traffic there, lowering the volume that reaches Jakarta and protecting revenue.",
+      "waf": "Flash sales attract automated buyers and attacks that compete with real shoppers. WAF filters this traffic at the load balancer, reducing the risk that bots consume the inventory meant for your customers.",
+      "nlb": "Your mobile app opens massive bursts of connections in the first five minutes. NLB handles these raw TCP flows at high connection counts, reducing the chance that the network layer becomes the bottleneck.",
+      "ecs": "You need compute for both the storefront and dedicated checkout workers. ECS gives full operating system control for your retail application, letting you run each role on separate instances sized to its task.",
+      "ess": "Traffic jumps 50x and drops back quickly after a sale. ESS adds ECS instances when metrics spike and removes them when demand falls, turning what would be idle capacity into a variable cost.",
+      "tair": "Shoppers expect fast cart updates and accurate stock counts during a rush. Tair holds sessions and hot inventory in memory, offloading the database so checkout stays quick under peak load.",
+      "rds": "Every completed order must be recorded reliably. RDS stores transactions in a managed relational database across two zones, reducing the operational effort of backups and failover compared to self-managed storage.",
+      "rocketmq": "You noted that checkout gets slow and orders were lost last 11.11. RocketMQ buffers incoming orders so workers process them at a safe pace, reducing the risk that a spike overwhelms the database.",
+      "oss": "Product images make up much of the storefront payload. OSS stores these static files durably so ESA can pull and cache them at the edge, keeping image hosting costs tied to actual storage used.",
+      "sls": "When a sale stalls, finding the cause quickly protects revenue. SLS centralizes logs from web servers and checkout workers, shortening the time your team spends searching for the root of an issue.",
+      "cloudmonitor": "You need to see problems before shoppers abandon their carts. CloudMonitor raises alarms on resource usage and queue depth, giving your operations team earlier warning during the critical first five minutes.",
+      "alb": "Storefront requests need to reach healthy web servers across two zones. ALB routes this traffic at the application layer, spreading the load so one zone taking a hit is less likely to stall the shop."
+    },
+    "tradeoffs": [
+      {
+        "text": "Jakarta hosts all components. Shoppers far from Jakarta may see higher latency on dynamic checkout calls that bypass edge caching.",
+        "mitigation": "ESA accelerates dynamic paths; confirm whether your customer base justifies additional regions later."
+      },
+      {
+        "text": "Separating web servers from checkout workers means two fleets to manage and monitor during sales.",
+        "mitigation": "CloudMonitor and SLS cover both fleets centrally, keeping operational visibility in one place."
+      }
+    ],
+    "next": [
+      "Approve a load test simulating the 50x mobile surge before your next scheduled flash sale to validate the design.",
+      "Confirm how your checkout backend is built today so the worker fleet matches your current stack.",
+      "Provide your peak order rate per minute during a sale to size the queue and worker scaling rules."
+    ],
+    "complete": true
+  },
+  "sections": [
+    {
+      "ms": 4338,
+      "section": {
+        "k": "exec",
+        "text": "Nusantara Mart, your site goes down every flash sale and checkout gets slow, costing you orders during events like 11.11.\n\nThis proposal places a Jakarta storefront behind edge caching, separates web browsing from checkout with a holding queue, and scales each layer independently to absorb the 50x mobile surge you described.\n\nThe result is a storefront that stays up while sales run and orders are saved rather than dropped. Approving a load test before your next sale unlocks the build."
+      }
+    },
+    {
+      "ms": 6030,
+      "section": {
+        "k": "need",
+        "id": "n1",
+        "need": "Site downtime and slow checkout during flash sales cost lost orders.",
+        "source": "stated",
+        "quote": "site goes down every flash sale and checkout gets slow",
+        "answer": "Web servers and checkout workers scale on their own rules. A queue holds each order until it is saved. This keeps the storefront responsive and protects revenue during sales.",
+        "products": [
+          "ecs",
+          "ess",
+          "rocketmq"
+        ]
+      }
+    },
+    {
+      "ms": 10052,
+      "section": {
+        "k": "outcome",
+        "title": "Cost follows the sale curve",
+        "text": "Compute for web and checkout scales out only when traffic rises and scales back down after the sale, keeping spend tied to actual demand rather than fixed capacity."
+      }
+    },
+    {
+      "ms": 10991,
+      "section": {
+        "k": "outcome",
+        "title": "Faster mobile shopping experience",
+        "text": "Product pages and images load from the edge near shoppers, reducing wait times that drive customers away during the first five minutes of a sale."
+      }
+    },
+    {
+      "ms": 13163,
+      "section": {
+        "k": "why",
+        "product": "dns",
+        "text": "Your shop domain needs reliable resolution for all visitors. Alibaba Cloud DNS answers lookups authoritatively without sitting in the data path, sparing your team the effort of running name servers."
+      }
+    },
+    {
+      "ms": 14273,
+      "section": {
+        "k": "why",
+        "product": "httpdns",
+        "text": "Almost all of your 50x flash sale surge comes from the mobile app. HTTPDNS resolves names over HTTPS inside the app, reducing the risk of hijacked lookups sending shoppers to the wrong place."
+      }
+    },
+    {
+      "ms": 15257,
+      "section": {
+        "k": "why",
+        "product": "esa",
+        "text": "Product pages and images generate heavy load the moment a sale opens. ESA caches them at the edge and absorbs malicious traffic there, lowering the volume that reaches Jakarta and protecting revenue."
+      }
+    },
+    {
+      "ms": 17652,
+      "section": {
+        "k": "why",
+        "product": "waf",
+        "text": "Flash sales attract automated buyers and attacks that compete with real shoppers. WAF filters this traffic at the load balancer, reducing the risk that bots consume the inventory meant for your customers."
+      }
+    },
+    {
+      "ms": 18724,
+      "section": {
+        "k": "why",
+        "product": "nlb",
+        "text": "Your mobile app opens massive bursts of connections in the first five minutes. NLB handles these raw TCP flows at high connection counts, reducing the chance that the network layer becomes the bottleneck."
+      }
+    },
+    {
+      "ms": 19748,
+      "section": {
+        "k": "why",
+        "product": "ecs",
+        "text": "You need compute for both the storefront and dedicated checkout workers. ECS gives full operating system control for your retail application, letting you run each role on separate instances sized to its task."
+      }
+    },
+    {
+      "ms": 20827,
+      "section": {
+        "k": "why",
+        "product": "ess",
+        "text": "Traffic jumps 50x and drops back quickly after a sale. ESS adds ECS instances when metrics spike and removes them when demand falls, turning what would be idle capacity into a variable cost."
+      }
+    },
+    {
+      "ms": 21763,
+      "section": {
+        "k": "why",
+        "product": "tair",
+        "text": "Shoppers expect fast cart updates and accurate stock counts during a rush. Tair holds sessions and hot inventory in memory, offloading the database so checkout stays quick under peak load."
+      }
+    },
+    {
+      "ms": 22878,
+      "section": {
+        "k": "why",
+        "product": "rds",
+        "text": "Every completed order must be recorded reliably. RDS stores transactions in a managed relational database across two zones, reducing the operational effort of backups and failover compared to self-managed storage."
+      }
+    },
+    {
+      "ms": 24044,
+      "section": {
+        "k": "why",
+        "product": "rocketmq",
+        "text": "You noted that checkout gets slow and orders were lost last 11.11. RocketMQ buffers incoming orders so workers process them at a safe pace, reducing the risk that a spike overwhelms the database."
+      }
+    },
+    {
+      "ms": 25150,
+      "section": {
+        "k": "why",
+        "product": "oss",
+        "text": "Product images make up much of the storefront payload. OSS stores these static files durably so ESA can pull and cache them at the edge, keeping image hosting costs tied to actual storage used."
+      }
+    },
+    {
+      "ms": 26391,
+      "section": {
+        "k": "why",
+        "product": "sls",
+        "text": "When a sale stalls, finding the cause quickly protects revenue. SLS centralizes logs from web servers and checkout workers, shortening the time your team spends searching for the root of an issue."
+      }
+    },
+    {
+      "ms": 27366,
+      "section": {
+        "k": "why",
+        "product": "cloudmonitor",
+        "text": "You need to see problems before shoppers abandon their carts. CloudMonitor raises alarms on resource usage and queue depth, giving your operations team earlier warning during the critical first five minutes."
+      }
+    },
+    {
+      "ms": 28529,
+      "section": {
+        "k": "tradeoff",
+        "text": "Jakarta hosts all components. Shoppers far from Jakarta may see higher latency on dynamic checkout calls that bypass edge caching.",
+        "mitigation": "ESA accelerates dynamic paths; confirm whether your customer base justifies additional regions later."
+      }
+    },
+    {
+      "ms": 29489,
+      "section": {
+        "k": "tradeoff",
+        "text": "Separating web servers from checkout workers means two fleets to manage and monitor during sales.",
+        "mitigation": "CloudMonitor and SLS cover both fleets centrally, keeping operational visibility in one place."
+      }
+    },
+    {
+      "ms": 30221,
+      "section": {
+        "k": "next",
+        "text": "Approve a load test simulating the 50x mobile surge before your next scheduled flash sale to validate the design."
+      }
+    },
+    {
+      "ms": 30813,
+      "section": {
+        "k": "next",
+        "text": "Confirm how your checkout backend is built today so the worker fleet matches your current stack."
+      }
+    },
+    {
+      "ms": 31304,
+      "section": {
+        "k": "next",
+        "text": "Provide your peak order rate per minute during a sale to size the queue and worker scaling rules."
+      }
+    },
+    {
+      "ms": 34021,
+      "section": {
+        "k": "need",
+        "id": "n2",
+        "need": "Flash sale traffic hits 50x in five minutes, mostly from the mobile app.",
+        "source": "stated",
+        "quote": "more like 50x in the first five minutes",
+        "answer": "Edge caching absorbs product page views before they reach Jakarta. A dedicated network layer handles the raw connection burst from the app. This reduces the chance of an outage at launch.",
+        "products": [
+          "esa",
+          "nlb",
+          "httpdns"
+        ]
+      }
+    },
+    {
+      "ms": 34914,
+      "section": {
+        "k": "outcome",
+        "title": "Fewer dropped orders during peaks",
+        "text": "A queue holds each order until a worker saves it, making it less likely that the surge from your mobile app stalls checkout or drops transactions."
+      }
+    },
+    {
+      "ms": 35713,
+      "section": {
+        "k": "why",
+        "product": "alb",
+        "text": "Storefront requests need to reach healthy web servers across two zones. ALB routes this traffic at the application layer, spreading the load so one zone taking a hit is less likely to stall the shop."
+      }
+    }
+  ]
+}

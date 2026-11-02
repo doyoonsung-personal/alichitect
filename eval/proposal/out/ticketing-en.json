@@ -1,0 +1,371 @@
+{
+  "id": "ticketing-en",
+  "lang": "en",
+  "outcome": "done",
+  "stats": {
+    "model": "qwen3.8-max",
+    "servedBy": "qwen",
+    "fallbackUsed": false,
+    "backupUsed": false,
+    "calls": 1,
+    "costUsd": 0.01312,
+    "ms": 30074,
+    "sections": 27,
+    "rejectedLines": 0,
+    "lint": {},
+    "heldUsed": 0,
+    "missing": [],
+    "promptTokens": 4086,
+    "completionTokens": 1422
+  },
+  "statuses": [],
+  "draft": {
+    "lang": "en",
+    "exec": "Seoul Live Tickets lost 40 minutes of sales during a March on-sale, and scalper bots took seats from real fans. Moving off the current Singapore hosting to a cloud design that absorbs thirty-fold traffic jumps protects revenue and fan trust.\n\nThis proposal keeps your team on PostgreSQL while adding an order queue, edge caching and bot challenges so the site stays responsive when a K-pop tour goes on sale.\n\nApproving a load test before the next major on-sale confirms the design handles your peak traffic.",
+    "needs": [
+      {
+        "id": "n1",
+        "need": "Site went down for 40 minutes during a big sale.",
+        "source": "stated",
+        "quote": "the site went down for 40 minutes during a big sale",
+        "answer": "An order queue holds purchase requests until workers save them, and compute scales out across two zones. This reduces the chance of another outage during on-sales.",
+        "products": [
+          "sae",
+          "rocketmq",
+          "alb",
+          "polardb",
+          "tair"
+        ]
+      },
+      {
+        "id": "n2",
+        "need": "Bots buy up seats for scalpers.",
+        "source": "stated",
+        "quote": "Bots also buy up seats for scalpers",
+        "answer": "A challenge at login and checkout stops automated buyers, and edge filtering blocks known bot patterns. Real fans get fairer access to tickets.",
+        "products": [
+          "captcha",
+          "waf",
+          "esa"
+        ]
+      },
+      {
+        "id": "n3",
+        "need": "Traffic jumps about 30x in the first ten minutes.",
+        "source": "stated",
+        "quote": "traffic jumps about 30x in the first ten minutes",
+        "answer": "Compute capacity grows with demand and shrinks after the rush. You pay for extra capacity only during the on-sale window instead of running it all day.",
+        "products": [
+          "sae",
+          "alb",
+          "rocketmq"
+        ]
+      },
+      {
+        "id": "n4",
+        "need": "Team knows PostgreSQL and wants to keep using it.",
+        "source": "stated",
+        "quote": "We already use PostgreSQL and our team knows it well",
+        "answer": "The database layer runs PostgreSQL-compatible storage across two zones. Your team keeps their existing skills while gaining higher availability than the current setup.",
+        "products": [
+          "polardb"
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "title": "Revenue protected during flash sales",
+        "text": "Orders queue up instead of failing when fans rush in, and the database writes them steadily. Fewer dropped purchases means more tickets sold per on-sale."
+      },
+      {
+        "title": "Cost follows the on-sale curve",
+        "text": "Baseline compute stays small between sales. Capacity rises only when fans arrive and falls back afterward, turning fixed hosting spend into variable cost tied to actual ticket demand."
+      },
+      {
+        "title": "Fairer access for real fans",
+        "text": "Bot challenges and edge filtering reduce scalper purchases. Genuine concert-goers face less competition from automated scripts, which lowers complaint volume on social media."
+      },
+      {
+        "title": "Faster issue response",
+        "text": "Tracing and centralized logs show where latency builds before fans notice. The operations team can act on slowdowns rather than reacting after complaints appear."
+      }
+    ],
+    "why": {
+      "dns": "Fans across Southeast Asia need to reach the ticketing site quickly. Managed DNS directs them to the nearest edge node without your team maintaining name servers.",
+      "esa": "Concert images and seat maps slow page loads during a rush. Caching these assets at the edge reduces origin load, keeping the checkout flow responsive for fans buying K-pop tour tickets.",
+      "waf": "Scalper bots flood the site during on-sales. Filtering known attack patterns at the edge reduces malicious traffic before it reaches your application, lowering the risk of another outage like last March.",
+      "alb": "A thirty-fold traffic jump needs requests spread evenly. Distributing fans across two zones reduces the chance that one failure point takes the site down during a sale.",
+      "sae": "Running idle servers between sales wastes money. Container-based compute scales from a small baseline to handle the rush and shrinks back, so you pay for capacity only when fans are buying.",
+      "tair": "Two fans selecting the same seat causes double bookings. Holding temporary reservations in memory reduces conflicts and speeds up the checkout experience during high-demand on-sales.",
+      "polardb": "Your team knows PostgreSQL well. A PostgreSQL-compatible managed database removes the effort of running your own cluster while keeping orders durable across two zones.",
+      "rocketmq": "Last March the database was overwhelmed by sudden purchases. A queue holds each order until a worker saves it, reducing the risk of dropped transactions during the first ten minutes of a sale.",
+      "oss": "Concert images and PDFs take up space on application servers. Storing media in object storage frees compute for ticket sales and lets the edge serve files directly.",
+      "arms": "Slow pages frustrate fans before the team notices. Tracing latency across the purchase flow helps your staff find bottlenecks early, reducing complaints on social media.",
+      "sls": "Troubleshooting after an incident takes time without central records. Collecting access and application logs in one place shortens investigations when something goes wrong during an on-sale.",
+      "cloud-backup": "Losing order data would damage fan trust and revenue. Scheduled backups of the database and media files reduce the risk of permanent data loss.",
+      "captcha": "Bots buy up seats for scalpers. Challenging suspicious users at login and checkout makes automated purchasing harder, giving real fans a fairer chance at tickets."
+    },
+    "tradeoffs": [
+      {
+        "text": "Fans connect from across Southeast Asia while the application and database run in Singapore, adding network distance for some buyers.",
+        "mitigation": "Edge acceleration caches static content and optimizes dynamic routes to reduce perceived latency outside Singapore."
+      },
+      {
+        "text": "The design assumes a peak load level; actual fan counts during a major K-pop tour may differ.",
+        "mitigation": "Run a load test matching your expected peak before the next on-sale to confirm scaling thresholds."
+      }
+    ],
+    "next": [
+      "Approve a load test simulating your March on-sale traffic pattern to validate the design before the next major K-pop tour announcement.",
+      "Confirm the peak number of concurrent fans you expect during your largest on-sales.",
+      "Provide the date of your next scheduled on-sale so the account team can align the testing timeline."
+    ],
+    "complete": true
+  },
+  "sections": [
+    {
+      "ms": 4101,
+      "section": {
+        "k": "exec",
+        "text": "Seoul Live Tickets lost 40 minutes of sales during a March on-sale, and scalper bots took seats from real fans. Moving off the current Singapore hosting to a cloud design that absorbs thirty-fold traffic jumps protects revenue and fan trust.\n\nThis proposal keeps your team on PostgreSQL while adding an order queue, edge caching and bot challenges so the site stays responsive when a K-pop tour goes on sale.\n\nApproving a load test before the next major on-sale confirms the design handles your peak traffic."
+      }
+    },
+    {
+      "ms": 5805,
+      "section": {
+        "k": "need",
+        "id": "n1",
+        "need": "Site went down for 40 minutes during a big sale.",
+        "source": "stated",
+        "quote": "the site went down for 40 minutes during a big sale",
+        "answer": "An order queue holds purchase requests until workers save them, and compute scales out across two zones. This reduces the chance of another outage during on-sales.",
+        "products": [
+          "sae",
+          "rocketmq",
+          "alb",
+          "polardb",
+          "tair"
+        ]
+      }
+    },
+    {
+      "ms": 7217,
+      "section": {
+        "k": "need",
+        "id": "n2",
+        "need": "Bots buy up seats for scalpers.",
+        "source": "stated",
+        "quote": "Bots also buy up seats for scalpers",
+        "answer": "A challenge at login and checkout stops automated buyers, and edge filtering blocks known bot patterns. Real fans get fairer access to tickets.",
+        "products": [
+          "captcha",
+          "waf",
+          "esa"
+        ]
+      }
+    },
+    {
+      "ms": 8671,
+      "section": {
+        "k": "need",
+        "id": "n3",
+        "need": "Traffic jumps about 30x in the first ten minutes.",
+        "source": "stated",
+        "quote": "traffic jumps about 30x in the first ten minutes",
+        "answer": "Compute capacity grows with demand and shrinks after the rush. You pay for extra capacity only during the on-sale window instead of running it all day.",
+        "products": [
+          "sae",
+          "alb",
+          "rocketmq"
+        ]
+      }
+    },
+    {
+      "ms": 9967,
+      "section": {
+        "k": "need",
+        "id": "n4",
+        "need": "Team knows PostgreSQL and wants to keep using it.",
+        "source": "stated",
+        "quote": "We already use PostgreSQL and our team knows it well",
+        "answer": "The database layer runs PostgreSQL-compatible storage across two zones. Your team keeps their existing skills while gaining higher availability than the current setup.",
+        "products": [
+          "polardb"
+        ]
+      }
+    },
+    {
+      "ms": 10884,
+      "section": {
+        "k": "outcome",
+        "title": "Revenue protected during flash sales",
+        "text": "Orders queue up instead of failing when fans rush in, and the database writes them steadily. Fewer dropped purchases means more tickets sold per on-sale."
+      }
+    },
+    {
+      "ms": 11858,
+      "section": {
+        "k": "outcome",
+        "title": "Cost follows the on-sale curve",
+        "text": "Baseline compute stays small between sales. Capacity rises only when fans arrive and falls back afterward, turning fixed hosting spend into variable cost tied to actual ticket demand."
+      }
+    },
+    {
+      "ms": 12748,
+      "section": {
+        "k": "outcome",
+        "title": "Fairer access for real fans",
+        "text": "Bot challenges and edge filtering reduce scalper purchases. Genuine concert-goers face less competition from automated scripts, which lowers complaint volume on social media."
+      }
+    },
+    {
+      "ms": 13648,
+      "section": {
+        "k": "outcome",
+        "title": "Faster issue response",
+        "text": "Tracing and centralized logs show where latency builds before fans notice. The operations team can act on slowdowns rather than reacting after complaints appear."
+      }
+    },
+    {
+      "ms": 14421,
+      "section": {
+        "k": "why",
+        "product": "dns",
+        "text": "Fans across Southeast Asia need to reach the ticketing site quickly. Managed DNS directs them to the nearest edge node without your team maintaining name servers."
+      }
+    },
+    {
+      "ms": 15387,
+      "section": {
+        "k": "why",
+        "product": "esa",
+        "text": "Concert images and seat maps slow page loads during a rush. Caching these assets at the edge reduces origin load, keeping the checkout flow responsive for fans buying K-pop tour tickets."
+      }
+    },
+    {
+      "ms": 16333,
+      "section": {
+        "k": "why",
+        "product": "waf",
+        "text": "Scalper bots flood the site during on-sales. Filtering known attack patterns at the edge reduces malicious traffic before it reaches your application, lowering the risk of another outage like last March."
+      }
+    },
+    {
+      "ms": 17175,
+      "section": {
+        "k": "why",
+        "product": "alb",
+        "text": "A thirty-fold traffic jump needs requests spread evenly. Distributing fans across two zones reduces the chance that one failure point takes the site down during a sale."
+      }
+    },
+    {
+      "ms": 18139,
+      "section": {
+        "k": "why",
+        "product": "sae",
+        "text": "Running idle servers between sales wastes money. Container-based compute scales from a small baseline to handle the rush and shrinks back, so you pay for capacity only when fans are buying."
+      }
+    },
+    {
+      "ms": 18934,
+      "section": {
+        "k": "why",
+        "product": "tair",
+        "text": "Two fans selecting the same seat causes double bookings. Holding temporary reservations in memory reduces conflicts and speeds up the checkout experience during high-demand on-sales."
+      }
+    },
+    {
+      "ms": 19750,
+      "section": {
+        "k": "why",
+        "product": "polardb",
+        "text": "Your team knows PostgreSQL well. A PostgreSQL-compatible managed database removes the effort of running your own cluster while keeping orders durable across two zones."
+      }
+    },
+    {
+      "ms": 20734,
+      "section": {
+        "k": "why",
+        "product": "rocketmq",
+        "text": "Last March the database was overwhelmed by sudden purchases. A queue holds each order until a worker saves it, reducing the risk of dropped transactions during the first ten minutes of a sale."
+      }
+    },
+    {
+      "ms": 21749,
+      "section": {
+        "k": "why",
+        "product": "oss",
+        "text": "Concert images and PDFs take up space on application servers. Storing media in object storage frees compute for ticket sales and lets the edge serve files directly."
+      }
+    },
+    {
+      "ms": 22750,
+      "section": {
+        "k": "why",
+        "product": "arms",
+        "text": "Slow pages frustrate fans before the team notices. Tracing latency across the purchase flow helps your staff find bottlenecks early, reducing complaints on social media."
+      }
+    },
+    {
+      "ms": 23752,
+      "section": {
+        "k": "why",
+        "product": "sls",
+        "text": "Troubleshooting after an incident takes time without central records. Collecting access and application logs in one place shortens investigations when something goes wrong during an on-sale."
+      }
+    },
+    {
+      "ms": 24449,
+      "section": {
+        "k": "why",
+        "product": "cloud-backup",
+        "text": "Losing order data would damage fan trust and revenue. Scheduled backups of the database and media files reduce the risk of permanent data loss."
+      }
+    },
+    {
+      "ms": 25237,
+      "section": {
+        "k": "why",
+        "product": "captcha",
+        "text": "Bots buy up seats for scalpers. Challenging suspicious users at login and checkout makes automated purchasing harder, giving real fans a fairer chance at tickets."
+      }
+    },
+    {
+      "ms": 26390,
+      "section": {
+        "k": "tradeoff",
+        "text": "Fans connect from across Southeast Asia while the application and database run in Singapore, adding network distance for some buyers.",
+        "mitigation": "Edge acceleration caches static content and optimizes dynamic routes to reduce perceived latency outside Singapore."
+      }
+    },
+    {
+      "ms": 27360,
+      "section": {
+        "k": "tradeoff",
+        "text": "The design assumes a peak load level; actual fan counts during a major K-pop tour may differ.",
+        "mitigation": "Run a load test matching your expected peak before the next on-sale to confirm scaling thresholds."
+      }
+    },
+    {
+      "ms": 29117,
+      "section": {
+        "k": "next",
+        "text": "Approve a load test simulating your March on-sale traffic pattern to validate the design before the next major K-pop tour announcement."
+      }
+    },
+    {
+      "ms": 29630,
+      "section": {
+        "k": "next",
+        "text": "Confirm the peak number of concurrent fans you expect during your largest on-sales."
+      }
+    },
+    {
+      "ms": 30075,
+      "section": {
+        "k": "next",
+        "text": "Provide the date of your next scheduled on-sale so the account team can align the testing timeline."
+      }
+    }
+  ]
+}

@@ -1,0 +1,1178 @@
+{
+  "steps": [
+    {
+      "kind": "ask",
+      "text": "A web app on Alibaba Cloud"
+    }
+  ],
+  "memory": {
+    "turns": [
+      {
+        "role": "user",
+        "text": "A web app on Alibaba Cloud"
+      },
+      {
+        "role": "assistant",
+        "text": "I'll draw a standard web app on Alibaba Cloud with ESA, ALB, ECS, RDS and Tair in Singapore.",
+        "changes": "+internet[external] +edge[edge] +sg[region] +vpc[vpc] +users(users) +dns(dns) +esa(esa) +alb(alb, zones a,b) +app(ecs, zones a,b) +scaling(ess, badge on app) +cache(tair, zones a,b) +db(rds, zones a,b) +media(oss) +logs(sls) +e-users-dns +e-users-esa +e-esa-alb +e-alb-app +e-app-cache +e-app-db +e-app-media +e-app-logs"
+      }
+    ],
+    "requirements": [],
+    "graph": {
+      "groups": {
+        "internet": {
+          "id": "internet",
+          "kind": "external",
+          "label": "Internet",
+          "parent": null
+        },
+        "edge": {
+          "id": "edge",
+          "kind": "edge",
+          "label": "Edge",
+          "parent": null
+        },
+        "sg": {
+          "id": "sg",
+          "kind": "region",
+          "label": "Singapore (ap-southeast-1)",
+          "parent": null
+        },
+        "vpc": {
+          "id": "vpc",
+          "kind": "vpc",
+          "label": "App VPC",
+          "parent": "sg"
+        }
+      },
+      "nodes": {
+        "users": {
+          "id": "users",
+          "product": "users",
+          "label": "Users",
+          "group": "internet",
+          "why": "People reaching the web app over the internet."
+        },
+        "dns": {
+          "id": "dns",
+          "product": "dns",
+          "label": "Cloud DNS",
+          "group": null,
+          "why": "Resolves the app domain to ESA."
+        },
+        "esa": {
+          "id": "esa",
+          "product": "esa",
+          "label": "ESA",
+          "group": "edge",
+          "why": "Caches static assets and accelerates dynamic requests."
+        },
+        "alb": {
+          "id": "alb",
+          "product": "alb",
+          "label": "ALB",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Distributes traffic across two zones."
+        },
+        "app": {
+          "id": "app",
+          "product": "ecs",
+          "label": "App servers",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Runs the web application in two zones."
+        },
+        "scaling": {
+          "id": "scaling",
+          "product": "ess",
+          "label": "Auto Scaling",
+          "group": "vpc",
+          "attachTo": "app",
+          "why": "Scales instances based on load."
+        },
+        "cache": {
+          "id": "cache",
+          "product": "tair",
+          "label": "Session cache",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Keeps sessions and hot data fast."
+        },
+        "db": {
+          "id": "db",
+          "product": "rds",
+          "label": "Database",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Stores app data with a zone standby."
+        },
+        "media": {
+          "id": "media",
+          "product": "oss",
+          "label": "Object storage",
+          "group": "sg",
+          "why": "Stores uploaded files and static assets."
+        },
+        "logs": {
+          "id": "logs",
+          "product": "sls",
+          "label": "Logs",
+          "group": "sg",
+          "why": "Centralizes logs for monitoring and alerts."
+        }
+      },
+      "edges": {
+        "e-users-dns": {
+          "id": "e-users-dns",
+          "from": "users",
+          "to": "dns",
+          "kind": "resolve"
+        },
+        "e-users-esa": {
+          "id": "e-users-esa",
+          "from": "users",
+          "to": "esa",
+          "label": "HTTPS"
+        },
+        "e-esa-alb": {
+          "id": "e-esa-alb",
+          "from": "esa",
+          "to": "alb",
+          "label": "origin"
+        },
+        "e-alb-app": {
+          "id": "e-alb-app",
+          "from": "alb",
+          "to": "app"
+        },
+        "e-app-cache": {
+          "id": "e-app-cache",
+          "from": "app",
+          "to": "cache"
+        },
+        "e-app-db": {
+          "id": "e-app-db",
+          "from": "app",
+          "to": "db",
+          "label": "SQL"
+        },
+        "e-app-media": {
+          "id": "e-app-media",
+          "from": "app",
+          "to": "media",
+          "label": "files"
+        },
+        "e-app-logs": {
+          "id": "e-app-logs",
+          "from": "app",
+          "to": "logs",
+          "kind": "control"
+        }
+      },
+      "recs": []
+    },
+    "tombstones": [],
+    "assumptions": [
+      {
+        "id": "exposure",
+        "text": "Public-facing web app",
+        "alt": "Internal only"
+      },
+      {
+        "id": "scale",
+        "text": "About 10k users",
+        "alt": "Over 100k users"
+      }
+    ],
+    "questions": [
+      {
+        "id": "app-type",
+        "text": "What kind of web app is this?",
+        "options": [
+          "E-commerce shop",
+          "SaaS platform",
+          "Content site",
+          "Custom business app"
+        ]
+      },
+      {
+        "id": "user-region",
+        "text": "Where are most of your users located?",
+        "options": [
+          "Singapore",
+          "Southeast Asia",
+          "Worldwide"
+        ]
+      }
+    ]
+  },
+  "turns": [
+    {
+      "ask": "A web app on Alibaba Cloud",
+      "ev": [
+        [
+          2038,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2039,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a standard",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2120,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a standard web app on Alibaba",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2203,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a standard web app on Alibaba Cloud with ESA,",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2299,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a standard web app on Alibaba Cloud with ESA, ALB, ECS",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2300,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a standard web app on Alibaba Cloud with ESA, ALB, ECS,",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2300,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a standard web app on Alibaba Cloud with ESA, ALB, ECS, RDS and T",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2459,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a standard web app on Alibaba Cloud with ESA, ALB, ECS, RDS and Tair in Singapore.",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2461,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a standard web app on Alibaba Cloud with ESA, ALB, ECS, RDS and Tair in Singapore.",
+            "final": true,
+            "phase": "main"
+          }
+        ],
+        [
+          2461,
+          {
+            "type": "op",
+            "seq": 1,
+            "op": {
+              "t": "say",
+              "text": "I'll draw a standard web app on Alibaba Cloud with ESA, ALB, ECS, RDS and Tair in Singapore."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          3032,
+          {
+            "type": "op",
+            "seq": 2,
+            "op": {
+              "t": "plan",
+              "products": [
+                "users",
+                "dns",
+                "esa",
+                "alb",
+                "ecs",
+                "ess",
+                "tair",
+                "rds",
+                "oss",
+                "sls"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          3362,
+          {
+            "type": "op",
+            "seq": 3,
+            "op": {
+              "t": "assume",
+              "id": "exposure",
+              "text": "Public-facing web app",
+              "alt": "Internal only"
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          3942,
+          {
+            "type": "op",
+            "seq": 4,
+            "op": {
+              "t": "assume",
+              "id": "scale",
+              "text": "About 10k users",
+              "alt": "Over 100k users"
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          4291,
+          {
+            "type": "op",
+            "seq": 5,
+            "op": {
+              "t": "group",
+              "id": "internet",
+              "kind": "external",
+              "label": "Internet",
+              "parent": null
+            },
+            "added": [
+              "internet"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          4934,
+          {
+            "type": "op",
+            "seq": 6,
+            "op": {
+              "t": "node",
+              "id": "users",
+              "product": "users",
+              "label": "Users",
+              "group": "internet",
+              "why": "People reaching the web app over the internet."
+            },
+            "added": [
+              "users"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          5542,
+          {
+            "type": "op",
+            "seq": 7,
+            "op": {
+              "t": "node",
+              "id": "dns",
+              "product": "dns",
+              "label": "Cloud DNS",
+              "group": null,
+              "why": "Resolves the app domain to ESA."
+            },
+            "added": [
+              "dns"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          5981,
+          {
+            "type": "op",
+            "seq": 8,
+            "op": {
+              "t": "edge",
+              "id": "e-users-dns",
+              "from": "users",
+              "to": "dns",
+              "kind": "resolve"
+            },
+            "added": [
+              "e-users-dns"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          6310,
+          {
+            "type": "op",
+            "seq": 9,
+            "op": {
+              "t": "group",
+              "id": "edge",
+              "kind": "edge",
+              "label": "Edge",
+              "parent": null
+            },
+            "added": [
+              "edge"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          7054,
+          {
+            "type": "op",
+            "seq": 10,
+            "op": {
+              "t": "node",
+              "id": "esa",
+              "product": "esa",
+              "label": "ESA",
+              "group": "edge",
+              "why": "Caches static assets and accelerates dynamic requests."
+            },
+            "added": [
+              "esa"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          7476,
+          {
+            "type": "op",
+            "seq": 11,
+            "op": {
+              "t": "edge",
+              "id": "e-users-esa",
+              "from": "users",
+              "to": "esa",
+              "label": "HTTPS"
+            },
+            "added": [
+              "e-users-esa"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          7922,
+          {
+            "type": "op",
+            "seq": 12,
+            "op": {
+              "t": "group",
+              "id": "sg",
+              "kind": "region",
+              "label": "Singapore (ap-southeast-1)",
+              "parent": null
+            },
+            "added": [
+              "sg"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          8306,
+          {
+            "type": "op",
+            "seq": 13,
+            "op": {
+              "t": "group",
+              "id": "vpc",
+              "kind": "vpc",
+              "label": "App VPC",
+              "parent": "sg"
+            },
+            "added": [
+              "vpc"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          9086,
+          {
+            "type": "op",
+            "seq": 14,
+            "op": {
+              "t": "node",
+              "id": "alb",
+              "product": "alb",
+              "label": "ALB",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "Distributes traffic across two zones."
+            },
+            "added": [
+              "alb"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          9455,
+          {
+            "type": "op",
+            "seq": 15,
+            "op": {
+              "t": "edge",
+              "id": "e-esa-alb",
+              "from": "esa",
+              "to": "alb",
+              "label": "origin"
+            },
+            "added": [
+              "e-esa-alb"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          10223,
+          {
+            "type": "op",
+            "seq": 16,
+            "op": {
+              "t": "node",
+              "id": "app",
+              "product": "ecs",
+              "label": "App servers",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "Runs the web application in two zones."
+            },
+            "added": [
+              "app"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          10975,
+          {
+            "type": "op",
+            "seq": 17,
+            "op": {
+              "t": "node",
+              "id": "scaling",
+              "product": "ess",
+              "label": "Auto Scaling",
+              "group": "vpc",
+              "attachTo": "app",
+              "why": "Scales instances based on load."
+            },
+            "added": [
+              "scaling"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          11469,
+          {
+            "type": "op",
+            "seq": 18,
+            "op": {
+              "t": "edge",
+              "id": "e-alb-app",
+              "from": "alb",
+              "to": "app"
+            },
+            "added": [
+              "e-alb-app"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          12199,
+          {
+            "type": "op",
+            "seq": 19,
+            "op": {
+              "t": "node",
+              "id": "cache",
+              "product": "tair",
+              "label": "Session cache",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "Keeps sessions and hot data fast."
+            },
+            "added": [
+              "cache"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          13017,
+          {
+            "type": "op",
+            "seq": 20,
+            "op": {
+              "t": "node",
+              "id": "db",
+              "product": "rds",
+              "label": "Database",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "Stores app data with a zone standby."
+            },
+            "added": [
+              "db"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          13325,
+          {
+            "type": "op",
+            "seq": 21,
+            "op": {
+              "t": "edge",
+              "id": "e-app-cache",
+              "from": "app",
+              "to": "cache"
+            },
+            "added": [
+              "e-app-cache"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          13925,
+          {
+            "type": "op",
+            "seq": 22,
+            "op": {
+              "t": "edge",
+              "id": "e-app-db",
+              "from": "app",
+              "to": "db",
+              "label": "SQL"
+            },
+            "added": [
+              "e-app-db"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          14582,
+          {
+            "type": "op",
+            "seq": 23,
+            "op": {
+              "t": "node",
+              "id": "media",
+              "product": "oss",
+              "label": "Object storage",
+              "group": "sg",
+              "why": "Stores uploaded files and static assets."
+            },
+            "added": [
+              "media"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          15016,
+          {
+            "type": "op",
+            "seq": 24,
+            "op": {
+              "t": "edge",
+              "id": "e-app-media",
+              "from": "app",
+              "to": "media",
+              "label": "files"
+            },
+            "added": [
+              "e-app-media"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          15634,
+          {
+            "type": "op",
+            "seq": 25,
+            "op": {
+              "t": "node",
+              "id": "logs",
+              "product": "sls",
+              "label": "Logs",
+              "group": "sg",
+              "why": "Centralizes logs for monitoring and alerts."
+            },
+            "added": [
+              "logs"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          15949,
+          {
+            "type": "op",
+            "seq": 26,
+            "op": {
+              "t": "edge",
+              "id": "e-app-logs",
+              "from": "app",
+              "to": "logs",
+              "kind": "control"
+            },
+            "added": [
+              "e-app-logs"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          16873,
+          {
+            "type": "op",
+            "seq": 27,
+            "op": {
+              "t": "ask",
+              "id": "app-type",
+              "text": "What kind of web app is this?",
+              "options": [
+                "E-commerce shop",
+                "SaaS platform",
+                "Content site",
+                "Custom business app"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          17454,
+          {
+            "type": "op",
+            "seq": 28,
+            "op": {
+              "t": "ask",
+              "id": "user-region",
+              "text": "Where are most of your users located?",
+              "options": [
+                "Singapore",
+                "Southeast Asia",
+                "Worldwide"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          18137,
+          {
+            "type": "op",
+            "seq": 29,
+            "op": {
+              "t": "done",
+              "summary": "Standard web app with ESA, ALB, ECS with Auto Scaling, Tair cache, RDS database, OSS and SLS in Singapore."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          18138,
+          {
+            "type": "usage",
+            "usage": {
+              "completion_tokens": 890,
+              "prompt_tokens": 15303,
+              "prompt_tokens_details": {
+                "cached_tokens": 15232,
+                "text_tokens": 15303
+              },
+              "total_tokens": 16193
+            },
+            "costUsd": 0.00929,
+            "phase": "main"
+          }
+        ],
+        [
+          18138,
+          {
+            "type": "done",
+            "summary": "Standard web app with ESA, ALB, ECS with Auto Scaling, Tair cache, RDS database, OSS and SLS in Singapore.",
+            "timings": {
+              "headersMs": 1726,
+              "firstByteMs": 1726,
+              "firstContentMs": 1727,
+              "firstSayMs": 2013,
+              "firstOpMs": 2436,
+              "firstNodeMs": 4908,
+              "lastOpMs": 18112,
+              "totalMs": 18111,
+              "maxGapMs": 223,
+              "hedgeAtMs": null
+            },
+            "finishReason": "stop",
+            "truncated": false,
+            "phase": "main"
+          }
+        ],
+        [
+          18142,
+          {
+            "type": "commit",
+            "memory": {
+              "turns": [
+                {
+                  "role": "user",
+                  "text": "A web app on Alibaba Cloud"
+                },
+                {
+                  "role": "assistant",
+                  "text": "I'll draw a standard web app on Alibaba Cloud with ESA, ALB, ECS, RDS and Tair in Singapore.",
+                  "changes": "+internet[external] +edge[edge] +sg[region] +vpc[vpc] +users(users) +dns(dns) +esa(esa) +alb(alb, zones a,b) +app(ecs, zones a,b) +scaling(ess, badge on app) +cache(tair, zones a,b) +db(rds, zones a,b) +media(oss) +logs(sls) +e-users-dns +e-users-esa +e-esa-alb +e-alb-app +e-app-cache +e-app-db +e-app-media +e-app-logs"
+                }
+              ],
+              "requirements": [],
+              "graph": {
+                "groups": {
+                  "internet": {
+                    "id": "internet",
+                    "kind": "external",
+                    "label": "Internet",
+                    "parent": null
+                  },
+                  "edge": {
+                    "id": "edge",
+                    "kind": "edge",
+                    "label": "Edge",
+                    "parent": null
+                  },
+                  "sg": {
+                    "id": "sg",
+                    "kind": "region",
+                    "label": "Singapore (ap-southeast-1)",
+                    "parent": null
+                  },
+                  "vpc": {
+                    "id": "vpc",
+                    "kind": "vpc",
+                    "label": "App VPC",
+                    "parent": "sg"
+                  }
+                },
+                "nodes": {
+                  "users": {
+                    "id": "users",
+                    "product": "users",
+                    "label": "Users",
+                    "group": "internet",
+                    "why": "People reaching the web app over the internet."
+                  },
+                  "dns": {
+                    "id": "dns",
+                    "product": "dns",
+                    "label": "Cloud DNS",
+                    "group": null,
+                    "why": "Resolves the app domain to ESA."
+                  },
+                  "esa": {
+                    "id": "esa",
+                    "product": "esa",
+                    "label": "ESA",
+                    "group": "edge",
+                    "why": "Caches static assets and accelerates dynamic requests."
+                  },
+                  "alb": {
+                    "id": "alb",
+                    "product": "alb",
+                    "label": "ALB",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Distributes traffic across two zones."
+                  },
+                  "app": {
+                    "id": "app",
+                    "product": "ecs",
+                    "label": "App servers",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Runs the web application in two zones."
+                  },
+                  "scaling": {
+                    "id": "scaling",
+                    "product": "ess",
+                    "label": "Auto Scaling",
+                    "group": "vpc",
+                    "attachTo": "app",
+                    "why": "Scales instances based on load."
+                  },
+                  "cache": {
+                    "id": "cache",
+                    "product": "tair",
+                    "label": "Session cache",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Keeps sessions and hot data fast."
+                  },
+                  "db": {
+                    "id": "db",
+                    "product": "rds",
+                    "label": "Database",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Stores app data with a zone standby."
+                  },
+                  "media": {
+                    "id": "media",
+                    "product": "oss",
+                    "label": "Object storage",
+                    "group": "sg",
+                    "why": "Stores uploaded files and static assets."
+                  },
+                  "logs": {
+                    "id": "logs",
+                    "product": "sls",
+                    "label": "Logs",
+                    "group": "sg",
+                    "why": "Centralizes logs for monitoring and alerts."
+                  }
+                },
+                "edges": {
+                  "e-users-dns": {
+                    "id": "e-users-dns",
+                    "from": "users",
+                    "to": "dns",
+                    "kind": "resolve"
+                  },
+                  "e-users-esa": {
+                    "id": "e-users-esa",
+                    "from": "users",
+                    "to": "esa",
+                    "label": "HTTPS"
+                  },
+                  "e-esa-alb": {
+                    "id": "e-esa-alb",
+                    "from": "esa",
+                    "to": "alb",
+                    "label": "origin"
+                  },
+                  "e-alb-app": {
+                    "id": "e-alb-app",
+                    "from": "alb",
+                    "to": "app"
+                  },
+                  "e-app-cache": {
+                    "id": "e-app-cache",
+                    "from": "app",
+                    "to": "cache"
+                  },
+                  "e-app-db": {
+                    "id": "e-app-db",
+                    "from": "app",
+                    "to": "db",
+                    "label": "SQL"
+                  },
+                  "e-app-media": {
+                    "id": "e-app-media",
+                    "from": "app",
+                    "to": "media",
+                    "label": "files"
+                  },
+                  "e-app-logs": {
+                    "id": "e-app-logs",
+                    "from": "app",
+                    "to": "logs",
+                    "kind": "control"
+                  }
+                },
+                "recs": []
+              },
+              "tombstones": [],
+              "assumptions": [
+                {
+                  "id": "exposure",
+                  "text": "Public-facing web app",
+                  "alt": "Internal only"
+                },
+                {
+                  "id": "scale",
+                  "text": "About 10k users",
+                  "alt": "Over 100k users"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "app-type",
+                  "text": "What kind of web app is this?",
+                  "options": [
+                    "E-commerce shop",
+                    "SaaS platform",
+                    "Content site",
+                    "Custom business app"
+                  ]
+                },
+                {
+                  "id": "user-region",
+                  "text": "Where are most of your users located?",
+                  "options": [
+                    "Singapore",
+                    "Southeast Asia",
+                    "Worldwide"
+                  ]
+                }
+              ]
+            },
+            "changes": "+internet[external] +edge[edge] +sg[region] +vpc[vpc] +users(users) +dns(dns) +esa(esa) +alb(alb, zones a,b) +app(ecs, zones a,b) +scaling(ess, badge on app) +cache(tair, zones a,b) +db(rds, zones a,b) +media(oss) +logs(sls) +e-users-dns +e-users-esa +e-esa-alb +e-alb-app +e-app-cache +e-app-db +e-app-media +e-app-logs",
+            "warnings": []
+          }
+        ]
+      ]
+    }
+  ]
+}

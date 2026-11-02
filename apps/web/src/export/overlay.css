@@ -1,0 +1,121 @@
+/* The proposal overlay: a modal sheet over the workspace while the proposal is written. It floats like the export dialog
+   (surface-pop, a hairline, the raise shadow, square corners) on a veil of the record ground, so the diagram stays
+   faintly in view in both themes. Tokens only; progress is the action blue, never orange (orange is the live build). */
+.dov {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: var(--s-5);
+}
+.dov__scrim {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--record) 84%, transparent);
+  animation: m-fade var(--d-fade) linear;
+}
+
+.dov__panel {
+  position: relative;
+  width: 464px;
+  max-width: 100%;
+  max-height: calc(100vh - 2 * var(--s-5));
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-6) var(--s-6) var(--s-5);
+  background: var(--surface-pop);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-pop);
+  box-shadow: var(--shadow-raise);
+  color: var(--ink);
+  animation: m-rise var(--d-enter) var(--ease-out);
+}
+/* the sheet takes focus so the dialog is announced; the buttons inside carry the visible focus */
+.dov__panel:focus { outline: none; }
+
+/* progress on the top edge, as on the export dialog: a sweep while writing and laying out, a fill when it is saved */
+.dov__bar { position: absolute; left: -1px; right: -1px; top: -1px; height: 2px; overflow: hidden; pointer-events: none; }
+.dov__bar > span { position: absolute; inset: 0; background: var(--action); opacity: 0; transform-origin: 0 50%; }
+.dov__bar[data-phase='drafting'] > span,
+.dov__bar[data-phase='layout'] > span { opacity: 1; width: 40%; animation: xp-sweep 1400ms var(--ease-in-out) infinite; }
+.dov__bar[data-phase='done'] > span { opacity: 1; animation: xp-fill var(--d-panel) var(--ease-out); }
+
+.dov__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-4); }
+.dov__title { margin: 0; font-size: var(--t-16); line-height: var(--lh-16); font-weight: var(--w-medium); }
+.dov__time { flex: none; font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink-3); font-variant-numeric: var(--num); }
+.dov__hint { margin: -4px 0 0; font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink-3); }
+.dov__hint[data-tone] { margin-top: 0; font-size: var(--t-14); line-height: var(--lh-14); color: var(--ink-2); }
+.dov__hint[data-tone='error'] { color: var(--danger); }
+.dov__hint + .dov__hint { margin-top: -4px; }
+
+/* the steps: a ruled list like the requirements block, each row a mark, the step and what has been written */
+.dov__steps { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line-1); }
+.dov__step {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 32px;
+  padding: var(--s-1) 0;
+  border-bottom: 1px solid var(--line-1);
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--ink-3);
+  transition: color var(--d-hover) linear;
+}
+.dov__step[data-status='done'] { color: var(--ink-2); }
+.dov__step[data-status='active'] { color: var(--ink); font-weight: var(--w-medium); }
+.dov__mark { display: grid; place-items: center; width: 16px; height: 16px; }
+.dov__step[data-status='done'] .dov__mark { color: var(--ok); }
+.dov__step[data-status='active'] .dov__mark { color: var(--action); }
+.dov__step[data-status='active'] .dov__mark .icon { animation: dov-spin 900ms linear infinite; }
+.dov__pending { width: 5px; height: 5px; border: 1px solid var(--line-control); }
+.dov__count { font-weight: var(--w-regular); font-variant-numeric: var(--num); color: var(--ink-3); }
+@keyframes dov-spin { to { transform: rotate(360deg); } }
+
+/* the latest written line: two lines held, each new one rising in over the last */
+.dov__latest { display: flex; flex-direction: column; gap: var(--s-2); }
+.dov__latest-label { font-size: var(--t-12); line-height: var(--lh-12); font-weight: var(--w-medium); color: var(--ink-3); }
+.dov__line {
+  margin: 0;
+  min-height: calc(2 * var(--lh-13));
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--ink-2);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  animation: m-rise var(--d-move) var(--ease-out);
+}
+.dov__line--empty { color: var(--ink-3); animation: none; }
+.dov__slow { margin: calc(-1 * var(--s-2)) 0 0; font-size: var(--t-12); line-height: var(--lh-12); color: var(--ink-3); animation: m-fade var(--d-fade) linear; }
+
+.dov__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-2); }
+.dov__actions:empty { display: none; }
+/* Close is the way out, not a third choice: it sits at the trailing edge */
+.dov__actions > .btn--ghost { margin-left: auto; }
+.dov[data-phase='drafting'] .dov__actions,
+.dov[data-phase='layout'] .dov__actions { justify-content: flex-end; }
+
+:root:lang(ko) .dov__hint,
+:root:lang(zh) .dov__hint,
+:root:lang(ko) .dov__line,
+:root:lang(zh) .dov__line { line-height: var(--lh-cjk); }
+:root:lang(ko) .dov__line { min-height: calc(2 * var(--lh-cjk) * var(--t-13)); }
+:root:lang(zh) .dov__line { min-height: calc(2 * var(--lh-cjk) * var(--t-13)); }
+:root:lang(ko) .dov__hint,
+:root:lang(ko) .dov__line { word-break: keep-all; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* nothing turns or sweeps: the active mark and the bar hold still, and new lines simply appear */
+  .dov__step[data-status='active'] .dov__mark .icon { animation: none; }
+  .dov__bar[data-phase='drafting'] > span,
+  .dov__bar[data-phase='layout'] > span { width: 100%; opacity: 0.5; animation: none; }
+  .dov__panel { animation-name: m-fade; }
+}

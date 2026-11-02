@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { loadCatalog } from '@ali/core/catalog-node.ts';
-import type { Catalog } from '@ali/core/types.ts';
+import type { Catalog, ProposalDraft } from '@ali/core/types.ts';
 import { AvoidLib } from 'libavoid-js';
 import { createAvoidState, disposeAvoidState, routeWithAvoid } from '../../src/routing/avoid.ts';
 import { routeChannels } from '../../src/routing/channel.ts';
@@ -33,6 +33,11 @@ export function playFixture(id: string, lang: Lang): Store {
   return store;
 }
 
+/** A drafted narrative from scripts/export/drafts/ (realistic ProposalDraft fixtures written against recorded sessions). */
+export function loadDraft(id: string): ProposalDraft {
+  return JSON.parse(readFileSync(new URL(`./drafts/${id}.json`, import.meta.url), 'utf8')) as ProposalDraft;
+}
+
 export function logoFor(lang: Lang): { svg: string; aspect: number } {
   const l = lang === 'zh' ? LOGOS.zh : LOGOS.en;
   return { svg: readFileSync(new URL(`../../public/${l.file}`, import.meta.url), 'utf8'), aspect: l.aspect };
@@ -57,7 +62,7 @@ export async function avoidRoute(req: RouteRequest): Promise<RouteResult> {
   }
 }
 
-export function generateFromState(state: AppState, o: { title?: string; customer?: string; route?: (r: RouteRequest) => Promise<RouteResult>; now?: Date } = {}): Promise<GenerateResult> {
+export function generateFromState(state: AppState, o: { title?: string; customer?: string; route?: (r: RouteRequest) => Promise<RouteResult>; now?: Date; draft?: ProposalDraft | null } = {}): Promise<GenerateResult> {
   return generateProposalPdf({
     session: state.session,
     graph: state.display.graph,
@@ -70,5 +75,6 @@ export function generateFromState(state: AppState, o: { title?: string; customer
     fontSource: nodeFontSource(),
     route: o.route ?? avoidRoute,
     logo: logoFor(state.lang),
+    draft: o.draft ?? null,
   });
 }

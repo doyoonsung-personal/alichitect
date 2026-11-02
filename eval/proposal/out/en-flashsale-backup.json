@@ -1,0 +1,453 @@
+{
+  "id": "en-flashsale-backup",
+  "lang": "en",
+  "customer": "Nusantara Mart",
+  "title": "",
+  "outcome": "done",
+  "stats": {
+    "model": "qwen3.8-max",
+    "servedBy": "claude",
+    "fallbackUsed": false,
+    "backupUsed": true,
+    "calls": 2,
+    "costUsd": 0.10564783333333333,
+    "ms": 33830,
+    "sections": 33,
+    "rejectedLines": 0,
+    "lint": {},
+    "heldUsed": 0,
+    "missing": [],
+    "promptTokens": 7161,
+    "completionTokens": 2626
+  },
+  "statuses": [
+    {
+      "ms": 6515,
+      "code": "finish"
+    }
+  ],
+  "draft": {
+    "lang": "en",
+    "exec": "Nusantara Mart, your site goes down every flash sale and checkout gets slow; last 11.11 you lost a lot of orders.\n\nThis proposal separates storefront traffic from checkout, holds orders in a queue during the first five minutes when traffic hits 50x, and scales compute automatically so mobile shoppers complete purchases even at peak.\n\nThe result is fewer dropped orders during sales events. To size the queue and workers, we need your decision on a load test before your next flash sale.",
+    "needs": [
+      {
+        "id": "n1",
+        "need": "Site goes down every flash sale.",
+        "source": "stated",
+        "quote": "Our site goes down every flash sale",
+        "answer": "Compute scales out automatically while a queue holds incoming orders until servers are ready to save them. This keeps the storefront up when traffic jumps 50x in the first five minutes.",
+        "products": [
+          "ecs",
+          "ess",
+          "rocketmq"
+        ]
+      },
+      {
+        "id": "n2",
+        "need": "Checkout gets slow during flash sales.",
+        "source": "stated",
+        "quote": "checkout gets slow",
+        "answer": "Checkout runs on its own servers that take orders from the queue. Shopping carts and stock counts are kept in memory. Browsing shoppers and paying shoppers no longer compete for the same capacity, so payment stays responsive while the storefront is busy.",
+        "products": [
+          "ecs",
+          "ess",
+          "tair",
+          "rocketmq"
+        ]
+      },
+      {
+        "id": "n3",
+        "need": "Orders were lost during the last 11.11 sale.",
+        "source": "stated",
+        "quote": "last 11.11 we lost a lot of orders",
+        "answer": "Each order waits in a queue until it is written to a database that runs across two data centers. A traffic burst is then more likely to slow orders down than to lose them, which protects revenue on the biggest sale days.",
+        "products": [
+          "rocketmq",
+          "rds"
+        ]
+      },
+      {
+        "id": "n4",
+        "need": "Traffic jumps about 50x in the first five minutes, almost all of it from the mobile app.",
+        "source": "stated",
+        "quote": "almost all of it comes from our mobile app",
+        "answer": "The app finds your servers through a protected lookup. Product pages and images are served from locations close to shoppers. A connection layer built for very large bursts spreads the load. The opening rush reaches your servers in a more manageable form.",
+        "products": [
+          "httpdns",
+          "esa",
+          "nlb",
+          "oss"
+        ]
+      },
+      {
+        "id": "n5",
+        "need": "Retailers running flash sales usually face bots and attacks that take capacity away from real buyers.",
+        "source": "general",
+        "answer": "Filtering at the edge and in front of the web servers reduces bot and attack traffic before it uses capacity. This leaves more room for genuine shoppers and lowers the risk of a sale being disrupted.",
+        "products": [
+          "esa",
+          "waf"
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "title": "More orders completed at peak",
+        "text": "Orders wait in a queue and checkout runs separately from browsing. A 50x opening rush is then far less likely to drop purchases than the setup that failed last 11.11."
+      },
+      {
+        "title": "Pay for peaks only when needed",
+        "text": "A small base of servers, the database and the cache are a steady cost. Extra web and checkout servers are added during a sale and removed afterwards, so the cost of peak capacity follows actual sale traffic."
+      },
+      {
+        "title": "Problems seen before shoppers notice",
+        "text": "Alerts on load, response time and orders waiting give your team early warning during a sale. Central logs shorten the search for causes afterwards."
+      },
+      {
+        "title": "Reduced outage and attack risk",
+        "text": "Servers in two separate data centers, plus filtering at the edge, make it less likely that a single fault or a bot surge stops a sale."
+      }
+    ],
+    "why": {
+      "dns": "Shoppers on the web need your shop domain to resolve reliably. A managed DNS service points them to the edge layer, so your team does not have to run name servers of its own.",
+      "httpdns": "Almost all flash sale traffic comes from your mobile app, so the app's first lookup matters. HTTPDNS lowers the risk of hijacked lookups and improves routing for app users at the moment a sale opens.",
+      "esa": "The 50x rush lands first on product pages and images. ESA caches them close to shoppers in Indonesia and filters attack traffic at the edge. Less load reaches your servers, and you pay for fewer of them at peak.",
+      "alb": "Browser shoppers still need fair sharing of load across web servers. ALB spreads requests over two data centers and can route by page path, which reduces the chance that one failing server takes the storefront down.",
+      "waf": "Flash sales tend to attract scalper bots and injection attempts. Attaching WAF to the load balancer blocks much of this before it uses checkout capacity, which protects both revenue and your stock from abuse.",
+      "nlb": "Your app opens a burst of connections in the first five minutes. NLB is built for very high connection counts, so the app's opening rush has a front door sized for it rather than a bottleneck.",
+      "ecs": "Storefront and checkout each get their own pool of servers. Familiar virtual machines keep your existing code portable, and separating the two pools keeps a busy storefront from slowing payment.",
+      "ess": "Peaks last minutes and quiet days last weeks. Auto Scaling adds web and checkout servers on load or queue rules and removes them afterwards, so you pay for peak capacity only during the sale and nobody resizes servers by hand.",
+      "tair": "Checking carts, sessions and stock counts against the database is what slows checkout under load. Keeping this hot data in a managed in-memory store takes pressure off the orders database and keeps responses fast.",
+      "rds": "Every order must end up stored safely. A managed database across two data centers, with backups, lowers the risk of losing orders and saves your team from running database failover itself.",
+      "rocketmq": "Lost orders on 11.11 are the core pain. A managed queue designed for flash-sale order flows holds each order until a checkout worker saves it, turning a sudden flood into a steady stream the database can absorb.",
+      "oss": "Product images are the heaviest part of each page. Durable, pay-for-use object storage behind the edge cache keeps image delivery off your web servers and avoids buying disk capacity for peak.",
+      "sls": "After a sale, your team needs to know what went wrong and when. Centralized, searchable logs from web and checkout servers cut investigation time compared with collecting logs server by server.",
+      "cloudmonitor": "A slowdown found by customers costs orders. CloudMonitor alerts on server load, response time and orders waiting, so your team can react during the sale instead of reading complaints afterwards."
+    },
+    "tradeoffs": [
+      {
+        "text": "Queued orders are confirmed a little later at peak rather than instantly. Shoppers may wait briefly for final confirmation.",
+        "mitigation": "Show a clear order-received message in the app, and set checkout scaling on queue depth so waiting time stays short."
+      },
+      {
+        "text": "Your peak order rate is not yet known, so queue, worker and database capacity are not sized.",
+        "mitigation": "Confirm the expected order rate and validate it with a load test that simulates the 50x opening rush."
+      },
+      {
+        "text": "New servers take time to start, while the spike arrives in the first five minutes. Scaling on load alone may lag the opening rush.",
+        "mitigation": "Scale out on a schedule ahead of each announced sale, then let load-based rules handle the rest."
+      },
+      {
+        "text": "How your checkout is built today is open, and the app may need changes for the new lookup method and queue-based checkout.",
+        "mitigation": "Review the current checkout code and the app's release plan together before final design."
+      }
+    ],
+    "next": [
+      "Agree to a proof of concept and a load test simulating a 50x mobile rush before your next flash sale.",
+      "Tell us how your checkout backend is built today, so we can plan the move to queue-based checkout.",
+      "Share your expected peak order rate per minute during a flash sale, so we can size workers and the database.",
+      "Book a cost-estimate session with the account team covering steady-state and sale-day capacity.",
+      "Share your flash sale calendar so we can schedule capacity ahead of each event."
+    ],
+    "complete": true
+  },
+  "sections": [
+    {
+      "ms": 4556,
+      "section": {
+        "k": "exec",
+        "text": "Nusantara Mart, your site goes down every flash sale and checkout gets slow; last 11.11 you lost a lot of orders.\n\nThis proposal separates storefront traffic from checkout, holds orders in a queue during the first five minutes when traffic hits 50x, and scales compute automatically so mobile shoppers complete purchases even at peak.\n\nThe result is fewer dropped orders during sales events. To size the queue and workers, we need your decision on a load test before your next flash sale."
+      }
+    },
+    {
+      "ms": 6514,
+      "section": {
+        "k": "need",
+        "id": "n1",
+        "need": "Site goes down every flash sale.",
+        "source": "stated",
+        "quote": "Our site goes down every flash sale",
+        "answer": "Compute scales out automatically while a queue holds incoming orders until servers are ready to save them. This keeps the storefront up when traffic jumps 50x in the first five minutes.",
+        "products": [
+          "ecs",
+          "ess",
+          "rocketmq"
+        ]
+      }
+    },
+    {
+      "ms": 8904,
+      "section": {
+        "k": "need",
+        "id": "n2",
+        "need": "Checkout gets slow during flash sales.",
+        "source": "stated",
+        "quote": "checkout gets slow",
+        "answer": "Checkout runs on its own servers that take orders from the queue. Shopping carts and stock counts are kept in memory. Browsing shoppers and paying shoppers no longer compete for the same capacity, so payment stays responsive while the storefront is busy.",
+        "products": [
+          "ecs",
+          "ess",
+          "tair",
+          "rocketmq"
+        ]
+      }
+    },
+    {
+      "ms": 10297,
+      "section": {
+        "k": "need",
+        "id": "n3",
+        "need": "Orders were lost during the last 11.11 sale.",
+        "source": "stated",
+        "quote": "last 11.11 we lost a lot of orders",
+        "answer": "Each order waits in a queue until it is written to a database that runs across two data centers. A traffic burst is then more likely to slow orders down than to lose them, which protects revenue on the biggest sale days.",
+        "products": [
+          "rocketmq",
+          "rds"
+        ]
+      }
+    },
+    {
+      "ms": 11897,
+      "section": {
+        "k": "need",
+        "id": "n4",
+        "need": "Traffic jumps about 50x in the first five minutes, almost all of it from the mobile app.",
+        "source": "stated",
+        "quote": "almost all of it comes from our mobile app",
+        "answer": "The app finds your servers through a protected lookup. Product pages and images are served from locations close to shoppers. A connection layer built for very large bursts spreads the load. The opening rush reaches your servers in a more manageable form.",
+        "products": [
+          "httpdns",
+          "esa",
+          "nlb",
+          "oss"
+        ]
+      }
+    },
+    {
+      "ms": 13047,
+      "section": {
+        "k": "need",
+        "id": "n5",
+        "need": "Retailers running flash sales usually face bots and attacks that take capacity away from real buyers.",
+        "source": "general",
+        "answer": "Filtering at the edge and in front of the web servers reduces bot and attack traffic before it uses capacity. This leaves more room for genuine shoppers and lowers the risk of a sale being disrupted.",
+        "products": [
+          "esa",
+          "waf"
+        ]
+      }
+    },
+    {
+      "ms": 14122,
+      "section": {
+        "k": "outcome",
+        "title": "More orders completed at peak",
+        "text": "Orders wait in a queue and checkout runs separately from browsing. A 50x opening rush is then far less likely to drop purchases than the setup that failed last 11.11."
+      }
+    },
+    {
+      "ms": 15220,
+      "section": {
+        "k": "outcome",
+        "title": "Pay for peaks only when needed",
+        "text": "A small base of servers, the database and the cache are a steady cost. Extra web and checkout servers are added during a sale and removed afterwards, so the cost of peak capacity follows actual sale traffic."
+      }
+    },
+    {
+      "ms": 16090,
+      "section": {
+        "k": "outcome",
+        "title": "Problems seen before shoppers notice",
+        "text": "Alerts on load, response time and orders waiting give your team early warning during a sale. Central logs shorten the search for causes afterwards."
+      }
+    },
+    {
+      "ms": 16840,
+      "section": {
+        "k": "outcome",
+        "title": "Reduced outage and attack risk",
+        "text": "Servers in two separate data centers, plus filtering at the edge, make it less likely that a single fault or a bot surge stops a sale."
+      }
+    },
+    {
+      "ms": 17639,
+      "section": {
+        "k": "why",
+        "product": "dns",
+        "text": "Shoppers on the web need your shop domain to resolve reliably. A managed DNS service points them to the edge layer, so your team does not have to run name servers of its own."
+      }
+    },
+    {
+      "ms": 18344,
+      "section": {
+        "k": "why",
+        "product": "httpdns",
+        "text": "Almost all flash sale traffic comes from your mobile app, so the app's first lookup matters. HTTPDNS lowers the risk of hijacked lookups and improves routing for app users at the moment a sale opens."
+      }
+    },
+    {
+      "ms": 19291,
+      "section": {
+        "k": "why",
+        "product": "esa",
+        "text": "The 50x rush lands first on product pages and images. ESA caches them close to shoppers in Indonesia and filters attack traffic at the edge. Less load reaches your servers, and you pay for fewer of them at peak."
+      }
+    },
+    {
+      "ms": 20140,
+      "section": {
+        "k": "why",
+        "product": "alb",
+        "text": "Browser shoppers still need fair sharing of load across web servers. ALB spreads requests over two data centers and can route by page path, which reduces the chance that one failing server takes the storefront down."
+      }
+    },
+    {
+      "ms": 20992,
+      "section": {
+        "k": "why",
+        "product": "waf",
+        "text": "Flash sales tend to attract scalper bots and injection attempts. Attaching WAF to the load balancer blocks much of this before it uses checkout capacity, which protects both revenue and your stock from abuse."
+      }
+    },
+    {
+      "ms": 21888,
+      "section": {
+        "k": "why",
+        "product": "nlb",
+        "text": "Your app opens a burst of connections in the first five minutes. NLB is built for very high connection counts, so the app's opening rush has a front door sized for it rather than a bottleneck."
+      }
+    },
+    {
+      "ms": 22691,
+      "section": {
+        "k": "why",
+        "product": "ecs",
+        "text": "Storefront and checkout each get their own pool of servers. Familiar virtual machines keep your existing code portable, and separating the two pools keeps a busy storefront from slowing payment."
+      }
+    },
+    {
+      "ms": 23639,
+      "section": {
+        "k": "why",
+        "product": "ess",
+        "text": "Peaks last minutes and quiet days last weeks. Auto Scaling adds web and checkout servers on load or queue rules and removes them afterwards, so you pay for peak capacity only during the sale and nobody resizes servers by hand."
+      }
+    },
+    {
+      "ms": 24439,
+      "section": {
+        "k": "why",
+        "product": "tair",
+        "text": "Checking carts, sessions and stock counts against the database is what slows checkout under load. Keeping this hot data in a managed in-memory store takes pressure off the orders database and keeps responses fast."
+      }
+    },
+    {
+      "ms": 25140,
+      "section": {
+        "k": "why",
+        "product": "rds",
+        "text": "Every order must end up stored safely. A managed database across two data centers, with backups, lowers the risk of losing orders and saves your team from running database failover itself."
+      }
+    },
+    {
+      "ms": 26089,
+      "section": {
+        "k": "why",
+        "product": "rocketmq",
+        "text": "Lost orders on 11.11 are the core pain. A managed queue designed for flash-sale order flows holds each order until a checkout worker saves it, turning a sudden flood into a steady stream the database can absorb."
+      }
+    },
+    {
+      "ms": 26939,
+      "section": {
+        "k": "why",
+        "product": "oss",
+        "text": "Product images are the heaviest part of each page. Durable, pay-for-use object storage behind the edge cache keeps image delivery off your web servers and avoids buying disk capacity for peak."
+      }
+    },
+    {
+      "ms": 27493,
+      "section": {
+        "k": "why",
+        "product": "sls",
+        "text": "After a sale, your team needs to know what went wrong and when. Centralized, searchable logs from web and checkout servers cut investigation time compared with collecting logs server by server."
+      }
+    },
+    {
+      "ms": 28491,
+      "section": {
+        "k": "why",
+        "product": "cloudmonitor",
+        "text": "A slowdown found by customers costs orders. CloudMonitor alerts on server load, response time and orders waiting, so your team can react during the sale instead of reading complaints afterwards."
+      }
+    },
+    {
+      "ms": 29441,
+      "section": {
+        "k": "tradeoff",
+        "text": "Queued orders are confirmed a little later at peak rather than instantly. Shoppers may wait briefly for final confirmation.",
+        "mitigation": "Show a clear order-received message in the app, and set checkout scaling on queue depth so waiting time stays short."
+      }
+    },
+    {
+      "ms": 30141,
+      "section": {
+        "k": "tradeoff",
+        "text": "Your peak order rate is not yet known, so queue, worker and database capacity are not sized.",
+        "mitigation": "Confirm the expected order rate and validate it with a load test that simulates the 50x opening rush."
+      }
+    },
+    {
+      "ms": 31147,
+      "section": {
+        "k": "tradeoff",
+        "text": "New servers take time to start, while the spike arrives in the first five minutes. Scaling on load alone may lag the opening rush.",
+        "mitigation": "Scale out on a schedule ahead of each announced sale, then let load-based rules handle the rest."
+      }
+    },
+    {
+      "ms": 32039,
+      "section": {
+        "k": "tradeoff",
+        "text": "How your checkout is built today is open, and the app may need changes for the new lookup method and queue-based checkout.",
+        "mitigation": "Review the current checkout code and the app's release plan together before final design."
+      }
+    },
+    {
+      "ms": 32442,
+      "section": {
+        "k": "next",
+        "text": "Agree to a proof of concept and a load test simulating a 50x mobile rush before your next flash sale."
+      }
+    },
+    {
+      "ms": 32842,
+      "section": {
+        "k": "next",
+        "text": "Tell us how your checkout backend is built today, so we can plan the move to queue-based checkout."
+      }
+    },
+    {
+      "ms": 33094,
+      "section": {
+        "k": "next",
+        "text": "Share your expected peak order rate per minute during a flash sale, so we can size workers and the database."
+      }
+    },
+    {
+      "ms": 33442,
+      "section": {
+        "k": "next",
+        "text": "Book a cost-estimate session with the account team covering steady-state and sale-day capacity."
+      }
+    },
+    {
+      "ms": 33829,
+      "section": {
+        "k": "next",
+        "text": "Share your flash sale calendar so we can schedule capacity ahead of each event."
+      }
+    }
+  ]
+}

@@ -1,0 +1,459 @@
+{
+  "id": "en-flashsale-backup",
+  "lang": "en",
+  "outcome": "done",
+  "stats": {
+    "model": "qwen3.8-max",
+    "servedBy": "claude",
+    "fallbackUsed": false,
+    "backupUsed": true,
+    "calls": 2,
+    "costUsd": 0.09706100000000001,
+    "ms": 32395,
+    "sections": 33,
+    "rejectedLines": 0,
+    "missing": [],
+    "promptTokens": 5883,
+    "completionTokens": 2708
+  },
+  "statuses": [
+    {
+      "ms": 4346,
+      "code": "finish"
+    }
+  ],
+  "draft": {
+    "lang": "en",
+    "exec": "Nusantara Mart loses orders when the site goes down during flash sales.\n\nThis proposal designs a Jakarta storefront that absorbs 50x traffic spikes and queues every checkout so no order is lost.\n\nThe result is a store that stays fast under peak load, protecting revenue and customer trust.",
+    "needs": [
+      {
+        "id": "n1",
+        "need": "Site goes down every flash sale.",
+        "source": "stated",
+        "quote": "Our site goes down every flash sale",
+        "answer": "Web servers scale out automatically while edge caching and load balancers absorb the surge. The storefront stays online, protecting sales events.",
+        "products": [
+          "ecs",
+          "ess",
+          "esa",
+          "nlb",
+          "alb"
+        ]
+      },
+      {
+        "id": "n2",
+        "need": "Checkout slows down and orders are lost at peak, costing revenue on the biggest sales days.",
+        "source": "stated",
+        "quote": "last 11.11 we lost a lot of orders",
+        "answer": "Checkout requests go into a managed queue. Dedicated checkout workers save them to the orders database at a safe pace. Orders wait in line instead of failing, which reduces lost sales when the database is busy.",
+        "products": [
+          "rocketmq",
+          "ecs",
+          "ess",
+          "rds",
+          "tair"
+        ]
+      },
+      {
+        "id": "n3",
+        "need": "Traffic jumps about 50 times in the first five minutes after a sale opens.",
+        "source": "stated",
+        "quote": "more like 50x in the first five minutes",
+        "answer": "Edge caching serves product pages and images before requests reach Jakarta. A network load balancer takes the connection burst, and auto scaling adds web and checkout servers as load rises. The first minutes of a sale, often the most valuable, get capacity sized for the surge.",
+        "products": [
+          "esa",
+          "nlb",
+          "ess",
+          "ecs",
+          "oss"
+        ]
+      },
+      {
+        "id": "n4",
+        "need": "Almost all flash-sale shoppers arrive through the mobile app, so app connectivity decides sales.",
+        "source": "stated",
+        "quote": "almost all of it comes from our mobile app",
+        "answer": "HTTPDNS lets the app look up the shop's address over a protected channel. This reduces DNS hijacking and improves how app traffic is routed. Fewer shoppers get misdirected or stuck while trying to reach the store.",
+        "products": [
+          "httpdns",
+          "dns",
+          "nlb"
+        ]
+      },
+      {
+        "id": "n5",
+        "need": "Flash sales attract bots and attacks that can crowd out real shoppers.",
+        "source": "general",
+        "answer": "Online retailers usually face scalper bots and floods during sales. Edge defense and a web application firewall filter this traffic early, so capacity goes to paying customers and stock is not drained by bots.",
+        "products": [
+          "esa",
+          "waf"
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "title": "Revenue protected on sale days",
+        "text": "Queued checkout and auto-scaled servers keep orders flowing during the spikes that previously took the site down. This reduces the order losses seen during 11.11."
+      },
+      {
+        "title": "Capacity paid for when needed",
+        "text": "Auto scaling adds servers for the sale window and removes them afterwards. Peak capacity becomes a variable cost instead of hardware sized for the busiest five minutes all year."
+      },
+      {
+        "title": "Problems seen before customers notice",
+        "text": "Central logs and alerts on CPU, latency and queue depth give the team early warning during a sale. They can act fast instead of learning about an outage from customers."
+      },
+      {
+        "title": "Data kept in Jakarta",
+        "text": "All data and workloads run in the Jakarta region (ap-southeast-5), matching Nusantara Mart's location requirement, close to Indonesian shoppers."
+      }
+    ],
+    "why": {
+      "dns": "Shoppers on browsers need the shop domain to point reliably at the protected edge. Without managed authoritative DNS, traffic steering to ESA would rest on a less dependable setup, adding an avoidable point of failure.",
+      "httpdns": "Almost all sale traffic comes from the mobile app, so app lookups that get hijacked or misrouted cost sales directly. Leaving it out exposes the main sales channel to DNS hijacking and weaker routing.",
+      "esa": "The 50x opening surge is mostly repeat requests for the same product pages and images. Serving these at the edge, with DDoS (flood attack) defense and bot management, keeps load off Jakarta. Without it, every request would hit the origin servers.",
+      "alb": "Web requests must be spread across servers in two zones so one zone's trouble does not take the store down. Without it, a busy or failed server would affect shoppers directly.",
+      "waf": "Scalper bots and injection attacks spike during sales and compete with real buyers. The web application firewall blocks them in front of the storefront. Without it, bots could drain stock and capacity meant for customers.",
+      "nlb": "App traffic arrives as a burst of connections in the first five minutes. A layer-4 (connection-level) load balancer is built for very high connection counts. Without it, the connection surge itself could become the bottleneck that stalls the sale opening.",
+      "ecs": "The storefront and checkout workers need servers that run Nusantara Mart's applications. Splitting them means a checkout backlog does not slow browsing. Without separate fleets, heavy checkout load would drag down the whole store.",
+      "ess": "Sizing for a 50x spike all year would waste money, and sizing for normal days causes outages. Auto Scaling adds servers when load or queue depth rises and removes them later. Without it, capacity is either too costly or too small.",
+      "tair": "Sessions, carts and hot stock counts are read constantly during a sale. Keeping them in memory takes this load off the orders database. Without it, the database would face every read and slow checkout again.",
+      "rds": "Orders are the business record and must be stored reliably. A managed database with high availability across two zones and backups reduces the risk of losing them. Without it, the team carries database upkeep and failover risk alone.",
+      "rocketmq": "Lost orders last 11.11 point to checkout overwhelming the backend. A managed queue holds each order until a worker saves it, so spikes become waiting time, not failures. Without it, the database takes the full burst.",
+      "oss": "Product images are the heaviest content in a sale. Durable storage that the edge caches from keeps images off the web servers. Without it, servers would spend capacity serving files instead of taking orders.",
+      "sls": "After a sale the team needs to know what went wrong and where. Central logs from web and checkout servers make that search fast. Without them, troubleshooting means piecing together logs from servers that may already be scaled away.",
+      "cloudmonitor": "A sale's first minutes leave little time to react. Alerts on CPU, latency and queue depth warn the team early. Without them, problems surface only through customer complaints and lost orders."
+    },
+    "tradeoffs": [
+      {
+        "text": "Queued checkout means shoppers may wait for order confirmation during peaks rather than getting an instant result.",
+        "mitigation": "Show a clear 'order received' status in the app and alert when queue depth grows, so workers scale before waits get long."
+      },
+      {
+        "text": "Peak order rate is not yet known, so queue, worker and database sizing are estimates.",
+        "mitigation": "Confirm the peak orders per minute and load-test at 50x before the next major sale."
+      },
+      {
+        "text": "How the current checkout backend is built is unknown, which affects the migration effort and whether servers or containers fit better.",
+        "mitigation": "Confirm the checkout stack and adjust the compute choice before detailed planning."
+      },
+      {
+        "text": "The design assumes a public-facing e-commerce site; Nusantara Mart has not confirmed this.",
+        "mitigation": "Confirm the site is public-facing; the edge and firewall layers depend on it."
+      }
+    ],
+    "next": [
+      "Confirm the peak order rate per minute during a flash sale to size the queue, workers and database.",
+      "Share how the checkout backend is built today so we can plan the migration path.",
+      "Integrate the HTTPDNS SDK into the mobile app and plan an app release before the next sale.",
+      "Run a load test simulating a 50x opening surge in Jakarta before the next major sale.",
+      "Agree on alert thresholds and an on-call plan for sale days with the operations team."
+    ],
+    "complete": true
+  },
+  "sections": [
+    {
+      "ms": 2908,
+      "section": {
+        "k": "exec",
+        "text": "Nusantara Mart loses orders when the site goes down during flash sales.\n\nThis proposal designs a Jakarta storefront that absorbs 50x traffic spikes and queues every checkout so no order is lost.\n\nThe result is a store that stays fast under peak load, protecting revenue and customer trust."
+      }
+    },
+    {
+      "ms": 4345,
+      "section": {
+        "k": "need",
+        "id": "n1",
+        "need": "Site goes down every flash sale.",
+        "source": "stated",
+        "quote": "Our site goes down every flash sale",
+        "answer": "Web servers scale out automatically while edge caching and load balancers absorb the surge. The storefront stays online, protecting sales events.",
+        "products": [
+          "ecs",
+          "ess",
+          "esa",
+          "nlb",
+          "alb"
+        ]
+      }
+    },
+    {
+      "ms": 6950,
+      "section": {
+        "k": "need",
+        "id": "n2",
+        "need": "Checkout slows down and orders are lost at peak, costing revenue on the biggest sales days.",
+        "source": "stated",
+        "quote": "last 11.11 we lost a lot of orders",
+        "answer": "Checkout requests go into a managed queue. Dedicated checkout workers save them to the orders database at a safe pace. Orders wait in line instead of failing, which reduces lost sales when the database is busy.",
+        "products": [
+          "rocketmq",
+          "ecs",
+          "ess",
+          "rds",
+          "tair"
+        ]
+      }
+    },
+    {
+      "ms": 8750,
+      "section": {
+        "k": "need",
+        "id": "n3",
+        "need": "Traffic jumps about 50 times in the first five minutes after a sale opens.",
+        "source": "stated",
+        "quote": "more like 50x in the first five minutes",
+        "answer": "Edge caching serves product pages and images before requests reach Jakarta. A network load balancer takes the connection burst, and auto scaling adds web and checkout servers as load rises. The first minutes of a sale, often the most valuable, get capacity sized for the surge.",
+        "products": [
+          "esa",
+          "nlb",
+          "ess",
+          "ecs",
+          "oss"
+        ]
+      }
+    },
+    {
+      "ms": 10301,
+      "section": {
+        "k": "need",
+        "id": "n4",
+        "need": "Almost all flash-sale shoppers arrive through the mobile app, so app connectivity decides sales.",
+        "source": "stated",
+        "quote": "almost all of it comes from our mobile app",
+        "answer": "HTTPDNS lets the app look up the shop's address over a protected channel. This reduces DNS hijacking and improves how app traffic is routed. Fewer shoppers get misdirected or stuck while trying to reach the store.",
+        "products": [
+          "httpdns",
+          "dns",
+          "nlb"
+        ]
+      }
+    },
+    {
+      "ms": 11552,
+      "section": {
+        "k": "need",
+        "id": "n5",
+        "need": "Flash sales attract bots and attacks that can crowd out real shoppers.",
+        "source": "general",
+        "answer": "Online retailers usually face scalper bots and floods during sales. Edge defense and a web application firewall filter this traffic early, so capacity goes to paying customers and stock is not drained by bots.",
+        "products": [
+          "esa",
+          "waf"
+        ]
+      }
+    },
+    {
+      "ms": 12448,
+      "section": {
+        "k": "outcome",
+        "title": "Revenue protected on sale days",
+        "text": "Queued checkout and auto-scaled servers keep orders flowing during the spikes that previously took the site down. This reduces the order losses seen during 11.11."
+      }
+    },
+    {
+      "ms": 13264,
+      "section": {
+        "k": "outcome",
+        "title": "Capacity paid for when needed",
+        "text": "Auto scaling adds servers for the sale window and removes them afterwards. Peak capacity becomes a variable cost instead of hardware sized for the busiest five minutes all year."
+      }
+    },
+    {
+      "ms": 13851,
+      "section": {
+        "k": "outcome",
+        "title": "Problems seen before customers notice",
+        "text": "Central logs and alerts on CPU, latency and queue depth give the team early warning during a sale. They can act fast instead of learning about an outage from customers."
+      }
+    },
+    {
+      "ms": 14504,
+      "section": {
+        "k": "outcome",
+        "title": "Data kept in Jakarta",
+        "text": "All data and workloads run in the Jakarta region (ap-southeast-5), matching Nusantara Mart's location requirement, close to Indonesian shoppers."
+      }
+    },
+    {
+      "ms": 15551,
+      "section": {
+        "k": "why",
+        "product": "dns",
+        "text": "Shoppers on browsers need the shop domain to point reliably at the protected edge. Without managed authoritative DNS, traffic steering to ESA would rest on a less dependable setup, adding an avoidable point of failure."
+      }
+    },
+    {
+      "ms": 16251,
+      "section": {
+        "k": "why",
+        "product": "httpdns",
+        "text": "Almost all sale traffic comes from the mobile app, so app lookups that get hijacked or misrouted cost sales directly. Leaving it out exposes the main sales channel to DNS hijacking and weaker routing."
+      }
+    },
+    {
+      "ms": 17501,
+      "section": {
+        "k": "why",
+        "product": "esa",
+        "text": "The 50x opening surge is mostly repeat requests for the same product pages and images. Serving these at the edge, with DDoS (flood attack) defense and bot management, keeps load off Jakarta. Without it, every request would hit the origin servers."
+      }
+    },
+    {
+      "ms": 18101,
+      "section": {
+        "k": "why",
+        "product": "alb",
+        "text": "Web requests must be spread across servers in two zones so one zone's trouble does not take the store down. Without it, a busy or failed server would affect shoppers directly."
+      }
+    },
+    {
+      "ms": 19000,
+      "section": {
+        "k": "why",
+        "product": "waf",
+        "text": "Scalper bots and injection attacks spike during sales and compete with real buyers. The web application firewall blocks them in front of the storefront. Without it, bots could drain stock and capacity meant for customers."
+      }
+    },
+    {
+      "ms": 20052,
+      "section": {
+        "k": "why",
+        "product": "nlb",
+        "text": "App traffic arrives as a burst of connections in the first five minutes. A layer-4 (connection-level) load balancer is built for very high connection counts. Without it, the connection surge itself could become the bottleneck that stalls the sale opening."
+      }
+    },
+    {
+      "ms": 21005,
+      "section": {
+        "k": "why",
+        "product": "ecs",
+        "text": "The storefront and checkout workers need servers that run Nusantara Mart's applications. Splitting them means a checkout backlog does not slow browsing. Without separate fleets, heavy checkout load would drag down the whole store."
+      }
+    },
+    {
+      "ms": 22053,
+      "section": {
+        "k": "why",
+        "product": "ess",
+        "text": "Sizing for a 50x spike all year would waste money, and sizing for normal days causes outages. Auto Scaling adds servers when load or queue depth rises and removes them later. Without it, capacity is either too costly or too small."
+      }
+    },
+    {
+      "ms": 22753,
+      "section": {
+        "k": "why",
+        "product": "tair",
+        "text": "Sessions, carts and hot stock counts are read constantly during a sale. Keeping them in memory takes this load off the orders database. Without it, the database would face every read and slow checkout again."
+      }
+    },
+    {
+      "ms": 23600,
+      "section": {
+        "k": "why",
+        "product": "rds",
+        "text": "Orders are the business record and must be stored reliably. A managed database with high availability across two zones and backups reduces the risk of losing them. Without it, the team carries database upkeep and failover risk alone."
+      }
+    },
+    {
+      "ms": 24749,
+      "section": {
+        "k": "why",
+        "product": "rocketmq",
+        "text": "Lost orders last 11.11 point to checkout overwhelming the backend. A managed queue holds each order until a worker saves it, so spikes become waiting time, not failures. Without it, the database takes the full burst."
+      }
+    },
+    {
+      "ms": 25450,
+      "section": {
+        "k": "why",
+        "product": "oss",
+        "text": "Product images are the heaviest content in a sale. Durable storage that the edge caches from keeps images off the web servers. Without it, servers would spend capacity serving files instead of taking orders."
+      }
+    },
+    {
+      "ms": 26448,
+      "section": {
+        "k": "why",
+        "product": "sls",
+        "text": "After a sale the team needs to know what went wrong and where. Central logs from web and checkout servers make that search fast. Without them, troubleshooting means piecing together logs from servers that may already be scaled away."
+      }
+    },
+    {
+      "ms": 27247,
+      "section": {
+        "k": "why",
+        "product": "cloudmonitor",
+        "text": "A sale's first minutes leave little time to react. Alerts on CPU, latency and queue depth warn the team early. Without them, problems surface only through customer complaints and lost orders."
+      }
+    },
+    {
+      "ms": 28396,
+      "section": {
+        "k": "tradeoff",
+        "text": "Queued checkout means shoppers may wait for order confirmation during peaks rather than getting an instant result.",
+        "mitigation": "Show a clear 'order received' status in the app and alert when queue depth grows, so workers scale before waits get long."
+      }
+    },
+    {
+      "ms": 29146,
+      "section": {
+        "k": "tradeoff",
+        "text": "Peak order rate is not yet known, so queue, worker and database sizing are estimates.",
+        "mitigation": "Confirm the peak orders per minute and load-test at 50x before the next major sale."
+      }
+    },
+    {
+      "ms": 29999,
+      "section": {
+        "k": "tradeoff",
+        "text": "How the current checkout backend is built is unknown, which affects the migration effort and whether servers or containers fit better.",
+        "mitigation": "Confirm the checkout stack and adjust the compute choice before detailed planning."
+      }
+    },
+    {
+      "ms": 30748,
+      "section": {
+        "k": "tradeoff",
+        "text": "The design assumes a public-facing e-commerce site; Nusantara Mart has not confirmed this.",
+        "mitigation": "Confirm the site is public-facing; the edge and firewall layers depend on it."
+      }
+    },
+    {
+      "ms": 31098,
+      "section": {
+        "k": "next",
+        "text": "Confirm the peak order rate per minute during a flash sale to size the queue, workers and database."
+      }
+    },
+    {
+      "ms": 31347,
+      "section": {
+        "k": "next",
+        "text": "Share how the checkout backend is built today so we can plan the migration path."
+      }
+    },
+    {
+      "ms": 31697,
+      "section": {
+        "k": "next",
+        "text": "Integrate the HTTPDNS SDK into the mobile app and plan an app release before the next sale."
+      }
+    },
+    {
+      "ms": 32067,
+      "section": {
+        "k": "next",
+        "text": "Run a load test simulating a 50x opening surge in Jakarta before the next major sale."
+      }
+    },
+    {
+      "ms": 32395,
+      "section": {
+        "k": "next",
+        "text": "Agree on alert thresholds and an on-call plan for sale days with the operations team."
+      }
+    }
+  ]
+}

@@ -1,0 +1,292 @@
+{
+  "steps": [
+    {
+      "kind": "ask",
+      "text": "We run an online concert ticketing site for fans across Southeast Asia, hosted on-prem in Singapore today. When a K-pop tour goes on sale, traffic jumps about 30x in the first ten minutes; last March the site went down for 40 minutes during a big sale and fans flooded social media with complaints. Bots also buy up seats for scalpers. We want to move to Alibaba Cloud and stay up during on-sales."
+    },
+    {
+      "kind": "correct",
+      "text": "We already use PostgreSQL and our team knows it well, so please keep PostgreSQL."
+    }
+  ],
+  "memory": {
+    "turns": [
+      {
+        "role": "user",
+        "text": "We run an online concert ticketing site for fans across Southeast Asia, hosted on-prem in Singapore today. When a K-pop tour goes on sale, traffic jumps about 30x in the first ten minutes; last March the site went down for 40 minutes during a big sale and fans flooded social media with complaints. Bots also buy up seats for scalpers. We want to move to Alibaba Cloud and stay up during on-sales."
+      },
+      {
+        "role": "assistant",
+        "text": "I'll design a highly available ticketing platform on Alibaba Cloud in Singapore, built to absorb 30x flash-sale spikes and block scalper bots.\nSAE autoscales serverless containers from a small baseline to hundreds of instances in seconds during on-sales.\nTair holds seat locks and sessions; PolarDB stores orders durably with zone-level HA.\nARMS traces every transaction, SLS centralizes logs, and Cloud Backup protects against data loss.",
+        "changes": "+internet[external] +edge[edge] +sg[region] +vpc[vpc] +users(users) +dns(dns) +esa(esa) +waf(waf, badge on esa) +alb(alb, zones a,b) +captcha(captcha) +app(sae, zones a,b) +queue(rocketmq, zones a,b) +worker(sae, zones a,b) +cache(tair, zones a,b) +db(polardb, zones a,b) +media(oss) +monitor(arms) +logs(sls) +backup(cloud-backup) +e-users-dns +e-users-esa +e-esa-alb +e-alb-app +e-app-queue +e-queue-worker +e-app-cache +e-worker-db +e-esa-media +e-app-monitor +e-app-logs +e-db-backup"
+      },
+      {
+        "role": "user",
+        "text": "About the assumption “Public-facing ticketing site for SEA fans”: We already use PostgreSQL and our team knows it well, so please keep PostgreSQL."
+      },
+      {
+        "role": "assistant",
+        "text": "Noted: PolarDB PostgreSQL-compatible keeps your team on PostgreSQL while adding cloud-native scaling.",
+        "changes": "~db(polardb, zones a,b)"
+      }
+    ],
+    "requirements": [
+      "Customer data stays in Singapore",
+      "Survive 30x traffic spikes during on-sales",
+      "Block scalper bots at sign-up and checkout",
+      "Team knows PostgreSQL, keep it"
+    ],
+    "graph": {
+      "groups": {
+        "internet": {
+          "id": "internet",
+          "kind": "external",
+          "label": "Internet",
+          "parent": null
+        },
+        "edge": {
+          "id": "edge",
+          "kind": "edge",
+          "label": "Edge",
+          "parent": null
+        },
+        "sg": {
+          "id": "sg",
+          "kind": "region",
+          "label": "Singapore (ap-southeast-1)",
+          "parent": null
+        },
+        "vpc": {
+          "id": "vpc",
+          "kind": "vpc",
+          "label": "Ticketing VPC",
+          "parent": "sg"
+        }
+      },
+      "nodes": {
+        "users": {
+          "id": "users",
+          "product": "users",
+          "label": "Fans across Southeast Asia",
+          "group": "internet",
+          "why": "Concert-goers buying tickets during flash sales."
+        },
+        "dns": {
+          "id": "dns",
+          "product": "dns",
+          "label": "Cloud DNS",
+          "group": null,
+          "why": "Resolves the ticketing domain to ESA edge nodes."
+        },
+        "esa": {
+          "id": "esa",
+          "product": "esa",
+          "label": "ESA",
+          "group": "edge",
+          "why": "Caches static assets, accelerates dynamic APIs and absorbs DDoS before the origin."
+        },
+        "waf": {
+          "id": "waf",
+          "product": "waf",
+          "label": "WAF",
+          "group": "edge",
+          "attachTo": "esa",
+          "why": "Blocks OWASP attacks and known bot signatures at the edge."
+        },
+        "alb": {
+          "id": "alb",
+          "product": "alb",
+          "label": "ALB",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Layer-7 load balancer spreading traffic across two zones."
+        },
+        "captcha": {
+          "id": "captcha",
+          "product": "captcha",
+          "label": "Captcha",
+          "group": "sg",
+          "why": "Challenges suspicious users at login and checkout to stop scalper bots."
+        },
+        "app": {
+          "id": "app",
+          "product": "sae",
+          "label": "Ticketing app",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Runs the ticketing backend; autoscales 5 to 300 instances on CPU for 30x spikes."
+        },
+        "queue": {
+          "id": "queue",
+          "product": "rocketmq",
+          "label": "Order queue",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Buffers purchase requests so the database is never overwhelmed during flash sales."
+        },
+        "worker": {
+          "id": "worker",
+          "product": "sae",
+          "label": "Order workers",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Consumes queued orders and confirms seats without blocking the frontend."
+        },
+        "cache": {
+          "id": "cache",
+          "product": "tair",
+          "label": "Seat lock cache",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Holds temporary seat reservations and sessions with sub-millisecond latency."
+        },
+        "db": {
+          "id": "db",
+          "product": "polardb",
+          "label": "Orders DB (PostgreSQL)",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Stores orders durably in PostgreSQL with zone-level HA."
+        },
+        "media": {
+          "id": "media",
+          "product": "oss",
+          "label": "Event media",
+          "group": "sg",
+          "why": "Stores concert images and PDFs served by ESA."
+        },
+        "monitor": {
+          "id": "monitor",
+          "product": "arms",
+          "label": "ARMS",
+          "group": "sg",
+          "why": "Traces latency spikes and alerts the team before fans notice issues."
+        },
+        "logs": {
+          "id": "logs",
+          "product": "sls",
+          "label": "Log Service",
+          "group": "sg",
+          "why": "Centralizes access and application logs for audit and troubleshooting."
+        },
+        "backup": {
+          "id": "backup",
+          "product": "cloud-backup",
+          "label": "Cloud Backup",
+          "group": "sg",
+          "why": "Scheduled backups of PolarDB and OSS to prevent data loss."
+        }
+      },
+      "edges": {
+        "e-users-dns": {
+          "id": "e-users-dns",
+          "from": "users",
+          "to": "dns",
+          "kind": "resolve"
+        },
+        "e-users-esa": {
+          "id": "e-users-esa",
+          "from": "users",
+          "to": "esa",
+          "label": "HTTPS"
+        },
+        "e-esa-alb": {
+          "id": "e-esa-alb",
+          "from": "esa",
+          "to": "alb",
+          "label": "origin"
+        },
+        "e-alb-app": {
+          "id": "e-alb-app",
+          "from": "alb",
+          "to": "app"
+        },
+        "e-app-queue": {
+          "id": "e-app-queue",
+          "from": "app",
+          "to": "queue",
+          "label": "orders",
+          "kind": "async"
+        },
+        "e-queue-worker": {
+          "id": "e-queue-worker",
+          "from": "queue",
+          "to": "worker",
+          "label": "consume",
+          "kind": "async"
+        },
+        "e-app-cache": {
+          "id": "e-app-cache",
+          "from": "app",
+          "to": "cache",
+          "label": "lock"
+        },
+        "e-worker-db": {
+          "id": "e-worker-db",
+          "from": "worker",
+          "to": "db",
+          "label": "SQL"
+        },
+        "e-esa-media": {
+          "id": "e-esa-media",
+          "from": "esa",
+          "to": "media",
+          "label": "assets"
+        },
+        "e-app-monitor": {
+          "id": "e-app-monitor",
+          "from": "app",
+          "to": "monitor",
+          "kind": "control"
+        },
+        "e-app-logs": {
+          "id": "e-app-logs",
+          "from": "app",
+          "to": "logs",
+          "kind": "control"
+        },
+        "e-db-backup": {
+          "id": "e-db-backup",
+          "from": "db",
+          "to": "backup",
+          "kind": "control"
+        }
+      },
+      "recs": []
+    },
+    "tombstones": [],
+    "constraints": [
+      {
+        "text": "Customer data stays in Singapore",
+        "regions": [
+          "ap-southeast-1"
+        ]
+      }
+    ],
+    "assumptions": [
+      {
+        "id": "scale",
+        "text": "About 500k fans during peak on-sale",
+        "alt": "Over 2 million concurrent fans"
+      }
+    ]
+  }
+}

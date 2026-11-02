@@ -150,3 +150,63 @@ test('default titles: the first sentence of a long ask, the whole of a short one
   assert.ok(long.endsWith('…') && Array.from(long).length <= 91, long);
   assert.equal(defaultTitle(sess(''), xt), 'Untitled architecture');
 });
+
+test('a draft becomes a narrative: paragraphs, source lines, product names from the design, drafted reasons on entries', () => {
+  const s = stateOf('residency');
+  const draft = {
+    lang: 'en' as const,
+    exec: 'First paragraph\nstill first.\n\n  Second paragraph.  \n\n',
+    needs: [
+      { id: 'a', need: 'Data stays in Singapore', source: 'stated' as const, quote: 'customer data must stay in Singapore', answer: 'One region.', products: ['rds', 'oss', 'rds', 'not-a-product', 'kafka'] },
+      { id: 'b', need: 'Europe is slow', source: 'inferred' as const, answer: 'Global Accelerator.', products: ['ga'] },
+      { id: 'c', need: 'Audit trail', source: 'general' as const, answer: 'Logs.', products: [] },
+      { id: 'd', need: 'Said but not quoted', source: 'stated' as const, answer: 'x', products: [] },
+    ],
+    outcomes: [{ title: 'Compliance', text: 'Auditors see one boundary.' }],
+    why: { alb: '  Spreads load over two zones.  ', 'not-in-design': 'x' },
+    tradeoffs: [{ text: 'Costs more.', mitigation: 'Scales down at night.' }, { text: 'One region.' }],
+    next: ['Workshop', ' '],
+    complete: false,
+  };
+  const m = buildProposal({ session: s.session, graph: s.display.graph, layout: s.display.layout, catalog, lang: 'en', now: NOW, draft });
+  const n = m.narrative!;
+  assert.deepEqual(n.exec, ['First paragraph still first.', 'Second paragraph.']);
+  assert.deepEqual(n.needs.map((x) => x.sourceText), ['“customer data must stay in Singapore”', 'Implied by what you described', 'Typical for businesses like yours', 'Stated in the conversation']);
+  assert.equal(n.mostlyTypical, false, 'a stated need: the page is headed "What you told us"');
+  assert.deepEqual(n.needs[0].products, [catalog.byId.get('rds')!.name, catalog.byId.get('oss')!.name], 'design products only, once each, by official name');
+  assert.deepEqual(n.next, ['Workshop']);
+  assert.equal(m.components.find((c) => c.product === 'alb')!.draftWhy, 'Spreads load over two zones.');
+  assert.equal(m.components.filter((c) => c.draftWhy).length, 1);
+  // without a draft the model is exactly what it was: no narrative and no drafted reasons, not even as undefined keys
+  const plain = modelOf(s);
+  assert.equal('narrative' in plain, false);
+  assert.ok(plain.components.every((c) => !('draftWhy' in c) && !('construct' in c)));
+  assert.deepEqual(modelOf(s), buildProposal({ session: s.session, graph: s.display.graph, layout: s.display.layout, catalog, lang: 'en', now: NOW, draft: null }));
+});
+
+test('the Korean and Chinese source lines use their own quotation marks and words', () => {
+  for (const lang of ['ko', 'zh'] as const) {
+    const s = stateOf('residency', lang);
+    const m = buildProposal({ session: s.session, graph: s.display.graph, layout: s.display.layout, catalog, lang, now: NOW, draft: { lang, exec: 'x', needs: [{ id: 'a', need: 'n', source: 'stated', quote: '데이터', answer: 'a', products: [] }, { id: 'b', need: 'n', source: 'inferred', answer: 'a', products: [] }], outcomes: [], why: {}, tradeoffs: [], next: [], complete: true } });
+    const xt = makeXT(lang);
+    // a Korean quote in a Chinese document is marked as the customer's original wording
+    assert.deepEqual(m.narrative!.needs.map((x) => x.sourceText), [lang === 'ko' ? '“데이터”' : '“데이터”（原话）', xt('needs.inferred')]);
+  }
+});
+
+test('with fewer than half of the needs stated the needs page is headed as typical; with no catalog price the next steps say who estimates the cost', () => {
+  const s = stateOf('residency', 'en');
+  const draft = { lang: 'en' as const, exec: 'x', needs: [{ id: 'a', need: 'Traffic can change quickly', source: 'general' as const, answer: 'a', products: [] }, { id: 'b', need: 'n', source: 'inferred' as const, answer: 'a', products: [] }], outcomes: [], why: {}, tradeoffs: [], next: ['Book a proof of concept.'], complete: true };
+  const m = buildProposal({ session: s.session, graph: s.display.graph, layout: s.display.layout, catalog, lang: 'en', now: NOW, draft });
+  assert.equal(m.narrative!.mostlyTypical, true);
+  // one stated need (the one-line request itself) among three: still headed as typical
+  const thin = buildProposal({ session: s.session, graph: s.display.graph, layout: s.display.layout, catalog, lang: 'en', now: NOW, draft: { ...draft, needs: [{ id: 'r', need: 'A web app', source: 'stated', quote: 'customer data must stay', answer: 'a', products: [] }, ...draft.needs] } });
+  assert.equal(thin.narrative!.mostlyTypical, true);
+  const priced = m.components.some((c) => c.price) || m.recs.some((r) => r.price);
+  assert.equal(m.narrative!.pricingNote, priced ? null : 'Pricing: your Alibaba Cloud account team will prepare a cost estimate for this design.');
+  // an English quote in an English document carries no mark
+  const en = buildProposal({ session: s.session, graph: s.display.graph, layout: s.display.layout, catalog, lang: 'en', now: NOW, draft: { ...draft, needs: [{ id: 'a', need: 'n', source: 'stated', quote: 'stay in Singapore', answer: 'a', products: [] }] } });
+  assert.deepEqual(en.narrative!.needs.map((x) => x.sourceText), ['“stay in Singapore”']);
+  const ko = buildProposal({ session: s.session, graph: s.display.graph, layout: s.display.layout, catalog, lang: 'en', now: NOW, draft: { ...draft, needs: [{ id: 'a', need: 'n', source: 'stated', quote: '데이터', answer: 'a', products: [] }] } });
+  assert.deepEqual(ko.narrative!.needs.map((x) => x.sourceText), ['“데이터” (original wording)']);
+});

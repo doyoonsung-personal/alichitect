@@ -13,6 +13,7 @@ apps/server/logs/
 spikes/layout-bench/out/
 tools/qwen/usage.jsonl
 eval/drafts/
+eval/proposal/pdf/
 
 # OS files
 .DS_Store

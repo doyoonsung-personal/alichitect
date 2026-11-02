@@ -337,6 +337,8 @@ async function main() {
       await sleep(200);
       const dialogBg = await p.$eval('.xp__panel', (e) => getComputedStyle(e).backgroundColor);
       await p.click('.xp__actions .btn--primary');
+      // a replay has no server to write the narrative: the proposal overlay offers the basic version, which downloads
+      await (await p.waitForSelector('.dov__panel .dov__actions .btn--primary')).click();
       let file = null;
       for (let i = 0; i < 200 && !file; i++) {
         await sleep(100);

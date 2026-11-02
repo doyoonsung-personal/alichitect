@@ -1,8 +1,8 @@
-// Shape and limit checks for POST /api/turn bodies (TurnRequest). The body is untrusted JSON: every field is checked
+// Shape and limit checks for POST /api/turn bodies (TurnRequest) and POST /api/proposal bodies (ProposalRequest). The body is untrusted JSON: every field is checked
 // for type, length and count before it reaches the prompt builder, the reducer or the validator. Record keys must be
 // valid element ids equal to the element's own id, which also rules out keys such as __proto__ and constructor.
 // Pure: no I/O.
-import type { Constraint, Graph, GraphEdge, GraphGroup, GraphNode, Recommendation, SessionMemory, TurnRequest, Turn } from '../../../packages/core/src/types.ts';
+import type { Constraint, Graph, GraphEdge, GraphGroup, GraphNode, ProposalRequest, Recommendation, SessionMemory, TurnRequest, Turn } from '../../../packages/core/src/types.ts';
 import { ID_PATTERN } from '../../../packages/core/src/reducer.ts';
 import { ASK_LIMITS } from '../../../packages/core/src/asks.ts';
 
@@ -27,6 +27,8 @@ export const LIMITS = {
   zones: 6,
   textChars: 400, // labels, why, edge labels and other short graph text
   sessionId: 128,
+  proposalTitle: 160, // code points of the export dialog's cover title
+  proposalCustomer: 80, // and of its customer name
 } as const;
 
 /** Element and catalog ids, exactly as the reducer accepts them. */
@@ -37,6 +39,7 @@ const GROUP_KINDS = new Set(['external', 'edge', 'region', 'vpc', 'zone', 'subne
 const EDGE_KINDS = new Set(['data', 'async', 'control', 'resolve']);
 
 export type RequestCheck = { ok: true; value: TurnRequest } | { ok: false; code: 'bad-request'; message: string };
+export type ProposalCheck = { ok: true; value: ProposalRequest } | { ok: false; code: 'bad-request'; message: string };
 
 class Bad extends Error {}
 
@@ -254,6 +257,26 @@ export function checkTurnRequest(body: unknown): RequestCheck {
     if (typeof sessionId !== 'string' || !SESSION_RE.test(sessionId)) fail('sessionId', `expected 1-${LIMITS.sessionId} characters of A-Z, a-z, 0-9, _ or -`);
     const ask = str(own(o, 'ask'), 'ask', LIMITS.askChars, { nonEmpty: true })!;
     return { ok: true, value: { sessionId, ask, memory: memory(own(o, 'memory'), 'memory') } };
+  } catch (e) {
+    if (e instanceof Bad) return { ok: false, code: 'bad-request', message: e.message };
+    return { ok: false, code: 'bad-request', message: 'invalid request body' };
+  }
+}
+
+/**
+ * Checks a parsed POST /api/proposal body: the same session and memory checks as a turn, plus the PDF language and the
+ * export dialog's cover fields. On success the value is a fresh copy built only from known fields.
+ */
+export function checkProposalRequest(body: unknown): ProposalCheck {
+  try {
+    const o = obj(body, 'body');
+    const sessionId = own(o, 'sessionId');
+    if (typeof sessionId !== 'string' || !SESSION_RE.test(sessionId)) fail('sessionId', `expected 1-${LIMITS.sessionId} characters of A-Z, a-z, 0-9, _ or -`);
+    const lang = own(o, 'lang');
+    if (lang !== 'en' && lang !== 'ko' && lang !== 'zh') fail('lang', "expected 'en', 'ko' or 'zh'");
+    const title = str(own(o, 'title') ?? '', 'title', LIMITS.proposalTitle)!;
+    const customer = str(own(o, 'customer') ?? '', 'customer', LIMITS.proposalCustomer)!;
+    return { ok: true, value: { sessionId, lang, title, customer, memory: memory(own(o, 'memory'), 'memory') } };
   } catch (e) {
     if (e instanceof Bad) return { ok: false, code: 'bad-request', message: e.message };
     return { ok: false, code: 'bad-request', message: 'invalid request body' };

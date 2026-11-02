@@ -2,12 +2,15 @@
 // onto a pdfkit document through the Typesetter, at explicit coordinates, with the tokens of the app (ink on a white
 // sheet, hairlines, blue links; orange only in the logo and the official icons). The same function runs twice: first
 // "dry" on a stub document, so the font set learns which glyphs it needs, then for real.
+// With a drafted narrative the business reader comes first: cover, executive summary, the customer's needs and how the
+// design answers them, the diagram, components led by why each is here, recommendations, trade-offs and next steps, and
+// then the technical record (the summary, renamed the design record), connections and revision history.
 import PDFDocument from 'pdfkit';
 import SVGtoPDF from 'svg-to-pdfkit';
 import { iconFor } from '../icons/index.ts';
 import { iconSvg } from '../icons/svg.ts';
 import type { FontSet } from './fonts.ts';
-import type { ComponentEntry, ProposalModel, RecEntry } from './model.ts';
+import type { ComponentEntry, NarrativeModel, ProposalModel, RecEntry } from './model.ts';
 import { makeXT } from './strings.ts';
 import type { XT } from './strings.ts';
 import type { DiagramSvg } from './svg.ts';
@@ -26,6 +29,8 @@ const CONTENT_TOP = 76;
 const FOOTER_RULE_FROM_BOTTOM = 40;
 /** A diagram is set at no less than this scale (a 14 px card title is then 8.7 pt) or moves to a larger page. */
 export const MIN_DIAGRAM_SCALE = 0.62;
+/** The drafted narrative's reading width: about 70 characters of body text, the measure business prose reads best at. */
+const MEASURE = 400;
 
 export interface PdfInput {
   model: ProposalModel;
@@ -92,8 +97,18 @@ export function buildDocument(i: PdfInput): PdfReport {
   }
 
   function heading(text: string, intro?: string): void {
-    ts.line(margin, ts.baseline(y, 28, 20), text, ink(20, 700));
-    y += 30;
+    const hp = ts.paragraph(text, contentW(), 20, 700, 26);
+    if (hp.lines.length <= 1) {
+      ts.line(margin, ts.baseline(y, 28, 20), text, ink(20, 700));
+      y += 30;
+    } else {
+      // a heading too long for one line (a long translation) wraps rather than running off the page
+      for (const l of hp.lines) {
+        ts.line(margin, ts.baseline(y, 28, 20), l, ink(20, 700));
+        y += 26;
+      }
+      y += 4;
+    }
     if (intro) {
       const p = ts.paragraph(intro, contentW(), body.px, 400, body.lh);
       y = ts.draw(p, margin, y, ink(body.px, 400, COLOR.ink3));
@@ -121,6 +136,16 @@ export function buildDocument(i: PdfInput): PdfReport {
   function rule(color: string = COLOR.line1): void {
     doc.lineWidth(0.5).strokeColor(color).moveTo(margin, y).lineTo(pageSize()[0] - margin, y).stroke();
   }
+
+  /** A sub-heading, kept on the same page as the first `keep` pt of what follows it. */
+  function sub(text: string, keep = 0): void {
+    ensure(40 + keep);
+    y += 8;
+    ts.line(margin, ts.baseline(y, 18, 12), text, ink(12, 700));
+    y += 24;
+  }
+
+  const n: NarrativeModel | null = model.narrative ?? null;
 
   // ---------- 1. cover ----------
   newPage(A4);
@@ -161,235 +186,23 @@ export function buildDocument(i: PdfInput): PdfReport {
     ts.draw(np, margin, by + 88, ink(10, 500));
   }
 
-  // ---------- 2. summary ----------
-  newPage(A4);
-  outline(xt('summary.heading'));
-  heading(xt('summary.heading'));
-  const s = model.summary;
-  const sub = (text: string): void => {
-    ensure(40);
-    y += 8;
-    ts.line(margin, ts.baseline(y, 18, 12), text, ink(12, 700));
-    y += 24;
-  };
-  if (s.narration) {
-    sub(xt('summary.design'));
-    const p = ts.paragraph(s.narration, contentW(), 10.5, 400, cjk ? 17 : 15.5);
-    for (const l of p.lines) {
-      ensure(p.lh);
-      ts.line(margin, ts.baseline(y, p.lh, 10.5), l, ink(10.5));
-      y += p.lh;
-    }
-    y += 4;
-    ts.line(margin, ts.baseline(y, 14, 8.5), s.facts, ink(8.5, 400, COLOR.ink3));
-    y += 20;
-  }
-  sub(xt('summary.requirements'));
-  if (!s.requirements.length) {
-    ts.line(margin, ts.baseline(y, body.lh, body.px), xt('summary.requirementsNone'), ink(body.px, 400, COLOR.ink3));
-    y += body.lh + 8;
-  }
-  for (const r of s.requirements) {
-    const stateW = 150;
-    const p = ts.paragraph(r.text, contentW() - stateW - 16, body.px, 400, body.lh);
-    const sp = ts.paragraph(r.stateText, stateW, small.px, 500, small.lh);
-    const h = Math.max(p.height, sp.height + small.lh) + 14;
-    ensure(h);
-    rule();
-    const tone = r.state === 'held' || r.state === 'repaired' ? COLOR.ok : r.state === 'broken' ? COLOR.danger : COLOR.warn;
-    ts.draw(p, margin, y + 7, ink(body.px));
-    const right = pageSize()[0] - margin;
-    let sy = y + 7;
-    for (const l of sp.lines) {
-      ts.line(right, ts.baseline(sy, small.lh, small.px), l, ink(small.px, 500, tone), 'right');
-      sy += small.lh;
-    }
-    ts.line(right, ts.baseline(sy, small.lh, small.px), r.pinned, ink(small.px, 400, COLOR.ink3), 'right');
-    y += h;
-  }
-  rule();
-  y += 6;
-  sub(xt('summary.constraints'));
-  if (!s.constraints.length) {
-    ts.line(margin, ts.baseline(y, body.lh, body.px), xt('summary.constraintsNone'), ink(body.px, 400, COLOR.ink3));
-    y += body.lh + 8;
-  }
-  for (const c of s.constraints) {
-    const p = ts.paragraph(c, contentW(), body.px, 400, body.lh);
-    ensure(p.height + 12);
-    rule();
-    y = ts.draw(p, margin, y + 7, ink(body.px)) + 7;
-  }
-  if (s.constraints.length) {
-    rule();
-    y += 6;
-  }
-  sub(xt('summary.assumptions'));
-  if (!s.assumptions.length) {
-    ts.line(margin, ts.baseline(y, body.lh, body.px), xt('summary.assumptionsNone'), ink(body.px, 400, COLOR.ink3));
-    y += body.lh + 8;
-  }
-  for (const a of s.assumptions) {
-    const p = ts.paragraph(a.text, contentW(), body.px, 400, body.lh);
-    const alt = a.alt ? ts.paragraph(xt('summary.alternative', { alt: a.alt }), contentW(), small.px, 400, small.lh) : null;
-    ensure(p.height + (alt?.height ?? 0) + 14);
-    rule();
-    y = ts.draw(p, margin, y + 7, ink(body.px));
-    if (alt) y = ts.draw(alt, margin, y + 1, ink(small.px, 400, COLOR.ink3));
-    y += 7;
-  }
-  if (s.assumptions.length) {
-    rule();
-    y += 6;
-  }
-  if (s.questions.length) {
-    sub(xt('summary.questions'));
-    for (const q of s.questions) {
-      const text = q.options.length ? `${q.text} (${q.options.join(' / ')})` : q.text;
-      const p = ts.paragraph(text, contentW(), body.px, 400, body.lh);
-      ensure(p.height + 14);
-      rule();
-      y = ts.draw(p, margin, y + 7, ink(body.px)) + 7;
-    }
-    rule();
-  }
-
-  // ---------- 3. the diagram ----------
-  const fitOn = (size: PageSize): number =>
-    i.diagram ? Math.min((size[0] - 2 * margin) / i.diagram.width, (size[1] - CONTENT_TOP - 30 - 28 - FOOTER_RULE_FROM_BOTTOM - 8) / i.diagram.height, 1.3) : 1;
-  // a diagram that would have to shrink below the readable scale moves to a larger sheet
-  const diagramSheet: PageSize = fitOn(A4_LANDSCAPE) < MIN_DIAGRAM_SCALE ? A3_LANDSCAPE : A4_LANDSCAPE;
-  newPage(diagramSheet);
-  outline(xt('diagram.heading'));
-  heading(xt('diagram.heading'));
-  if (!i.diagram) {
-    ts.line(margin, ts.baseline(y, body.lh, body.px), xt('diagram.empty'), ink(body.px, 400, COLOR.ink3));
+  // ---------- the sections, in the order of the document ----------
+  if (n) {
+    execSection(n);
+    needsSection(n);
+    diagramSection();
+    componentsSection();
+    recsSection();
+    considerationsSection(n);
+    summarySection(true);
   } else {
-    const d = i.diagram;
-    const size = diagramSheet;
-    const scale = fitOn(size);
-    const w = d.width * scale;
-    const h = d.height * scale;
-    const x = margin + (size[0] - 2 * margin - w) / 2;
-    if (!i.dry) {
-      SVGtoPDF(doc, stripSize(d.svg), x, y, {
-        width: w,
-        height: h,
-        assumePt: true,
-        preserveAspectRatio: 'xMidYMin meet',
-        fontCallback: (family) => family,
-        warningCallback: () => {},
-      });
-    }
-    report.diagramPage = { size: size === A3_LANDSCAPE ? 'A3' : 'A4', scale: Math.round(scale * 1000) / 1000 };
+    summarySection(false);
+    diagramSection();
+    componentsSection();
+    recsSection();
   }
-
-  // ---------- 4. components ----------
-  if (model.components.length) {
-    newPage(A4);
-    outline(xt('components.heading'));
-    heading(xt('components.heading'), xt('components.intro'));
-    for (const c of model.components) entry(componentSpec(c, xt));
-  }
-
-  // ---------- 5. recommendations ----------
-  if (model.recs.length) {
-    newPage(A4);
-    outline(xt('recs.heading'));
-    heading(xt('recs.heading'), xt('recs.intro'));
-    for (const r of model.recs) entry(recSpec(r, xt));
-    if (model.gaps.length) {
-      sub(xt('recs.gaps'));
-      for (const g of model.gaps) {
-        const p = ts.paragraph(g.note ? `${g.need}: ${g.note}` : g.need, contentW(), body.px, 400, body.lh);
-        ensure(p.height + 14);
-        rule();
-        y = ts.draw(p, margin, y + 7, ink(body.px)) + 7;
-      }
-      rule();
-    }
-  }
-
-  // ---------- 6. connections ----------
-  newPage(A4);
-  outline(xt('conn.heading'));
-  heading(xt('conn.heading'), xt('conn.intro'));
-  if (!model.connections.length) ts.line(margin, ts.baseline(y, body.lh, body.px), xt('conn.none'), ink(body.px, 400, COLOR.ink3));
-  else {
-    const cols = [
-      { title: xt('conn.from'), w: 132 },
-      { title: xt('conn.to'), w: 132 },
-      { title: xt('conn.label'), w: 118 },
-      { title: xt('conn.kind'), w: contentW() - 382 },
-    ];
-    const head = (): void => {
-      let x = margin;
-      for (const c of cols) {
-        label(c.title, x, y);
-        x += c.w;
-      }
-      y += 16;
-    };
-    head();
-    for (const r of model.connections) {
-      const cells = [r.from, r.to, r.label, r.kindText];
-      const paras = cells.map((t, k) => ts.paragraph(t, cols[k].w - 10, body.px, 400, body.lh));
-      const h = Math.max(...paras.map((p) => p.height), body.lh) + 12;
-      if (y + h > bottomLimit()) {
-        newPage();
-        head();
-      }
-      rule();
-      let x = margin;
-      paras.forEach((p, k) => {
-        ts.draw(p, x, y + 6, ink(body.px, 400, k === 3 ? COLOR.ink3 : COLOR.ink));
-        x += cols[k].w;
-      });
-      y += h;
-    }
-    rule();
-  }
-
-  // ---------- 7. revision history ----------
-  newPage(A4);
-  outline(xt('rev.heading'));
-  heading(xt('rev.heading'), xt('rev.intro'));
-  for (const r of model.revisions) {
-    const askP = ts.paragraph(r.ask, contentW() - 70, body.px, 400, body.lh);
-    ensure(36 + Math.min(askP.height, body.lh * 3) + body.lh * 2);
-    rule();
-    y += 8;
-    ts.line(margin, ts.baseline(y, 16, 11), xt('rev.revision', { n: r.n }), ink(11, 700));
-    const meta = r.applied ? r.drawn : xt('rev.notApplied');
-    if (meta) ts.line(pageSize()[0] - margin, ts.baseline(y, 16, 8.5), meta, ink(8.5, 400, r.applied ? COLOR.ink3 : COLOR.danger), 'right');
-    y += 22;
-    label(xt('rev.ask'), margin, y);
-    for (const l of askP.lines) {
-      ensure(askP.lh);
-      ts.line(margin + 70, ts.baseline(y, askP.lh, body.px), l, ink(body.px));
-      y += askP.lh;
-    }
-    y += 6;
-    if (r.applied) {
-      label(xt('rev.changes'), margin, y);
-      const lines = r.changes.length ? r.changes : [{ mark: 'info' as const, text: xt('rev.noChange'), struck: false }];
-      for (const c of lines) {
-        const p = ts.paragraph(c.text, contentW() - 70 - 14, body.px, 400, body.lh);
-        ensure(p.height);
-        if (r.changes.length) changeMark(c.mark, margin + 70, y + body.lh / 2);
-        const top = y;
-        y = ts.draw(p, margin + 70 + 14, y, ink(body.px, 400, c.struck ? COLOR.ink3 : r.changes.length ? COLOR.ink : COLOR.ink3));
-        if (c.struck) {
-          // a removed product reads struck through, as in the console
-          const first = p.lines[0] ?? '';
-          const w = ts.width(first, body.px, 400);
-          doc.lineWidth(0.5).strokeColor(COLOR.ink3).moveTo(margin + 70 + 14, top + p.lh / 2).lineTo(margin + 70 + 14 + w, top + p.lh / 2).stroke();
-        }
-      }
-    }
-    y += 12;
-  }
-  rule();
+  connectionsSection();
+  revisionsSection();
 
   // ---------- running header and footer ----------
   const count = doc.bufferedPageRange().count;
@@ -408,12 +221,347 @@ export function buildDocument(i: PdfInput): PdfReport {
     ts.line(pw - margin, ts.baseline(fy + 8, 14, 8), xt('page.of', { n: p + 1, total: count }), ink(8, 400, COLOR.ink3), 'right');
   }
   report.pages = count;
+  return report;
 
-  // ---------- entries (components and recommendations) ----------
+  // ---------- the summary; with a draft it follows the business sections, as the design record ----------
+  function summarySection(record: boolean): void {
+    newPage(A4);
+    outline(xt(record ? 'record.heading' : 'summary.heading'));
+    if (record) heading(xt('record.heading'), xt('record.intro'));
+    else heading(xt('summary.heading'));
+    const s = model.summary;
+    if (s.narration) {
+      // with a draft, the first chat reply is shown for what it is: the architect's first notes, not the proposal
+      sub(xt(record ? 'record.firstNotes' : 'summary.design'));
+      const p = ts.paragraph(s.narration, contentW(), 10.5, 400, cjk ? 17 : 15.5);
+      for (const l of p.lines) {
+        ensure(p.lh);
+        ts.line(margin, ts.baseline(y, p.lh, 10.5), l, ink(10.5));
+        y += p.lh;
+      }
+      y += 4;
+      ts.line(margin, ts.baseline(y, 14, 8.5), s.facts, ink(8.5, 400, COLOR.ink3));
+      y += 20;
+    }
+    sub(xt('summary.requirements'));
+    if (!s.requirements.length) {
+      ts.line(margin, ts.baseline(y, body.lh, body.px), xt('summary.requirementsNone'), ink(body.px, 400, COLOR.ink3));
+      y += body.lh + 8;
+    }
+    for (const r of s.requirements) {
+      const stateW = 150;
+      const p = ts.paragraph(r.text, contentW() - stateW - 16, body.px, 400, body.lh);
+      const sp = ts.paragraph(r.stateText, stateW, small.px, 500, small.lh);
+      const h = Math.max(p.height, sp.height + small.lh) + 14;
+      ensure(h);
+      rule();
+      const tone = r.state === 'held' || r.state === 'repaired' ? COLOR.ok : r.state === 'broken' ? COLOR.danger : COLOR.warn;
+      ts.draw(p, margin, y + 7, ink(body.px));
+      const right = pageSize()[0] - margin;
+      let sy = y + 7;
+      for (const l of sp.lines) {
+        ts.line(right, ts.baseline(sy, small.lh, small.px), l, ink(small.px, 500, tone), 'right');
+        sy += small.lh;
+      }
+      ts.line(right, ts.baseline(sy, small.lh, small.px), r.pinned, ink(small.px, 400, COLOR.ink3), 'right');
+      y += h;
+    }
+    rule();
+    y += 6;
+    sub(xt('summary.constraints'));
+    if (!s.constraints.length) {
+      ts.line(margin, ts.baseline(y, body.lh, body.px), xt('summary.constraintsNone'), ink(body.px, 400, COLOR.ink3));
+      y += body.lh + 8;
+    }
+    for (const c of s.constraints) {
+      const p = ts.paragraph(c, contentW(), body.px, 400, body.lh);
+      ensure(p.height + 12);
+      rule();
+      y = ts.draw(p, margin, y + 7, ink(body.px)) + 7;
+    }
+    if (s.constraints.length) {
+      rule();
+      y += 6;
+    }
+    sub(xt('summary.assumptions'));
+    if (!s.assumptions.length) {
+      ts.line(margin, ts.baseline(y, body.lh, body.px), xt('summary.assumptionsNone'), ink(body.px, 400, COLOR.ink3));
+      y += body.lh + 8;
+    }
+    for (const a of s.assumptions) {
+      const p = ts.paragraph(a.text, contentW(), body.px, 400, body.lh);
+      const alt = a.alt ? ts.paragraph(xt('summary.alternative', { alt: a.alt }), contentW(), small.px, 400, small.lh) : null;
+      ensure(p.height + (alt?.height ?? 0) + 14);
+      rule();
+      y = ts.draw(p, margin, y + 7, ink(body.px));
+      if (alt) y = ts.draw(alt, margin, y + 1, ink(small.px, 400, COLOR.ink3));
+      y += 7;
+    }
+    if (s.assumptions.length) {
+      rule();
+      y += 6;
+    }
+    if (s.questions.length) {
+      sub(xt('summary.questions'));
+      for (const q of s.questions) {
+        const text = q.options.length ? `${q.text} (${q.options.join(' / ')})` : q.text;
+        const p = ts.paragraph(text, contentW(), body.px, 400, body.lh);
+        ensure(p.height + 14);
+        rule();
+        y = ts.draw(p, margin, y + 7, ink(body.px)) + 7;
+      }
+      rule();
+    }
+  }
+
+  // ---------- the diagram ----------
+  function diagramSection(): void {
+    const fitOn = (size: PageSize): number =>
+      i.diagram ? Math.min((size[0] - 2 * margin) / i.diagram.width, (size[1] - CONTENT_TOP - 30 - 28 - FOOTER_RULE_FROM_BOTTOM - 8) / i.diagram.height, 1.3) : 1;
+    // a diagram that would have to shrink below the readable scale moves to a larger sheet
+    const diagramSheet: PageSize = fitOn(A4_LANDSCAPE) < MIN_DIAGRAM_SCALE ? A3_LANDSCAPE : A4_LANDSCAPE;
+    newPage(diagramSheet);
+    outline(xt('diagram.heading'));
+    heading(xt('diagram.heading'));
+    if (!i.diagram) {
+      ts.line(margin, ts.baseline(y, body.lh, body.px), xt('diagram.empty'), ink(body.px, 400, COLOR.ink3));
+    } else {
+      const d = i.diagram;
+      const size = diagramSheet;
+      const scale = fitOn(size);
+      const w = d.width * scale;
+      const h = d.height * scale;
+      const x = margin + (size[0] - 2 * margin - w) / 2;
+      if (!i.dry) {
+        SVGtoPDF(doc, stripSize(d.svg), x, y, {
+          width: w,
+          height: h,
+          assumePt: true,
+          preserveAspectRatio: 'xMidYMin meet',
+          fontCallback: (family) => family,
+          warningCallback: () => {},
+        });
+      }
+      report.diagramPage = { size: size === A3_LANDSCAPE ? 'A3' : 'A4', scale: Math.round(scale * 1000) / 1000 };
+    }
+  }
+
+  // ---------- components ----------
+  function componentsSection(): void {
+    if (!model.components.length) return;
+    newPage(A4);
+    outline(xt('components.heading'));
+    heading(xt('components.heading'), xt('components.intro'));
+    for (const c of model.components) entry(componentSpec(c, xt));
+  }
+
+  // ---------- recommendations ----------
+  function recsSection(): void {
+    if (model.recs.length) {
+      newPage(A4);
+      outline(xt('recs.heading'));
+      heading(xt('recs.heading'), xt('recs.intro'));
+      for (const r of model.recs) entry(recSpec(r, xt));
+      if (model.gaps.length) {
+        sub(xt('recs.gaps'));
+        for (const g of model.gaps) {
+          const p = ts.paragraph(g.note ? `${g.need}: ${g.note}` : g.need, contentW(), body.px, 400, body.lh);
+          ensure(p.height + 14);
+          rule();
+          y = ts.draw(p, margin, y + 7, ink(body.px)) + 7;
+        }
+        rule();
+      }
+    }
+  }
+
+  // ---------- connections ----------
+  function connectionsSection(): void {
+    newPage(A4);
+    outline(xt('conn.heading'));
+    heading(xt('conn.heading'), xt('conn.intro'));
+    if (!model.connections.length) ts.line(margin, ts.baseline(y, body.lh, body.px), xt('conn.none'), ink(body.px, 400, COLOR.ink3));
+    else {
+      const cols = [
+        { title: xt('conn.from'), w: 132 },
+        { title: xt('conn.to'), w: 132 },
+        { title: xt('conn.label'), w: 118 },
+        { title: xt('conn.kind'), w: contentW() - 382 },
+      ];
+      const head = (): void => {
+        let x = margin;
+        for (const c of cols) {
+          label(c.title, x, y);
+          x += c.w;
+        }
+        y += 16;
+      };
+      head();
+      for (const r of model.connections) {
+        const cells = [r.from, r.to, r.label, r.kindText];
+        const paras = cells.map((t, k) => ts.paragraph(t, cols[k].w - 10, body.px, 400, body.lh));
+        const h = Math.max(...paras.map((p) => p.height), body.lh) + 12;
+        if (y + h > bottomLimit()) {
+          newPage();
+          head();
+        }
+        rule();
+        let x = margin;
+        paras.forEach((p, k) => {
+          ts.draw(p, x, y + 6, ink(body.px, 400, k === 3 ? COLOR.ink3 : COLOR.ink));
+          x += cols[k].w;
+        });
+        y += h;
+      }
+      rule();
+    }
+  }
+
+  // ---------- revision history ----------
+  function revisionsSection(): void {
+    newPage(A4);
+    outline(xt('rev.heading'));
+    heading(xt('rev.heading'), xt('rev.intro'));
+    for (const r of model.revisions) {
+      const askP = ts.paragraph(r.ask, contentW() - 70, body.px, 400, body.lh);
+      ensure(36 + Math.min(askP.height, body.lh * 3) + body.lh * 2);
+      rule();
+      y += 8;
+      ts.line(margin, ts.baseline(y, 16, 11), xt('rev.revision', { n: r.n }), ink(11, 700));
+      const meta = r.applied ? r.drawn : xt('rev.notApplied');
+      if (meta) ts.line(pageSize()[0] - margin, ts.baseline(y, 16, 8.5), meta, ink(8.5, 400, r.applied ? COLOR.ink3 : COLOR.danger), 'right');
+      y += 22;
+      label(xt('rev.ask'), margin, y);
+      for (const l of askP.lines) {
+        ensure(askP.lh);
+        ts.line(margin + 70, ts.baseline(y, askP.lh, body.px), l, ink(body.px));
+        y += askP.lh;
+      }
+      y += 6;
+      if (r.applied) {
+        label(xt('rev.changes'), margin, y);
+        const lines = r.changes.length ? r.changes : [{ mark: 'info' as const, text: xt('rev.noChange'), struck: false }];
+        for (const c of lines) {
+          const p = ts.paragraph(c.text, contentW() - 70 - 14, body.px, 400, body.lh);
+          ensure(p.height);
+          if (r.changes.length) changeMark(c.mark, margin + 70, y + body.lh / 2);
+          const top = y;
+          y = ts.draw(p, margin + 70 + 14, y, ink(body.px, 400, c.struck ? COLOR.ink3 : r.changes.length ? COLOR.ink : COLOR.ink3));
+          if (c.struck) {
+            // a removed product reads struck through, as in the console
+            const first = p.lines[0] ?? '';
+            const w = ts.width(first, body.px, 400);
+            doc.lineWidth(0.5).strokeColor(COLOR.ink3).moveTo(margin + 70 + 14, top + p.lh / 2).lineTo(margin + 70 + 14 + w, top + p.lh / 2).stroke();
+          }
+        }
+      }
+      y += 12;
+    }
+    rule();
+  }
+
+  // ---------- the drafted narrative ----------
+
+  /** The executive summary: the lead paragraph a step larger, the rest as body, then the outcomes as titled blocks. */
+  function execSection(nv: NarrativeModel): void {
+    if (!nv.exec.length && !nv.outcomes.length) return;
+    newPage(A4);
+    outline(xt('exec.heading'));
+    heading(xt('exec.heading'));
+    nv.exec.forEach((text, k) => {
+      const px = k === 0 ? 12 : 10.5;
+      const lh = k === 0 ? (cjk ? 19.5 : 18) : cjk ? 17 : 15.5;
+      const p = ts.paragraph(text, MEASURE, px, 400, lh);
+      for (const l of p.lines) {
+        ensure(p.lh);
+        ts.line(margin, ts.baseline(y, p.lh, px), l, ink(px));
+        y += p.lh;
+      }
+      y += k === 0 ? 12 : 9;
+    });
+    if (nv.outcomes.length) {
+      const specs: EntrySpec[] = nv.outcomes.map((o) => ({ product: null, name: o.title, meta: [], sections: [{ label: '', paragraphs: [{ text: o.text, color: COLOR.ink2 }] }] }));
+      y += 4;
+      sub(xt('exec.outcomes'), measureEntry(specs[0]).h);
+      for (const sp of specs) entry(sp);
+    }
+    // what is asked of the reader, on the page many of them read alone: the first two next steps
+    if (nv.next.length) {
+      const numW = 22;
+      const steps = nv.next.slice(0, 2).map((t) => ts.paragraph(t, MEASURE - numW, body.px, 400, body.lh));
+      y += 4;
+      sub(xt('exec.next'), steps[0].height + 14);
+      steps.forEach((p, k) => {
+        ensure(p.height + 14);
+        rule();
+        ts.line(margin, ts.baseline(y + 7, body.lh, body.px), `${k + 1}.`, ink(body.px, 700));
+        y = ts.draw(p, margin + numW, y + 7, ink(body.px)) + 7;
+      });
+      rule();
+    }
+  }
+
+  /** Each customer need: the need and where it came from on the left, how the design answers it on the right. */
+  function needsSection(nv: NarrativeModel): void {
+    if (!nv.needs.length) return;
+    newPage(A4);
+    outline(xt('needs.heading'));
+    heading(xt(nv.mostlyTypical ? 'needs.headingTypical' : 'needs.heading'), xt('needs.intro'));
+    const list = model.lang === 'zh' ? '、' : ', ';
+    for (const need of nv.needs) {
+      const sections: EntrySpec['sections'] = [{ label: xt('needs.answer'), paragraphs: [{ text: need.answer, color: COLOR.ink }] }];
+      if (need.products.length) sections.push({ label: xt('needs.products'), paragraphs: [{ text: need.products.join(list), color: COLOR.ink2 }] });
+      entry({ product: null, name: need.need, meta: [need.sourceText], sections });
+    }
+  }
+
+  /** The honest part: trade-offs with how each is handled, then numbered next steps. */
+  function considerationsSection(nv: NarrativeModel): void {
+    if (!nv.tradeoffs.length && !nv.next.length) return;
+    newPage(A4);
+    outline(xt('next.heading'));
+    heading(xt('next.heading'));
+    if (nv.tradeoffs.length) {
+      const blocks = nv.tradeoffs.map((t) => ({ p: ts.paragraph(t.text, MEASURE, body.px, 400, body.lh), m: t.mitigation ? ts.paragraph(t.mitigation, MEASURE, body.px, 400, body.lh) : null }));
+      const heightOf = (b: (typeof blocks)[number]): number => 7 + b.p.height + (b.m ? 4 + 11 + b.m.height : 0) + 9;
+      sub(xt('next.tradeoffs'), heightOf(blocks[0]));
+      for (const b of blocks) {
+        ensure(heightOf(b));
+        rule();
+        y = ts.draw(b.p, margin, y + 7, ink(body.px));
+        if (b.m) y = ts.draw(b.m, margin, label(xt('next.mitigation'), margin, y + 4), ink(body.px, 400, COLOR.ink2));
+        y += 9;
+      }
+      rule();
+      y += 6;
+    }
+    if (nv.next.length) {
+      const numW = 22;
+      const steps = nv.next.map((t) => ts.paragraph(t, MEASURE - numW, body.px, 400, body.lh));
+      sub(xt('next.steps'), steps[0].height + 14);
+      steps.forEach((p, k) => {
+        ensure(p.height + 14);
+        rule();
+        ts.line(margin, ts.baseline(y + 7, body.lh, body.px), `${k + 1}.`, ink(body.px, 700));
+        y = ts.draw(p, margin + numW, y + 7, ink(body.px)) + 7;
+      });
+      rule();
+    }
+    // no product of the design has a catalog price: say who prepares the estimate rather than leave cost unanswered
+    if (nv.pricingNote) {
+      const p = ts.paragraph(nv.pricingNote, MEASURE, body.px, 400, body.lh);
+      ensure(p.height + 12);
+      y = ts.draw(p, margin, y + 10, ink(body.px, 400, COLOR.ink2)) + 2;
+    }
+  }
+
+  // ---------- entries (components, recommendations, needs and outcomes) ----------
   interface EntrySpec {
-    product: string;
+    /** The product whose official icon leads the entry; null for an entry about something else (a need, an outcome). */
+    product: string | null;
     name: string;
     meta: string[];
+    /** An empty label draws none. */
     sections: Array<{ label: string; paragraphs: Array<{ text: string; color: string }>; link?: { text: string; url: string } | { missing: string } }>;
   }
 
@@ -430,49 +578,62 @@ export function buildDocument(i: PdfInput): PdfReport {
       const text = r.why ? (lead ? `${lead}: ${r.why}` : r.why) : lead ? `${lead}: ${t('components.roleNone')}` : t('components.roleNone');
       return { text, color: r.why ? COLOR.ink : COLOR.ink3 };
     });
-    const sections: EntrySpec['sections'] = [{ label: t('components.role'), paragraphs: roleParas }];
+    // with a narrative, each entry leads with why it is here for this customer (the drawing's own reason when the draft has none)
+    const sections: EntrySpec['sections'] = n
+      ? [{ label: t('components.why'), paragraphs: c.draftWhy ? [{ text: c.draftWhy, color: COLOR.ink }] : roleParas }]
+      : [{ label: t('components.role'), paragraphs: roleParas }];
     if (c.what) sections.push({ label: t('components.what'), paragraphs: [{ text: c.what, color: COLOR.ink2 }] });
     if (c.notes) sections.push({ label: t('components.notes'), paragraphs: [{ text: c.notes, color: COLOR.warn }] });
     if (c.price) sections.push({ label: t('components.price'), paragraphs: [{ text: c.price, color: COLOR.ink2 }] });
-    sections.push({ label: t('components.docs'), paragraphs: [], link: c.docs ? { text: c.docs.replace(/^https:\/\//, ''), url: c.docs } : { missing: t('components.noDocs') } });
+    // a construct (users, a mobile app) has no documentation; with a draft its entry leaves the row out
+    if (!(n && c.construct)) sections.push({ label: t('components.docs'), paragraphs: [], link: c.docs ? { text: c.docs.replace(/^https:\/\//, ''), url: c.docs } : { missing: t('components.noDocs') } });
     return { product: c.product, name: c.name, meta, sections };
   }
 
   function recSpec(r: RecEntry, t: XT): EntrySpec {
-    const sections: EntrySpec['sections'] = [{ label: t('recs.why'), paragraphs: [{ text: r.why || t('components.roleNone'), color: r.why ? COLOR.ink : COLOR.ink3 }] }];
+    const why = r.draftWhy ?? r.why;
+    const sections: EntrySpec['sections'] = [{ label: t('recs.why'), paragraphs: [{ text: why || t('components.roleNone'), color: why ? COLOR.ink : COLOR.ink3 }] }];
     if (r.price) sections.push({ label: t('components.price'), paragraphs: [{ text: r.price, color: COLOR.ink2 }] });
     sections.push({ label: t('components.docs'), paragraphs: [], link: r.docs ? { text: r.docs.replace(/^https:\/\//, ''), url: r.docs } : { missing: t('components.noDocs') } });
     return { product: r.product, name: r.name, meta: [r.fitText], sections };
   }
 
-  function entry(spec: EntrySpec): void {
+  /** An entry's lines and its height, measured before it is placed, so a sub-heading can keep its first entry with it. */
+  function measureEntry(spec: EntrySpec) {
     const leftW = 168;
     const gap = 18;
     const rx = margin + leftW + gap;
     const rw = pageSize()[0] - margin - rx;
-    const nameP = ts.paragraph(spec.name, leftW - 32, 10, 500, cjk ? 15 : 13.5);
-    const metaP = spec.meta.map((m) => ts.paragraph(m, leftW - 32, small.px, 400, small.lh));
-    const leftH = Math.max(24, nameP.height) + metaP.reduce((a, p) => a + p.height, 0) + 4;
+    // the name sits beside the product's icon; an entry with no product uses the whole left column
+    const nameX = spec.product ? margin + 32 : margin;
+    const nameW = spec.product ? leftW - 32 : leftW;
+    const nameP = ts.paragraph(spec.name, nameW, 10, 500, cjk ? 15 : 13.5);
+    const metaP = spec.meta.map((m) => ts.paragraph(m, nameW, small.px, 400, small.lh));
+    const leftH = (spec.product ? Math.max(24, nameP.height) : nameP.height) + metaP.reduce((a, p) => a + p.height, 0) + 4;
     const blocks = spec.sections.map((sec) => {
       const paras = sec.paragraphs.map((p) => ({ p: ts.paragraph(p.text, rw, body.px, 400, body.lh), color: p.color }));
       let linkLines: string[] = [];
       if (sec.link && 'url' in sec.link) linkLines = ts.wrap(sec.link.text, rw, small.px + 0.5, 400);
-      const h = 11 + paras.reduce((a, q) => a + q.p.height + 2, 0) + (sec.link ? (linkLines.length || 1) * (small.lh + 1) : 0) + 5;
+      const h = (sec.label ? 11 : 0) + paras.reduce((a, q) => a + q.p.height + 2, 0) + (sec.link ? (linkLines.length || 1) * (small.lh + 1) : 0) + 5;
       return { sec, paras, linkLines, h };
     });
     const rightH = blocks.reduce((a, b) => a + b.h, 0);
-    const h = Math.max(leftH, rightH) + 20;
+    return { spec, rx, nameX, nameP, metaP, blocks, h: Math.max(leftH, rightH) + 20 };
+  }
+
+  function entry(spec: EntrySpec): void {
+    const { rx, nameX, nameP, metaP, blocks, h } = measureEntry(spec);
     ensure(h);
     rule();
     const top = y + 11;
-    if (!i.dry) {
+    if (!i.dry && spec.product) {
       SVGtoPDF(doc, iconSvg(iconFor(spec.product).geometry, { size: 24, color: COLOR.brandIcon }), margin, top, { width: 24, height: 24, assumePt: true });
     }
-    let ly = ts.draw(nameP, margin + 32, top, ink(10, 500));
-    for (const m of metaP) ly = ts.draw(m, margin + 32, ly + 1, ink(small.px, 400, COLOR.ink3));
+    let ly = ts.draw(nameP, nameX, top, ink(10, 500));
+    for (const m of metaP) ly = ts.draw(m, nameX, ly + 1, ink(small.px, 400, COLOR.ink3));
     let ry = top;
     for (const b of blocks) {
-      ry = label(b.sec.label, rx, ry);
+      if (b.sec.label) ry = label(b.sec.label, rx, ry);
       for (const q of b.paras) ry = ts.draw(q.p, rx, ry, ink(body.px, 400, q.color)) + 2;
       if (b.sec.link) {
         if ('url' in b.sec.link) {
@@ -491,6 +652,4 @@ export function buildDocument(i: PdfInput): PdfReport {
     }
     y += h;
   }
-
-  return report;
 }

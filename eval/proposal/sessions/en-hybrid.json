@@ -1,0 +1,614 @@
+{
+  "steps": [
+    {
+      "kind": "ask",
+      "text": "We run everything on AWS but need a managed MySQL in Alibaba Cloud Jakarta for data residency, connected to our AWS apps."
+    }
+  ],
+  "memory": {
+    "turns": [
+      {
+        "role": "user",
+        "text": "We run everything on AWS but need a managed MySQL in Alibaba Cloud Jakarta for data residency, connected to our AWS apps."
+      },
+      {
+        "role": "assistant",
+        "text": "I'll draw a managed MySQL (RDS) in Alibaba Cloud Jakarta connected to your AWS app servers over Express Connect for data residency.",
+        "changes": "+aws[external] +jkt[region] +vpc[vpc] +aws-app(other-cloud) +db(rds, zones a,b) +link(express-connect) +e-aws-app-link +e-link-db"
+      }
+    ],
+    "requirements": [
+      "Data must stay in Jakarta"
+    ],
+    "graph": {
+      "groups": {
+        "aws": {
+          "id": "aws",
+          "kind": "external",
+          "label": "AWS",
+          "parent": null
+        },
+        "jkt": {
+          "id": "jkt",
+          "kind": "region",
+          "label": "Jakarta (ap-southeast-5)",
+          "parent": null
+        },
+        "vpc": {
+          "id": "vpc",
+          "kind": "vpc",
+          "label": "Jakarta VPC",
+          "parent": "jkt"
+        }
+      },
+      "nodes": {
+        "aws-app": {
+          "id": "aws-app",
+          "product": "other-cloud",
+          "label": "AWS app servers",
+          "group": "aws",
+          "why": "Existing application workloads kept on AWS."
+        },
+        "db": {
+          "id": "db",
+          "product": "rds",
+          "label": "Managed MySQL",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Stores MySQL data in Jakarta to meet residency rules."
+        },
+        "link": {
+          "id": "link",
+          "product": "express-connect",
+          "label": "Express Connect",
+          "group": "vpc",
+          "why": "Dedicated private link between AWS and the Jakarta VPC."
+        }
+      },
+      "edges": {
+        "e-aws-app-link": {
+          "id": "e-aws-app-link",
+          "from": "aws-app",
+          "to": "link",
+          "label": "MySQL",
+          "kind": "data"
+        },
+        "e-link-db": {
+          "id": "e-link-db",
+          "from": "link",
+          "to": "db",
+          "kind": "data"
+        }
+      },
+      "recs": []
+    },
+    "tombstones": [],
+    "constraints": [
+      {
+        "text": "Data must stay in Jakarta",
+        "regions": [
+          "ap-southeast-5"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "id": "traffic-volume",
+        "text": "How much steady traffic flows between AWS and Jakarta?",
+        "options": [
+          "Under 1 Gbps",
+          "1 to 10 Gbps",
+          "Over 10 Gbps"
+        ]
+      }
+    ]
+  },
+  "turns": [
+    {
+      "ask": "We run everything on AWS but need a managed MySQL in Alibaba Cloud Jakarta for data residency, connected to our AWS apps.",
+      "ev": [
+        [
+          2357,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2447,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a managed MySQL (R",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2448,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a managed MySQL (RDS",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2532,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a managed MySQL (RDS) in Alibaba Cloud",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2533,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a managed MySQL (RDS) in Alibaba Cloud Jakarta connected",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2613,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a managed MySQL (RDS) in Alibaba Cloud Jakarta connected to your AWS app",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2743,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a managed MySQL (RDS) in Alibaba Cloud Jakarta connected to your AWS app servers over Express Connect",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2831,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a managed MySQL (RDS) in Alibaba Cloud Jakarta connected to your AWS app servers over Express Connect for data residency.",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2834,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll draw a managed MySQL (RDS) in Alibaba Cloud Jakarta connected to your AWS app servers over Express Connect for data residency.",
+            "final": true,
+            "phase": "main"
+          }
+        ],
+        [
+          2834,
+          {
+            "type": "op",
+            "seq": 1,
+            "op": {
+              "t": "say",
+              "text": "I'll draw a managed MySQL (RDS) in Alibaba Cloud Jakarta connected to your AWS app servers over Express Connect for data residency."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          3148,
+          {
+            "type": "op",
+            "seq": 2,
+            "op": {
+              "t": "req",
+              "text": "Data must stay in Jakarta",
+              "regions": [
+                "ap-southeast-5"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          3493,
+          {
+            "type": "op",
+            "seq": 3,
+            "op": {
+              "t": "plan",
+              "products": [
+                "rds",
+                "express-connect",
+                "other-cloud"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          3999,
+          {
+            "type": "op",
+            "seq": 4,
+            "op": {
+              "t": "group",
+              "id": "aws",
+              "kind": "external",
+              "label": "AWS",
+              "parent": null
+            },
+            "added": [
+              "aws"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          4758,
+          {
+            "type": "op",
+            "seq": 5,
+            "op": {
+              "t": "node",
+              "id": "aws-app",
+              "product": "other-cloud",
+              "label": "AWS app servers",
+              "group": "aws",
+              "why": "Existing application workloads kept on AWS."
+            },
+            "added": [
+              "aws-app"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          5274,
+          {
+            "type": "op",
+            "seq": 6,
+            "op": {
+              "t": "group",
+              "id": "jkt",
+              "kind": "region",
+              "label": "Jakarta (ap-southeast-5)",
+              "parent": null
+            },
+            "added": [
+              "jkt"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          5655,
+          {
+            "type": "op",
+            "seq": 7,
+            "op": {
+              "t": "group",
+              "id": "vpc",
+              "kind": "vpc",
+              "label": "Jakarta VPC",
+              "parent": "jkt"
+            },
+            "added": [
+              "vpc"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          6547,
+          {
+            "type": "op",
+            "seq": 8,
+            "op": {
+              "t": "node",
+              "id": "db",
+              "product": "rds",
+              "label": "Managed MySQL",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "Stores MySQL data in Jakarta to meet residency rules."
+            },
+            "added": [
+              "db"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          7337,
+          {
+            "type": "op",
+            "seq": 9,
+            "op": {
+              "t": "node",
+              "id": "link",
+              "product": "express-connect",
+              "label": "Express Connect",
+              "group": "vpc",
+              "why": "Dedicated private link between AWS and the Jakarta VPC."
+            },
+            "added": [
+              "link"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          7919,
+          {
+            "type": "op",
+            "seq": 10,
+            "op": {
+              "t": "edge",
+              "id": "e-aws-db",
+              "from": "aws-app",
+              "to": "db",
+              "label": "MySQL",
+              "kind": "data"
+            },
+            "added": [
+              "e-aws-db"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          8717,
+          {
+            "type": "op",
+            "seq": 11,
+            "op": {
+              "t": "insert",
+              "id": "link",
+              "product": "express-connect",
+              "label": "Express Connect",
+              "on": "e-aws-db",
+              "why": "Dedicated private link between AWS and the Jakarta VPC."
+            },
+            "added": [
+              "e-aws-app-link",
+              "e-link-db"
+            ],
+            "updated": [],
+            "removed": [
+              "e-aws-db"
+            ],
+            "phase": "main"
+          }
+        ],
+        [
+          9525,
+          {
+            "type": "op",
+            "seq": 12,
+            "op": {
+              "t": "ask",
+              "id": "traffic-volume",
+              "text": "How much steady traffic flows between AWS and Jakarta?",
+              "options": [
+                "Under 1 Gbps",
+                "1 to 10 Gbps",
+                "Over 10 Gbps"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          10049,
+          {
+            "type": "op",
+            "seq": 13,
+            "op": {
+              "t": "done",
+              "summary": "Managed MySQL in Jakarta connected to AWS app servers via Express Connect for data residency."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          10049,
+          {
+            "type": "usage",
+            "usage": {
+              "completion_tokens": 420,
+              "prompt_tokens": 15321,
+              "prompt_tokens_details": {
+                "cached_tokens": 15232,
+                "text_tokens": 15321
+              },
+              "total_tokens": 15741
+            },
+            "costUsd": 0.006506,
+            "phase": "main"
+          }
+        ],
+        [
+          10049,
+          {
+            "type": "done",
+            "summary": "Managed MySQL in Jakarta connected to AWS app servers via Express Connect for data residency.",
+            "timings": {
+              "headersMs": 2008,
+              "firstByteMs": 2008,
+              "firstContentMs": 2009,
+              "firstSayMs": 2342,
+              "firstOpMs": 2818,
+              "firstNodeMs": 4742,
+              "lastOpMs": 10034,
+              "totalMs": 10032,
+              "maxGapMs": 220,
+              "hedgeAtMs": null
+            },
+            "finishReason": "stop",
+            "truncated": false,
+            "phase": "main"
+          }
+        ],
+        [
+          10070,
+          {
+            "type": "commit",
+            "memory": {
+              "turns": [
+                {
+                  "role": "user",
+                  "text": "We run everything on AWS but need a managed MySQL in Alibaba Cloud Jakarta for data residency, connected to our AWS apps."
+                },
+                {
+                  "role": "assistant",
+                  "text": "I'll draw a managed MySQL (RDS) in Alibaba Cloud Jakarta connected to your AWS app servers over Express Connect for data residency.",
+                  "changes": "+aws[external] +jkt[region] +vpc[vpc] +aws-app(other-cloud) +db(rds, zones a,b) +link(express-connect) +e-aws-app-link +e-link-db"
+                }
+              ],
+              "requirements": [
+                "Data must stay in Jakarta"
+              ],
+              "graph": {
+                "groups": {
+                  "aws": {
+                    "id": "aws",
+                    "kind": "external",
+                    "label": "AWS",
+                    "parent": null
+                  },
+                  "jkt": {
+                    "id": "jkt",
+                    "kind": "region",
+                    "label": "Jakarta (ap-southeast-5)",
+                    "parent": null
+                  },
+                  "vpc": {
+                    "id": "vpc",
+                    "kind": "vpc",
+                    "label": "Jakarta VPC",
+                    "parent": "jkt"
+                  }
+                },
+                "nodes": {
+                  "aws-app": {
+                    "id": "aws-app",
+                    "product": "other-cloud",
+                    "label": "AWS app servers",
+                    "group": "aws",
+                    "why": "Existing application workloads kept on AWS."
+                  },
+                  "db": {
+                    "id": "db",
+                    "product": "rds",
+                    "label": "Managed MySQL",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Stores MySQL data in Jakarta to meet residency rules."
+                  },
+                  "link": {
+                    "id": "link",
+                    "product": "express-connect",
+                    "label": "Express Connect",
+                    "group": "vpc",
+                    "why": "Dedicated private link between AWS and the Jakarta VPC."
+                  }
+                },
+                "edges": {
+                  "e-aws-app-link": {
+                    "id": "e-aws-app-link",
+                    "from": "aws-app",
+                    "to": "link",
+                    "label": "MySQL",
+                    "kind": "data"
+                  },
+                  "e-link-db": {
+                    "id": "e-link-db",
+                    "from": "link",
+                    "to": "db",
+                    "kind": "data"
+                  }
+                },
+                "recs": []
+              },
+              "tombstones": [],
+              "constraints": [
+                {
+                  "text": "Data must stay in Jakarta",
+                  "regions": [
+                    "ap-southeast-5"
+                  ]
+                }
+              ],
+              "questions": [
+                {
+                  "id": "traffic-volume",
+                  "text": "How much steady traffic flows between AWS and Jakarta?",
+                  "options": [
+                    "Under 1 Gbps",
+                    "1 to 10 Gbps",
+                    "Over 10 Gbps"
+                  ]
+                }
+              ]
+            },
+            "changes": "+aws[external] +jkt[region] +vpc[vpc] +aws-app(other-cloud) +db(rds, zones a,b) +link(express-connect) +e-aws-app-link +e-link-db",
+            "warnings": []
+          }
+        ]
+      ]
+    }
+  ]
+}

@@ -13,7 +13,7 @@
 // db.rescueUsage). Each backup call is booked as it ends (db.bookRescue), and a rescued turn counts 2 against TURNS_PER_DAY.
 // A cap that blocks a rescue behaves as no backup configured, with its own message (fatal backup-limit).
 import type { Env, ExecutionContextLike } from './env.ts';
-import { claudeBudgetUsdPerDay, rescuesPerDay, turnsPerDay } from './env.ts';
+import { claudeBudgetUsdPerDay, proposalDeadlineMs, rescuesPerDay, turnsPerDay } from './env.ts';
 import type { Catalog, ServerEvent } from '../../../packages/core/src/types.ts';
 import { DEFAULT_BASE_URL, DEFAULT_MODEL, FALLBACK_MODEL, createCacheTracker } from '../../../packages/core/src/llm.ts';
 import type { BackupCall, BackupGateResult, CacheTracker, RunTurnOptions } from '../../../packages/core/src/llm.ts';
@@ -89,7 +89,8 @@ export function health(env: Env): Response {
 
 /* ---------- copy for the Worker's own fatal codes ---------- */
 
-export type WorkerFatal = 'signed-out' | 'not-approved' | 'quota-exceeded' | 'user-busy';
+/** The proposal- variants are /api/proposal's own copy (no "Your diagram is unchanged"; the basic version is offered). */
+export type WorkerFatal = 'signed-out' | 'not-approved' | 'quota-exceeded' | 'user-busy' | 'proposal-signed-out' | 'proposal-not-approved';
 
 export function workerFatalMessage(code: WorkerFatal, lang: Lang, vars?: Record<string, string | number>): string {
   return t(lang, `fatal.${code}`, vars);
@@ -194,7 +195,9 @@ export async function handleTurn(request: Request, env: Env, ctx: ExecutionConte
   }
   const cfg = turnConfig(env);
   const requestId = crypto.randomUUID();
-  if (!(await db.acquireTurnSlot(env.DB, user.id, requestId, t0, cfg.deadlineMs + 60_000))) {
+  // The slot is shared with proposal drafts: stale only after the longer of the two deadlines (plus slack), so a
+  // turn never takes over a draft that is still running.
+  if (!(await db.acquireTurnSlot(env.DB, user.id, requestId, t0, Math.max(cfg.deadlineMs, proposalDeadlineMs(env)) + 60_000))) {
     logReject(409, 'user-busy');
     return reject(409, 'user-busy', workerFatalMessage('user-busy', lang));
   }

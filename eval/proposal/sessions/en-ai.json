@@ -1,0 +1,1715 @@
+{
+  "steps": [
+    {
+      "kind": "ask",
+      "text": "A bank wants an internal agent platform: sandboxed code execution for agents, RAG over internal documents, and post-training of an open model. Data must stay in Singapore."
+    }
+  ],
+  "memory": {
+    "turns": [
+      {
+        "role": "user",
+        "text": "A bank wants an internal agent platform: sandboxed code execution for agents, RAG over internal documents, and post-training of an open model. Data must stay in Singapore."
+      },
+      {
+        "role": "assistant",
+        "text": "I'll design an internal agent platform in Singapore with ACK, agent sandboxes, RAG on a self-hosted model and PAI for post-training.\nRAG uses a self-hosted tuned model served by PAI-EAS with Elasticsearch as the vector store.\nPAI-DLC handles post-training; NAT allows outbound model downloads while keeping data inside Singapore.",
+        "changes": "+sg[region] +vpc[vpc] +staff(users) +ack(ack, zones a,b) +agentcore(agentcore) +sandbox(acs-agent-sandbox) +ai-gw(ai-gateway) +rag(pai-eas) +llm(pai-eas) +vector(elasticsearch, zones a,b) +train(pai-dlc) +docs(oss) +models(oss) +nat(nat) +acr(acr) +logs(sls) +e-staff-ack +e-ack-agentcore +e-ack-sandbox +e-ack-aigw +e-aigw-rag +e-rag-llm +e-rag-vector +e-train-llm +e-train-docs +e-rag-docs +e-train-models +e-llm-models +e-train-nat +e-ack-logs +e-train-logs"
+      }
+    ],
+    "requirements": [
+      "Data must stay in Singapore"
+    ],
+    "graph": {
+      "groups": {
+        "sg": {
+          "id": "sg",
+          "kind": "region",
+          "label": "Singapore (ap-southeast-1)",
+          "parent": null
+        },
+        "vpc": {
+          "id": "vpc",
+          "kind": "vpc",
+          "label": "Bank VPC",
+          "parent": "sg"
+        }
+      },
+      "nodes": {
+        "staff": {
+          "id": "staff",
+          "product": "users",
+          "label": "Bank staff",
+          "group": null,
+          "why": "Internal users accessing the agent platform."
+        },
+        "ack": {
+          "id": "ack",
+          "product": "ack",
+          "label": "ACK cluster",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Runs agent hosting, RAG service and gateways across two zones."
+        },
+        "agentcore": {
+          "id": "agentcore",
+          "product": "agentcore",
+          "label": "AgentCore",
+          "group": "sg",
+          "why": "Orchestrates agents, skills and MCP tools for bank workflows."
+        },
+        "sandbox": {
+          "id": "sandbox",
+          "product": "acs-agent-sandbox",
+          "label": "Agent sandboxes",
+          "group": "vpc",
+          "why": "Isolated pods where agents safely execute generated code."
+        },
+        "ai-gw": {
+          "id": "ai-gw",
+          "product": "ai-gateway",
+          "label": "AI Gateway",
+          "group": "vpc",
+          "why": "Routes LLM calls with guardrails and token limits."
+        },
+        "rag": {
+          "id": "rag",
+          "product": "pai-eas",
+          "label": "RAG service",
+          "group": "vpc",
+          "why": "Serves retrieval-augmented generation over internal documents."
+        },
+        "llm": {
+          "id": "llm",
+          "product": "pai-eas",
+          "label": "Tuned LLM",
+          "group": "vpc",
+          "why": "Serves the post-trained open model for RAG and agents."
+        },
+        "vector": {
+          "id": "vector",
+          "product": "elasticsearch",
+          "label": "Vector store",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "Stores document embeddings for RAG retrieval."
+        },
+        "train": {
+          "id": "train",
+          "product": "pai-dlc",
+          "label": "Post-training jobs",
+          "group": "sg",
+          "why": "Fine-tunes the open model on internal bank data."
+        },
+        "docs": {
+          "id": "docs",
+          "product": "oss",
+          "label": "Internal docs",
+          "group": "sg",
+          "why": "Stores raw documents and training datasets."
+        },
+        "models": {
+          "id": "models",
+          "product": "oss",
+          "label": "Model artifacts",
+          "group": "sg",
+          "why": "Holds base and fine-tuned model weights."
+        },
+        "nat": {
+          "id": "nat",
+          "product": "nat",
+          "label": "NAT Gateway",
+          "group": "vpc",
+          "why": "Outbound internet for pulling base models securely."
+        },
+        "acr": {
+          "id": "acr",
+          "product": "acr",
+          "label": "Container Registry",
+          "group": "sg",
+          "why": "Stores private images for sandboxes and agents."
+        },
+        "logs": {
+          "id": "logs",
+          "product": "sls",
+          "label": "Audit logs",
+          "group": "sg",
+          "why": "Centralized logging and audit trail for compliance."
+        }
+      },
+      "edges": {
+        "e-staff-ack": {
+          "id": "e-staff-ack",
+          "from": "staff",
+          "to": "ack",
+          "label": "internal"
+        },
+        "e-ack-agentcore": {
+          "id": "e-ack-agentcore",
+          "from": "ack",
+          "to": "agentcore"
+        },
+        "e-ack-sandbox": {
+          "id": "e-ack-sandbox",
+          "from": "ack",
+          "to": "sandbox",
+          "label": "exec"
+        },
+        "e-ack-aigw": {
+          "id": "e-ack-aigw",
+          "from": "ack",
+          "to": "ai-gw"
+        },
+        "e-aigw-rag": {
+          "id": "e-aigw-rag",
+          "from": "ai-gw",
+          "to": "rag",
+          "label": "private endpoint"
+        },
+        "e-rag-llm": {
+          "id": "e-rag-llm",
+          "from": "rag",
+          "to": "llm",
+          "label": "inference"
+        },
+        "e-rag-vector": {
+          "id": "e-rag-vector",
+          "from": "rag",
+          "to": "vector",
+          "label": "search"
+        },
+        "e-train-llm": {
+          "id": "e-train-llm",
+          "from": "train",
+          "to": "llm",
+          "label": "deploy",
+          "kind": "control"
+        },
+        "e-train-docs": {
+          "id": "e-train-docs",
+          "from": "train",
+          "to": "docs",
+          "label": "read"
+        },
+        "e-rag-docs": {
+          "id": "e-rag-docs",
+          "from": "rag",
+          "to": "docs",
+          "label": "ingest"
+        },
+        "e-train-models": {
+          "id": "e-train-models",
+          "from": "train",
+          "to": "models",
+          "label": "write"
+        },
+        "e-llm-models": {
+          "id": "e-llm-models",
+          "from": "llm",
+          "to": "models",
+          "label": "load"
+        },
+        "e-train-nat": {
+          "id": "e-train-nat",
+          "from": "train",
+          "to": "nat",
+          "label": "egress",
+          "kind": "control"
+        },
+        "e-ack-logs": {
+          "id": "e-ack-logs",
+          "from": "ack",
+          "to": "logs",
+          "kind": "control"
+        },
+        "e-train-logs": {
+          "id": "e-train-logs",
+          "from": "train",
+          "to": "logs",
+          "kind": "control"
+        }
+      },
+      "recs": []
+    },
+    "tombstones": [],
+    "constraints": [
+      {
+        "text": "Data must stay in Singapore",
+        "regions": [
+          "ap-southeast-1"
+        ]
+      }
+    ],
+    "assumptions": [
+      {
+        "id": "internal-only",
+        "text": "Internal bank staff only, no public exposure",
+        "alt": "Exposed to partners via API gateway"
+      },
+      {
+        "id": "k8s-ok",
+        "text": "Team can operate Kubernetes (ACK)",
+        "alt": "Serverless containers only (ACS)"
+      }
+    ],
+    "questions": [
+      {
+        "id": "base-model",
+        "text": "Which open model will you post-train? This affects GPU sizing for PAI-DLC and PAI-EAS.",
+        "options": [
+          "Qwen2.5-7B",
+          "Llama 3.1-8B",
+          "Other (specify later)"
+        ]
+      },
+      {
+        "id": "doc-ingest",
+        "text": "How will internal documents be ingested into the vector store?",
+        "options": [
+          "Batch upload to OSS",
+          "Real-time sync from DB",
+          "Manual upload via UI"
+        ]
+      }
+    ]
+  },
+  "turns": [
+    {
+      "ask": "A bank wants an internal agent platform: sandboxed code execution for agents, RAG over internal documents, and post-training of an open model. Data must stay in Singapore.",
+      "ev": [
+        [
+          1959,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design an",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          1960,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design an internal",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2111,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design an internal agent platform in Singapore",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2235,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design an internal agent platform in Singapore with ACK, agent",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2236,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design an internal agent platform in Singapore with ACK, agent sand",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2370,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design an internal agent platform in Singapore with ACK, agent sandboxes, RAG",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2371,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design an internal agent platform in Singapore with ACK, agent sandboxes, RAG on",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2372,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design an internal agent platform in Singapore with ACK, agent sandboxes, RAG on a self-hosted",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2448,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design an internal agent platform in Singapore with ACK, agent sandboxes, RAG on a self-hosted model and",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2538,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design an internal agent platform in Singapore with ACK, agent sandboxes, RAG on a self-hosted model and PAI for post",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2539,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design an internal agent platform in Singapore with ACK, agent sandboxes, RAG on a self-hosted model and PAI for post-training",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          2542,
+          {
+            "type": "say",
+            "id": 0,
+            "text": "I'll design an internal agent platform in Singapore with ACK, agent sandboxes, RAG on a self-hosted model and PAI for post-training.",
+            "final": true,
+            "phase": "main"
+          }
+        ],
+        [
+          2542,
+          {
+            "type": "op",
+            "seq": 1,
+            "op": {
+              "t": "say",
+              "text": "I'll design an internal agent platform in Singapore with ACK, agent sandboxes, RAG on a self-hosted model and PAI for post-training."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          2883,
+          {
+            "type": "op",
+            "seq": 2,
+            "op": {
+              "t": "req",
+              "text": "Data must stay in Singapore",
+              "regions": [
+                "ap-southeast-1"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          3948,
+          {
+            "type": "op",
+            "seq": 3,
+            "op": {
+              "t": "plan",
+              "products": [
+                "users",
+                "ack",
+                "acs-agent-sandbox",
+                "pai-dlc",
+                "pai-eas",
+                "oss",
+                "elasticsearch",
+                "model-studio",
+                "ai-gateway",
+                "agentcore",
+                "nat",
+                "sls",
+                "acr"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          4723,
+          {
+            "type": "op",
+            "seq": 4,
+            "op": {
+              "t": "assume",
+              "id": "internal-only",
+              "text": "Internal bank staff only, no public exposure",
+              "alt": "Exposed to partners via API gateway"
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          5430,
+          {
+            "type": "op",
+            "seq": 5,
+            "op": {
+              "t": "assume",
+              "id": "k8s-ok",
+              "text": "Team can operate Kubernetes (ACK)",
+              "alt": "Serverless containers only (ACS)"
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          5990,
+          {
+            "type": "op",
+            "seq": 6,
+            "op": {
+              "t": "group",
+              "id": "sg",
+              "kind": "region",
+              "label": "Singapore (ap-southeast-1)",
+              "parent": null
+            },
+            "added": [
+              "sg"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          6454,
+          {
+            "type": "op",
+            "seq": 7,
+            "op": {
+              "t": "group",
+              "id": "vpc",
+              "kind": "vpc",
+              "label": "Bank VPC",
+              "parent": "sg"
+            },
+            "added": [
+              "vpc"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          7203,
+          {
+            "type": "op",
+            "seq": 8,
+            "op": {
+              "t": "node",
+              "id": "staff",
+              "product": "users",
+              "label": "Bank staff",
+              "group": null,
+              "why": "Internal users accessing the agent platform."
+            },
+            "added": [
+              "staff"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          8085,
+          {
+            "type": "op",
+            "seq": 9,
+            "op": {
+              "t": "node",
+              "id": "ack",
+              "product": "ack",
+              "label": "ACK cluster",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "Runs agent hosting, RAG service and gateways across two zones."
+            },
+            "added": [
+              "ack"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          8541,
+          {
+            "type": "op",
+            "seq": 10,
+            "op": {
+              "t": "edge",
+              "id": "e-staff-ack",
+              "from": "staff",
+              "to": "ack",
+              "label": "internal"
+            },
+            "added": [
+              "e-staff-ack"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          9469,
+          {
+            "type": "op",
+            "seq": 11,
+            "op": {
+              "t": "node",
+              "id": "agentcore",
+              "product": "agentcore",
+              "label": "AgentCore",
+              "group": "vpc",
+              "why": "Orchestrates agents, skills and MCP tools for bank workflows."
+            },
+            "added": [
+              "agentcore"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          9800,
+          {
+            "type": "op",
+            "seq": 12,
+            "op": {
+              "t": "edge",
+              "id": "e-ack-agentcore",
+              "from": "ack",
+              "to": "agentcore"
+            },
+            "added": [
+              "e-ack-agentcore"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          10731,
+          {
+            "type": "op",
+            "seq": 13,
+            "op": {
+              "t": "node",
+              "id": "sandbox",
+              "product": "acs-agent-sandbox",
+              "label": "Agent sandboxes",
+              "group": "vpc",
+              "why": "Isolated pods where agents safely execute generated code."
+            },
+            "added": [
+              "sandbox"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          11299,
+          {
+            "type": "op",
+            "seq": 14,
+            "op": {
+              "t": "edge",
+              "id": "e-ack-sandbox",
+              "from": "ack",
+              "to": "sandbox",
+              "label": "exec"
+            },
+            "added": [
+              "e-ack-sandbox"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          12006,
+          {
+            "type": "op",
+            "seq": 15,
+            "op": {
+              "t": "node",
+              "id": "ai-gw",
+              "product": "ai-gateway",
+              "label": "AI Gateway",
+              "group": "vpc",
+              "why": "Routes LLM calls with guardrails and token limits."
+            },
+            "added": [
+              "ai-gw"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          12552,
+          {
+            "type": "op",
+            "seq": 16,
+            "op": {
+              "t": "edge",
+              "id": "e-ack-aigw",
+              "from": "ack",
+              "to": "ai-gw"
+            },
+            "added": [
+              "e-ack-aigw"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          12553,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "R",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          12554,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "RAG",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          13266,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "RAG uses a self-host",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          13286,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "RAG uses a self-hosted tuned model served",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          13287,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "RAG uses a self-hosted tuned model served by PAI-E",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          13288,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "RAG uses a self-hosted tuned model served by PAI-EAS with",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          13289,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "RAG uses a self-hosted tuned model served by PAI-EAS with Elasticsearch as the vector",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          13290,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "RAG uses a self-hosted tuned model served by PAI-EAS with Elasticsearch as the vector store.",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          13291,
+          {
+            "type": "say",
+            "id": 1,
+            "text": "RAG uses a self-hosted tuned model served by PAI-EAS with Elasticsearch as the vector store.",
+            "final": true,
+            "phase": "main"
+          }
+        ],
+        [
+          13291,
+          {
+            "type": "op",
+            "seq": 17,
+            "op": {
+              "t": "say",
+              "text": "RAG uses a self-hosted tuned model served by PAI-EAS with Elasticsearch as the vector store."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          14002,
+          {
+            "type": "op",
+            "seq": 18,
+            "op": {
+              "t": "node",
+              "id": "rag",
+              "product": "pai-eas",
+              "label": "RAG service",
+              "group": "vpc",
+              "why": "Serves retrieval-augmented generation over internal documents."
+            },
+            "added": [
+              "rag"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          14570,
+          {
+            "type": "op",
+            "seq": 19,
+            "op": {
+              "t": "edge",
+              "id": "e-aigw-rag",
+              "from": "ai-gw",
+              "to": "rag",
+              "label": "private endpoint"
+            },
+            "added": [
+              "e-aigw-rag"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          15446,
+          {
+            "type": "op",
+            "seq": 20,
+            "op": {
+              "t": "node",
+              "id": "llm",
+              "product": "pai-eas",
+              "label": "Tuned LLM",
+              "group": "vpc",
+              "why": "Serves the post-trained open model for RAG and agents."
+            },
+            "added": [
+              "llm"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          15950,
+          {
+            "type": "op",
+            "seq": 21,
+            "op": {
+              "t": "edge",
+              "id": "e-rag-llm",
+              "from": "rag",
+              "to": "llm",
+              "label": "inference"
+            },
+            "added": [
+              "e-rag-llm"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          16895,
+          {
+            "type": "op",
+            "seq": 22,
+            "op": {
+              "t": "node",
+              "id": "vector",
+              "product": "elasticsearch",
+              "label": "Vector store",
+              "group": "vpc",
+              "zones": [
+                "a",
+                "b"
+              ],
+              "why": "Stores document embeddings for RAG retrieval."
+            },
+            "added": [
+              "vector"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          17443,
+          {
+            "type": "op",
+            "seq": 23,
+            "op": {
+              "t": "edge",
+              "id": "e-rag-vector",
+              "from": "rag",
+              "to": "vector",
+              "label": "search"
+            },
+            "added": [
+              "e-rag-vector"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          17620,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "PAI-DLC",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          17621,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "PAI-DLC handles",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          17784,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "PAI-DLC handles post-training; NAT",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          17910,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "PAI-DLC handles post-training; NAT allows outbound model downloads",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          18001,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "PAI-DLC handles post-training; NAT allows outbound model downloads while keeping data inside",
+            "final": false,
+            "phase": "main"
+          }
+        ],
+        [
+          18093,
+          {
+            "type": "say",
+            "id": 2,
+            "text": "PAI-DLC handles post-training; NAT allows outbound model downloads while keeping data inside Singapore.",
+            "final": true,
+            "phase": "main"
+          }
+        ],
+        [
+          18093,
+          {
+            "type": "op",
+            "seq": 24,
+            "op": {
+              "t": "say",
+              "text": "PAI-DLC handles post-training; NAT allows outbound model downloads while keeping data inside Singapore."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          18879,
+          {
+            "type": "op",
+            "seq": 25,
+            "op": {
+              "t": "node",
+              "id": "train",
+              "product": "pai-dlc",
+              "label": "Post-training jobs",
+              "group": "sg",
+              "why": "Fine-tunes the open model on internal bank data."
+            },
+            "added": [
+              "train"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          19504,
+          {
+            "type": "op",
+            "seq": 26,
+            "op": {
+              "t": "edge",
+              "id": "e-train-llm",
+              "from": "train",
+              "to": "llm",
+              "label": "deploy",
+              "kind": "control"
+            },
+            "added": [
+              "e-train-llm"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          20172,
+          {
+            "type": "op",
+            "seq": 27,
+            "op": {
+              "t": "node",
+              "id": "docs",
+              "product": "oss",
+              "label": "Internal docs",
+              "group": "sg",
+              "why": "Stores raw documents and training datasets."
+            },
+            "added": [
+              "docs"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          20693,
+          {
+            "type": "op",
+            "seq": 28,
+            "op": {
+              "t": "edge",
+              "id": "e-train-docs",
+              "from": "train",
+              "to": "docs",
+              "label": "read"
+            },
+            "added": [
+              "e-train-docs"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          21256,
+          {
+            "type": "op",
+            "seq": 29,
+            "op": {
+              "t": "edge",
+              "id": "e-rag-docs",
+              "from": "rag",
+              "to": "docs",
+              "label": "ingest"
+            },
+            "added": [
+              "e-rag-docs"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          22036,
+          {
+            "type": "op",
+            "seq": 30,
+            "op": {
+              "t": "node",
+              "id": "models",
+              "product": "oss",
+              "label": "Model artifacts",
+              "group": "sg",
+              "why": "Holds base and fine-tuned model weights."
+            },
+            "added": [
+              "models"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          22497,
+          {
+            "type": "op",
+            "seq": 31,
+            "op": {
+              "t": "edge",
+              "id": "e-train-models",
+              "from": "train",
+              "to": "models",
+              "label": "write"
+            },
+            "added": [
+              "e-train-models"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          23137,
+          {
+            "type": "op",
+            "seq": 32,
+            "op": {
+              "t": "edge",
+              "id": "e-llm-models",
+              "from": "llm",
+              "to": "models",
+              "label": "load"
+            },
+            "added": [
+              "e-llm-models"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          23924,
+          {
+            "type": "op",
+            "seq": 33,
+            "op": {
+              "t": "node",
+              "id": "nat",
+              "product": "nat",
+              "label": "NAT Gateway",
+              "group": "vpc",
+              "why": "Outbound internet for pulling base models securely."
+            },
+            "added": [
+              "nat"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          24429,
+          {
+            "type": "op",
+            "seq": 34,
+            "op": {
+              "t": "edge",
+              "id": "e-train-nat",
+              "from": "train",
+              "to": "nat",
+              "label": "egress",
+              "kind": "control"
+            },
+            "added": [
+              "e-train-nat"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          25164,
+          {
+            "type": "op",
+            "seq": 35,
+            "op": {
+              "t": "node",
+              "id": "acr",
+              "product": "acr",
+              "label": "Container Registry",
+              "group": "sg",
+              "why": "Stores private images for sandboxes and agents."
+            },
+            "added": [
+              "acr"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          25815,
+          {
+            "type": "op",
+            "seq": 36,
+            "op": {
+              "t": "node",
+              "id": "logs",
+              "product": "sls",
+              "label": "Audit logs",
+              "group": "sg",
+              "why": "Centralized logging and audit trail for compliance."
+            },
+            "added": [
+              "logs"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          26301,
+          {
+            "type": "op",
+            "seq": 37,
+            "op": {
+              "t": "edge",
+              "id": "e-ack-logs",
+              "from": "ack",
+              "to": "logs",
+              "kind": "control"
+            },
+            "added": [
+              "e-ack-logs"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          26643,
+          {
+            "type": "op",
+            "seq": 38,
+            "op": {
+              "t": "edge",
+              "id": "e-train-logs",
+              "from": "train",
+              "to": "logs",
+              "kind": "control"
+            },
+            "added": [
+              "e-train-logs"
+            ],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          27917,
+          {
+            "type": "op",
+            "seq": 39,
+            "op": {
+              "t": "ask",
+              "id": "base-model",
+              "text": "Which open model will you post-train? This affects GPU sizing for PAI-DLC and PAI-EAS.",
+              "options": [
+                "Qwen2.5-7B",
+                "Llama 3.1-8B",
+                "Other (specify later)"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          29913,
+          {
+            "type": "op",
+            "seq": 40,
+            "op": {
+              "t": "ask",
+              "id": "doc-ingest",
+              "text": "How will internal documents be ingested into the vector store?",
+              "options": [
+                "Batch upload to OSS",
+                "Real-time sync from DB",
+                "Manual upload via UI"
+              ]
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          30862,
+          {
+            "type": "op",
+            "seq": 41,
+            "op": {
+              "t": "done",
+              "summary": "Internal agent platform in Singapore: ACK with AgentCore and ACS sandboxes, RAG via PAI-EAS and Elasticsearch, post-training on PAI-DLC, all data stays in-region."
+            },
+            "added": [],
+            "updated": [],
+            "removed": [],
+            "phase": "main"
+          }
+        ],
+        [
+          30862,
+          {
+            "type": "usage",
+            "usage": {
+              "completion_tokens": 1402,
+              "prompt_tokens": 15332,
+              "prompt_tokens_details": {
+                "cached_tokens": 15232,
+                "text_tokens": 15332
+              },
+              "total_tokens": 16734
+            },
+            "costUsd": 0.01242,
+            "phase": "main"
+          }
+        ],
+        [
+          30862,
+          {
+            "type": "done",
+            "summary": "Internal agent platform in Singapore: ACK with AgentCore and ACS sandboxes, RAG via PAI-EAS and Elasticsearch, post-training on PAI-DLC, all data stays in-region.",
+            "timings": {
+              "headersMs": 1655,
+              "firstByteMs": 1655,
+              "firstContentMs": 1656,
+              "firstSayMs": 1952,
+              "firstOpMs": 2536,
+              "firstNodeMs": 7196,
+              "lastOpMs": 30855,
+              "totalMs": 30854,
+              "maxGapMs": 1181,
+              "hedgeAtMs": null
+            },
+            "finishReason": "stop",
+            "truncated": false,
+            "phase": "main"
+          }
+        ],
+        [
+          30897,
+          {
+            "type": "commit",
+            "memory": {
+              "turns": [
+                {
+                  "role": "user",
+                  "text": "A bank wants an internal agent platform: sandboxed code execution for agents, RAG over internal documents, and post-training of an open model. Data must stay in Singapore."
+                },
+                {
+                  "role": "assistant",
+                  "text": "I'll design an internal agent platform in Singapore with ACK, agent sandboxes, RAG on a self-hosted model and PAI for post-training.\nRAG uses a self-hosted tuned model served by PAI-EAS with Elasticsearch as the vector store.\nPAI-DLC handles post-training; NAT allows outbound model downloads while keeping data inside Singapore.",
+                  "changes": "+sg[region] +vpc[vpc] +staff(users) +ack(ack, zones a,b) +agentcore(agentcore) +sandbox(acs-agent-sandbox) +ai-gw(ai-gateway) +rag(pai-eas) +llm(pai-eas) +vector(elasticsearch, zones a,b) +train(pai-dlc) +docs(oss) +models(oss) +nat(nat) +acr(acr) +logs(sls) +e-staff-ack +e-ack-agentcore +e-ack-sandbox +e-ack-aigw +e-aigw-rag +e-rag-llm +e-rag-vector +e-train-llm +e-train-docs +e-rag-docs +e-train-models +e-llm-models +e-train-nat +e-ack-logs +e-train-logs"
+                }
+              ],
+              "requirements": [
+                "Data must stay in Singapore"
+              ],
+              "graph": {
+                "groups": {
+                  "sg": {
+                    "id": "sg",
+                    "kind": "region",
+                    "label": "Singapore (ap-southeast-1)",
+                    "parent": null
+                  },
+                  "vpc": {
+                    "id": "vpc",
+                    "kind": "vpc",
+                    "label": "Bank VPC",
+                    "parent": "sg"
+                  }
+                },
+                "nodes": {
+                  "staff": {
+                    "id": "staff",
+                    "product": "users",
+                    "label": "Bank staff",
+                    "group": null,
+                    "why": "Internal users accessing the agent platform."
+                  },
+                  "ack": {
+                    "id": "ack",
+                    "product": "ack",
+                    "label": "ACK cluster",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Runs agent hosting, RAG service and gateways across two zones."
+                  },
+                  "agentcore": {
+                    "id": "agentcore",
+                    "product": "agentcore",
+                    "label": "AgentCore",
+                    "group": "sg",
+                    "why": "Orchestrates agents, skills and MCP tools for bank workflows."
+                  },
+                  "sandbox": {
+                    "id": "sandbox",
+                    "product": "acs-agent-sandbox",
+                    "label": "Agent sandboxes",
+                    "group": "vpc",
+                    "why": "Isolated pods where agents safely execute generated code."
+                  },
+                  "ai-gw": {
+                    "id": "ai-gw",
+                    "product": "ai-gateway",
+                    "label": "AI Gateway",
+                    "group": "vpc",
+                    "why": "Routes LLM calls with guardrails and token limits."
+                  },
+                  "rag": {
+                    "id": "rag",
+                    "product": "pai-eas",
+                    "label": "RAG service",
+                    "group": "vpc",
+                    "why": "Serves retrieval-augmented generation over internal documents."
+                  },
+                  "llm": {
+                    "id": "llm",
+                    "product": "pai-eas",
+                    "label": "Tuned LLM",
+                    "group": "vpc",
+                    "why": "Serves the post-trained open model for RAG and agents."
+                  },
+                  "vector": {
+                    "id": "vector",
+                    "product": "elasticsearch",
+                    "label": "Vector store",
+                    "group": "vpc",
+                    "zones": [
+                      "a",
+                      "b"
+                    ],
+                    "why": "Stores document embeddings for RAG retrieval."
+                  },
+                  "train": {
+                    "id": "train",
+                    "product": "pai-dlc",
+                    "label": "Post-training jobs",
+                    "group": "sg",
+                    "why": "Fine-tunes the open model on internal bank data."
+                  },
+                  "docs": {
+                    "id": "docs",
+                    "product": "oss",
+                    "label": "Internal docs",
+                    "group": "sg",
+                    "why": "Stores raw documents and training datasets."
+                  },
+                  "models": {
+                    "id": "models",
+                    "product": "oss",
+                    "label": "Model artifacts",
+                    "group": "sg",
+                    "why": "Holds base and fine-tuned model weights."
+                  },
+                  "nat": {
+                    "id": "nat",
+                    "product": "nat",
+                    "label": "NAT Gateway",
+                    "group": "vpc",
+                    "why": "Outbound internet for pulling base models securely."
+                  },
+                  "acr": {
+                    "id": "acr",
+                    "product": "acr",
+                    "label": "Container Registry",
+                    "group": "sg",
+                    "why": "Stores private images for sandboxes and agents."
+                  },
+                  "logs": {
+                    "id": "logs",
+                    "product": "sls",
+                    "label": "Audit logs",
+                    "group": "sg",
+                    "why": "Centralized logging and audit trail for compliance."
+                  }
+                },
+                "edges": {
+                  "e-staff-ack": {
+                    "id": "e-staff-ack",
+                    "from": "staff",
+                    "to": "ack",
+                    "label": "internal"
+                  },
+                  "e-ack-agentcore": {
+                    "id": "e-ack-agentcore",
+                    "from": "ack",
+                    "to": "agentcore"
+                  },
+                  "e-ack-sandbox": {
+                    "id": "e-ack-sandbox",
+                    "from": "ack",
+                    "to": "sandbox",
+                    "label": "exec"
+                  },
+                  "e-ack-aigw": {
+                    "id": "e-ack-aigw",
+                    "from": "ack",
+                    "to": "ai-gw"
+                  },
+                  "e-aigw-rag": {
+                    "id": "e-aigw-rag",
+                    "from": "ai-gw",
+                    "to": "rag",
+                    "label": "private endpoint"
+                  },
+                  "e-rag-llm": {
+                    "id": "e-rag-llm",
+                    "from": "rag",
+                    "to": "llm",
+                    "label": "inference"
+                  },
+                  "e-rag-vector": {
+                    "id": "e-rag-vector",
+                    "from": "rag",
+                    "to": "vector",
+                    "label": "search"
+                  },
+                  "e-train-llm": {
+                    "id": "e-train-llm",
+                    "from": "train",
+                    "to": "llm",
+                    "label": "deploy",
+                    "kind": "control"
+                  },
+                  "e-train-docs": {
+                    "id": "e-train-docs",
+                    "from": "train",
+                    "to": "docs",
+                    "label": "read"
+                  },
+                  "e-rag-docs": {
+                    "id": "e-rag-docs",
+                    "from": "rag",
+                    "to": "docs",
+                    "label": "ingest"
+                  },
+                  "e-train-models": {
+                    "id": "e-train-models",
+                    "from": "train",
+                    "to": "models",
+                    "label": "write"
+                  },
+                  "e-llm-models": {
+                    "id": "e-llm-models",
+                    "from": "llm",
+                    "to": "models",
+                    "label": "load"
+                  },
+                  "e-train-nat": {
+                    "id": "e-train-nat",
+                    "from": "train",
+                    "to": "nat",
+                    "label": "egress",
+                    "kind": "control"
+                  },
+                  "e-ack-logs": {
+                    "id": "e-ack-logs",
+                    "from": "ack",
+                    "to": "logs",
+                    "kind": "control"
+                  },
+                  "e-train-logs": {
+                    "id": "e-train-logs",
+                    "from": "train",
+                    "to": "logs",
+                    "kind": "control"
+                  }
+                },
+                "recs": []
+              },
+              "tombstones": [],
+              "constraints": [
+                {
+                  "text": "Data must stay in Singapore",
+                  "regions": [
+                    "ap-southeast-1"
+                  ]
+                }
+              ],
+              "assumptions": [
+                {
+                  "id": "internal-only",
+                  "text": "Internal bank staff only, no public exposure",
+                  "alt": "Exposed to partners via API gateway"
+                },
+                {
+                  "id": "k8s-ok",
+                  "text": "Team can operate Kubernetes (ACK)",
+                  "alt": "Serverless containers only (ACS)"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "base-model",
+                  "text": "Which open model will you post-train? This affects GPU sizing for PAI-DLC and PAI-EAS.",
+                  "options": [
+                    "Qwen2.5-7B",
+                    "Llama 3.1-8B",
+                    "Other (specify later)"
+                  ]
+                },
+                {
+                  "id": "doc-ingest",
+                  "text": "How will internal documents be ingested into the vector store?",
+                  "options": [
+                    "Batch upload to OSS",
+                    "Real-time sync from DB",
+                    "Manual upload via UI"
+                  ]
+                }
+              ]
+            },
+            "changes": "+sg[region] +vpc[vpc] +staff(users) +ack(ack, zones a,b) +agentcore(agentcore) +sandbox(acs-agent-sandbox) +ai-gw(ai-gateway) +rag(pai-eas) +llm(pai-eas) +vector(elasticsearch, zones a,b) +train(pai-dlc) +docs(oss) +models(oss) +nat(nat) +acr(acr) +logs(sls) +e-staff-ack +e-ack-agentcore +e-ack-sandbox +e-ack-aigw +e-aigw-rag +e-rag-llm +e-rag-vector +e-train-llm +e-train-docs +e-rag-docs +e-train-models +e-llm-models +e-train-nat +e-ack-logs +e-train-logs",
+            "warnings": [
+              {
+                "code": "orphan-node",
+                "ids": [
+                  "acr"
+                ],
+                "msg": "'acr' (acr) has no connections",
+                "severity": "info",
+                "repaired": false
+              }
+            ]
+          }
+        ]
+      ]
+    }
+  ]
+}

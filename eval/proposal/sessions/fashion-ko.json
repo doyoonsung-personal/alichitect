@@ -1,0 +1,291 @@
+{
+  "steps": [
+    {
+      "kind": "ask",
+      "text": "국내에서 패션 쇼핑몰을 운영하고 있습니다. 블랙프라이데이와 연말 세일 때마다 접속자가 평소의 20배로 늘어나 결제 페이지가 10초 넘게 멈추고, 그때마다 장바구니 이탈이 크게 늘어 매출을 놓치고 있습니다. 내년 상반기에 일본 진출도 준비 중입니다. 개인정보는 한국 밖으로 나가면 안 됩니다."
+    },
+    {
+      "kind": "ask",
+      "text": "개발팀이 5명뿐이라 서버 관리 부담은 최소화하고 싶습니다."
+    }
+  ],
+  "memory": {
+    "turns": [
+      {
+        "role": "user",
+        "text": "국내에서 패션 쇼핑몰을 운영하고 있습니다. 블랙프라이데이와 연말 세일 때마다 접속자가 평소의 20배로 늘어나 결제 페이지가 10초 넘게 멈추고, 그때마다 장바구니 이탈이 크게 늘어 매출을 놓치고 있습니다. 내년 상반기에 일본 진출도 준비 중입니다. 개인정보는 한국 밖으로 나가면 안 됩니다."
+      },
+      {
+        "role": "assistant",
+        "text": "트래픽 급증에도 결제가 멈추지 않도록 서울 2개 존에 자동 확장 쇼핑몰을 설계하고, 일본 진출은 ESA로 지연시간을 줄이겠습니다.\n결제 병목을 막기 위해 ECS를 두 존에 배치하고 Auto Scaling으로 세일 시 20배까지 자동 확장합니다.\n결제 처리를 비동기로 분리해 10초 멈춤 현상을 방지합니다.",
+        "changes": "+internet[external] +edge[edge] +sel[region] +vpc[vpc] +users(users) +dns(dns) +esa(esa) +alb(alb, zones a,b) +waf(waf, badge on alb) +app(ecs, zones a,b) +scaling(ess, badge on app) +cache(tair, zones a,b) +db(rds, zones a,b) +mq(rocketmq) +media(oss) +nat(nat) +logs(sls) +mon(prometheus) +e-users-dns +e-users-esa +e-esa-alb +e-alb-app +e-app-cache +e-app-db +e-app-mq +e-esa-media +e-app-nat +e-app-logs +e-app-mon"
+      },
+      {
+        "role": "user",
+        "text": "개발팀이 5명뿐이라 서버 관리 부담은 최소화하고 싶습니다."
+      },
+      {
+        "role": "assistant",
+        "text": "5명 팀이 서버 관리 부담을 줄이도록 ECS와 Auto Scaling 대신 매니지드 SAE로 전환합니다.",
+        "changes": "~app(sae, zones a,b) -scaling"
+      }
+    ],
+    "requirements": [
+      "개인정보는 한국 밖으로 나갈 수 없음",
+      "서버 관리 부담 최소화, 매니지드 서비스 우선"
+    ],
+    "graph": {
+      "groups": {
+        "internet": {
+          "id": "internet",
+          "kind": "external",
+          "label": "인터넷",
+          "parent": null
+        },
+        "edge": {
+          "id": "edge",
+          "kind": "edge",
+          "label": "Edge",
+          "parent": null
+        },
+        "sel": {
+          "id": "sel",
+          "kind": "region",
+          "label": "Seoul (ap-northeast-2)",
+          "parent": null
+        },
+        "vpc": {
+          "id": "vpc",
+          "kind": "vpc",
+          "label": "쇼핑몰 VPC",
+          "parent": "sel"
+        }
+      },
+      "nodes": {
+        "users": {
+          "id": "users",
+          "product": "users",
+          "label": "쇼핑객",
+          "group": "internet",
+          "why": "브라우저와 앱으로 접속하는 고객."
+        },
+        "dns": {
+          "id": "dns",
+          "product": "dns",
+          "label": "Cloud DNS",
+          "group": null,
+          "why": "도메인을 ESA로 해석합니다."
+        },
+        "esa": {
+          "id": "esa",
+          "product": "esa",
+          "label": "ESA",
+          "group": "edge",
+          "why": "상품 이미지 캐싱과 일본 진출 시 지연시간 단축 및 DDoS 방어."
+        },
+        "alb": {
+          "id": "alb",
+          "product": "alb",
+          "label": "ALB",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "두 존에 트래픽을 분산하는 L7 로드밸런서."
+        },
+        "waf": {
+          "id": "waf",
+          "product": "waf",
+          "label": "WAF",
+          "group": "vpc",
+          "attachTo": "alb",
+          "why": "결제 페이지 대상 봇·인젝션 공격 차단."
+        },
+        "app": {
+          "id": "app",
+          "product": "sae",
+          "label": "앱 서버 (SAE)",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "K8s나 VM 관리 없이 세일 시 20배까지 자동 확장되는 매니지드 앱 플랫폼"
+        },
+        "cache": {
+          "id": "cache",
+          "product": "tair",
+          "label": "장바구니·세션 캐시",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "장바구니 이탈 방지를 위한 고속 세션 저장소."
+        },
+        "db": {
+          "id": "db",
+          "product": "rds",
+          "label": "주문 DB",
+          "group": "vpc",
+          "zones": [
+            "a",
+            "b"
+          ],
+          "why": "결제·주문 데이터를 한국 내 이중화로 보관."
+        },
+        "mq": {
+          "id": "mq",
+          "product": "rocketmq",
+          "label": "결제 큐",
+          "group": "vpc",
+          "why": "결제 요청을 비동기로 처리해 앱 응답 지연 방지."
+        },
+        "media": {
+          "id": "media",
+          "product": "oss",
+          "label": "상품 이미지",
+          "group": "sel",
+          "why": "패션 상품 이미지를 저장하고 ESA에서 캐싱."
+        },
+        "nat": {
+          "id": "nat",
+          "product": "nat",
+          "label": "NAT Gateway",
+          "group": "vpc",
+          "why": "VPC 내부 리소스의 아웃바운드 인터넷 접근."
+        },
+        "logs": {
+          "id": "logs",
+          "product": "sls",
+          "label": "로그",
+          "group": "sel",
+          "why": "결제 장애 분석을 위한 중앙 로그 수집."
+        },
+        "mon": {
+          "id": "mon",
+          "product": "prometheus",
+          "label": "모니터링",
+          "group": "sel",
+          "why": "CPU·응답시간 메트릭 기반 알림 및 Auto Scaling 트리거."
+        }
+      },
+      "edges": {
+        "e-users-dns": {
+          "id": "e-users-dns",
+          "from": "users",
+          "to": "dns",
+          "kind": "resolve"
+        },
+        "e-users-esa": {
+          "id": "e-users-esa",
+          "from": "users",
+          "to": "esa",
+          "label": "HTTPS"
+        },
+        "e-esa-alb": {
+          "id": "e-esa-alb",
+          "from": "esa",
+          "to": "alb",
+          "label": "origin"
+        },
+        "e-alb-app": {
+          "id": "e-alb-app",
+          "from": "alb",
+          "to": "app"
+        },
+        "e-app-cache": {
+          "id": "e-app-cache",
+          "from": "app",
+          "to": "cache"
+        },
+        "e-app-db": {
+          "id": "e-app-db",
+          "from": "app",
+          "to": "db",
+          "label": "SQL"
+        },
+        "e-app-mq": {
+          "id": "e-app-mq",
+          "from": "app",
+          "to": "mq",
+          "kind": "async"
+        },
+        "e-esa-media": {
+          "id": "e-esa-media",
+          "from": "esa",
+          "to": "media",
+          "label": "images"
+        },
+        "e-app-nat": {
+          "id": "e-app-nat",
+          "from": "app",
+          "to": "nat",
+          "kind": "control"
+        },
+        "e-app-logs": {
+          "id": "e-app-logs",
+          "from": "app",
+          "to": "logs",
+          "kind": "control"
+        },
+        "e-app-mon": {
+          "id": "e-app-mon",
+          "from": "app",
+          "to": "mon",
+          "kind": "control"
+        }
+      },
+      "recs": []
+    },
+    "tombstones": [
+      {
+        "id": "scaling",
+        "product": "ess",
+        "label": "Auto Scaling",
+        "group": "vpc",
+        "attachTo": "app",
+        "why": "세일 트래픽 20배 증가 시 인스턴스 자동 추가."
+      }
+    ],
+    "constraints": [
+      {
+        "text": "개인정보는 한국 밖으로 나갈 수 없음",
+        "regions": [
+          "ap-northeast-2"
+        ]
+      }
+    ],
+    "assumptions": [
+      {
+        "id": "exposure",
+        "text": "일반 공개 패션 쇼핑몰",
+        "alt": "내부 임직원용"
+      },
+      {
+        "id": "scale",
+        "text": "평소 약 1만 명, 세일 시 20만 명 접속",
+        "alt": "평소 10만 명 이상"
+      }
+    ],
+    "questions": [
+      {
+        "id": "payment-gateway",
+        "text": "결제 PG사는 국내 서비스(예: 토스페이먼츠)인가요, 아니면 글로벌 PG사도 함께 사용하나요?",
+        "options": [
+          "국내 PG사 전용",
+          "글로벌 PG사 병행"
+        ]
+      },
+      {
+        "id": "japan-infra",
+        "text": "일본 진출 시 현지 재고·물류 시스템 연동이 필요한가요, 아니면 한국 본사에서 모두 처리하나요?",
+        "options": [
+          "한국 본사 일괄 처리",
+          "일본 현지 시스템 연동 필요"
+        ]
+      }
+    ]
+  }
+}
