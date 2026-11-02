@@ -27,6 +27,7 @@ import type { Price } from './pricing.ts';
 import { normalizeKey } from './catalog.ts';
 import type { ChatMessage } from './prompt.ts';
 import { RESIDENCY_ASK, continuationMessage, customerWords, designProducts, proposalMessages, regionWords } from './proposal-prompt.ts';
+import { PROPOSAL_HIDDEN as HIDDEN, proposalWorkflowIds } from './proposal-prompt.ts';
 
 export { PROPOSAL_SYSTEM, designProducts, regionWords } from './proposal-prompt.ts';
 
@@ -74,6 +75,7 @@ export interface ProposalCtx {
   /** Catalog ids in the design, in reading order (designProducts): the only ids a why or a need may name. */
   products: string[];
   steps: string[];
+  stepIds: ReadonlyMap<string, string>;
   workflow: boolean;
   workflowOnly: boolean;
   modelNames: string[];
@@ -93,6 +95,7 @@ export interface ProposalCtx {
 
 export function proposalCtx(req: ProposalRequest, catalog: Catalog): ProposalCtx {
   const memory = req.memory;
+  const stepIds = proposalWorkflowIds(memory.workflow);
   const products = designProducts(memory.graph, catalog, memory.workflow);
   const own = (memory.turns ?? []).filter((t) => t.role === 'user').map((t) => customerWords(t.text));
   const words = own.join('\n').normalize('NFKC').toLowerCase();
@@ -103,7 +106,9 @@ export function proposalCtx(req: ProposalRequest, catalog: Catalog): ProposalCtx
   return {
     lang: req.lang === 'ko' || req.lang === 'zh' ? req.lang : 'en',
     products,
-    steps: Object.values(memory.workflow?.nodes ?? {}).filter((n) => !n.on && n.kind !== 'trigger' && n.kind !== 'end').map((n) => n.id),
+    steps: Object.values(memory.workflow?.nodes ?? {})
+      .filter((n) => !n.on && n.kind !== 'trigger' && n.kind !== 'end').map((n) => stepIds.get(n.id) ?? n.id),
+    stepIds,
     workflow: Object.keys(memory.workflow?.nodes ?? {}).length > 0,
     workflowOnly: Object.keys(memory.workflow?.nodes ?? {}).length > 0
       && Object.keys(memory.graph.nodes).length === 0 && memory.graph.recs.length === 0,
@@ -122,15 +127,15 @@ export function buildProposalMessages(req: ProposalRequest, catalog: Catalog): C
   return proposalMessages(req, catalog, designProducts(req.memory.graph, catalog, req.memory.workflow));
 }
 
-// The hidden-backend rule: no browser-bound text names the backup's vendor or model family; the coding tool's product
-// name (the family name followed by "Code") may appear. The character classes keep the words themselves out of this
-// file's bytes, so a web bundle that imports it still passes apps/web/scripts/check-dist.mjs.
-const HIDDEN = /a[n]thropic|c[l]aude(?![ -]?code)/i;
 // Workflow model names describe the design, never the writer.
+const DOCUMENT = String.raw`(?:this|the|our) (?:proposal|document|text|report|narrative)`;
+const AUTHOR_VERB = '(?:written|generated|drafted|prepared|authored|created|produced)';
 const WRITER = new RegExp([
-  "\\b(?:I am|I'm|as an? (?:AI|language model)|(?:written|generated|drafted|prepared|authored) by)\\b",
-  '\\b(?:I|we) (?:wrote|generated|drafted|prepared|authored)\\b',
-  '\\b(?:Qwen[\\w.-]*|AI|model) (?:wrote|generated|drafted|prepared|authored)\\b',
+  String.raw`\b(?:I am|I'm|as an? (?:AI|language model))\b`,
+  String.raw`(?:^|[.!?]\s+)${AUTHOR_VERB} (?:by|with|using)\b`,
+  String.raw`\b${DOCUMENT}\s+(?:(?:is|was|has been)\s+)?${AUTHOR_VERB}\s+(?:by|with|using)\b`,
+  String.raw`\b${DOCUMENT}\s+(?:comes? from|is (?:from|by)|is (?:the work|courtesy) of)\b`,
+  String.raw`\b(?:wrote|generated|drafted|prepared|authored|created|produced)\s+${DOCUMENT}\b`,
   '(?:\uC774 \uC81C\uC548\uC11C|\uC774 \uBB38\uC11C|\uC774 \uAE00).{0,30}(?:\uC791\uC131|\uC0DD\uC131)',
   '(?:\u672C\u6587|\u672C\u63D0\u6848|\u672C\u65B9\u6848).{0,30}(?:\u64B0\u5199|\u751F\u6210)',
 ].join('|'), 'i');
@@ -233,7 +238,8 @@ function sanitize(raw: unknown, ctx: ProposalCtx): ProposalSection | null {
       break;
     }
     case 'step': {
-      const id = typeof o.id === 'string' ? o.id.trim() : '';
+      const rawId = typeof o.id === 'string' ? o.id.trim() : '';
+      const id = ctx.stepIds.get(rawId) ?? rawId;
       const t = text(o.text, L.step);
       if (ctx.steps.includes(id) && t) s = { k: 'step', id, text: t };
       break;
@@ -251,6 +257,7 @@ function sanitize(raw: unknown, ctx: ProposalCtx): ProposalSection | null {
     }
   }
   if (!s) return null;
+  if (ctx.workflow && HIDDEN.test(JSON.stringify(s))) return null;
   const words = Object.entries(s).filter(([k]) => k !== 'k' && k !== 'product' && k !== 'products' && k !== 'id').map(([, v]) => String(v)).join('\n');
   if (HIDDEN.test(words) || PLACEHOLDER.test(words) || (ctx.workflow && WRITER.test(words))) return null;
   return s;
@@ -289,6 +296,21 @@ const REQUIRED = /\b(?:requir\w*|residen\w*|mandat\w*)\b/i;
 const CUSTOMER_REGULATION = /regulat|complian|\blaws?\b|legal|legislat|규제|법규|법령|법적|법률|컴플라이언스|규정|法规|法律|合规|监管/i;
 const CUSTOMER_REQUIRED = /requir|mandat/i;
 const MODEL_NAME = /\b(?:Qwen|Llama|GPT|Mistral|Gemma|DeepSeek|Baichuan|GLM)[\w.-]*\d[\w.-]*/gi;
+// Dots inside versions are part of the id; punctuation after the final component is not.
+const WORKFLOW_MODEL_NAME = /\b(?:Qwen|Llama|GPT|Mistral|Gemma|DeepSeek|Baichuan|GLM)\w*(?:[.-]\w+)*/gi;
+const MONEY_NUMBER = String.raw`\d+(?:[.,]\d+)*`;
+const MONEY_UNIT = String.raw`(?:USD|EUR|GBP|CNY|RMB|KRW|JPY|SGD|HKD|AUD|CAD|INR|dollars?|cents?|euros?|pounds?|yuan|won|yen)`;
+const WORKFLOW_MONEY = new RegExp([
+  String.raw`\p{Sc}\s*[+-]?\s*${MONEY_NUMBER}`,
+  String.raw`\b${MONEY_UNIT}\s*${MONEY_NUMBER}`,
+  String.raw`${MONEY_NUMBER}\s*(?:${MONEY_UNIT}\b|元|块|圓|円|원|달러|유로|\p{Sc})`,
+  String.raw`\b(?:costs?|prices?|budget|spend|fee|charge)\s*(?:(?:is|of|are)\s*)?[:=]?\s*${MONEY_NUMBER}`,
+].join('|'), 'iu');
+
+function workflowMoney(s: ProposalSection): boolean {
+  const words = [...fieldsOf(s), ...(s.k === 'need' && s.quote ? [s.quote] : [])].join('\n').normalize('NFKC');
+  return WORKFLOW_MONEY.test(words);
+}
 const WHY_VERBS = new Set(
   'routes runs stores provides holds centralizes centralises collects distributes caches adds directs splits handles allows orchestrates serves scales enforces isolates buffers schedules traces challenges blocks prevents absorbs hosts manages delivers protects monitors balances encrypts connects accelerates offers enables'.split(' '),
 );
@@ -376,6 +398,8 @@ export function lintSection(s: ProposalSection, ctx: ProposalCtx): LintProblem |
   const all = fieldsOf(s).join('\n');
   if (ctx.workflow && WRITER.test(all))
     return { level: 'hard', rule: 'model', reason: 'never identify the writer or say who generated the text' };
+  if (ctx.workflow && workflowMoney(s))
+    return { level: 'hard', rule: 'price', reason: 'write no monetary figures in workflow narrative; the app generates the estimate table' };
   // Promises live in exec, a need's answer, outcomes and whys. A need states the problem ("관리 부담 해소 필요"), and
   // trade-offs and next steps may say honestly what the design does not do ("confirmation is not instant").
   const claims = s.k === 'need' ? s.answer : s.k === 'tradeoff' || s.k === 'next' ? '' : all;
@@ -387,9 +411,15 @@ export function lintSection(s: ProposalSection, ctx: ProposalCtx): LintProblem |
     return { level: 'hard', rule: 'price', reason: 'it mentions prices or a budget; this design has no catalog price, so describe the cost shape (fixed or pay-as-you-go) without numbers' };
   const typo = misspeltName(all, ctx);
   if (typo) return { level: 'hard', rule: 'name', reason: `it writes "${typo}" for the customer's name; write ${ctx.customer} exactly` };
-  for (const m of all.matchAll(MODEL_NAME)) {
+  const allowedModels = ctx.workflow ? new Set([
+    ...ctx.modelNames,
+    ...Array.from(`${ctx.customerWords}\n${ctx.catalogText}`.matchAll(WORKFLOW_MODEL_NAME), (m) => m[0].toLowerCase()),
+  ]) : null;
+  for (const m of all.matchAll(ctx.workflow ? WORKFLOW_MODEL_NAME : MODEL_NAME)) {
     const name = m[0].toLowerCase();
-    if (!ctx.customerWords.includes(name) && !ctx.catalogText.includes(name) && !ctx.modelNames.includes(name))
+    const allowed = allowedModels ? allowedModels.has(name)
+      : ctx.customerWords.includes(name) || ctx.catalogText.includes(name) || ctx.modelNames.includes(name);
+    if (!allowed)
       return {
         level: 'hard', rule: 'model',
         reason: `it names ${m[0]}, which is neither in the catalog excerpt nor in the customer's messages`,
@@ -520,7 +550,7 @@ export function assembleDraft(sections: ProposalSection[], ctx: ProposalCtx): Pr
   const gate = createGate();
   for (const s of sections) {
     const clean = sanitize(s, ctx);
-    if (clean) gate.add(clean);
+    if (clean && !(ctx.workflow && workflowMoney(clean))) gate.add(clean);
   }
   const d: ProposalDraft = { lang: ctx.lang, exec: '', needs: [], outcomes: [], why: {}, tradeoffs: [], next: [], complete: false };
   if (ctx.workflow) d.steps = {};
