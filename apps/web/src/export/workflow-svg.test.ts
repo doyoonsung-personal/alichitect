@@ -55,6 +55,28 @@ test(`SVG fixture: ${file} ${lang}`, async () => {
   assert.equal(svg.counts.cards, Object.keys(d.input.layout.cards).length);
   assert.ok(svg.width > 0 && svg.height > 0);
   const rects = [...svg.scene.cards, ...svg.scene.brackets];
+  for (const page of svg.pages.filter((p) => !p.overview)) {
+    assert.ok(page.drawing.counts.cards > 0);
+    assert.ok(page.scale * 14 >= 11);
+    for (const window of page.windows ?? [page.bounds]) {
+      assert.ok(svg.scene.cards.some((c) => contains(window, c)));
+    }
+  }
+  for (const card of svg.scene.cards) assert.ok(svg.pages.filter((p) => !p.overview)
+    .some((p) => (p.windows ?? [p.bounds]).some((b) => contains(b, card))), `${card.id}: readable whole card`);
+  for (const edge of svg.edges) {
+    if (edge.label) for (const card of svg.scene.cards) assert.ok(!overlaps(edge.labelBox, card), `${edge.id}: label on ${card.id}`);
+    for (let k = 1; k < edge.points.length; k++) {
+      const a = edge.points[k - 1], b = edge.points[k];
+      assert.ok(a.x === b.x || a.y === b.y, `${edge.id}: diagonal segment`);
+      for (const card of svg.scene.cards.filter((c) => c.id !== edge.edge.from && c.id !== edge.edge.to)) {
+        const hit = a.x === b.x
+          ? a.x > card.x && a.x < card.x + card.w && Math.max(a.y, b.y) > card.y && Math.min(a.y, b.y) < card.y + card.h
+          : a.y > card.y && a.y < card.y + card.h && Math.max(a.x, b.x) > card.x && Math.min(a.x, b.x) < card.x + card.w;
+        assert.equal(hit, false, `${edge.id}: crosses ${card.id}`);
+      }
+    }
+  }
   for (let i = 0; i < rects.length; i++) for (const b of rects.slice(i + 1)) {
     assert.ok(!overlaps(rects[i], b), `${rects[i].id} overlaps ${b.id}`);
   }
@@ -101,7 +123,35 @@ test(`SVG fixture: ${file} ${lang}`, async () => {
     assert.ok(p.x === c.x || p.x === c.x + c.w || p.y === c.y || p.y === c.y + c.h);
   }
 });
+
 }
+
+test('PDF compaction pulls aligned rows up, preserves x and attachment slot order, and leaves label clearance', async () => {
+  const workflow = workflowFixture(10);
+  const prepared = await prepareWorkflowDiagram({ workflow, layout: layoutWorkflow(workflow), catalog, models,
+    settings: {}, lang: 'en', route: async (r) => routeChannels(r) });
+  const fonts = createFontSet(nodeFontSource());
+  drawWorkflowDiagram(prepared, fonts);
+  await fonts.load();
+  const base = drawWorkflowDiagram(prepared, fonts).scene;
+  const cards = base.cards.slice(0, 5).map((c, k) => ({ ...c, x: k === 2 ? 300 : 0,
+    y: k === 0 ? 0 : k <= 2 ? 900 : (k - 1) * 900,
+    node: { ...c.node, ...(k >= 3 ? { on: base.cards[1].id } : {}) } }));
+  const source = { ...base, cards, brackets: [], byId: new Map(cards.map((c) => [c.id, c])) };
+  const before = structuredClone(source);
+  const fitted = fitWorkflowPdfScene(source, fonts);
+  assert.deepEqual(source, before);
+  for (const [k, card] of fitted.cards.entries()) {
+    assert.equal(card.x, cards[k].x);
+    assert.ok(card.y <= cards[k].y);
+    for (const other of fitted.cards.slice(k + 1)) assert.ok(!overlaps(card, other));
+  }
+  assert.equal(fitted.cards[1].y, fitted.cards[2].y);
+  assert.equal(fitted.cards[1].y, fitted.cards[0].y + fitted.cards[0].h + 44);
+  for (const k of [3, 4]) assert.ok(fitted.cards[k].y >= fitted.cards[k - (k === 3 ? 2 : 1)].y
+    + fitted.cards[k - (k === 3 ? 2 : 1)].h + 44);
+  assert.ok(fitted.bounds.h < 900);
+});
 
 test('PDF fitting moves lower cards and brackets without mutating the web scene', async () => {
   const workflow = workflowFixture(10);

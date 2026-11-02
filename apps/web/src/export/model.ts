@@ -4,6 +4,8 @@
 // (POST /api/proposal), when there is one, adds the business "why" on top; without one the model is exactly as before.
 import type { Catalog, CatalogEntry, Graph, NeedSource, ProposalDraft, SessionMemory } from '@ali/core/types.ts';
 import { estimateWorkflow } from '@ali/core/workflow-estimate.ts';
+import { workflowPanelOrder } from '../workflow/panel-model.ts';
+import type { WorkflowLayoutState } from '@ali/core/workflow-layout.ts';
 import type { WorkflowEstimate } from '@ali/core/workflow-estimate.ts';
 import { createModelTable } from '@ali/core/models.ts';
 import type { ModelFile } from '@ali/core/models.ts';
@@ -28,6 +30,7 @@ export interface ProposalInput {
   /** The graph the diagram shows (the committed one). */
   graph: Graph;
   layout: LayoutState | null;
+  workflowLayout?: WorkflowLayoutState;
   catalog: Catalog;
   lang: Lang;
   /** Cover title; empty falls back to the session title, then to "Untitled architecture". */
@@ -372,7 +375,7 @@ export function buildProposal(i: ProposalInput): ProposalModel {
   });
 
   // ---- the drafted narrative ----
-  const workflow = buildWorkflow(mem, catalog, xt, i.draft);
+  const workflow = buildWorkflow(mem, catalog, xt, i.draft, i.workflowLayout);
   const narrative = i.draft ? buildNarrative(i.draft, components, recs, xt, lang) : null;
   if (workflow && narrative) narrative.pricingNote = null;
   if (i.draft) {
@@ -408,10 +411,11 @@ export function buildProposal(i: ProposalInput): ProposalModel {
   };
 }
 
-function buildWorkflow(mem: SessionMemory, catalog: Catalog, xt: XT, draft?: ProposalDraft | null): WorkflowProposalModel | null {
+function buildWorkflow(mem: SessionMemory, catalog: Catalog, xt: XT, draft?: ProposalDraft | null,
+  layout?: WorkflowLayoutState): WorkflowProposalModel | null {
   const wf = mem.workflow;
   if (!wf || !Object.keys(wf.nodes).length) return null;
-  const nodes = Object.values(wf.nodes);
+  const nodes = workflowPanelOrder(wf, layout);
   const name = (id: string | undefined): string => id === 'customer'
     ? xt('workflow.customerRuntime') : id ? catalog.byId.get(id)?.name ?? id : xt('workflow.unspecified');
   const openQuestions: WorkflowProposalModel['openQuestions'] = [

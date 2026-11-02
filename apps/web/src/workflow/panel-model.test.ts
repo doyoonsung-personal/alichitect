@@ -61,15 +61,14 @@ test('32 fixtures retain every step and compare actual PDF sections', () => {
     }
     const s = createInitialState({ lang: 'en', canvas: { w: 1040, h: 800 }, id: file, now: 0 });
     const session = { ...s.session, mode: 'workflow' as const, memory: { ...s.session.memory, workflow } };
-    const pdf = buildProposal({ session, graph: session.memory.graph, layout: null, catalog, lang: 'en', now: new Date(0) });
+    const pdf = buildProposal({ session, graph: session.memory.graph, layout: null, workflowLayout: layout, catalog, lang: 'en', now: new Date(0) });
     const panelIds = rows.filter((n) => !n.on && n.kind !== 'trigger' && n.kind !== 'end').map((n) => n.id);
     const pdfIds = pdf.workflow!.steps.map((n) => n.id);
     if (JSON.stringify(panelIds) !== JSON.stringify(pdfIds)) mismatches.push(file);
+    assert.deepEqual(pdf.workflow!.mapping.map((n) => n.id), rows.filter((n) => n.kind !== 'end').map((n) => n.id), file);
   }
 });
 
-test('panel and PDF step section orders agree on all 32 fixtures', (t) => {
-  // Export uses insertion order; its owner must adopt layout order to close this tracked gap.
-  if (mismatches.length) t.todo('Export ordering is outside this job: ' + mismatches.join(', '));
+test('panel and PDF step section orders agree on all 32 fixtures', () => {
   assert.deepEqual(mismatches, []);
 });

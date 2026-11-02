@@ -15,6 +15,7 @@ export function committedExportSnapshot(state: AppState, catalog: Catalog) {
   const workflow = session.memory.workflow;
   return { session, graph,
     layout: !state.work ? state.display.layout : layoutGraph(graph, catalog),
-    ...(workflow ? { workflow, workflowLayout: layoutWorkflow(workflow) } : {}),
+    ...(workflow ? { workflow, workflowLayout: layoutWorkflow(workflow,
+      JSON.stringify(state.workflowDisplay.graph) === JSON.stringify(workflow) ? state.workflowDisplay.layout ?? undefined : undefined) } : {}),
   };
 }

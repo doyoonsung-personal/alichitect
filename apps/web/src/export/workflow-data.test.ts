@@ -5,6 +5,7 @@ import { createInitialState } from '../store/reducer.ts';
 import { buildProposal } from './model.ts';
 import { workflowPdfData, committedExportSnapshot } from './workflow-data.ts';
 import { workflowFixture } from './workflow-fixtures.ts';
+import { layoutWorkflow } from '@ali/core/workflow-layout.ts';
 test('adapter retains the exact p7a data and hidden attachment mapping without calculating anything', () => {
   const state = createInitialState({ lang: 'en', id: 'wf', now: 0 });
   state.session.memory.workflow = workflowFixture();
@@ -18,6 +19,18 @@ test('adapter retains the exact p7a data and hidden attachment mapping without c
   const { workflow: omitted, ...cloud } = model;
   assert.ok(omitted);
   assert.equal(workflowPdfData(cloud), null);
+});
+
+test('export retains the committed panel layout order and isolates it from later display changes', () => {
+  const state = createInitialState({ lang: 'en', id: 'order', now: 0 });
+  const workflow = workflowFixture(10);
+  state.session.memory.workflow = workflow;
+  state.workflowDisplay.graph = workflow;
+  state.workflowDisplay.layout = layoutWorkflow(workflow);
+  const snapshot = committedExportSnapshot(state, catalog);
+  assert.deepEqual(snapshot.workflowLayout!.workflow.cells, state.workflowDisplay.layout.workflow.cells);
+  state.workflowDisplay.layout.workflow.cells['step-1'].column = 99;
+  assert.notEqual(snapshot.workflowLayout!.workflow.cells['step-1'].column, 99);
 });
 
 test('export snapshot uses committed workflow and settings, isolated before asynchronous export work', () => {
