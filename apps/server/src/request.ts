@@ -7,8 +7,15 @@ import type {
   TurnMode, WorkflowGraph, WorkflowNode, WorkflowEdge, WorkflowGroup, WorkflowSettings, WorkflowEstimateSettings,
 } from '../../../packages/core/src/types.ts';
 import { DEFAULT_WORKFLOW_LIMITS } from '../../../packages/core/src/workflow.ts';
-import { WORKFLOW_TASKS } from '../../../packages/core/src/models.ts';
-import { ID_PATTERN } from '../../../packages/core/src/reducer.ts';
+import { createModelTable, WORKFLOW_TASKS } from '../../../packages/core/src/models.ts';
+import type { ModelFile } from '../../../packages/core/src/models.ts';
+import { normalizeId, ID_PATTERN } from '../../../packages/core/src/reducer.ts';
+import modelsFile from '../../../packages/core/catalog/models.json' with { type: 'json' };
+import products from '../../../packages/core/catalog/products.json' with { type: 'json' };
+import offerings from '../../../packages/core/catalog/offerings.json' with { type: 'json' };
+import { createCatalog } from '../../../packages/core/src/catalog.ts';
+import type { CatalogFile } from '../../../packages/core/src/catalog.ts';
+import { resolveProduct } from '../../../packages/core/src/validate.ts';
 import { ASK_LIMITS } from '../../../packages/core/src/asks.ts';
 
 export const LIMITS = {
@@ -39,6 +46,12 @@ export const LIMITS = {
   proposalTitle: 160, // code points of the export dialog's cover title
   proposalCustomer: 80, // and of its customer name
 } as const;
+
+// Six bytes per code point covers JSON escapes; the envelope includes a maximum session id.
+export const TURN_MEMORY_BUDGET = 512 * 1024 - LIMITS.askChars * 6 - 1024;
+export const memoryBytes = (memory: SessionMemory): number => new TextEncoder().encode(JSON.stringify(memory)).byteLength;
+const workflowModels = createModelTable(modelsFile as ModelFile);
+const workflowCatalog = createCatalog(products as unknown as CatalogFile, offerings as unknown as CatalogFile);
 
 /** Element and catalog ids, exactly as the reducer accepts them. */
 const ID_RE = ID_PATTERN;
@@ -274,7 +287,12 @@ export function checkTurnRequest(body: unknown): RequestCheck {
     if (typeof sessionId !== 'string' || !SESSION_RE.test(sessionId)) fail('sessionId', `expected 1-${LIMITS.sessionId} characters of A-Z, a-z, 0-9, _ or -`);
     const ask = str(own(o, 'ask'), 'ask', LIMITS.askChars, { nonEmpty: true })!;
     const turnMode = mode(own(o, 'mode'), 'mode');
-    return { ok: true, value: { sessionId, ask, mode: turnMode, memory: memory(own(o, 'memory'), 'memory') } };
+    const parsed = memory(own(o, 'memory'), 'memory');
+    if (parsed.workflow || turnMode === 'workflow') {
+      const retained = { ...parsed, turns: [], tombstones: [], workflowTombstones: [] };
+      if (memoryBytes(retained) > TURN_MEMORY_BUDGET) fail('memory', 'retained documents exceed the next-request budget');
+    }
+    return { ok: true, value: { sessionId, ask, mode: turnMode, memory: parsed } };
   } catch (e) {
     if (e instanceof Bad) return { ok: false, code: 'bad-request', message: e.message };
     return { ok: false, code: 'bad-request', message: 'invalid request body' };
@@ -326,10 +344,16 @@ function bool(v: unknown, p: string): boolean {
 
 const EFFECTS = ['read', 'write', 'reply', 'notify', 'send', 'publish', 'pay', 'delete', 'admin', 'decide'] as const;
 
+function workflowId(v: unknown, p: string): string {
+  const value = id(v, p);
+  if (normalizeId(value) !== value) fail(p, 'expected a canonical workflow id');
+  return value;
+}
+
 function workflowNode(v: unknown, p: string): WorkflowNode {
   const o = obj(v, p);
   const n: WorkflowNode = {
-    id: id(own(o, 'id'), `${p}.id`),
+    id: workflowId(own(o, 'id'), `${p}.id`),
     kind: choice(own(o, 'kind'), `${p}.kind`, ['trigger', 'ai', 'agent', 'decide', 'guard', 'human', 'act', 'tool', 'knowledge', 'memory', 'end']),
     label: str(own(o, 'label'), `${p}.label`, LIMITS.textChars)!,
   };
@@ -337,12 +361,15 @@ function workflowNode(v: unknown, p: string): WorkflowNode {
     if (own(o, k) !== undefined) Object.assign(n, { [k]: parse(own(o, k), `${p}.${k}`) });
   };
   put('task', (x, path) => choice(x, path, WORKFLOW_TASKS));
-  for (const k of ['after', 'on', 'product', 'runs', 'subject', 'repeat'] as const) put(k, id);
-  for (const k of ['ai', 'tool'] as const) put(k, (x, path) => {
-    const value = str(x, path, 80, { nonEmpty: true })!;
-    if (!/^[a-z0-9][a-z0-9_.-]*$/.test(value)) fail(path, 'invalid reference');
-    return value;
-  });
+  for (const k of ['after', 'on', 'subject', 'repeat'] as const) put(k, workflowId);
+  for (const k of ['product', 'runs', 'ai', 'tool'] as const) {
+    if (own(o, k) === undefined) continue;
+    const value = str(own(o, k), `${p}.${k}`, 80, { nonEmpty: true })!;
+    const ref = k === 'product' || k === 'runs'
+      ? k === 'runs' && value === 'customer' ? value : resolveProduct(workflowCatalog, value, [n.id]).entry?.id
+      : k === 'ai' ? workflowModels.model(value.trim())?.id : workflowModels.tool(value.trim())?.id;
+    if (ref) n[k] = ref;
+  }
   put('turns', (x, path) => number(x, path, 50, 1, true));
   put('effect', (x, path) => choice(x, path, EFFECTS));
   for (const k of ['untrusted', 'private'] as const) put(k, bool);
@@ -354,7 +381,11 @@ function workflowNode(v: unknown, p: string): WorkflowNode {
 
 function workflowEdge(v: unknown, p: string): WorkflowEdge {
   const o = obj(v, p);
-  const e: WorkflowEdge = { id: id(own(o, 'id'), `${p}.id`), from: id(own(o, 'from'), `${p}.from`), to: id(own(o, 'to'), `${p}.to`) };
+  const e: WorkflowEdge = {
+    id: workflowId(own(o, 'id'), `${p}.id`),
+    from: workflowId(own(o, 'from'), `${p}.from`),
+    to: workflowId(own(o, 'to'), `${p}.to`),
+  };
   if (own(o, 'kind') !== undefined) e.kind = choice(o.kind, `${p}.kind`, ['next', 'branch', 'loop', 'escalate']);
   if (own(o, 'label') !== undefined) e.label = str(o.label, `${p}.label`, LIMITS.textChars)!;
   if (own(o, 'max') !== undefined) e.max = number(o.max, `${p}.max`, 20, 1, true);
@@ -364,7 +395,7 @@ function workflowEdge(v: unknown, p: string): WorkflowEdge {
 
 function workflowGroup(v: unknown, p: string): WorkflowGroup {
   const o = obj(v, p);
-  const g: WorkflowGroup = { id: id(own(o, 'id'), `${p}.id`), over: str(own(o, 'over'), `${p}.over`, LIMITS.textChars)! };
+  const g: WorkflowGroup = { id: workflowId(own(o, 'id'), `${p}.id`), over: str(own(o, 'over'), `${p}.over`, LIMITS.textChars)! };
   if (own(o, 'parallel') !== undefined) g.parallel = bool(o.parallel, `${p}.parallel`);
   return g;
 }
@@ -388,7 +419,7 @@ function workflowTombstone(v: unknown, p: string): WorkflowNode | WorkflowEdge |
 function workflowSettings(v: unknown, p: string): WorkflowSettings {
   const o = obj(v, p);
   const out: WorkflowSettings = {};
-  if (own(o, 'region') !== undefined) out.region = id(o.region, `${p}.region`);
+  if (own(o, 'region') !== undefined) out.region = workflowId(o.region, `${p}.region`);
   for (const k of ['approvalOff', 'approvalOn'] as const) {
     if (own(o, k) !== undefined) out[k] = arr(o[k], `${p}.${k}`, EFFECTS.length)!.map((x, i) => choice(x, `${p}.${k}[${i}]`, EFFECTS));
   }
@@ -408,7 +439,7 @@ function estimate(v: unknown, p: string): WorkflowEstimateSettings {
     const parsed: Record<string, unknown> = {};
     for (const key of Object.keys(map)) {
       const path = `${p}.${k}.${key}`;
-      id(key, path);
+      workflowId(key, path);
       if (k === 'shares' || k === 'guardTypes') {
         parsed[key] = number(map[key], path, k === 'shares' ? 1 : 3, 0, k === 'guardTypes');
         continue;

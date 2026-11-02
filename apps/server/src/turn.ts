@@ -1,7 +1,7 @@
 // One POST /api/turn, after the request passed every check: runs llm.runTurn, forwards each TurnEvent (with its phase)
 // and each status as a ServerEvent, then sends commit with the new memory, or fatal when the turn failed. When the
-// history window overflowed, the rolling summary is folded after the commit and sent as a summary event, so the commit
-// never waits for it. With a backup (the second provider of packages/core/src/claude.ts), a turn Model Studio's content
+// history window overflowed, cloud-only memory folds after commit. Dual documents fold departing exchanges before
+// compaction and commit so their summary survives byte-budget eviction. With a backup, a turn Model Studio's content
 // filter stopped is finished there. The browser is never told: its status lines are the neutral 'finish' code, no event
 // carries a provider or model field, a filter-stop error event is held back and a failed rescue is a neutral fatal. The
 // real provider, models and codes stay in TurnOutcome (the log: spend tracking and the caps).
@@ -14,7 +14,7 @@ import type { ModelTable } from '../../../packages/core/src/models.ts';
 import { DEFAULT_WINDOW } from '../../../packages/core/src/prompt.ts';
 import { fatalMessage, langOf, statusMessage } from './messages.ts';
 import type { Lang } from './messages.ts';
-import { LIMITS } from './request.ts';
+import { LIMITS, memoryBytes, TURN_MEMORY_BUDGET } from './request.ts';
 
 export interface TurnDeps {
   apiKey: string;
@@ -76,17 +76,16 @@ export function trimTurns(memory: SessionMemory, max: number = LIMITS.turns): Se
 }
 
 /** Reserve a maximum next ask (including JSON escapes) and envelope within the 512 KiB transport cap. */
-export function compactTurnMemory(memory: SessionMemory): SessionMemory {
+export function compactTurnMemory(memory: SessionMemory, dropTurns = true, budget = TURN_MEMORY_BUDGET): SessionMemory {
   if (!memory.workflow) return memory;
-  const budget = 512 * 1024 - LIMITS.askChars * 6 - 1024;
-  const bytes = (m: SessionMemory): number => new TextEncoder().encode(JSON.stringify(m)).byteLength;
+  const bytes = memoryBytes;
   if (bytes(memory) <= budget) return memory;
   let next = { ...memory, turns: memory.turns.map((t) => ({ ...t })) };
   for (const turn of next.turns) {
     delete turn.changes;
     if (bytes(next) <= budget) return next;
   }
-  while (next.turns.length && bytes(next) > budget) {
+  while (dropTurns && next.turns.length && bytes(next) > budget) {
     let end = 1;
     while (end < next.turns.length && next.turns[end].role !== 'user') end++;
     next.turns = next.turns.slice(end);
@@ -94,7 +93,21 @@ export function compactTurnMemory(memory: SessionMemory): SessionMemory {
   for (const key of ['tombstones', 'workflowTombstones'] as const) {
     while (next[key]?.length && bytes(next) > budget) next = { ...next, [key]: next[key]!.slice(1) };
   }
+  if (bytes(next) > budget) throw new Error('turn memory budget exhausted');
   return next;
+}
+
+/** Plan departures against the full history, reserving the largest possible folded summary. */
+function summaryWindow(memory: SessionMemory, window: number): number {
+  const planned = compactTurnMemory(trimTurns(memory), true, TURN_MEMORY_BUDGET - 9002);
+  const exchanges = planned.turns.filter((t, i) => i === 0 || t.role === 'user').length;
+  return Math.min(window, exchanges);
+}
+
+function keepExchanges(memory: SessionMemory, window: number): SessionMemory {
+  const starts = memory.turns.flatMap((t, i) => i === 0 || t.role === 'user' ? [i] : []);
+  const cut = window === 0 ? memory.turns.length : starts[Math.max(0, starts.length - window)];
+  return { ...memory, turns: memory.turns.slice(cut) };
 }
 
 /** The codes a browser sees for a failed rescue. The log keeps the real ones (fatalOf, TurnOutcome.fatalCode). */
@@ -156,7 +169,7 @@ export async function executeTurn<M extends TurnMode = 'cloud'>(
     signal,
     fetchImpl: deps.fetchImpl,
     checkConstraints: deps.checkConstraints,
-    summarize: false, // folded below, after the commit
+    summarize: false, // folded below, before dual-document compaction or after a cloud-only commit
     onEvent: (e) => {
       // With a backup configured, the content-filter stop of the first pass is not shown: the second pass finishes the
       // answer (or the turn ends with a neutral fatal), and the revision must look like any other.
@@ -178,11 +191,36 @@ export async function executeTurn<M extends TurnMode = 'cloud'>(
     emit({ type: 'fatal', code: wire, message: fatalMessage(wire, lang), retryable: f.retryable });
     return out;
   }
-  const memory = compactTurnMemory(trimTurns(r.memory));
+  let memory: SessionMemory;
+  if (r.memory.workflow) {
+    try {
+      const keep = summaryWindow(r.memory, window);
+      let retained = r.memory;
+      if (historyOverflows(retained, keep)) {
+        const t0 = Date.now();
+        const folded = await foldSummary(retained, keep, {
+          apiKey: deps.apiKey, baseUrl: deps.baseUrl, signal, fetchImpl: deps.fetchImpl, onCost, onStatus, allDeparting: true,
+        });
+        const success = folded !== retained;
+        out.summary = { folded: success, ms: Date.now() - t0 };
+        if (success) retained = keepExchanges(folded, keep);
+      }
+      if (signal.aborted) return out;
+      // On summary failure preserve every exchange, or leave the client's previous memory intact with a fatal.
+      memory = compactTurnMemory(retained, false);
+      if (memory.turns.length > LIMITS.turns) throw new Error('turn memory budget exhausted');
+    } catch {
+      if (signal.aborted) return out;
+      out.outcome = 'fatal';
+      out.fatalCode = 'memory-budget';
+      emit({ type: 'fatal', code: 'memory-budget', message: 'Conversation memory is full. Shorten the documents or retry.', retryable: true });
+      return out;
+    }
+  } else memory = trimTurns(r.memory);
   out.outcome = 'commit';
   out.nodes = Object.keys(req.mode === 'workflow' ? memory.workflow!.nodes : memory.graph.nodes).length;
   emit({ type: 'commit', memory, changes: r.changes, warnings: r.stats.warningsAfter });
-  if (historyOverflows(memory, window) && !signal.aborted) {
+  if (!memory.workflow && historyOverflows(memory, window) && !signal.aborted) {
     const t0 = Date.now();
     const folded = await foldSummary(memory, window, { apiKey: deps.apiKey, baseUrl: deps.baseUrl, signal, fetchImpl: deps.fetchImpl, onCost, onStatus });
     const changed = !!folded.summary && folded.summary !== memory.summary;

@@ -38,6 +38,7 @@ import { applyOp, createCtx, endTurn } from './reducer.ts';
 import type { ApplyCtx } from './reducer.ts';
 import { checkGraph, constraintChecker, repairGraph, validateOp } from './validate.ts';
 import { impliedLifts, mergeConstraintsDetailed } from './constraints.ts';
+import { checkWorkflowConstraints } from './workflow-constraints.ts';
 import { diffGraphs } from './diff.ts';
 import { ASK_LIMITS, latestById, mergeAssumptions } from './asks.ts';
 import type { Assumption, Question } from './asks.ts';
@@ -1500,9 +1501,10 @@ export async function runTurn<M extends TurnMode = 'cloud'>(
   const filtered = isFiltered(m.error) && !rescueContinue;
   const hardFail = (!!m.error && m.ops.length === 0) || filtered;
   const checker = opts.checkConstraints === undefined ? defaultConstraintChecker : opts.checkConstraints;
-  const checkC = (g: Graph, says: readonly string[], pinned: readonly Constraint[]): Warning[] => {
-    if (workflowMode || !checker || !pinned.length) return [];
+  const checkC = (g: Graph, says: readonly string[], pinned: readonly Constraint[], workflow?: WorkflowGraph): Warning[] => {
+    if (!checker || !pinned.length) return [];
     try {
+      if (workflowMode) return checkWorkflowConstraints(workflow!, says, pinned, catalog);
       return checker({ graph: g, says, constraints: pinned, catalog });
     } catch {
       return []; // a checker bug must not fail the turn; the deterministic repairs still apply
@@ -1541,12 +1543,13 @@ export async function runTurn<M extends TurnMode = 'cloud'>(
     ? dedupe(tag([...ws.filter((w) => !w.repaired && w.severity !== 'info'), ...repaired.filter((w) => !w.repaired)]))
     : remaining(ws, repaired, graph, catalog);
   const warningsBefore = tag([...m.warnings, ...(workflowMode
-    ? checkWorkflow(m.workflow!, catalog, opts.models!, memory.workflowSettings) : checkGraph(m.graph, catalog)), ...checkC(m.graph, m.says, pinned)]);
+    ? checkWorkflow(m.workflow!, catalog, opts.models!, memory.workflowSettings) : checkGraph(m.graph, catalog)),
+    ...checkC(m.graph, m.says, pinned, m.workflow)]);
   const rep = repair(m);
   let finalGraph = rep.graph;
   let finalWorkflow = 'workflow' in rep ? rep.workflow : memory.workflow;
   const fixes = rep.warnings.filter((w) => w.repaired);
-  let warningsAfter = dedupe([...remainingFor(m.warnings, rep.warnings, finalGraph), ...checkC(finalGraph, m.says, pinned)]);
+  let warningsAfter = dedupe([...remainingFor(m.warnings, rep.warnings, finalGraph), ...checkC(finalGraph, m.says, pinned, finalWorkflow)]);
   let repairInfo: RepairInfo | undefined;
   let finalDone = m.doneSeen;
   const errors = warningsAfter.filter((w) => w.severity === 'error');
@@ -1618,7 +1621,8 @@ export async function runTurn<M extends TurnMode = 'cloud'>(
       m.questions = latestById([...m.questions, ...s.questions], ASK_LIMITS.askPerTurn);
       m.rawProducts.push(...s.rawProducts);
       // Say lines of the main reply that broke a constraint were reported and corrected; only an uncorrected reply is checked again.
-      warningsAfter = dedupe([...remainingFor(s.warnings, rep2.warnings, finalGraph), ...checkC(finalGraph, s.says.length ? s.says : m.says, pinned)]);
+      warningsAfter = dedupe([...remainingFor(s.warnings, rep2.warnings, finalGraph),
+        ...checkC(finalGraph, s.says.length ? s.says : m.says, pinned, finalWorkflow)]);
     } else {
       repairInfo.ops = [];
     }
@@ -1774,12 +1778,12 @@ export async function foldSummary(
   memory: SessionMemory,
   window: number,
   opts: Pick<RunTurnOptions<TurnMode>, 'apiKey' | 'baseUrl' | 'signal' | 'prices' | 'fetchImpl' | 'onCost' | 'onStatus'>
-    & { timeouts?: Partial<typeof SUMMARY_TIMEOUTS> },
+    & { timeouts?: Partial<typeof SUMMARY_TIMEOUTS>; allDeparting?: boolean },
   model = SUMMARY_MODEL,
 ): Promise<SessionMemory> {
   const ex = exchangesOf(memory.turns);
   if (ex.length <= window) return memory;
-  const leaving = ex[ex.length - window - 1];
+  const leaving = opts.allDeparting ? ex.slice(0, ex.length - window).flat() : ex[ex.length - window - 1];
   const text = leaving.map((t) => (t.role === 'user' ? `USER: ${t.text}` : `ASSISTANT:\n${renderAssistantTurn(t)}`)).join('\n');
   if (opts.onStatus) {
     try {
