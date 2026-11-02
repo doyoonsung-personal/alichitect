@@ -14,9 +14,6 @@
             "trigger",
             "end"
           ],
-          "tasks": [
-            "extract"
-          ],
           "products": [
             [
               "model-studio"
@@ -24,7 +21,13 @@
           ],
           "approvals": true,
           "boundedLoops": true,
-          "international": true
+          "international": true,
+          "tasksAny": [
+            [
+              "extract",
+              "check"
+            ]
+          ]
         }
       }
     }

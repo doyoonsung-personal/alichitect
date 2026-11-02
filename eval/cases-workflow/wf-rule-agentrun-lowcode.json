@@ -42,7 +42,10 @@
             "gated",
             "restricted",
             "not available",
-            "access"
+            "access",
+            "unavailable",
+            "closed to new customers",
+            "not offered"
           ]
         ]
       }

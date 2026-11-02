@@ -63,6 +63,58 @@ test('required kinds, tasks, tiers, service and runtime fields pass and fail ind
   assert.ok(failures(g, { tiers: { generate: ['mid'] } }).some((a) => a.name.includes('tier')));
 });
 
+test('model ids imply Model Studio service use but never a runtime or another service', () => {
+  const g = approved(); delete g.nodes.draft.product;
+  assert.deepEqual(failures(g, { products: [['model-studio']] }), []);
+  assert.deepEqual(failures(g, { products: [['chatapp', 'model-studio']] }), []);
+  assert.ok(failures(g, { products: [['chatapp']] }).length);
+  assert.ok(failures(g, { runtimes: [['model-studio']] }).length);
+  assert.ok(failures(g, { forbiddenProducts: ['model-studio'] }).length);
+  delete g.nodes.draft.ai;
+  assert.ok(failures(g, { products: [['model-studio']] }).some((a) => a.name === 'workflow products model-studio'));
+});
+
+test('voice tasks accept model audio modalities without requiring separate ASR and speech steps', () => {
+  for (const [ai, transcribe, speak] of [
+    ['qwen-audio-3.1-realtime-flash', true, true], ['qwen3.8-omni-flash', true, false],
+    ['qwen-audio-3.1-asr-flash', true, false], ['qwen-audio-3.1-tts-plus', false, true],
+    ['qwen3.7-plus', false, false], ['unknown', false, false],
+  ] as const) {
+    const g = approved(); g.nodes.draft.ai = ai;
+    for (const [task, expected] of [['transcribe', transcribe], ['speak', speak]] as const) {
+      assert.equal(score(g, { tasks: [task] }).find((a) => a.name === `workflow task ${task}`)?.pass, expected, `${ai}: ${task}`);
+    }
+  }
+});
+
+test('task alternatives accept combined review or verification but still require a matching capability', () => {
+  const g = approved();
+  for (const task of ['check', 'review'] as const) {
+    g.nodes.draft.task = task;
+    assert.deepEqual(failures(g, { tasksAny: [['check', 'review']] }), []);
+  }
+  assert.ok(failures(g, { tasksAny: [['extract', 'check']] }).length);
+  assert.ok(failures(g, { tasksAny: [['check', 'review'], ['extract']] }).length);
+});
+
+test('rule wording accepts natural gate and safety explanations without removing the mention requirement', () => {
+  const cases = loadCases(path.join(EVAL_DIR, 'cases-workflow'));
+  for (const id of ['wf-rule-agentbay', 'wf-rule-agentrun-lowcode', 'wf-rule-knowledge-base']) {
+    const item = cases.find((c) => c.id === id)!;
+    for (const phrase of ['unavailable', 'closed to new customers', 'not offered']) {
+      const v = view(); v.says = [`The low-code builder is ${phrase}.`];
+      assert.ok(evaluateTurn(v, item.turns[0], 'en', names, catalog).filter((a) => a.type === 'mention').every((a) => a.pass));
+    }
+    const v = view(); v.says = ['Use the low-code builder.'];
+    assert.ok(evaluateTurn(v, item.turns[0], 'en', names, catalog).some((a) => a.type === 'mention' && !a.pass));
+  }
+  const item = cases.find((c) => c.id === 'wf-rule-trifecta')!;
+  const v = view(); v.says = ['Web research, private retrieval, guarded drafting, human approval before emailing third party.'];
+  assert.ok(evaluateTurn(v, item.turns[0], 'en', names, catalog).filter((a) => a.type === 'mention').every((a) => a.pass));
+  v.says = ['Web research and private retrieval.'];
+  assert.ok(evaluateTurn(v, item.turns[0], 'en', names, catalog).some((a) => a.type === 'mention' && !a.pass));
+});
+
 test('approval rejects bypasses, wrong outcomes, producers after a gate and ungated attached tools', () => {
   assert.deepEqual(failures(approved()), []);
   const variants = [approved(), approved(), approved(), approved()];
@@ -215,7 +267,8 @@ test('all 32 canonical fixtures validate and satisfy their conservative one-turn
 
 test('case validation rejects workflow typos, unknown tasks, tiers, products and malformed groups', () => {
   for (const workflow of [{ kind: ['trigger'] }, { tiers: { classify: ['huge'] } }, { tasks: ['draft'] },
-    { products: [[]] }, { products: [['unknown']] }, { runtimes: ['fc'] }, { approvals: 'yes' }, { noWarnings: ['typo'] }, null]) {
+    { products: [[]] }, { products: [['unknown']] }, { runtimes: ['fc'] }, { approvals: 'yes' }, { noWarnings: ['typo'] },
+    { tasksAny: [] }, { tasksAny: [[]] }, { tasksAny: ['check'] }, { tasksAny: [['draft']] }, null]) {
     const bad = { ...c, turns: [{ ask: 'x', expect: { workflow } }] } as unknown as EvalCase;
     assert.ok(checkCases([bad], catalog).length, JSON.stringify(workflow));
   }
