@@ -131,6 +131,7 @@ export async function runUnit(c: EvalCase, run: number, ctx: UnitContext): Promi
         model: ctx.model,
         fallbackModel: ctx.fallback,
         mode,
+        ...(mode === 'workflow' ? { models: loadModels() } : {}),
         system: mode === 'workflow' ? buildSystemPrompt(ctx.catalog, mode, loadModels()) : ctx.system,
         tracker: ctx.tracker,
         window: c.window,
