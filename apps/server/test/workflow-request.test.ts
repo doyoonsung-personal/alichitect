@@ -68,6 +68,43 @@ test('workflow parser rejects bad shapes, prototype keys, oversized maps and unb
   }
 });
 
+test('stored workflow references resolve through the model table and catalog, including tombstones', () => {
+  const memory = dual();
+  Object.assign(memory.workflow!.nodes.start, { ai: 'claude-opus-5-5', tool: 'unknown-tool', product: 'unknown-product', runs: 'unknown-runtime' });
+  memory.workflowTombstones = [{ ...memory.workflow!.nodes.start, id: 'old' }];
+  const parsed = checkTurnRequest(request(memory));
+  assert.ok(parsed.ok);
+  for (const n of [parsed.value.memory.workflow!.nodes.start, parsed.value.memory.workflowTombstones![0]]) {
+    for (const key of ['ai', 'tool', 'product', 'runs']) assert.equal(Object.hasOwn(n, key), false);
+  }
+  Object.assign(memory.workflow!.nodes.start, { ai: 'qwen3.8-max', tool: 'web_search', product: 'ecs', runs: 'customer' });
+  const valid = checkTurnRequest(request(memory));
+  assert.ok(valid.ok);
+  assert.deepEqual(valid.value.memory.workflow!.nodes.start, memory.workflow!.nodes.start);
+});
+
+test('noncanonical workflow ids are rejected in records, references, tombstones and every estimate map', () => {
+  for (const id of ['constructor', '__proto__', 'a--b', 'a-']) {
+    const mutations: Array<(m: any) => void> = [
+      (m) => m.workflow.nodes = Object.fromEntries([[id, { id, kind: 'trigger', label: 'Start' }]]),
+      (m) => m.workflow.edges = Object.fromEntries([[id, { id, from: 'start', to: 'end' }]]),
+      (m) => m.workflow.groups = Object.fromEntries([[id, { id, over: 'Items' }]]),
+      ...['after', 'on', 'subject', 'repeat'].map((key) => (m: any) => m.workflow.nodes.start[key] = id),
+      ...['from', 'to'].map((key) => (m: any) => m.workflow.edges = { route: { id: 'route', from: 'start', to: 'end', [key]: id } }),
+      (m) => m.workflowTombstones = [{ id, kind: 'trigger', label: 'Start' }],
+      (m) => m.workflowTombstones = [{ id: 'route', from: id, to: 'start' }],
+      (m) => m.workflowTombstones = [{ id, over: 'Items' }],
+      ...['steps', 'items', 'shares', 'loops', 'agents', 'guardTypes'].map((key) => (m: any) => {
+        m.estimate = { [key]: Object.fromEntries([[id, key === 'shares' || key === 'guardTypes' ? 1 : {}]]) };
+      }),
+    ];
+    for (const mutate of mutations) {
+      const m = dual(); mutate(m);
+      assert.equal(checkTurnRequest(request(m)).ok, false, `${id}: ${mutate}`);
+    }
+  }
+});
+
 test('large Korean and Chinese dual-document request is compacted below 512 KiB in UTF-8', (t) => {
   const m = dual();
   const text = '\ud55c\uad6d \u4e2d\u6587'.repeat(40);
