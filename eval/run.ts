@@ -15,13 +15,14 @@
 import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
-import { loadCatalog } from '../packages/core/src/catalog-node.ts';
+import { loadCatalog, loadModels } from '../packages/core/src/catalog-node.ts';
 import { buildSystemPrompt, createMemory } from '../packages/core/src/prompt.ts';
 import { DEFAULT_MODEL, FALLBACK_MODEL, createCacheTracker, runTurn } from '../packages/core/src/llm.ts';
 import type { RunTurnResult, TurnStats } from '../packages/core/src/llm.ts';
 import type { Graph, SessionMemory } from '../packages/core/src/types.ts';
 import { EVAL_DIR, RESULTS_DIR, appendLedger, askText, checkCases, evaluateTurn, isConstraintCase, loadBase, loadCases, productNamePattern, spentUsd } from './lib.ts';
 import type { EvalCase, TurnView } from './lib.ts';
+import { emptyWorkflow } from '../packages/core/src/workflow.ts';
 import { judgeRun } from './judge.ts';
 import type { JudgeRecord, RunMeta, RunRecord } from './records.ts';
 import { renderSummaryMd, summarize } from './summarize.ts';
@@ -96,6 +97,7 @@ function slimStats(s: TurnStats): TurnStats {
 // ---------- one conversation ----------
 
 export interface UnitContext {
+  runTurnImpl?: typeof runTurn; // offline test seam; defaults to the production pipeline
   apiKey: string;
   model: string;
   fallback: string;
@@ -110,22 +112,26 @@ export interface UnitContext {
 
 export async function runUnit(c: EvalCase, run: number, ctx: UnitContext): Promise<RunRecord> {
   const started = Date.now();
+  const mode = c.mode ?? 'cloud';
   const lang = c.lang ?? 'en';
   let memory: SessionMemory = c.base ? loadBase(c.base, ctx.catalog).memory : createMemory();
   const userTexts: string[] = memory.turns.filter((t) => t.role === 'user').map((t) => t.text);
   const rec: RunRecord = { id: `${c.id}#${run}`, case: c.id, category: c.category, lang, run, model: ctx.model, startedAt: new Date(started).toISOString(), wallMs: 0, pass: true, turns: [], costUsd: 0 };
+  rec.mode = mode;
   for (let i = 0; i < c.turns.length; i++) {
     const turn = c.turns[i];
     const ask = askText(turn);
     userTexts.push(ask);
     const before: Graph = memory.graph;
+    const workflowBefore = memory.workflow ?? emptyWorkflow();
     let r: RunTurnResult;
     try {
-      r = await runTurn(memory, ask, ctx.catalog, {
+      r = await (ctx.runTurnImpl ?? runTurn)(memory, ask, ctx.catalog, {
         apiKey: ctx.apiKey,
         model: ctx.model,
         fallbackModel: ctx.fallback,
-        system: ctx.system,
+        mode,
+        system: mode === 'workflow' ? buildSystemPrompt(ctx.catalog, mode, loadModels()) : ctx.system,
         tracker: ctx.tracker,
         window: c.window,
         summarize: c.summarize,
@@ -145,6 +151,11 @@ export async function runUnit(c: EvalCase, run: number, ctx: UnitContext): Promi
     }
     const view: TurnView = {
       ask,
+      mode,
+      ...(mode === 'workflow' || memory.workflow || r.memory.workflow ? {
+        workflowBefore, workflow: r.memory.workflow ?? emptyWorkflow(),
+        ...(r.memory.workflowSettings ? { workflowSettings: r.memory.workflowSettings } : {}),
+      } : {}),
       ops: r.ops,
       says: r.says,
       reqs: r.reqs,
@@ -164,6 +175,12 @@ export async function runUnit(c: EvalCase, run: number, ctx: UnitContext): Promi
     rec.turns.push({
       index: i,
       ask,
+      mode,
+      ...(mode === 'workflow' || memory.workflow || r.memory.workflow ? {
+        workflowBefore, workflow: r.memory.workflow ?? emptyWorkflow(),
+        ...(r.memory.workflowSettings ? { workflowSettings: r.memory.workflowSettings } : {}),
+        ...(r.memory.estimate ? { estimate: r.memory.estimate } : {}),
+      } : {}),
       content: r.content,
       ops: r.ops,
       says: r.says,
@@ -208,7 +225,7 @@ async function pool<T>(items: T[], concurrency: number, fn: (x: T, i: number) =>
 
 // ---------- rescoring (no API) ----------
 
-function rescore(dir: string, cases: EvalCase[], catalog: ReturnType<typeof loadCatalog>): void {
+export function rescore(dir: string, cases: EvalCase[], catalog: ReturnType<typeof loadCatalog>): void {
   const file = path.join(dir, 'runs.jsonl');
   const orig = path.join(dir, 'runs.orig.jsonl');
   if (!existsSync(orig)) copyFileSync(file, orig);
@@ -221,17 +238,27 @@ function rescore(dir: string, cases: EvalCase[], catalog: ReturnType<typeof load
       out.push(run);
       continue;
     }
-    let before: Graph = c.base ? loadBase(c.base, catalog).memory.graph : createMemory().graph;
-    const userTexts: string[] = c.base ? loadBase(c.base, catalog).memory.turns.filter((t) => t.role === 'user').map((t) => t.text) : [];
+    const base = c.base ? loadBase(c.base, catalog).memory : createMemory();
+    let before: Graph = base.graph;
+    let workflowBefore = base.workflow ?? emptyWorkflow();
+    const userTexts = base.turns.filter((t) => t.role === 'user').map((t) => t.text);
     run.pass = !run.apiError;
     run.turns.forEach((t, i) => {
       const turn = c.turns[i];
       userTexts.push(t.ask);
       const view: TurnView = { ask: t.ask, ops: t.ops, says: t.says, reqs: t.reqs, gaps: t.gaps, rawProducts: t.rawProducts, graph: t.graph, before, requirements: t.requirements, constraints: t.constraints ?? [], assumptions: t.assumptions, questions: t.questions, stats: t.stats, userTexts: [...userTexts] };
+      view.mode = t.mode ?? run.mode ?? 'cloud';
+      if (view.mode === 'workflow') {
+        view.workflowBefore = t.workflowBefore ?? workflowBefore;
+        if (t.workflow) view.workflow = t.workflow;
+        const settings = t.workflowSettings ?? base.workflowSettings;
+        if (settings) view.workflowSettings = settings;
+      }
       t.assertions = evaluateTurn(view, turn, c.lang ?? 'en', names, catalog);
       t.pass = t.assertions.every((a) => a.pass);
       if (!t.pass) run.pass = false;
       before = t.graph;
+      workflowBefore = t.workflow ?? workflowBefore;
     });
     out.push(run);
   }
@@ -243,7 +270,15 @@ function rescore(dir: string, cases: EvalCase[], catalog: ReturnType<typeof load
 async function main(): Promise<number> {
   const a = parseArgs(process.argv.slice(2));
   const catalog = loadCatalog();
-  const casesDir = typeof a['cases-dir'] === 'string' ? path.resolve(a['cases-dir']) : undefined;
+  let casesDir = typeof a['cases-dir'] === 'string' ? path.resolve(a['cases-dir']) : undefined;
+  const savedDir = [a.rescore, a['judge-only'], a.resume].find((x) => typeof x === 'string');
+  if (!casesDir && typeof savedDir === 'string') {
+    const metaFile = path.join(path.resolve(savedDir), 'meta.json');
+    if (existsSync(metaFile)) {
+      const saved = JSON.parse(readFileSync(metaFile, 'utf8')) as RunMeta;
+      if (typeof saved.args?.['cases-dir'] === 'string') casesDir = path.resolve(saved.args['cases-dir']);
+    }
+  }
   const problems = checkCases(loadCases(casesDir), catalog);
   if (problems.length) {
     console.error('case problems:\n' + problems.map((p) => ' - ' + p).join('\n'));
@@ -263,6 +298,9 @@ async function main(): Promise<number> {
   for (let r = 1; r <= runs; r++) for (const c of cases) units.push({ c, run: r });
 
   if (a.dry) {
+    if (cases.some((c) => c.mode === 'workflow')) {
+      for (const c of cases) console.log(`${c.id} [${c.mode ?? 'cloud'}] ${c.title}`);
+    }
     console.log(`${cases.length} cases x ${runs} runs = ${units.length} conversations, ${cases.reduce((s, c) => s + c.turns.length, 0) * runs} turns; model ${model}, fallback ${fallback}, judge ${judgeModel ?? 'off'}, budget USD ${budget}`);
     return 0;
   }
@@ -306,6 +344,9 @@ async function main(): Promise<number> {
           units: units.length,
           catalogVersion: catalog.version,
           catalogEntries: catalog.entries.length,
+          ...(cases.some((c) => c.mode === 'workflow') ? {
+            workflowSystemPromptSha256: createHash('sha256').update(buildSystemPrompt(catalog, 'workflow', loadModels())).digest('hex'),
+          } : {}),
           systemPromptChars: system.length,
           systemPromptSha256: createHash('sha256').update(system).digest('hex'),
           node: process.version,

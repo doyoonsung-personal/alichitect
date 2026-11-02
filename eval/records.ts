@@ -1,13 +1,18 @@
 // Shapes of the stored evaluation records (runs.jsonl, judge.jsonl, meta.json). Pure types, no logic.
-import type { Constraint, Graph, Op } from '../packages/core/src/types.ts';
+import type { Constraint, Graph, Op, TurnMode, WorkflowOp, WorkflowGraph, WorkflowSettings, WorkflowEstimateSettings } from '../packages/core/src/types.ts';
 import type { TurnStats } from '../packages/core/src/llm.ts';
 import type { AssertionResult, Category, Lang } from './lib.ts';
 
 export interface TurnRecord {
+  mode?: TurnMode; // absent in old records means cloud
+  workflowBefore?: WorkflowGraph;
+  workflow?: WorkflowGraph;
+  workflowSettings?: WorkflowSettings;
+  estimate?: WorkflowEstimateSettings;
   index: number;
   ask: string;
   content: string; // raw model output of the main stream
-  ops: Op[]; // validated ops, follow-up turn included
+  ops: Array<Op | WorkflowOp>; // validated ops, follow-up turn included
   says: string[];
   reqs: string[];
   gaps: Array<{ need: string; note: string }>;
@@ -25,6 +30,7 @@ export interface TurnRecord {
 }
 
 export interface RunRecord {
+  mode?: TurnMode;
   id: string; // <case>#<run>
   case: string;
   category: Category;
@@ -40,6 +46,7 @@ export interface RunRecord {
 }
 
 export interface JudgeScores {
+  workflow?: { patternChoice: number; humanApproval: number; modelTierFit: number; productCorrectness: number; clarity: number };
   completeness: number;
   accuracy: number;
   rationality: number;
@@ -74,6 +81,7 @@ export interface RunMeta {
   units: number;
   catalogVersion: string;
   catalogEntries: number;
+  workflowSystemPromptSha256?: string;
   systemPromptChars: number;
   systemPromptSha256: string;
   node: string;

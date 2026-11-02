@@ -1,0 +1,35 @@
+{
+  "id": "wf-financial-report-analysis",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Financial Report Analysis and Summarisation",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/financial-report-analysis.json. One file upload event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Build an analyst assistant that parses quarterly PDF reports, computes financial ratios in code, and drafts summary memos for human sign-off",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "extract",
+            "generate",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "id": "wf-travel-itinerary-booking",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Travel Itinerary Booking Agent",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/travel-itinerary-booking.json. One chat message event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Set up a travel agent that searches flights and hotels, builds itineraries, and waits for my approval before booking",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "plan",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "pay"
+          ]
+        }
+      }
+    }
+  ]
+}

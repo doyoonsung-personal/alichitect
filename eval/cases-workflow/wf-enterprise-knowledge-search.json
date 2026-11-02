@@ -1,0 +1,34 @@
+{
+  "id": "wf-enterprise-knowledge-search",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Enterprise Knowledge Search Assistant",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/enterprise-knowledge-search.json. One authenticated employee query; optional outbound actions require approval of the exact answer. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Set up a secure search agent that answers employee questions over internal documents, respects file permissions, and flags gaps to content owners",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "knowledge"
+          ],
+          "tasks": [
+            "retrieve",
+            "generate"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}

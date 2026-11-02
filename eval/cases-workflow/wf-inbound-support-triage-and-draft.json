@@ -1,0 +1,38 @@
+{
+  "id": "wf-inbound-support-triage-and-draft",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Inbound support email triage and reply drafting",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/inbound-support-triage-and-draft.json. One email via webhook event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Build an agent that catches inbound support emails, classifies the issue, pulls tracking info, drafts a reply, and waits for a supervisor to approve it before sending.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "classify",
+            "generate",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "send"
+          ]
+        }
+      }
+    }
+  ]
+}

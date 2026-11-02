@@ -1,0 +1,37 @@
+{
+  "id": "wf-claims-processing-extraction",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Insurance Claims Processing and Extraction",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/claims-processing-extraction.json. One claim packet, at most three OCR retries, then an adjuster-approved payout or denial. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Set up an agent that extracts data from uploaded claim photos and PDFs, checks policies, and routes approvals for payouts",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "extract",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "pay"
+          ]
+        }
+      }
+    }
+  ]
+}

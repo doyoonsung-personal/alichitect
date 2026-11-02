@@ -1,0 +1,39 @@
+{
+  "id": "wf-ecommerce-product-listing-enrichment",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "E-commerce product listing creation from images",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/ecommerce-product-listing-enrichment.json. One file upload event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Set up a pipeline that takes supplier photos, extracts attributes, generates SEO-friendly listings in multiple languages, and queues them for merchandiser approval before pushing to Amazon and Shopee.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "extract",
+            "generate",
+            "translate",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "publish"
+          ]
+        }
+      }
+    }
+  ]
+}

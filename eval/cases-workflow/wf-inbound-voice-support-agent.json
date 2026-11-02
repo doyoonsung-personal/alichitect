@@ -1,0 +1,38 @@
+{
+  "id": "wf-inbound-voice-support-agent",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Inbound Voice Support Agent",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/inbound-voice-support-agent.json. One inbound call turn through partner CCaaS; later turns start new runs with call state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Create a voice agent that handles inbound bank calls, checks balances, and transfers to a human for transactions",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "transcribe",
+            "speak",
+            "takeover"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "reply"
+          ]
+        }
+      }
+    }
+  ]
+}

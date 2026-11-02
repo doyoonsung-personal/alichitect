@@ -1,0 +1,38 @@
+{
+  "id": "wf-support-email-triage",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Support Email Triage and Auto-Resolution",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/support-email-triage.json. One inbound email, at most two draft revisions, then approval or manual resolution. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Set up an agent that triages inbound support emails and drafts replies for approval",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "classify",
+            "generate",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "send"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "id": "wf-employee-onboarding-helpdesk",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Employee Onboarding Q&A and HR Helpdesk",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/employee-onboarding-helpdesk.json. One new-hire question or request; administrative fulfilment needs explicit authorization. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Build an HR bot that answers new-hire policy questions from chat, retrieves the right handbook section, and escalates to a human if it isn't sure",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human",
+            "knowledge"
+          ],
+          "tasks": [
+            "retrieve",
+            "generate",
+            "takeover"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}

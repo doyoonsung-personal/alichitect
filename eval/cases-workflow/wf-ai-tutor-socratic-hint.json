@@ -1,0 +1,32 @@
+{
+  "id": "wf-ai-tutor-socratic-hint",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "AI Tutor with Socratic Hint Generation",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/ai-tutor-socratic-hint.json. One worksheet question and hint, with two quality retries. Later questions start new runs using persisted learner state; teachers review this conservative version before speech. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Create an AI tutor that reads student worksheet photos, gives hints instead of answers, and flags teachers for review",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end"
+          ],
+          "tasks": [
+            "generate"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}

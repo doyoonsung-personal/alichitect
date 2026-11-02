@@ -53,9 +53,11 @@ export interface Summary {
     costUsd: number;
   };
   byCategory: Record<string, { cases: number; runs: number; runPassRate: number; passAtN: number; majority: number; allRuns: number }>;
+  byMode: Summary['byCategory'];
   byLang: Record<string, { cases: number; runs: number; runPassRate: number; passAtN: number; majority: number; allRuns: number }>;
   byAssertionType: Record<string, { checks: number; passed: number; rate: number; failingCases: string[] }>;
   cases: CaseSummary[];
+  workflowJudge?: { n: number; means: NonNullable<JudgeRecord['scores']>['workflow'] };
   warnings: {
     preRepairByCode: Record<string, { total: number; perTurn: number; turns: number }>;
     postRepairByCode: Record<string, { total: number; perTurn: number; turns: number }>;
@@ -149,7 +151,18 @@ export function cutoffCause(t: TurnRecord): string {
   return t.stats.finishReason ? `model-stop (${t.stats.finishReason})` : 'unknown';
 }
 
-const turnKind = (t: TurnRecord): 'diagram' | 'product' | 'none' => (Object.keys(t.graph.nodes).length ? 'diagram' : (t.graph.recs ?? []).length ? 'product' : 'none');
+function workflowJudgeSummary(judges: JudgeRecord[]): Pick<Summary, 'workflowJudge'> {
+  const scores = judges.flatMap((j) => j.scores?.workflow ? [j.scores.workflow] : []);
+  if (!scores.length) return {};
+  const keys = ['patternChoice', 'humanApproval', 'modelTierFit', 'productCorrectness', 'clarity'] as const;
+  const means = Object.fromEntries(keys.map((key) => [key, r3(scores.reduce((sum, s) => sum + s[key], 0) / scores.length)]));
+  return { workflowJudge: { n: scores.length, means: means as NonNullable<JudgeRecord['scores']>['workflow'] } };
+}
+
+const turnKind = (t: TurnRecord): 'diagram' | 'product' | 'none' => {
+  if (t.mode === 'workflow') return Object.keys(t.workflow?.nodes ?? {}).length ? 'diagram' : 'none';
+  return Object.keys(t.graph.nodes).length ? 'diagram' : (t.graph.recs ?? []).length ? 'product' : 'none';
+};
 
 function bucket(runs: RunRecord[], cases: EvalCase[], key: (c: EvalCase) => string): Summary['byCategory'] {
   const out: Summary['byCategory'] = {};
@@ -580,6 +593,8 @@ export function summarize(runs: RunRecord[], judges: JudgeRecord[], meta: RunMet
       costUsd: r3(costUsd),
     },
     byCategory: bucket(runs, cases, (c) => c.category),
+    byMode: bucket(runs, cases, (c) => c.mode ?? 'cloud'),
+    ...workflowJudgeSummary(judges.filter((j) => caseIds.has(j.case))),
     byLang: bucket(runs, cases, (c) => c.lang ?? 'en'),
     byAssertionType: Object.fromEntries(Object.entries(byType).sort((a, b) => a[1].rate - b[1].rate)),
     cases: caseRows,
@@ -667,6 +682,13 @@ export function renderSummaryMd(s: Summary): string {
     ),
     '',
   );
+  if (s.workflowJudge?.means) {
+    out.push('## Workflow judge', '', table(['dimension', 'mean'], Object.entries(s.workflowJudge.means)), '');
+  }
+  if (s.byMode?.workflow) {
+    out.push('## By mode', '', table(['mode', 'cases', 'runs', 'run pass'],
+      Object.entries(s.byMode).map(([k, v]) => [k, v.cases, v.runs, pc(v.runPassRate)])), '');
+  }
   out.push(`## By category`, '');
   out.push(table(['category', 'cases', 'runs', 'run pass', 'all runs', 'majority', `pass@${s.meta.runsPerCase}`], Object.entries(s.byCategory).map(([k, v]) => [k, v.cases, v.runs, pc(v.runPassRate), pc(v.allRuns), pc(v.majority), pc(v.passAtN)])), '');
   out.push(`## By language`, '');

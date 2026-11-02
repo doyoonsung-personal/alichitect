@@ -1,0 +1,33 @@
+{
+  "id": "wf-multilingual-document-localisation",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "Multilingual Document Localisation Pipeline",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/multilingual-document-localisation.json. One file upload event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Create a pipeline that translates product documentation into six languages, scores quality automatically, and routes low-confidence segments to human translators",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end"
+          ],
+          "tasks": [
+            "translate",
+            "check"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}

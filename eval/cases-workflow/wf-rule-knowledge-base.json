@@ -1,0 +1,45 @@
+{
+  "id": "wf-rule-knowledge-base",
+  "mode": "workflow",
+  "category": "trap",
+  "lang": "en",
+  "title": "Knowledge base for a new international account",
+  "reference": "The hosted Model Studio knowledge base is closed to new international customers. Explain the gate and use external retrieval with Model Studio APIs.",
+  "turns": [
+    {
+      "ask": "We are a new Alibaba Cloud international account in Singapore. Build policy Q&A using the Model Studio hosted knowledge base; choose a usable alternative if it is closed to us.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "knowledge",
+            "end"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "tasks": [
+            "retrieve"
+          ],
+          "forbiddenProducts": [
+            "model-studio-apps"
+          ]
+        },
+        "mention": [
+          [
+            "new account",
+            "new international",
+            "closed",
+            "unavailable",
+            "not available"
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "id": "wf-sre-incident-triage-and-rca",
+  "mode": "workflow",
+  "category": "pattern",
+  "lang": "en",
+  "title": "SRE Incident Triage and Root-Cause Analysis",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/sre-incident-triage-and-rca.json. One incident; parallel initial evidence and a hypothesis agent limited to ten model requests. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required.",
+  "turns": [
+    {
+      "ask": "Wire up an SRE agent that listens for CloudMonitor alerts, gathers logs and metrics, reasons through hypotheses, and proposes a rollback for the on-call engineer to approve",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "plan",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}
