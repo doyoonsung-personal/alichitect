@@ -269,6 +269,8 @@ export type ProposalSection =
   | { k: 'outcome'; title: string; text: string }
   /** Why one product is in this design for this customer: the problem it removes or the outcome it enables, and the cost of leaving it out. */
   | { k: 'why'; product: string; text: string }
+  /** Business explanation of an inline workflow step. */
+  | { k: 'step'; id: string; text: string }
   /** An honest trade-off, risk or open point, and how it is handled. */
   | { k: 'tradeoff'; text: string; mitigation?: string }
   /** A concrete next step. */
@@ -292,6 +294,8 @@ export interface ProposalDraft {
   outcomes: Array<{ title: string; text: string }>;
   /** Catalog id -> why it is in this design for this customer. */
   why: Record<string, string>;
+  /** Workflow node id -> explanation; absent on legacy and cloud-only drafts. */
+  steps?: Record<string, string>;
   tradeoffs: Array<{ text: string; mitigation?: string }>;
   next: string[];
   /** Every section kind arrived and every product in the design got a why line. */

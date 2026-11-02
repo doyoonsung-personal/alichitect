@@ -62,6 +62,8 @@ export function asSection(v: unknown): ProposalSection | null {
       return text(v.title) && text(v.text) ? { k: 'outcome', title: v.title, text: v.text } : null;
     case 'why':
       return str(v.product) && text(v.text) ? { k: 'why', product: v.product, text: v.text } : null;
+    case 'step':
+      return text(v.id) && text(v.text) ? { k: 'step', id: v.id, text: v.text } : null;
     case 'tradeoff':
       return text(v.text) ? { k: 'tradeoff', text: v.text, ...(text(v.mitigation) ? { mitigation: v.mitigation } : {}) } : null;
     case 'next':
@@ -91,6 +93,7 @@ export function asDraft(v: unknown): ProposalDraft | null {
     needs,
     outcomes: (Array.isArray(v.outcomes) ? v.outcomes : []).filter((o): o is { title: string; text: string } => isObj(o) && text(o.title) && text(o.text)).map((o) => ({ title: o.title, text: o.text })),
     why,
+    ...(isObj(v.steps) ? { steps: Object.fromEntries(Object.entries(v.steps).filter(([, value]) => text(value))) as Record<string, string> } : {}),
     tradeoffs: (Array.isArray(v.tradeoffs) ? v.tradeoffs : [])
       .filter((t): t is { text: string; mitigation?: unknown } => isObj(t) && text(t.text))
       .map((t) => (text(t.mitigation) ? { text: t.text, mitigation: t.mitigation } : { text: t.text })),

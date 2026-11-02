@@ -2,7 +2,7 @@
 // steps it shows, the latest written line (changed no faster than once every PREVIEW_MIN_MS, so it reads calmly), the
 // quiet "taking a little longer" note, laying out the PDF, and how it failed. No React, no timers: the overlay feeds it
 // events and a clock tick.
-import type { ProposalSection } from '@ali/core/types.ts';
+import type { ProposalSection, WorkflowGraph } from '@ali/core/types.ts';
 import type { DraftFailure } from './draft-client.ts';
 
 export type FlowPhase = 'drafting' | 'layout' | 'done' | 'failed' | 'unavailable';
@@ -34,6 +34,9 @@ export interface FlowState {
   now: number;
   /** Catalog ids of the products in the design: N in "Why each component (k of N)". */
   products: string[];
+  stepIds: string[];
+  steps: string[];
+  workflowOnly: boolean;
   exec: boolean;
   needs: number;
   outcomes: number;
@@ -65,11 +68,16 @@ export type FlowEvent =
   | { type: 'saved'; now: number }
   | { type: 'failed'; error: FlowError; now: number };
 
-export function startFlow(now: number, products: string[]): FlowState {
-  return { phase: 'drafting', startedAt: now, now, products: [...new Set(products)], exec: false, needs: 0, outcomes: 0, why: [], tradeoffs: 0, next: 0, reached: 0, preview: null, pending: null, previewAt: 0, slow: false, basic: false, error: null };
+export function startFlow(now: number, products: string[], workflow?: WorkflowGraph, workflowOnly = false): FlowState {
+  const stepIds = Object.values(workflow?.nodes ?? {}).filter((n) => !n.on && n.kind !== 'trigger' && n.kind !== 'end').map((n) => n.id);
+  return {
+    phase: 'drafting', startedAt: now, now, products: [...new Set(products)], stepIds, steps: [], workflowOnly,
+    exec: false, needs: 0, outcomes: 0, why: [], tradeoffs: 0, next: 0, reached: 0,
+    preview: null, pending: null, previewAt: 0, slow: false, basic: false, error: null,
+  };
 }
 
-const STEP_OF: Record<ProposalSection['k'], number> = { exec: 1, need: 2, outcome: 3, why: 4, tradeoff: 5, next: 5 };
+const STEP_OF: Record<ProposalSection['k'], number> = { exec: 1, need: 2, outcome: 3, why: 4, step: 4, tradeoff: 5, next: 5 };
 
 /** The first sentence of a paragraph, cut to a readable length at a word boundary where there is one. */
 export function firstSentence(text: string): string {
@@ -117,6 +125,7 @@ export function reduceFlow(s: FlowState, ev: FlowEvent, productName: (id: string
       else if (sec.k === 'need') next.needs++;
       else if (sec.k === 'outcome') next.outcomes++;
       else if (sec.k === 'why') next.why = next.why.includes(sec.product) ? next.why : [...next.why, sec.product];
+      else if (sec.k === 'step') next.steps = next.steps.includes(sec.id) ? next.steps : [...next.steps, sec.id];
       else if (sec.k === 'tradeoff') next.tradeoffs++;
       else next.next++;
       next = showPreview(next, previewOf(sec, productName), ev.now);
@@ -151,14 +160,20 @@ export interface StepView {
 
 /** The steps the overlay lists, each done, active or still to come. */
 export function stepsOf(s: FlowState): StepView[] {
-  const k = s.why.filter((id) => s.products.includes(id)).length;
+  const k = (s.workflowOnly ? 0 : s.why.filter((id) => s.products.includes(id)).length)
+    + s.steps.filter((id) => s.stepIds.includes(id)).length;
+  const n = (s.workflowOnly ? 0 : s.products.length) + s.stepIds.length;
   const counts: Partial<Record<StepId, StepView['count']>> = {
     needs: s.needs ? { k: s.needs } : null,
     outcomes: s.outcomes ? { k: s.outcomes } : null,
-    why: s.products.length ? { k: Math.min(k, s.products.length), n: s.products.length } : null,
+    why: n ? { k: Math.min(k, n), n } : null,
   };
   const at = s.phase === 'layout' ? STEPS.indexOf('layout') : s.phase === 'done' ? STEPS.length : s.reached;
-  return STEPS.map((id, i) => ({ id, status: i < at ? 'done' : i === at && s.phase !== 'failed' && s.phase !== 'unavailable' ? 'active' : 'pending', count: counts[id] ?? null }));
+  return STEPS.map((id, i): StepView => ({
+    id,
+    status: i < at ? 'done' : i === at && s.phase !== 'failed' && s.phase !== 'unavailable' ? 'active' : 'pending',
+    count: counts[id] ?? null,
+  })).filter((v) => !s.workflowOnly || (v.id !== 'outcomes' && v.id !== 'close'));
 }
 
 /** The active step, for the polite live region (one short line per step, never the streaming text). */
@@ -177,6 +192,14 @@ export function formatElapsed(ms: number): string {
  * `isProduct` turns down. The server (core proposal-prompt.ts designProducts) writes none for constructs (users,
  * devices, a data center) or ids the catalog does not know, so the caller passes a catalog test and the count can reach N.
  */
-export function designProducts(graph: { nodes: Record<string, { product: string }>; recs: Array<{ product: string }> }, isProduct: (id: string) => boolean = () => true): string[] {
-  return [...new Set([...Object.values(graph.nodes).map((n) => n.product), ...graph.recs.map((r) => r.product)])].filter(isProduct);
+export function designProducts(
+  graph: { nodes: Record<string, { product: string }>; recs: Array<{ product: string }> },
+  isProduct: (id: string) => boolean = () => true,
+  workflow?: WorkflowGraph,
+): string[] {
+  const workflowProducts = Object.values(workflow?.nodes ?? {}).flatMap((n) => [n.product, n.runs]);
+  return [...new Set([
+    ...Object.values(graph.nodes).map((n) => n.product), ...graph.recs.map((r) => r.product),
+    ...workflowProducts.filter((p): p is string => !!p && p !== 'customer'),
+  ])].filter(isProduct);
 }

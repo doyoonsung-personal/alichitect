@@ -21,6 +21,7 @@ import './export.css';
 /** 'stopped': Stop, or the overlay was closed after a failure; nothing was downloaded. */
 type Phase = 'idle' | 'working' | 'done' | 'failed' | 'stopped';
 
+const workflowCount = (s: AppState) => Object.keys(s.session.memory.workflow?.nodes ?? {}).length;
 const selSession = (s: AppState) => s.session.id;
 const TICK_MS = 500;
 
@@ -32,6 +33,7 @@ export function ExportButton(): ReactElement {
   const controller = useController();
   const streaming = useAppState(isStreaming);
   const products = useAppState(productCount);
+  const workflowNodes = useAppState(workflowCount);
   const sessionId = useAppState(selSession);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -55,8 +57,8 @@ export function ExportButton(): ReactElement {
   const nameOf = useCallback((id: string): string => entryFor(catalog, id)?.name ?? id, [catalog]);
   const send = useCallback((ev: FlowEvent) => setFlow((f) => (f ? reduceFlow(f, ev, nameOf) : f)), [nameOf]);
 
-  const disabled = streaming || products === 0;
-  const disabledTitle = streaming ? xt('dialog.disabledBusy') : products === 0 ? xt('dialog.disabledEmpty') : undefined;
+  const disabled = streaming || (products === 0 && workflowNodes === 0);
+  const disabledTitle = streaming ? xt('dialog.disabledBusy') : (products === 0 && workflowNodes === 0) ? xt('dialog.disabledEmpty') : undefined;
 
   // a new session starts with a clean dialog; a draft still being written for the old one is dropped
   useEffect(() => {
@@ -156,10 +158,14 @@ export function ExportButton(): ReactElement {
     const mine = ++run.current;
     ac.current?.abort();
     drafted.current = null;
-    setFlow(startFlow(Date.now(), designProducts(st.display.graph, (id) => {
+    const workflow = st.session.memory.workflow;
+    const workflowOnly = !!Object.keys(workflow?.nodes ?? {}).length
+      && Object.keys(st.display.graph.nodes).length === 0 && st.display.graph.recs.length === 0;
+    const productIds = designProducts(st.display.graph, (id) => {
       const e = entryFor(catalog, id);
       return !!e && e.kind !== 'construct';
-    })));
+    }, workflow);
+    setFlow(startFlow(Date.now(), productIds, workflow, workflowOnly));
     setPhase('working');
     setNote('');
     // a replay or an offline session has no server to write with: say so, and offer the basic version
@@ -278,7 +284,11 @@ export function ExportButton(): ReactElement {
           </p>
         </form>
       ) : null}
-      {flow ? <DraftOverlay flow={flow} xt={xt} lang={lang} onStop={stop} onBasic={basic} onRetry={retry} onClose={closeOverlay} returnFocus={download} /> : null}
+      {flow ? <DraftOverlay
+        flow={flow}
+        xt={(key, vars) => xt(key === 'overlay.step.why' && flow.stepIds.length ? 'overlay.step.workflow' : key, vars)}
+        lang={lang} onStop={stop} onBasic={basic} onRetry={retry} onClose={closeOverlay} returnFocus={download}
+      /> : null}
     </div>
   );
 }

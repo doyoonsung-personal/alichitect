@@ -39,6 +39,7 @@ export const PROPOSAL_LIMITS = {
   outcomeTitle: 70,
   outcomeText: 360,
   why: 600,
+  step: 700,
   tradeoff: 360,
   mitigation: 360,
   next: 240,
@@ -72,6 +73,10 @@ export interface ProposalCtx {
   lang: ProposalRequest['lang'];
   /** Catalog ids in the design, in reading order (designProducts): the only ids a why or a need may name. */
   products: string[];
+  steps: string[];
+  workflow: boolean;
+  workflowOnly: boolean;
+  modelNames: string[];
   /** The customer's own messages (memory.turns role 'user', correction prefixes removed), normalised for the quote check. */
   customerText: string[];
   /** The same messages, lowercased with spacing kept: the words a claim must be backed by (lintSection). */
@@ -88,18 +93,24 @@ export interface ProposalCtx {
 
 export function proposalCtx(req: ProposalRequest, catalog: Catalog): ProposalCtx {
   const memory = req.memory;
-  const products = designProducts(memory.graph, catalog);
+  const products = designProducts(memory.graph, catalog, memory.workflow);
   const own = (memory.turns ?? []).filter((t) => t.role === 'user').map((t) => customerWords(t.text));
   const words = own.join('\n').normalize('NFKC').toLowerCase();
+  const modelNames = [...new Set(Object.values(memory.workflow?.nodes ?? {}).flatMap((n) => n.ai ? [n.ai.toLowerCase()] : []))];
   const entries = products.map((p) => catalog.byId.get(p)).filter((e): e is NonNullable<typeof e> => !!e);
   // "Elastic Compute Service (ECS)" is also written "Elastic Compute Service" and "ECS"
   const names = [...new Set(entries.flatMap((e) => [e.name, e.name.replace(/\s*\([^)]*\)$/, ''), e.short]).map((n) => n.trim()).filter((n) => Array.from(n).length >= 2))];
   return {
     lang: req.lang === 'ko' || req.lang === 'zh' ? req.lang : 'en',
     products,
+    steps: Object.values(memory.workflow?.nodes ?? {}).filter((n) => !n.on && n.kind !== 'trigger' && n.kind !== 'end').map((n) => n.id),
+    workflow: Object.keys(memory.workflow?.nodes ?? {}).length > 0,
+    workflowOnly: Object.keys(memory.workflow?.nodes ?? {}).length > 0
+      && Object.keys(memory.graph.nodes).length === 0 && memory.graph.recs.length === 0,
+    modelNames,
     customerText: own.map((t) => normalizeKey(t)).filter(Boolean),
     customerWords: words,
-    productNames: names.filter((n) => !words.includes(n.toLowerCase())).sort((a, b) => b.length - a.length),
+    productNames: [...names, ...modelNames].filter((n) => !words.includes(n.toLowerCase())).sort((a, b) => b.length - a.length),
     catalogText: entries.map((e) => [e.name, e.short, e.purpose, e.useWhen ?? ''].join(' ')).join('\n').toLowerCase(),
     hasPrice: entries.some((e) => !!e.price),
     customer: String(req.customer ?? '').trim(),
@@ -108,15 +119,22 @@ export function proposalCtx(req: ProposalRequest, catalog: Catalog): ProposalCtx
 
 /** The messages of a first draft: the writing brief, then the session as facts (proposal-prompt.ts). */
 export function buildProposalMessages(req: ProposalRequest, catalog: Catalog): ChatMessage[] {
-  return proposalMessages(req, catalog, designProducts(req.memory.graph, catalog));
+  return proposalMessages(req, catalog, designProducts(req.memory.graph, catalog, req.memory.workflow));
 }
 
 // The hidden-backend rule: no browser-bound text names the backup's vendor or model family; the coding tool's product
 // name (the family name followed by "Code") may appear. The character classes keep the words themselves out of this
 // file's bytes, so a web bundle that imports it still passes apps/web/scripts/check-dist.mjs.
 const HIDDEN = /a[n]thropic|c[l]aude(?![ -]?code)/i;
-// A placeholder of the format examples copied into the answer: words in angle brackets ("<catalog id>"), never a
-// comparison such as "latency <50 ms" or "> 99.9%".
+// Workflow model names describe the design, never the writer.
+const WRITER = new RegExp([
+  "\\b(?:I am|I'm|as an? (?:AI|language model)|(?:written|generated|drafted|prepared|authored) by)\\b",
+  '\\b(?:I|we) (?:wrote|generated|drafted|prepared|authored)\\b',
+  '\\b(?:Qwen[\\w.-]*|AI|model) (?:wrote|generated|drafted|prepared|authored)\\b',
+  '(?:\uC774 \uC81C\uC548\uC11C|\uC774 \uBB38\uC11C|\uC774 \uAE00).{0,30}(?:\uC791\uC131|\uC0DD\uC131)',
+  '(?:\u672C\u6587|\u672C\u63D0\u6848|\u672C\u65B9\u6848).{0,30}(?:\u64B0\u5199|\u751F\u6210)',
+].join('|'), 'i');
+// Format placeholders, never comparisons such as "latency <50 ms".
 const PLACEHOLDER = /<[a-z][a-z ,'’-]{2,90}>/i;
 const CONTROL = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u200b-\u200f\u2028\u2029\u2060\ufeff]/g;
 
@@ -214,6 +232,12 @@ function sanitize(raw: unknown, ctx: ProposalCtx): ProposalSection | null {
       if (product && t) s = { k: 'why', product, text: t };
       break;
     }
+    case 'step': {
+      const id = typeof o.id === 'string' ? o.id.trim() : '';
+      const t = text(o.text, L.step);
+      if (ctx.steps.includes(id) && t) s = { k: 'step', id, text: t };
+      break;
+    }
     case 'tradeoff': {
       const t = text(o.text, L.tradeoff);
       const mitigation = text(o.mitigation, L.mitigation);
@@ -228,7 +252,7 @@ function sanitize(raw: unknown, ctx: ProposalCtx): ProposalSection | null {
   }
   if (!s) return null;
   const words = Object.entries(s).filter(([k]) => k !== 'k' && k !== 'product' && k !== 'products' && k !== 'id').map(([, v]) => String(v)).join('\n');
-  if (HIDDEN.test(words) || PLACEHOLDER.test(words)) return null;
+  if (HIDDEN.test(words) || PLACEHOLDER.test(words) || (ctx.workflow && WRITER.test(words))) return null;
   return s;
 }
 
@@ -304,8 +328,16 @@ function explained(t: string, i: number, len: number): boolean {
 }
 
 /** A product name or technical term in business text (exec, outcomes, need answers) that is not explained in parentheses. */
-function jargonIn(t: string, ctx: ProposalCtx): string | null {
-  for (const m of t.matchAll(JARGON)) if (!explained(t, m.index, m[0].length) && !ctx.customerWords.includes(m[0].toLowerCase())) return m[0];
+function jargonIn(t: string, ctx: ProposalCtx, step = false): string | null {
+  let terms = t;
+  if (step) {
+    for (const name of ctx.productNames) {
+      terms = terms.replace(new RegExp(`(?<![A-Za-z0-9])${escapeRe(name)}(?![A-Za-z0-9])`, 'gi'), '');
+    }
+    terms = terms.replace(/\b(?:RAG|APIs?|webhooks?)\b/gi, '');
+  }
+  for (const m of terms.matchAll(JARGON)) if (!explained(terms, m.index, m[0].length) && !ctx.customerWords.includes(m[0].toLowerCase())) return m[0];
+  if (step) return null;
   for (const name of ctx.productNames) {
     const m = new RegExp(`(?<![A-Za-z0-9])${escapeRe(name)}(?![A-Za-z0-9])`, 'i').exec(t);
     if (m && !explained(t, m.index, m[0].length)) return m[0];
@@ -318,6 +350,7 @@ function fieldsOf(s: ProposalSection): string[] {
   switch (s.k) {
     case 'exec':
     case 'why':
+    case 'step':
     case 'next':
       return [s.text];
     case 'need':
@@ -341,6 +374,8 @@ function fieldsOf(s: ProposalSection): string[] {
  */
 export function lintSection(s: ProposalSection, ctx: ProposalCtx): LintProblem | null {
   const all = fieldsOf(s).join('\n');
+  if (ctx.workflow && WRITER.test(all))
+    return { level: 'hard', rule: 'model', reason: 'never identify the writer or say who generated the text' };
   // Promises live in exec, a need's answer, outcomes and whys. A need states the problem ("관리 부담 해소 필요"), and
   // trade-offs and next steps may say honestly what the design does not do ("confirmation is not instant").
   const claims = s.k === 'need' ? s.answer : s.k === 'tradeoff' || s.k === 'next' ? '' : all;
@@ -354,7 +389,11 @@ export function lintSection(s: ProposalSection, ctx: ProposalCtx): LintProblem |
   if (typo) return { level: 'hard', rule: 'name', reason: `it writes "${typo}" for the customer's name; write ${ctx.customer} exactly` };
   for (const m of all.matchAll(MODEL_NAME)) {
     const name = m[0].toLowerCase();
-    if (!ctx.customerWords.includes(name) && !ctx.catalogText.includes(name)) return { level: 'hard', rule: 'model', reason: `it names ${m[0]}, which is neither in the catalog excerpt nor in the customer's messages` };
+    if (!ctx.customerWords.includes(name) && !ctx.catalogText.includes(name) && !ctx.modelNames.includes(name))
+      return {
+        level: 'hard', rule: 'model',
+        reason: `it names ${m[0]}, which is neither in the catalog excerpt nor in the customer's messages`,
+      };
   }
   if ((s.k === 'exec' || s.k === 'need' || s.k === 'outcome') && ((REGULATION.test(all) && !CUSTOMER_REGULATION.test(ctx.customerWords)) || (REQUIRED.test(all) && !CUSTOMER_REQUIRED.test(ctx.customerWords) && !RESIDENCY_ASK.test(ctx.customerWords))))
     return { level: 'hard', rule: 'requirement', reason: 'it presents a requirement, regulation or compliance need the customer never stated; say only what the customer said, and present a region or other design choice as a choice' };
@@ -368,6 +407,8 @@ export function lintSection(s: ProposalSection, ctx: ProposalCtx): LintProblem |
     const j = jargonIn(s.k === 'need' ? s.answer : all, ctx);
     if (j) return { level: 'soft', rule: 'jargon', reason: `it names "${j}"; the executive summary, the outcomes and the answers to needs name no product and no technical term: describe the effect for the business` };
   }
+  if (s.k === 'step' && jargonIn(all, ctx, true))
+    return { level: 'soft', rule: 'jargon', reason: 'explain technical terms in plain language; RAG, API and webhook may stand alone in steps' };
   if ((ctx.lang === 'ko' && KO_COLLOQUIAL.test(all)) || (ctx.lang === 'zh' && ZH_SLANG.test(all)))
     return { level: 'soft', rule: 'register', reason: ctx.lang === 'ko' ? 'it uses colloquial words (유저, 동접); write 이용자 or 고객, and 동시 접속자' : 'it uses internet slang (黑产, 薅, 刷单); write 恶意批量下单, or 应用层流量攻击 for CC attacks' };
   return null;
@@ -412,6 +453,7 @@ function createGate(): { add(s: ProposalSection): ProposalSection | null; sectio
       let key: string;
       if (s.k === 'exec') key = 'exec';
       else if (s.k === 'why') key = `why:${s.product}`;
+      else if (s.k === 'step') key = `step:${s.id}`;
       else if (s.k === 'need') key = `need:${normalizeKey(s.need)}`;
       else if (s.k === 'outcome') key = `outcome:${normalizeKey(s.title)}`;
       else key = `${s.k}:${normalizeKey(s.text)}`;
@@ -433,6 +475,9 @@ function missingOf(sections: readonly ProposalSection[], ctx: ProposalCtx): stri
   const out: string[] = [];
   if (!n('exec')) out.push('exec');
   if (n('need') < PROPOSAL_LIMITS.needsWanted) out.push('needs');
+  const steps = new Set(sections.flatMap((s) => s.k === 'step' ? [s.id] : []));
+  for (const id of ctx.steps) if (!steps.has(id)) out.push(`step:${id}`);
+  if (ctx.workflowOnly) return out;
   if (!n('outcome')) out.push('outcomes');
   for (const p of ctx.products) if (!whys.has(p)) out.push(`why:${p}`);
   if (!n('tradeoff')) out.push('tradeoffs');
@@ -449,6 +494,8 @@ function describeMissing(missing: readonly string[], sections: readonly Proposal
   if (missing.includes('needs')) out.push(`need lines: ${needs ? `${needs} written, add more to reach 2 to 5 in all, each a different need` : '2 to 5'}`);
   if (missing.includes('outcomes')) out.push('outcome lines: 3 or 4');
   if (whys.length) out.push(`why lines for these products, in this order: ${whys.join(', ')}`);
+  const steps = missing.filter((m) => m.startsWith('step:')).map((m) => m.slice(5));
+  if (steps.length) out.push(`step lines for these workflow node ids: ${steps.join(', ')}`);
   if (missing.includes('tradeoffs')) out.push('tradeoff lines: 2 to 4');
   if (missing.includes('next')) out.push('next lines: 3 to 5');
   return out;
@@ -476,16 +523,22 @@ export function assembleDraft(sections: ProposalSection[], ctx: ProposalCtx): Pr
     if (clean) gate.add(clean);
   }
   const d: ProposalDraft = { lang: ctx.lang, exec: '', needs: [], outcomes: [], why: {}, tradeoffs: [], next: [], complete: false };
+  if (ctx.workflow) d.steps = {};
   for (const s of gate.sections) {
     if (s.k === 'exec') d.exec = s.text;
     else if (s.k === 'need') d.needs.push({ id: s.id, need: s.need, source: s.source, ...(s.quote ? { quote: s.quote } : {}), answer: s.answer, products: s.products });
     else if (s.k === 'outcome') d.outcomes.push({ title: s.title, text: s.text });
     else if (s.k === 'why') d.why[s.product] = s.text;
+    else if (s.k === 'step') Object.defineProperty(d.steps!, s.id, { value: s.text, enumerable: true, configurable: true });
     else if (s.k === 'tradeoff') d.tradeoffs.push(s.mitigation ? { text: s.text, mitigation: s.mitigation } : { text: s.text });
     else d.next.push(s.text);
   }
   d.next = leadWithEngagement(d.next);
   d.complete = !!d.exec && d.needs.length > 0 && d.outcomes.length > 0 && d.tradeoffs.length > 0 && d.next.length > 0 && ctx.products.every((p) => Object.prototype.hasOwnProperty.call(d.why, p));
+  if (ctx.workflow) {
+    const stepsComplete = ctx.steps.every((id) => Object.hasOwn(d.steps!, id));
+    d.complete = (ctx.workflowOnly ? !!d.exec && d.needs.length >= PROPOSAL_LIMITS.needsWanted : d.complete) && stepsComplete;
+  }
   return d;
 }
 
@@ -702,7 +755,7 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
    */
   const finish = (err: ErrorCode | null): DraftProposalResult => {
     for (const s of held) {
-      const slot = s.k === 'why' ? `why:${s.product}` : s.k === 'exec' ? 'exec' : s.k === 'next' ? 'next' : `${s.k}s`;
+      const slot = s.k === 'step' ? `step:${s.id}` : s.k === 'why' ? `why:${s.product}` : s.k === 'exec' ? 'exec' : s.k === 'next' ? 'next' : `${s.k}s`;
       // a stated need is the customer's own point: kept when no accepted need carries its quote, even past the minimum
       const lostQuote = s.k === 'need' && !!s.quote && !gate.sections.some((x) => x.k === 'need' && x.quote === s.quote);
       if (!lostQuote && !missingOf(gate.sections, ctx).includes(slot)) continue;
@@ -715,7 +768,7 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
     stats.ms = Math.round(now() - t0);
     stats.missing = missingOf(gate.sections, ctx);
     const draft = assembleDraft(gate.sections, ctx);
-    if (draft.exec && draft.needs.length && Object.keys(draft.why).length) return { outcome: 'done', draft, stats };
+    if (draft.exec && draft.needs.length && (ctx.workflowOnly ? draft.complete : Object.keys(draft.why).length)) return { outcome: 'done', draft, stats };
     const code = err ?? 'empty';
     return { outcome: 'failed', draft: null, error: { code, message: ERRORS[code] }, stats };
   };

@@ -757,3 +757,100 @@ describe('Claude backup complete()', () => {
     assert.doesNotMatch(JSON.stringify(r), new RegExp(KEY));
   });
 });
+
+// Workflow proposals share the cloud writer, but explain steps by node id.
+function workflowRequest(mixed = false): ProposalRequest {
+  const req = request();
+  if (!mixed) req.memory.graph = { nodes: {}, edges: {}, groups: {}, recs: [] };
+  req.memory.workflow = {
+    nodes: {
+      start: { id: 'start', kind: 'trigger', label: 'Incoming email', product: 'eventbridge' },
+      draft: { id: 'draft', kind: 'ai', label: 'Draft an answer', ai: 'qwen3.5-plus', product: 'model-studio', runs: 'fc' },
+      review: { id: 'review', kind: 'human', label: 'Review answer', runs: 'customer' },
+      docs: { id: 'docs', kind: 'knowledge', label: 'Help articles', on: 'draft', product: 'tablestore' },
+      end: { id: 'end', kind: 'end', label: 'Finished' },
+    }, edges: {}, groups: {},
+  };
+  return req;
+}
+const WORKFLOW_LINES = [
+  line({ k: 'exec', text: 'The support team can focus on requests that need personal attention.' }),
+  line({ k: 'need', id: 'a', need: 'Answer routine requests', source: 'general', answer: 'Draft answers reduce repetitive work.', products: ['model-studio'] }),
+  line({ k: 'need', id: 'b', need: 'Review outgoing answers', source: 'general', answer: 'Staff review the answer before sending.', products: [] }),
+  line({ k: 'step', id: 'draft', text: 'qwen3.5-plus drafts an answer using help articles through an API. Staff have less text to write.' }),
+  line({ k: 'step', id: 'review', text: 'Staff review the draft so errors can be corrected before an answer is sent.' }),
+];
+
+test('workflow-only completes with exec, needs and every inline step, without product whys', async () => {
+  const calls: Call[] = [];
+  const sections: ProposalSection[] = [];
+  const r = await draftProposal(workflowRequest(), CAT, {
+    apiKey: 'fake', fetchImpl: fakeFetch([ok(WORKFLOW_LINES)], calls), onSection: (s) => sections.push(s),
+  });
+  assert.equal(r.outcome, 'done');
+  assert.equal(r.draft?.complete, true);
+  assert.deepEqual(Object.keys(r.draft!.steps!), ['draft', 'review']);
+  assert.deepEqual(r.draft!.why, {});
+  assert.deepEqual(r.stats.missing, []);
+  assert.equal(calls.length, 1);
+  assert.equal(sections.filter((s) => s.k === 'step').length, 2);
+});
+
+test('step assembly validates ids, sanitizes text and keeps the first section per step', () => {
+  const ctx = proposalCtx(workflowRequest(), CAT);
+  const sections = WORKFLOW_LINES.map((s) => JSON.parse(s) as ProposalSection);
+  sections.push({ k: 'step', id: 'draft', text: 'A duplicate.' }, { k: 'step', id: 'unknown', text: 'Unknown.' });
+  sections.push({ k: 'step', id: 'docs', text: 'Attached.' }, { k: 'step', id: 'start', text: 'Trigger.' });
+  const d = assembleDraft(sections, ctx);
+  assert.deepEqual(Object.keys(d.steps!), ['draft', 'review']);
+  assert.match(d.steps!.draft, /^qwen3.5-plus/);
+  assert.equal(assembleDraft(sections.filter((s) => s.k !== 'step' || s.id !== 'review'), ctx).complete, false);
+  assert.equal(assembleDraft(sections, proposalCtx(workflowRequest(true), CAT)).complete, false);
+  assert.deepEqual(parseProposalLine(line({ k: 'step', id: 'review', text: '**Staff** review.  ' }), ctx),
+    { k: 'step', id: 'review', text: 'Staff review.' });
+});
+
+test('missing workflow steps are requested in continuation; partial workflow is not marked usable', async () => {
+  const calls: Call[] = [];
+  const r = await draftProposal(workflowRequest(), CAT, {
+    apiKey: 'fake', fetchImpl: fakeFetch([ok(WORKFLOW_LINES.slice(0, -1)), ok(WORKFLOW_LINES.slice(-1))], calls),
+  });
+  assert.equal(r.draft?.complete, true);
+  assert.match(JSON.stringify(calls[1].body.messages), /step lines for these workflow node ids: review/);
+  const partial = await draftProposal(workflowRequest(), CAT, {
+    apiKey: 'fake', msLeft: () => 20_000, fetchImpl: fakeFetch([ok(WORKFLOW_LINES.slice(0, -1))]),
+  });
+  assert.equal(partial.outcome, 'failed');
+  assert.deepEqual(partial.stats.missing, ['step:review']);
+});
+
+test('only the design model ids may be named; workflow vocabulary is relaxed only in steps', () => {
+  const ctx = proposalCtx(workflowRequest(), CAT);
+  const parse = (text: string, k: 'step' | 'exec' = 'step') => parseProposalLine(line({ k, id: 'draft', text }), ctx);
+  assert.ok(parse('qwen3.5-plus uses RAG and an API after the webhook arrives.'));
+  assert.equal(parse('qwen3.5-plus-extra drafts the answer.'), null);
+  assert.equal(parse('qwen99 drafts the answer.'), null);
+  const namedProduct = { ...ctx, productNames: [...ctx.productNames, 'Container Service for Kubernetes'] };
+  assert.equal(lintSection({ k: 'step', id: 'draft', text: 'Container Service for Kubernetes runs this step.' }, namedProduct), null);
+  assert.equal(lintSection({ k: 'step', id: 'draft', text: 'Kubernetes runs this step.' }, ctx)?.rule, 'jargon');
+  assert.equal(parse('RAG uses an API.', 'exec'), null);
+  assert.equal(parse('qwen3.5-plus drafts answers.', 'exec'), null);
+  for (const text of ['I am qwen3.5-plus.', 'Written by qwen3.5-plus.', 'Qwen generated this proposal.', 'Drafted by Claude.', 'Anthropic wrote this.']) {
+    assert.equal(parse(text), null, text);
+    assert.deepEqual(assembleDraft([{ k: 'step', id: 'draft', text }], ctx).steps, {});
+  }
+});
+
+test('workflow prompt has steps, attachments, runtime products and generated-table instructions', () => {
+  const req = workflowRequest(true);
+  const ctx = proposalCtx(req, CAT);
+  assert.deepEqual(ctx.products, [...PRODUCTS, 'eventbridge', 'model-studio', 'fc', 'tablestore']);
+  const messages = buildProposalMessages(req, CAT);
+  const text = messages.map((m) => m.content).join('\n');
+  assert.match(text, /"ai":"qwen3.5-plus"/);
+  assert.match(text, /"on":"draft"/);
+  assert.match(text, /Write no cost figures/);
+  assert.match(text, /runtime mapping and open questions/);
+  assert.match(text, /inline node except trigger and end/);
+  assert.doesNotMatch(text, /This is workflow-only/);
+});
