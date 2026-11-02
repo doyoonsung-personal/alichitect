@@ -159,6 +159,7 @@ export interface Warning {
   msg: string;
   severity: 'error' | 'warn' | 'info';
   repaired: boolean; // true when a deterministic rule already fixed it
+  view?: TurnMode; // which document the finding is about; absent means 'cloud' (records from before the workflow view)
 }
 
 /** Result of applying one op: the new graph plus what changed, for animation, tombstones and history. */
@@ -177,6 +178,7 @@ export interface Turn {
   role: 'user' | 'assistant';
   text: string; // the user's message, or the assistant's say lines joined
   changes?: string; // assistant only: compact change summary, for example "+waf(badge on alb) -ecs-a"
+  mode?: TurnMode; // the document this turn edited; absent means 'cloud'
 }
 
 export interface SessionMemory {
@@ -188,6 +190,11 @@ export interface SessionMemory {
   questions?: Array<{ id: string; text: string; options?: string[] }>; // open questions from the latest assistant turn
   graph: Graph;
   tombstones: Array<GraphNode | GraphEdge | GraphGroup>;
+  // The workflow view (research/ai-workflows/PLAN.md D1). All optional: a session without them is a cloud-only session.
+  workflow?: WorkflowGraph;
+  workflowTombstones?: Array<WorkflowNode | WorkflowEdge | WorkflowGroup>; // removed workflow elements, bounded like tombstones
+  workflowSettings?: WorkflowSettings; // session settings strip: region, approval overrides (PLAN.md D9)
+  estimate?: WorkflowEstimateSettings; // cost-estimate inputs the user edited (PLAN.md section 9)
 }
 
 /** Machine-checkable form of a pinned requirement, from a req op that carries regions or avoid. */
@@ -206,7 +213,11 @@ export interface TurnRequest {
   sessionId: string;
   ask: string;
   memory: SessionMemory;
+  mode?: TurnMode; // which document the turn edits; absent means 'cloud' (existing clients and fixtures)
 }
+
+/** Which document a turn edits: the cloud architecture graph or the AI workflow (PLAN.md D2). */
+export type TurnMode = 'cloud' | 'workflow';
 
 /**
  * POST /api/turn response: NDJSON, one event per line. The stream carries every llm.ts TurnEvent (say, op, warn, usage,
@@ -352,4 +363,19 @@ export interface WorkflowSettings {
   region?: string;          // pinned region id; default 'ap-southeast-1'
   approvalOff?: Effect[];   // the user waived approval for these effects
   approvalOn?: Effect[];    // the user asked for approval on these effects
+}
+
+/**
+ * Cost-estimate inputs the user can edit (PLAN.md section 9). Every field is optional; packages/core/src/workflow-estimate.ts
+ * supplies the defaults. Keys of the per-element maps are workflow node, link or group ids.
+ */
+export interface WorkflowEstimateSettings {
+  runsPerMonth?: number;
+  scope?: 'international' | 'global';
+  steps?: Record<string, { inTokens?: number; outTokens?: number; thinking?: boolean; offline?: boolean }>;
+  items?: Record<string, { typical?: number; upper?: number }>; // repeat group id -> items per run
+  shares?: Record<string, number>; // branch link id -> share of runs, 0..1
+  loops?: Record<string, { typical?: number; upper?: number }>; // loop link id -> iterations
+  agents?: Record<string, { typical?: number; upper?: number; resultTokens?: number; searchesPerRequest?: number }>; // agent id -> model requests
+  guardTypes?: Record<string, number>; // guard step id -> enabled AI Guardrails detection types
 }
