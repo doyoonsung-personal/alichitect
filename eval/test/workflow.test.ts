@@ -352,3 +352,45 @@ test('the cloud system prompt remains pinned', () => {
   assert.equal(createHash('sha256').update(buildSystemPrompt(catalog)).digest('hex'),
     '998fab223daba0a4407930f0f6f61e90cf100d7783ca4b13008636526d049313');
 });
+
+test('C16: model approve and action takeover cannot satisfy human tasks', () => {
+  const claims = wf([n('in', 'trigger'), n('read', 'ai', { task: 'extract', ai: 'qwen3.8-flash' }),
+    n('auto', 'ai', { task: 'approve', label: 'Auto-approve claim', ai: 'qwen3.8-flash' }),
+    n('agent', 'human', { task: 'takeover' }), n('end', 'end')],
+  [edge('in', 'read'), edge('read', 'auto'), edge('auto', 'end', { kind: 'branch', label: 'approved' }),
+    edge('auto', 'agent', { kind: 'escalate' }), edge('agent', 'end')]);
+  assert.equal(score(claims, { tasks: ['approve'] }).find(a => a.name === 'workflow task approve')?.pass, false);
+  for (const [kind, task] of [['ai', 'approve'], ['act', 'takeover']] as const) {
+    const g = approved(); delete g.nodes.approve;
+    g.nodes.fake = n('fake', kind, { task, ai: 'qwen3.8-flash' });
+    assert.equal(score(g, { tasks: [task] }).find(a => a.name === `workflow task ${task}`)?.pass, false);
+  }
+});
+test('D9: trigger model field does not imply Model Studio or audio tasks', () => {
+  const g = wf([n('in', 'trigger', { ai: 'qwen3.8-flash' }), n('end', 'end')], [edge('in', 'end')]);
+  assert.equal(score(g, { products: [['model-studio']] }).find(a => a.name === 'workflow products model-studio')?.pass, false);
+  const meeting = approved();
+  meeting.nodes.in.ai = 'qwen3.8-omni-flash';
+  meeting.nodes.draft.ai = 'qwen3.8-flash'; meeting.nodes.draft.task = 'extract';
+  assert.equal(score(meeting, { tasks: ['transcribe'] }).find(a => a.name === 'workflow task transcribe')?.pass, false);
+});
+test('C18: workflow English labels and why fail Korean language gate', () => {
+  const v = view(); v.says = ['?? ??? ?? ????? ?????.'];
+  v.ops = [{ t: 'step', id: 'draft', kind: 'ai', label: 'Draft reply', why: 'Writes a first answer from the ticket text.' },
+    { t: 'step', id: 'send', kind: 'act', label: 'Send email', why: 'Emails the approved answer to the customer.' }];
+  assert.equal(evaluateTurn(v, { ask: '', expect: {} }, 'ko', names, catalog).find(a => a.type === 'whyLang')?.pass, false);
+  v.ops = [{ t: 'splice', into: 'in-draft', id: 'draft', kind: 'ai', label: 'Qwen3.7-Plus ??',
+    why: 'qwen3.7-plus Model Studio ??' }];
+  assert.equal(evaluateTurn(v, { ask: '', expect: {} }, 'ko', names, catalog).find(a => a.type === 'whyLang')?.pass, true);
+});
+test('D8: product-only ask has no language evidence', () => {
+  const v = view(); v.ops = [{ t: 'ask', id: 'q1', text: 'RDS? PolarDB?', options: ['RDS', 'PolarDB'] }];
+  assert.equal(evaluateTurn(v, { ask: '', expect: {} }, 'ko', names, catalog).find(a => a.type === 'askLang')?.pass, false);
+});
+test('#11: loop gates explicitly allow unbounded human revision', () => {
+  const g = wf([n('start', 'trigger'), n('draft', 'ai', { ai: 'qwen3.7-plus' }),
+    n('review', 'human', { task: 'approve' }), n('end', 'end')],
+  [edge('start', 'draft'), edge('draft', 'review'), edge('review', 'draft', { kind: 'branch', outcome: 'edit' }),
+    edge('review', 'end', { outcome: 'approve' }), edge('review', 'end', { id: 'reject', outcome: 'reject' })]);
+  assert.ok(score(g).some(a => a.name === 'workflow automated loops have bounds and exits' && a.pass));
+});

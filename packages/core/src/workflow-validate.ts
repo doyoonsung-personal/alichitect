@@ -5,7 +5,7 @@ import type { ModelTable } from './models.ts';
 import { WORKFLOW_TASKS } from './models.ts';
 import { normalizeId, resolveProduct, TEXT_LIMITS, validateOp } from './validate.ts';
 import type { ValidateCtx } from './validate.ts';
-import { makeStep, makeLink, allocateWorkflowId } from './workflow.ts';
+import { makeStep, makeLink, allocateWorkflowId, DEFAULT_WORKFLOW_LIMITS } from './workflow.ts';
 import { APPROVAL_POLICY, needsApproval, waived } from './approval.ts';
 import { checkLifecycle } from './catalog.ts';
 
@@ -131,6 +131,10 @@ function validateStep(s: ValidateState, catalog: Catalog, models: ModelTable): b
   validateReferences(s, catalog, models);
   number(s, 'turns', 50);
   choice(s, 'effect', Object.keys(APPROVAL_POLICY));
+  if (out.effect !== undefined && !effectKind(kind)) {
+    delete out.effect;
+    bad(s, `Effect on '${id}' was dropped; only act, tool and memory steps carry effects.`);
+  }
   choice(s, 'join', ['all', 'any']);
   choice(s, 'approval', ['required', 'skip']);
   flag(s, 'untrusted');
@@ -173,8 +177,16 @@ function validateLink(s: ValidateState): boolean {
   return true;
 }
 
+const effectKind = (kind: string): boolean => ['act', 'tool', 'memory'].includes(kind);
+const humanApprove = (n: WorkflowNode | undefined): boolean => n?.kind === 'human' && n.task === 'approve';
+
+export interface WorkflowValidateCtx extends ValidateCtx {
+  workflow?: WorkflowGraph;
+  workflowSteps?: Record<string, WorkflowNode>;
+}
+
 export function validateWorkflowOp(
-  raw: unknown, catalog: Catalog, models: ModelTable, ctx?: ValidateCtx,
+  raw: unknown, catalog: Catalog, models: ModelTable, ctx?: WorkflowValidateCtx,
 ): { op?: WorkflowOp | Op; warnings: Warning[] } {
   const warnings: Warning[] = [];
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
@@ -195,8 +207,20 @@ export function validateWorkflowOp(
   const s: ValidateState = { r, out, id, warnings };
   if (r.t === 'step' || r.t === 'splice') {
     if (!validateStep(s, catalog, models)) return { warnings };
+    if (ctx) (ctx.workflowSteps ??= {})[id] = out as unknown as WorkflowNode;
   } else if (r.t === 'link') {
     if (!validateLink(s)) return { warnings };
+    const node = (id: string): WorkflowNode | undefined =>
+      own(ctx?.workflowSteps ?? {}, id) ?? own(ctx?.workflow?.nodes ?? {}, id);
+    if (node(out.from as string)?.on || node(out.to as string)?.on) {
+      warnings.push(W('wf-attach-form', [id], `Link '${id}' touches an attached step; use its host instead.`, 'error'));
+      return { warnings };
+    }
+    const from = node(out.from as string);
+    if (out.outcome === 'edit' && from && !humanApprove(from)) {
+      delete out.outcome;
+      bad(s, `Edit outcome on '${id}' was dropped; it must leave a human approve step.`);
+    }
   } else if (r.t === 'each') {
     const over = text(s, 'over', TEXT_LIMITS.label);
     if (!over) {
@@ -206,6 +230,7 @@ export function validateWorkflowOp(
     out.over = over;
     flag(s, 'parallel');
   }
+  if (r.t === 'unstep' && ctx?.workflowSteps) delete ctx.workflowSteps[id];
   return { op: out as unknown as WorkflowOp, warnings };
 }
 
@@ -269,7 +294,7 @@ function attachmentDescendants(nodes: WorkflowNode[], roots: Iterable<string>): 
 function unguardedInput(wf: WorkflowGraph, id: string): boolean {
   const seen = new Set<string>();
   const nodes = Object.values(wf.nodes);
-  const edges = Object.values(wf.edges);
+  const edges = Object.values(wf.edges).filter((e) => !attachedLink(wf, e));
   const walk = (at: string): boolean => {
     if (seen.has(at)) return false;
     seen.add(at);
@@ -344,7 +369,7 @@ function cycleLinks(wf: WorkflowGraph): WorkflowEdge[] {
   };
   for (const id of triggers) reach(id);
   // Removing bounded routes isolates cycles that have no loop or edit escape.
-  const unbounded = edges.filter((e) => e.kind !== 'loop' && e.outcome !== 'edit');
+  const unbounded = edges.filter((e) => e.kind !== 'loop' && !(e.outcome === 'edit' && humanApprove(own(wf.nodes, e.from))));
   const done = new Set<string>();
   const active = new Set<string>();
   const found: WorkflowEdge[] = [];
@@ -429,8 +454,7 @@ function checkNodeStructure(s: CheckState, n: WorkflowNode, outs: WorkflowEdge[]
 function checkNodeRoutes(s: CheckState, n: WorkflowNode, outs: WorkflowEdge[]): void {
   const { wf, edges, settings } = s;
   // Sensitive actions need approval after the last producer, or at call time for attached tools.
-  if (((n.kind === 'act' && !n.on) || n.kind === 'tool')
-    && (needsApproval(n, settings) || waived(n, settings))
+  if ((n.effect !== undefined || n.kind === 'act') && (needsApproval(n, settings) || waived(n, settings))
     && (n.on ? n.approval !== 'required' : hasUngatedPath(wf, edges, n.id))) {
     add(s, 'wf-approval', n, 'Approve at call or move the action inline after an approve step.',
       waived(n, settings) ? 'info' : 'warn');
@@ -497,10 +521,21 @@ function checkNodeReferences(s: CheckState, n: WorkflowNode): void {
   }
 }
 
+function attachedLink(wf: WorkflowGraph, e: WorkflowEdge): boolean {
+  return !!(own(wf.nodes, e.from)?.on || own(wf.nodes, e.to)?.on);
+}
+
 export function checkWorkflow(wf: WorkflowGraph, catalog: Catalog, models: ModelTable, settings: WorkflowSettings = {}): Warning[] {
   const warnings: Warning[] = [];
   const nodes = sorted(wf.nodes);
-  const edges = sorted(wf.edges);
+  const allEdges = sorted(wf.edges);
+  const edges = allEdges.filter((e) => !attachedLink(wf, e));
+  for (const e of allEdges) {
+    if (attachedLink(wf, e)) warnings.push(W('wf-attach-form', [e.id],
+      `Link '${e.id}' touches an attached step; use its host instead.`, 'error'));
+    if (e.outcome === 'edit' && !humanApprove(own(wf.nodes, e.from))) warnings.push(W('wf-bad-op', [e.id],
+      `Edit outcome on '${e.id}' must leave a human approve step.`, 'error'));
+  }
   const s: CheckState = { wf, catalog, models, settings, nodes, edges, warnings };
   const reached = reachedNodes(wf, nodes, edges);
   // Without a trigger, a nonempty workflow has no entry point.
@@ -537,6 +572,17 @@ export function repairWorkflow(
   const repair = (code: Warning['code'], id: string, msg: string, severity: Warning['severity']): void => {
     warnings.push(W(code, [id], msg, severity, true));
   };
+  for (const e of sorted(g.edges)) {
+    if (attachedLink(wf, e)) {
+      delete g.edges[e.id];
+      repair('wf-attach-form', e.id, `Removed link '${e.id}' touching an attached step; use its host instead.`, 'warn');
+    } else if (e.outcome === 'edit' && !humanApprove(own(wf.nodes, e.from))) {
+      const value = { ...e };
+      delete value.outcome;
+      g.edges[e.id] = makeLink(value);
+      repair('wf-bad-op', e.id, `Removed edit outcome on '${e.id}'; it must leave a human approve step.`, 'warn');
+    }
+  }
   const invalid = sorted(wf.nodes).filter((n) => invalidAttachment(wf, n));
   for (const n of invalid) {
     const value = { ...g.nodes[n.id] };
@@ -545,7 +591,10 @@ export function repairWorkflow(
       value.after = n.on;
       if (!Object.values(g.edges).some((e) => e.to === n.id)) {
         const id = allocateWorkflowId(`${n.on}-${n.id}`, (id) => !!(own(g.nodes, id) || own(g.edges, id) || own(g.groups, id)));
-        g.edges[id] = makeLink({ id, from: n.on, to: n.id, kind: 'next' });
+        if (Object.keys(g.edges).length < DEFAULT_WORKFLOW_LIMITS.maxEdges && !g.nodes[n.on].on) {
+          g.edges[id] = makeLink({ id, from: n.on, to: n.id, kind: 'next' });
+        } else warnings.push(W('wf-attach-form', [n.id],
+          `Could not connect '${n.id}': edge limit reached or host is still attached.`, 'warn'));
       }
     }
     g.nodes[n.id] = makeStep(value);
@@ -553,6 +602,10 @@ export function repairWorkflow(
   }
   for (const n of sorted(g.nodes)) {
     const value = { ...n };
+    if (n.effect !== undefined && !effectKind(n.kind)) {
+      delete value.effect;
+      repair('wf-bad-op', n.id, `Removed effect from '${n.id}'; only act, tool and memory steps carry effects.`, 'warn');
+    }
     if (n.kind === 'agent' && n.turns === undefined) {
       value.turns = 10;
       repair('wf-agent-turns', n.id, `'${n.label}' (${n.id}) is limited to 10 model requests.`, 'info');

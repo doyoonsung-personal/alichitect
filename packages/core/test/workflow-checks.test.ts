@@ -56,7 +56,7 @@ const cases: Array<{ code: Warning['code']; severity: Warning['severity']; fault
   { code: 'wf-no-trigger', severity: 'error', fault: () => graph([end]), clean: () => linear(start, end) },
   { code: 'wf-unreachable', severity: 'error', fault: () => graph([start, end]), clean: () => linear(start, end) },
   { code: 'wf-ai-missing', severity: 'error', fault: () => linear(start, node('ai', 'ai'), end), clean: () => linear(start, draft, end) },
-  { code: 'wf-attach-form', severity: 'warn', fault: () => linear(start, node('bad', 'guard', { on: 'start' }), end), clean: () => graph([start, agent, node('tool', 'tool', { on: 'agent' }), end], [edge('start', 'agent'), edge('agent', 'end')]) },
+  { code: 'wf-attach-form', severity: 'warn', fault: () => graph([start, node('bad', 'guard', { on: 'start' }), end], [edge('start', 'end')]), clean: () => graph([start, agent, node('tool', 'tool', { on: 'agent' }), end], [edge('start', 'agent'), edge('agent', 'end')]) },
   { code: 'wf-dead-end', severity: 'warn', fault: () => graph([start]), clean: () => linear(start, end) },
   { code: 'wf-cycle', severity: 'warn', fault: () => graph([start, draft, end], [edge('start', 'draft'), edge('draft', 'start'), edge('draft', 'end')]), clean: () => linear(start, draft, end) },
   { code: 'wf-loop-exit', severity: 'warn', fault: () => graph([start, draft, end], [edge('start', 'draft'), edge('draft', 'start', { kind: 'loop' }), edge('draft', 'end')]), clean: () => graph([start, draft, end], [edge('start', 'draft'), edge('draft', 'start', { kind: 'loop', max: 3 }), edge('draft', 'end', { outcome: 'exhausted' })]) },
@@ -159,7 +159,8 @@ test('AI missing includes agents and explicit unknown knowledge models, not plai
 });
 test('cycle detection ignores loop and edit links, including a non-closing edge', () => {
   for (const patch of [{ kind: 'loop', max: 3 }, { outcome: 'edit' }] as const) {
-    const wf = graph([start, draft, end], [edge('start', 'draft', patch), edge('draft', 'start'), edge('draft', 'end')]);
+    const wf = graph([start, draft, approve, end], [edge('start', 'approve'), edge('approve', 'draft', patch),
+      edge('draft', 'approve'), edge('draft', 'end')]);
     assert.deepEqual(ofCode(wf, 'wf-cycle'), []);
     assert.equal(repairWorkflow(wf, catalog, models).workflow, wf);
   }
@@ -200,7 +201,7 @@ test('mixed-out repair handles every alternative and preserves labels and outcom
     { kind: 'next', outcome: 'approve' },
   ];
   for (const alternative of alternatives) {
-    const wf = graph([start, end], [
+    const wf = graph([{ ...start, kind: 'human', task: 'approve' }, end], [
       edge('start', 'end', { id: 'z', kind: 'next', label: 'accepted' }),
       edge('start', 'end', { id: 'b', kind: 'next', label: '' }),
       edge('start', 'end', { id: 'a' }), edge('start', 'end', { id: 'alternative', ...alternative }),
@@ -292,7 +293,7 @@ test('attachment repair handles missing hosts, invalid hosts, cycles and occupie
   }
   const wf = linear(start, agent, end);
   wf.nodes.agent.on = 'other'; wf.nodes.other = node('other', 'agent', { ai: model.id, turns: 10, on: 'agent' });
-  assert.equal(ofCode(wf, 'wf-attach-form').length, 2);
+  assert.equal(ofCode(wf, 'wf-attach-form').length, 4);
   const r = repairWorkflow(wf, catalog, models);
   assert.deepEqual(ofCode(r.workflow, 'wf-attach-form'), []);
   assert.deepEqual(repairWorkflow(r.workflow, catalog, models).workflow, r.workflow);
@@ -379,11 +380,12 @@ test('reply and trifecta checks include nested attachment inputs with cycle prot
 
   // Invalid attachment cycles are checked separately, but input collection must terminate.
   wf.nodes.a.on = 'b';
-  assert.equal(ofCode(wf, 'wf-trifecta').length, 1);
+  assert.ok(ofCode(wf, 'wf-attach-form').some(w => w.severity === 'error'));
+  assert.equal(ofCode(wf, 'wf-trifecta').length, 0);
   wf.nodes.r.effect = 'reply';
   assert.equal(ofCode(wf, 'wf-reply-guard').length, 1);
   wf.nodes.u.untrusted = false;
-  assert.deepEqual(ofCode(wf, 'wf-reply-guard'), []);
+  assert.equal(ofCode(wf, 'wf-reply-guard').length, 1); // The attached host's escalation link is invalid too.
 });
 
 test('trifecta includes upstream attachments and ignores waivers', () => {

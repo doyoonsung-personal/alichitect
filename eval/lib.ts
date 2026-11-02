@@ -700,6 +700,13 @@ export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: Reg
     const inv = inventedAmounts(modelTexts(v), v.userTexts);
     out.push({ type: 'noPrices', name: 'no invented prices', pass: !inv.length, detail: inv.length ? inv.join(', ') : undefined });
   }
+  if (v.mode === 'workflow') {
+    const modelNames = loadModels().models.flatMap(m => [m.id, m.name]);
+    const productNames = catalog?.entries.flatMap(p => [p.name, p.short, p.id, ...(p.aliases ?? [])]) ?? [];
+    modelNames.push(...productNames.filter((name): name is string => !!name && name.length >= 2));
+    const escaped = modelNames.sort((a, b) => b.length - a.length).map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    names = new RegExp(`${escaped.join('|')}|${names.source}`, 'gi');
+  }
   const sayText = v.says.join('\n');
   if (sayText.trim()) {
     const s = langShare(sayText, lang, names);
@@ -710,10 +717,12 @@ export function evaluateTurn(v: TurnView, turn: EvalTurn, lang: Lang, names: Reg
   }
   if (lang !== 'en' && askOps.length) {
     const s = langShare(askOps.map((a) => [a.text, ...(a.options ?? [])].join('\n')).join('\n'), lang, names);
-    out.push({ type: 'askLang', name: `ask text in ${lang}`, pass: s.share >= 0.5, detail: `share ${s.share.toFixed(2)} of ${s.letters} letters` });
+    out.push({ type: 'askLang', name: `ask text in ${lang}`, pass: s.letters > 0 && s.share >= 0.5,
+      detail: `share ${s.share.toFixed(2)} of ${s.letters} letters` });
   }
   if (lang !== 'en') {
-    const why = v.ops.flatMap((o) => (o.t === 'node' || o.t === 'insert' ? [o.why ?? ''] : o.t === 'rec' ? [o.why] : [])).join('\n');
+    const why = v.ops.flatMap((o) => (o.t === 'node' || o.t === 'insert' ? [o.why ?? ''] : o.t === 'rec' ? [o.why]
+      : v.mode === 'workflow' && (o.t === 'step' || o.t === 'splice') ? [o.label, o.why ?? ''] : [])).join('\n');
     if (why.trim()) {
       const s = langShare(why, lang, names);
       out.push({ type: 'whyLang', name: `why text in ${lang}`, pass: s.share >= 0.5, detail: `share ${s.share.toFixed(2)} of ${s.letters} letters` });

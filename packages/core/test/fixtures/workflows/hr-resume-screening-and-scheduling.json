@@ -99,7 +99,6 @@
                     "product":  "model-studio",
                     "task":  "plan",
                     "ai":  "qwen3.8-max",
-                    "effect":  "decide",
                     "label":  "Score applicants against rubric"
                 },
                 {
@@ -351,11 +350,6 @@
                 }
             ],
     "expect":  {
-                   "codes":  [
-                                 {
-                                     "code":  "wf-decision-review",
-                                     "why":  "Ranking applicants against a hiring rubric affects employment opportunities."
-                                 }
-                             ]
+                   "codes":  []
                }
 }
