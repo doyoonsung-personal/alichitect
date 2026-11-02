@@ -1,0 +1,391 @@
+// Workflow usage arithmetic. Prices are International; fixed capacity is kept outside usage totals.
+import type { Catalog, WorkflowEdge, WorkflowEstimateSettings, WorkflowGraph, WorkflowNode } from './types.ts';
+import type { ModelTable } from './models.ts';
+
+export interface WorkflowEstimate {
+  typical: { perRunUsd: number; monthlyUsd: number };
+  upper: { perRunUsd: number; monthlyUsd: number };
+  runsPerMonth: number;
+  // Reachable inline steps in execution order, including alternate routes; attachments are represented by their host.
+  oneRun: string[];
+  scope: 'international' | 'global';
+  // Scenario amounts are USD contributions per run, not the rate per billing unit. Upper selects one complete route.
+  lines: Array<{
+    id: string; label: string; kind: 'model' | 'tool' | 'guardrails' | 'platform';
+    unit: string; typical: number; upper: number; source: string;
+  }>;
+  unpriced: Array<{ id: string; label: string; unit: string; why: string }>;
+  fixed: Array<{ id: string; label: string; unit: string; monthlyUsd: number | null; source: string }>;
+  assumptions: Array<{ key: string; text: string }>;
+  coverage: string;
+  latency: { modelStepsOnLongestPath: number; humanWaits: string[] };
+}
+
+type Scenario = 'typical' | 'upper';
+type Counts = Map<string, number>;
+type Line = WorkflowEstimate['lines'][number];
+const NOTES = 'research/ai-workflows/verify/NOTES.md';
+const FEES = {
+  cloudflow: { usd: 0.25 / 10_000, unit: 'transition', source: `${NOTES} Adjudicate-3: Approval steps (reference)` },
+  eventbridge: { usd: 0.82 / 1_000_000, unit: 'event', source: `${NOTES} Adjudicate-4: EventBridge` },
+  'direct-mail': { usd: 0.29 / 1_000, unit: 'message', source: `${NOTES} Batch 6: Messaging` },
+  chatapp: { usd: 0.005, unit: 'message', source: `${NOTES} Adjudicate-4: Chat App Message Service` },
+  guardrails: { usd: 6 / 10_000, unit: 'detection call', source: `${NOTES} Batch 3; Adjudicate-1: AI Guardrails` },
+  agentcore: { usd: 0.60, unit: 'control-plane hour', source: `${NOTES} Batch 6: AgentCore` },
+} as const;
+const TOKENS: Record<string, { input: number; output: number; prefix: number }> = {
+  classify: { input: 700, output: 40, prefix: 400 },
+  extract: { input: 1_000, output: 150, prefix: 400 },
+  retrieve: { input: 50, output: 0, prefix: 0 },
+  rerank: { input: 8_050, output: 0, prefix: 0 },
+  generate: { input: 2_800, output: 250, prefix: 800 },
+  summarise: { input: 3_000, output: 200, prefix: 0 },
+  plan: { input: 2_000, output: 400, prefix: 0 },
+};
+const valid = (n: number | undefined): n is number => n !== undefined && Number.isFinite(n) && n >= 0;
+const sorted = <T extends { id: string }>(xs: T[]): T[] => xs.sort((a, b) => a.id.localeCompare(b.id, 'en'));
+const add = (counts: Counts, id: string, n: number): void => { counts.set(id, (counts.get(id) ?? 0) + n); };
+
+export function estimateWorkflow(
+  wf: WorkflowGraph, models: ModelTable, catalog: Catalog, settings: WorkflowEstimateSettings = {},
+): WorkflowEstimate {
+  const assumptions = new Map<string, string>();
+  const assume = (key: string, text: string): void => { assumptions.set(key, text); };
+  const number = (n: number | undefined, fallback: number, key: string, text: string): number => {
+    if (valid(n)) return n;
+    assume(key, text);
+    return fallback;
+  };
+  const pair = (value: { typical?: number; upper?: number } | undefined, t: number, u: number, key: string): [number, number] => {
+    const typical = number(value?.typical, t, `${key}:typical`, `${key}: typical assumes ${t}.`);
+    const upper = number(value?.upper, u, `${key}:upper`, `${key}: upper assumes ${u}.`);
+    if (upper < typical) assume(`${key}:order`, `${key}: upper raised to typical so the upper scenario cannot be smaller.`);
+    return [typical, Math.max(typical, upper)];
+  };
+  const runsPerMonth = number(settings.runsPerMonth, 10_000, 'runsPerMonth', 'Assume 10,000 trigger events per month.');
+  const scope = settings.scope ?? 'international';
+  if (!settings.scope) assume('scope', 'International pricing scope.');
+  if (scope === 'global') assume('scope:global', 'Prices for International scope; Global is usually lower.');
+  const nodes = sorted(Object.values(wf.nodes));
+  const inline = nodes.filter((n) => !n.on);
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const edges = sorted(Object.values(wf.edges)).filter((e) => byId.has(e.from) && byId.has(e.to)
+    && !byId.get(e.from)!.on && !byId.get(e.to)!.on);
+  const forward = edges.filter((e) => e.kind !== 'loop' && e.outcome !== 'edit');
+  const reachable = (start: string, links: WorkflowEdge[], reverse = false): Set<string> => {
+    const seen = new Set<string>();
+    const todo = [start];
+    while (todo.length) {
+      const id = todo.pop()!;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      for (const edge of links) if ((reverse ? edge.to : edge.from) === id) todo.push(reverse ? edge.from : edge.to);
+    }
+    return seen;
+  };
+  const retries = edges.filter((e) => e.kind === 'loop'
+    || (e.outcome === 'edit' && reachable(e.to, forward).has(e.from)));
+  forward.push(...edges.filter((e) => e.outcome === 'edit' && !retries.includes(e)));
+  // Back links have their own bounded multiplier. The remaining graph must be a DAG, including on partial streamed input.
+  const state = new Map<string, number>();
+  const back = new Set<string>();
+  const visit = (id: string): void => {
+    state.set(id, 1);
+    for (const e of forward.filter((e) => e.from === id)) {
+      if (state.get(e.to) === 1) back.add(e.id);
+      else if (!state.has(e.to)) visit(e.to);
+    }
+    state.set(id, 2);
+  };
+  for (const n of inline) if (!state.has(n.id)) visit(n.id);
+  const dag = forward.filter((e) => !back.has(e.id));
+  const roots = inline.filter((n) => n.kind === 'trigger');
+  if (!roots.length && inline.length) {
+    roots.push(...inline.filter((n) => !dag.some((e) => e.to === n.id)));
+    assume('roots', 'No trigger: estimate one pass from each source step in the partial graph.');
+  }
+  if (roots.length > 1) assume('triggers', 'One run is one trigger event; trigger alternatives have equal typical shares, upper uses the costliest.');
+  const active = new Set(roots.flatMap((n) => [...reachable(n.id, dag)]));
+  const order: string[] = [];
+  const pending = new Set(inline.filter((n) => active.has(n.id)).map((n) => n.id));
+  while (pending.size) {
+    const id = [...pending].find((id) => !dag.some((e) => e.to === id && pending.has(e.from)))!;
+    pending.delete(id);
+    order.push(id);
+  }
+  const included = new Set(active);
+  for (let i = 0; i < nodes.length; i++) for (const n of nodes) if (n.on && included.has(n.on)) included.add(n.id);
+  const multipliers = new Map<string, [number, number]>();
+  const repeatItems = new Map<string, [number, number]>();
+  for (const n of nodes) multipliers.set(n.id, [1, 1]);
+  for (const group of sorted(Object.values(wf.groups))) {
+    if (!nodes.some((n) => included.has(n.id) && n.repeat === group.id)) continue;
+    const items = pair(settings.items?.[group.id], 3, 10, `items:${group.id}`);
+    repeatItems.set(group.id, items);
+  }
+  for (const e of edges.filter((e) => retries.includes(e) || back.has(e.id))) {
+    if (!active.has(e.from)) continue;
+    const fromTarget = reachable(e.to, dag);
+    if (!fromTarget.has(e.from)) continue;
+    const toSource = reachable(e.from, dag, true);
+    const max = valid(e.max) ? Math.floor(e.max) : 3;
+    if (!valid(e.max)) assume(`loop:${e.id}:max`, `${e.id}: unbounded retry/edit assumes at most 3 extra passes.`);
+    const passes = pair(settings.loops?.[e.id], Math.min(1, max), max, `loops:${e.id}`);
+    assume(`loop:${e.id}:meaning`, `${e.id}: iterations are extra passes, after the initial pass.`);
+    for (const id of fromTarget) if (toSource.has(id)) {
+      const m = multipliers.get(id)!;
+      multipliers.set(id, [m[0] * (1 + passes[0]), m[1] * (1 + passes[1])]);
+    }
+  }
+  const lines: Line[] = [];
+  const unpriced: WorkflowEstimate['unpriced'] = [];
+  const fixed = new Map<string, WorkflowEstimate['fixed'][number]>();
+  const owners = new Map<string, string>();
+  const missing = (id: string, label: string, unit: string, why: string): void => { unpriced.push({ id, label, unit, why }); };
+  const line = (n: WorkflowNode, suffix: string, kind: Line['kind'], unit: string, typical: number, upper: number, source: string): void => {
+    const id = `${n.id}:${suffix}`;
+    lines.push({ id, label: n.label, kind, unit, typical, upper, source });
+    owners.set(id, n.id);
+  };
+  const requests = new Map<string, [number, number]>();
+  for (const n of nodes.filter((n) => included.has(n.id) && n.kind === 'agent')) {
+    const turns = Math.max(1, Math.ceil(number(n.turns, 10, `agent:${n.id}:turns`, `${n.label}: assume a maximum of 10 requests.`)));
+    const p = pair(settings.agents?.[n.id], Math.ceil(turns / 2), turns, `agent:${n.id}:requests`);
+    requests.set(n.id, [Math.max(1, Math.ceil(p[0])), Math.max(1, Math.ceil(p[1]))]);
+  }
+  for (const n of nodes.filter((n) => included.has(n.id))) {
+    if (n.kind === 'human') missing(`${n.id}:human`, n.label, 'reviewer hour', 'Human review time is not priced.');
+    if (n.kind !== 'human' && (n.ai || n.kind === 'ai' || n.kind === 'agent')) {
+      const model = n.ai ? models.model(n.ai) : undefined;
+      const opts = settings.steps?.[n.id] ?? {};
+      const thinking = opts.thinking ?? false;
+      if (opts.thinking === undefined) assume(`${n.id}:thinking`, `${n.label}: thinking off.`);
+      if (opts.offline === undefined) assume(`${n.id}:offline`, `${n.label}: online requests, without batch.`);
+      const deferred = ['see', 'transcribe', 'speak', 'create'].includes(n.task ?? '') || model?.price?.unit !== 'mtok';
+      if (!model?.price || deferred) {
+        missing(`${n.id}:model`, n.label, model?.price?.unit ?? 'model usage',
+          !model ? 'Model is missing from the price table.' : !model.price ? 'No confirmed model price.'
+            : 'Image, video and voice quantities are not estimated in this release.');
+      } else {
+        let defaults = TOKENS[n.task ?? ''];
+        if (!defaults) {
+          defaults = TOKENS.generate;
+          assume(`${n.id}:task`, `${n.label}: no section 9 token row for ${n.task ?? 'unspecified task'}; use the generate sizes.`);
+        }
+        const agent = n.kind === 'agent';
+        const input = number(opts.inTokens, agent ? 2_000 : defaults.input, `${n.id}:input`,
+          `${n.label}: ${agent ? 'base prompt B = 2000' : `${defaults.input} input tokens`} (PLAN section 9).`);
+        const output = number(opts.outTokens, agent ? 250 : defaults.output, `${n.id}:output`,
+          `${n.label}: ${agent ? 'final answer a = 250' : `${defaults.output} output tokens`} (PLAN section 9).`);
+        const tools = nodes.filter((x) => x.on === n.id && x.kind === 'tool').length;
+        const schemas = agent ? tools * 150 : 0;
+        const prefix = Math.min(input + schemas, agent ? input + schemas : defaults.prefix);
+        assume(`${n.id}:prefix`, `${n.label}: static prefix ${prefix} tokens; dynamic content is not cached.`);
+        const r = agent ? number(settings.agents?.[n.id]?.resultTokens, 800, `${n.id}:results`, `${n.label}: tool result r = 800 tokens.`) : 0;
+        if (agent) assume(`${n.id}:history`, `${n.label}: full history; S = 150 per attached tool, c = 150; N includes the final answer.`);
+        const outputFactor = thinking && opts.outTokens === undefined ? 3 : 1;
+        if (outputFactor === 3) assume(`${n.id}:thinking-output`, `${n.label}: thinking multiplies default output tokens by 3.`);
+        const batch = opts.offline === true && model.batch === true;
+        if (batch) assume(`${n.id}:batch`, `${n.label}: batch is 50% of list prices; cache does not stack (NOTES Batch 6).`);
+        else if (opts.offline) assume(`${n.id}:batch-unavailable`, `${n.label}: no batch discount; model batch support is not confirmed true.`);
+        const cost = (scenario: Scenario): number | null => {
+          const count = requests.get(n.id)?.[scenario === 'typical' ? 0 : 1] ?? 1;
+          let total = 0;
+          for (let i = 1; i <= count; i++) {
+            const inTokens = input + schemas + (agent ? (i - 1) * (150 + r) : 0);
+            const outTokens = (agent && i < count ? 150 : output) * outputFactor;
+            const tier = [...model.price!.tiers].sort((a, b) => (a.upTo ?? Infinity) - (b.upTo ?? Infinity))
+              .find((t) => t.upTo === undefined || inTokens <= t.upTo);
+            const outRate = thinking ? tier?.thinkingOut ?? tier?.out : tier?.out;
+            if (!tier || (inTokens > 0 && !valid(tier.in)) || (outTokens > 0 && !valid(outRate))) return null;
+            let price = inTokens * (tier.in ?? 0) + outTokens * (outRate ?? 0);
+            if (batch) price *= 0.5;
+            else if (prefix >= 1_024 && valid(tier.cacheHit)) {
+              assume(`${n.id}:cache`, `${n.label}: implicit prefix cache hits 50% typical, 0% upper.`);
+              if (scenario === 'typical') price -= prefix * 0.5 * ((tier.in ?? 0) - tier.cacheHit);
+            }
+            total += price / 1_000_000;
+          }
+          return total;
+        };
+        const typical = cost('typical');
+        const upper = cost('upper');
+        if (typical === null || upper === null) missing(`${n.id}:model`, n.label, 'mtok', 'No firm rate for the request tier or token direction.');
+        else line(n, 'model', 'model', 'mtok', typical, upper, model.source);
+      }
+    }
+    if (n.kind !== 'human' && n.tool) {
+      const tool = models.tool(n.tool);
+      if (!tool || (!tool.fee && !tool.freeUntilNotice)) {
+        missing(`${n.id}:tool`, n.label, 'call', tool?.note ?? 'No confirmed tool fee.');
+      } else {
+        let calls: [number, number] = [1, 1];
+        const host = n.on ? byId.get(n.on) : undefined;
+        if (n.tool === 'web_search' && host?.kind === 'agent') {
+          const searches = number(settings.agents?.[host.id]?.searchesPerRequest, 1, `${host.id}:searches`,
+            `${host.label}: one web search per model request, including the final request.`);
+          const turns = requests.get(host.id)!;
+          calls = [turns[0] * searches, turns[1] * searches];
+        } else assume(`${n.id}:calls`, `${n.label}: one tool invocation per host/step pass.`);
+        const pages = tool.fee?.unit === 'page' ? 5 : 1;
+        if (pages === 5) assume(`${n.id}:pages`, `${n.label}: 5 PDF pages per run.`);
+        const rate = tool.freeUntilNotice ? 0 : tool.fee!.usd / tool.fee!.per;
+        if (tool.freeUntilNotice) assume(`${n.id}:free`, `${tool.name}: free for now, until further notice; model tokens remain billable.`);
+        line(n, 'tool', 'tool', tool.fee?.unit ?? 'call', calls[0] * pages * rate, calls[1] * pages * rate, tool.source);
+      }
+    }
+    if (n.kind === 'guard' && (!n.product || n.product === 'ai-guardrails')) {
+      if (!n.product) assume(`${n.id}:guard-product`, `${n.label}: guard without a product assumes AI Guardrails.`);
+      const types = number(settings.guardTypes?.[n.id], 2, `${n.id}:guard-types`, `${n.label}: 2 detection types (injection and compliance).`);
+      line(n, 'guardrails', 'guardrails', FEES.guardrails.unit, types * FEES.guardrails.usd, types * FEES.guardrails.usd, FEES.guardrails.source);
+    }
+    const platforms: Array<keyof typeof FEES> = [];
+    if (n.runs === 'cloudflow') {
+      platforms.push('cloudflow');
+      assume('cloudflow:reference', 'CloudFlow uses the previous-version reference rate; no free quota is deducted.');
+    }
+    if (n.kind === 'trigger' && n.product === 'eventbridge') {
+      platforms.push('eventbridge');
+      assume(`${n.id}:event`, `${n.label}: one custom-bus event of at most 64 KB; delivery and transfer excluded.`);
+    }
+    if (n.kind !== 'human' && n.effect === 'send' && n.product === 'direct-mail') platforms.push('direct-mail');
+    if (n.kind !== 'human' && ['reply', 'send'].includes(n.effect ?? '') && n.product === 'chatapp') {
+      platforms.push('chatapp');
+      assume('chatapp:channel', 'Assume the $0.005 Chat App platform fee; channel-specific fees are excluded.');
+    }
+    for (const product of platforms) {
+      const fee = FEES[product];
+      line(n, product, 'platform', fee.unit, fee.usd, fee.usd, fee.source);
+    }
+    for (const product of new Set([n.product, n.runs].filter((x): x is string => !!x))) {
+      const label = catalog.byId.get(product)?.name ?? product;
+      if (['fc', 'agentrun', 'agentcore', 'agent-sandbox', 'ecs', 'acs', 'ack'].includes(product)) {
+        const unit = product === 'agentcore' ? 'compute CU' : ['fc', 'agentrun'].includes(product) ? 'CU-second' : 'compute second';
+        missing(`${n.id}:${product}:compute`, `${n.label}: ${label}`, unit, 'Compute quantity requires a measured duration and resource size.');
+      }
+      if (['tablestore', 'oss', 'milvus'].includes(product)) {
+        missing(`${n.id}:${product}:storage`, `${n.label}: ${label}`, 'GB-month / capacity',
+          'Storage quantity and firm International capacity rates required.');
+      }
+      if (['agentcore', 'api-gateway', 'ai-gateway', 'dashvector'].includes(product)) {
+        const agentcore = product === 'agentcore';
+        if (agentcore) assume('agentcore:fixed', 'Assume one dedicated AgentCore control plane for 730 hours/month; separate from usage.');
+        fixed.set(product, {
+          id: product, label, unit: agentcore ? FEES.agentcore.unit : 'instance-month',
+          monthlyUsd: agentcore ? FEES.agentcore.usd * 730 : null,
+          source: agentcore ? FEES.agentcore.source : `${NOTES} Batch 6; Adjudicate-3: instance sizing required`,
+        });
+      }
+    }
+    if (n.kind === 'knowledge') missing(`${n.id}:indexing`, `${n.label}: indexing and ingestion`, 'document tokens',
+      'Document count, size and re-indexing frequency are unknown; only query usage is priced.');
+  }
+  const children = (id: string): WorkflowNode[] => nodes.filter((n) => n.on === id);
+  const nodeCounts = (id: string, scenario: Scenario, seen = new Set<string>(), groups = new Set<string>()): Counts => {
+    if (seen.has(id)) return new Map();
+    seen.add(id);
+    const counts: Counts = new Map();
+    const n = byId.get(id)!;
+    const index = scenario === 'typical' ? 0 : 1;
+    let multiplier = multipliers.get(id)![index];
+    const inherited = new Set(groups);
+    if (n.repeat && !groups.has(n.repeat)) {
+      multiplier *= repeatItems.get(n.repeat)?.[index] ?? 1;
+      inherited.add(n.repeat);
+    }
+    counts.set(id, multiplier);
+    for (const child of children(id)) {
+      if (child.kind === 'agent') assume(`${child.id}:attachment`, `${child.label}: one sub-agent invocation per host pass.`);
+      for (const [key, value] of nodeCounts(child.id, scenario, seen, inherited)) add(counts, key, value * multiplier);
+    }
+    return counts;
+  };
+  const weights = (out: WorkflowEdge[]): number[] => {
+    const supplied = out.map((e) => settings.shares?.[e.id]);
+    const good = supplied.map((n) => valid(n) && n <= 1 ? n : undefined);
+    const sum = good.reduce<number>((s, n) => s + (n ?? 0), 0);
+    const absent = good.filter((n) => n === undefined).length;
+    if (absent) assume(`shares:${out[0].from}`, `${out[0].from}: unspecified route shares split the remaining probability equally.`);
+    const raw = good.map((n) => n ?? Math.max(0, 1 - sum) / absent);
+    const total = raw.reduce((a, b) => a + b, 0);
+    if (Math.abs(total - 1) > 1e-10) assume(`shares:${out[0].from}:normalise`, `${out[0].from}: route shares normalised; all-zero shares use equal split.`);
+    return raw.map((n) => total ? n / total : 1 / out.length);
+  };
+  // Merge identical future frontiers, retaining expected visits or the costliest history. Shared joins execute once.
+  const usage = (scenario: Scenario): Counts => {
+    const prices = new Map<string, number>();
+    for (const l of lines) add(prices, owners.get(l.id)!, l[scenario]);
+    const score = (counts: Counts): number => [...counts].reduce((sum, [id, count]) => sum + count * (prices.get(id) ?? 0), 0);
+    type State = { future: Set<string>; counts: Counts; probability: number };
+    let states: State[] = roots.map((n) => ({ future: new Set([n.id]), counts: new Map(), probability: 1 / roots.length }));
+    for (const id of order) {
+      const merged = new Map<string, State>();
+      const merge = (s: State): void => {
+        if (!s.probability) return;
+        const key = [...s.future].sort().join('|');
+        const old = merged.get(key);
+        if (!old) { merged.set(key, s); return; }
+        if (scenario === 'upper') {
+          if (score(s.counts) > score(old.counts)) merged.set(key, s);
+        } else {
+          const probability = old.probability + s.probability;
+          const counts: Counts = new Map();
+          for (const [id, n] of old.counts) add(counts, id, n * old.probability / probability);
+          for (const [id, n] of s.counts) add(counts, id, n * s.probability / probability);
+          merged.set(key, { future: s.future, counts, probability });
+        }
+      };
+      for (const s of states) {
+        if (!s.future.has(id)) { merge(s); continue; }
+        const future = new Set(s.future);
+        future.delete(id);
+        const counts = new Map(s.counts);
+        for (const [key, n] of nodeCounts(id, scenario)) add(counts, key, n);
+        const out = dag.filter((e) => e.from === id);
+        const alternatives = out.some((e) => e.kind === 'branch' || e.kind === 'escalate' || e.outcome);
+        if (alternatives && out.length > 1) {
+          const shares = weights(out);
+          out.forEach((e, i) => merge({
+            future: new Set([...future, e.to]), counts,
+            probability: scenario === 'typical' ? s.probability * shares[i] : s.probability,
+          }));
+        } else merge({ future: new Set([...future, ...out.map((e) => e.to)]), counts, probability: s.probability });
+      }
+      states = [...merged.values()];
+    }
+    return states[0]?.counts ?? new Map();
+  };
+  const typicalCounts = usage('typical');
+  const upperCounts = usage('upper');
+  for (const l of lines) {
+    l.typical *= typicalCounts.get(owners.get(l.id)!) ?? 0;
+    l.upper *= upperCounts.get(owners.get(l.id)!) ?? 0;
+  }
+  const typical = lines.reduce((sum, l) => sum + l.typical, 0);
+  const upper = lines.reduce((sum, l) => sum + l.upper, 0);
+  const depth = new Map<string, number>();
+  const modelDepth = (id: string, seen = new Set<string>()): number => {
+    if (seen.has(id)) return 0;
+    seen.add(id);
+    const n = byId.get(id)!;
+    const own = n.ai || n.kind === 'ai' || n.kind === 'agent' ? 1 : 0;
+    return own + Math.max(0, ...children(id).map((child) => modelDepth(child.id, new Set(seen))));
+  };
+  let longest = 0;
+  for (const id of order) {
+    const n = byId.get(id)!;
+    const previous = Math.max(0, ...dag.filter((e) => e.to === id).map((e) => depth.get(e.from) ?? 0));
+    const current = n.kind === 'human' ? 0 : previous + modelDepth(id);
+    depth.set(id, current);
+    longest = Math.max(longest, current);
+  }
+  return {
+    typical: { perRunUsd: typical, monthlyUsd: typical * runsPerMonth },
+    upper: { perRunUsd: upper, monthlyUsd: upper * runsPerMonth },
+    runsPerMonth, oneRun: order, scope, lines, unpriced, fixed: [...fixed.values()].sort((a, b) => a.id.localeCompare(b.id, 'en')),
+    assumptions: [...assumptions].sort(([a], [b]) => a.localeCompare(b, 'en')).map(([key, text]) => ({ key, text })),
+    coverage: 'Priced usage subtotal: model tokens, built-in tools, AI Guardrails, CloudFlow, EventBridge, Direct Mail and Chat App fees; '
+      + 'excludes compute time, storage, indexing, channel fees, human review, voice/image/video usage and fixed monthly capacity listed separately.',
+    latency: { modelStepsOnLongestPath: longest, humanWaits: nodes.filter((n) => active.has(n.id) && n.kind === 'human').map((n) => n.label) },
+  };
+}
