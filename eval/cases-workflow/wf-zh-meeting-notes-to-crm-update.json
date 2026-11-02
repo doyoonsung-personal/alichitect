@@ -1,0 +1,38 @@
+{
+  "id": "wf-zh-meeting-notes-to-crm-update",
+  "mode": "workflow",
+  "category": "i18n",
+  "lang": "zh",
+  "title": "[ZH] Meeting notes to CRM updates",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/meeting-notes-to-crm-update.json. One recorded meeting, with separate approval of field changes and the follow-up email. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required. The request is in Chinese; the say text must be in that language; product names stay in English.",
+  "turns": [
+    {
+      "ask": "创建一个工作流，转录销售通话录音，提取交易更新信息，并在写入 Salesforce 之前向销售代表展示需审批的差异对比。",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "transcribe",
+            "extract",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "write"
+          ]
+        }
+      }
+    }
+  ]
+}

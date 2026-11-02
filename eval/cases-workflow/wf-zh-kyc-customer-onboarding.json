@@ -1,0 +1,35 @@
+{
+  "id": "wf-zh-kyc-customer-onboarding",
+  "mode": "workflow",
+  "category": "i18n",
+  "lang": "zh",
+  "title": "[ZH] KYC and Customer Onboarding Triage",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/kyc-customer-onboarding.json. One webhook event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required. The request is in Chinese; the say text must be in that language; product names stay in English.",
+  "turns": [
+    {
+      "ask": "创建一个客户入职智能体，验证客户身份，筛查制裁名单，并将高风险档案路由给合规专员。",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "tasksAny": [
+            [
+              "extract",
+              "check"
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}

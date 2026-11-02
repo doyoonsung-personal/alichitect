@@ -1,0 +1,38 @@
+{
+  "id": "wf-ko-multilingual-marketing-localisation",
+  "mode": "workflow",
+  "category": "i18n",
+  "lang": "ko",
+  "title": "[KO] Marketing content generation and localisation",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/multilingual-marketing-localisation.json. One campaign across five APAC locales; at most three measured refinements per locale. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required. The request is in Korean; the say text must be in that language; product names stay in English.",
+  "turns": [
+    {
+      "ask": "영문 캠페인 브리프를 받아 마스터 카피를 생성하고 5개 APAC 언어로 번역한 후, 현지 시장 검토를 위해 발행 대기열에 넣는 에이전트를 설정해 주세요.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "generate",
+            "translate",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "publish"
+          ]
+        }
+      }
+    }
+  ]
+}

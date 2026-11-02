@@ -1,0 +1,38 @@
+{
+  "id": "wf-ko-support-email-triage",
+  "mode": "workflow",
+  "category": "i18n",
+  "lang": "ko",
+  "title": "[KO] Support Email Triage and Auto-Resolution",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/support-email-triage.json. One inbound email, at most two draft revisions, then approval or manual resolution. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required. The request is in Korean; the say text must be in that language; product names stay in English.",
+  "turns": [
+    {
+      "ask": "수신된 지원 이메일을 분류하고 승인용 답변 초안을 작성하는 에이전트를 설정해 주세요.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "classify",
+            "generate",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "send"
+          ]
+        }
+      }
+    }
+  ]
+}

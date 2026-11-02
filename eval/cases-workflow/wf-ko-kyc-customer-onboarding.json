@@ -1,0 +1,35 @@
+{
+  "id": "wf-ko-kyc-customer-onboarding",
+  "mode": "workflow",
+  "category": "i18n",
+  "lang": "ko",
+  "title": "[KO] KYC and Customer Onboarding Triage",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/kyc-customer-onboarding.json. One webhook event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required. The request is in Korean; the say text must be in that language; product names stay in English.",
+  "turns": [
+    {
+      "ask": "고객 신원을 확인하고 제재 명단을 스크리닝하며, 고위험 프로필을 컴플라이언스 담당자에게 라우팅하는 온보딩 에이전트를 만들어 주세요.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "tasksAny": [
+            [
+              "extract",
+              "check"
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}

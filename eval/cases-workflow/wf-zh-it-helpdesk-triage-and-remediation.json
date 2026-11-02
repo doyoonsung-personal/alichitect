@@ -1,0 +1,36 @@
+{
+  "id": "wf-zh-it-helpdesk-triage-and-remediation",
+  "mode": "workflow",
+  "category": "i18n",
+  "lang": "zh",
+  "title": "[ZH] Internal IT Helpdesk Triage and Remediation",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/it-helpdesk-triage-and-remediation.json. One email via webhook event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required. The request is in Chinese; the say text must be in that language; product names stay in English.",
+  "turns": [
+    {
+      "ask": "创建一个 IT 支持智能体，自动分类工单、查询知识库，在沙箱环境中执行安全修复操作，并在触及生产环境前请求经理批准。",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human",
+            "knowledge"
+          ],
+          "tasks": [
+            "classify",
+            "retrieve",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true
+        }
+      }
+    }
+  ]
+}

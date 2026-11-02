@@ -1,0 +1,40 @@
+{
+  "id": "wf-ko-invoice-three-way-match",
+  "mode": "workflow",
+  "category": "i18n",
+  "lang": "ko",
+  "title": "[KO] Invoice Processing with 3-Way Match",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/invoice-three-way-match.json. One email via webhook event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required. The request is in Korean; the say text must be in that language; product names stay in English.",
+  "turns": [
+    {
+      "ask": "이메일의 공급업체 인보이스를 읽고 구매 주문서 및 입고 내역과 대조한 후, 승인된 건을 ERP에 등록하는 에이전트를 설정해 주세요.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "extract",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effectsAny": [
+            [
+              "write",
+              "pay"
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}

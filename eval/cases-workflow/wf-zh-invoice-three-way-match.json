@@ -1,0 +1,40 @@
+{
+  "id": "wf-zh-invoice-three-way-match",
+  "mode": "workflow",
+  "category": "i18n",
+  "lang": "zh",
+  "title": "[ZH] Invoice Processing with 3-Way Match",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/invoice-three-way-match.json. One email via webhook event for this request; bounded retries stay in this run. Later conversation turns, daily checks and monitoring events start new runs using persisted state. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required. The request is in Chinese; the say text must be in that language; product names stay in English.",
+  "turns": [
+    {
+      "ask": "设置一个智能体，读取邮件中的供应商发票，与采购订单和收货记录进行三方匹配，并将已批准的发票过账到 ERP 系统。",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "extract",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effectsAny": [
+            [
+              "write",
+              "pay"
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}

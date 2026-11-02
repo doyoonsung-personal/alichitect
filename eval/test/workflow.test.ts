@@ -289,7 +289,7 @@ test('workflow bases retain settings and estimate beside an empty cloud diagram'
 
 test('all 32 canonical fixtures validate and satisfy their conservative one-turn expectations', () => {
   const cases = loadCases(path.join(EVAL_DIR, 'cases-workflow'));
-  assert.equal(cases.length, 43); assert.deepEqual(checkCases(cases, catalog), []);
+  assert.equal(cases.length, 63); assert.deepEqual(checkCases(cases, catalog), []);
   const fixtureDir = path.join(EVAL_DIR, '../packages/core/test/fixtures/workflows');
   const files = readdirSync(fixtureDir).filter((f) => f.endsWith('.json'));
   assert.equal(files.length, 32);

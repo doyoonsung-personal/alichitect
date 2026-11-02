@@ -1,0 +1,37 @@
+{
+  "id": "wf-zh-sales-prospect-research-outreach",
+  "mode": "workflow",
+  "category": "i18n",
+  "lang": "zh",
+  "title": "[ZH] Sales prospect research and outreach drafting",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/sales-prospect-research-outreach.json. One new lead, one research retry, and one approved first-touch email; follow-ups are drafts only. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required. The request is in Chinese; the say text must be in that language; product names stay in English.",
+  "turns": [
+    {
+      "ask": "设置一个智能体，调研 CRM 中的新线索，起草个性化外联邮件，并将其放入队列供销售代表发送前审批。",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "generate",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "send"
+          ]
+        }
+      }
+    }
+  ]
+}

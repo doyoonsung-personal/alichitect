@@ -1,0 +1,40 @@
+{
+  "id": "wf-zh-whatsapp-line-chat-agent",
+  "mode": "workflow",
+  "category": "i18n",
+  "lang": "zh",
+  "title": "[ZH] Multichannel Chat Agent with Human Handoff",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/whatsapp-line-chat-agent.json. One inbound WhatsApp or LINE message; conversation memory persists between runs. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required. The request is in Chinese; the say text must be in that language; product names stay in English.",
+  "turns": [
+    {
+      "ask": "构建一个 WhatsApp 和 LINE 聊天机器人，能够回答订单相关问题，并在无法处理时转接人工客服。",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "generate",
+            "takeover"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ],
+            [
+              "chatapp"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "reply"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "id": "wf-ko-claims-processing-extraction",
+  "mode": "workflow",
+  "category": "i18n",
+  "lang": "ko",
+  "title": "[KO] Insurance Claims Processing and Extraction",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/claims-processing-extraction.json. One claim packet, at most three OCR retries, then an adjuster-approved payout or denial. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required. The request is in Korean; the say text must be in that language; product names stay in English.",
+  "turns": [
+    {
+      "ask": "업로드된 청구서 사진과 PDF에서 데이터를 추출하고 보험 약관을 확인하여 지급 승인을 라우팅하는 에이전트를 설정해 주세요.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "extract",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "pay"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "id": "wf-zh-support-email-triage",
+  "mode": "workflow",
+  "category": "i18n",
+  "lang": "zh",
+  "title": "[ZH] Support Email Triage and Auto-Resolution",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/support-email-triage.json. One inbound email, at most two draft revisions, then approval or manual resolution. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required. The request is in Chinese; the say text must be in that language; product names stay in English.",
+  "turns": [
+    {
+      "ask": "设置一个智能体，用于对收到的支持邮件进行分类并起草待审批的回复。",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "classify",
+            "generate",
+            "approve"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "send"
+          ]
+        }
+      }
+    }
+  ]
+}

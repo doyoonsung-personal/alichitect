@@ -13,6 +13,11 @@ The 32 `wf-<fixture-id>` cases preserve each canonical fixture's English ask. Th
 reversible automation, and paired chat/email approval policies. References identify
 the canonical source. Tests validate every source graph and score it against its case.
 
+The 20 `wf-ko-*` and `wf-zh-*` cases (category `i18n`) translate ten canonical asks into
+Korean and Chinese (Qwen Flash drafts, checked by hand). They keep the structural
+expectations and drop the English mention regexes; `lang` makes the runner check that
+say and ask text come back in the ask's language.
+
 Expectations deliberately omit optional persistence, exact step counts, node IDs,
 edge topology, and incidental runtime choices. Required kinds and tasks describe
 capabilities requested by the user. All canonical cases require Model Studio;

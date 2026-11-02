@@ -1,0 +1,40 @@
+{
+  "id": "wf-ko-whatsapp-line-chat-agent",
+  "mode": "workflow",
+  "category": "i18n",
+  "lang": "ko",
+  "title": "[KO] Multichannel Chat Agent with Human Handoff",
+  "reference": "Canonical source: packages/core/test/fixtures/workflows/whatsapp-line-chat-agent.json. One inbound WhatsApp or LINE message; conversation memory persists between runs. Choose a workflow or bounded agent to fit the ask. Use international products and suitable model tiers. Gate every consequential effect on every path after the final producer; live replies need guarded input and human escalation. The fixture's exact topology, incidental persistence and runtime choices are not required. The request is in Korean; the say text must be in that language; product names stay in English.",
+  "turns": [
+    {
+      "ask": "주문 관련 질문에 답변하고, 처리가 어려울 경우 상담원에게 연결되는 WhatsApp 및 LINE 챗봇을 구축해 주세요.",
+      "expect": {
+        "workflow": {
+          "kinds": [
+            "trigger",
+            "end",
+            "human"
+          ],
+          "tasks": [
+            "generate",
+            "takeover"
+          ],
+          "products": [
+            [
+              "model-studio"
+            ],
+            [
+              "chatapp"
+            ]
+          ],
+          "approvals": true,
+          "boundedLoops": true,
+          "international": true,
+          "effects": [
+            "reply"
+          ]
+        }
+      }
+    }
+  ]
+}
