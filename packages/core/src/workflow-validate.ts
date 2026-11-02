@@ -563,10 +563,27 @@ export function repairWorkflow(
     }
     g.nodes[n.id] = makeStep(value);
   }
-  for (const e of cycleLinks(g)) {
+  const repairMixedOut = (): void => {
+    const edges = sorted(g.edges);
+    for (const n of sorted(g.nodes)) {
+      const outs = outgoing(edges, n.id);
+      if (!outs.some((e) => (e.kind && e.kind !== 'next') || e.outcome)) continue;
+      const next = outs.filter((e) => (!e.kind || e.kind === 'next') && !e.outcome);
+      if (!next.length) continue;
+      for (const e of next) g.edges[e.id] = makeLink({ ...e, kind: 'branch', label: e.label || 'otherwise' });
+      const ids = next.map((e) => e.id);
+      warnings.push(W('wf-mixed-out', [n.id, ...ids],
+        `'${n.label}' (${n.id}): converted next links ${ids.map((id) => `'${id}'`).join(', ')} to branches.`, 'warn', true));
+    }
+  };
+  repairMixedOut();
+  const cycles = cycleLinks(g);
+  for (const e of cycles) {
     g.edges[e.id] = makeLink({ ...e, kind: 'loop', max: 3 });
     repair('wf-cycle', e.id, `Link '${e.id}' now closes a loop with a maximum of 3 iterations.`, 'warn');
   }
+  // A new loop can mix with remaining next links; resolve those in this call for idempotence.
+  if (cycles.length) repairMixedOut();
   const workflow = warnings.length ? g : wf;
   return { workflow, warnings: [...warnings, ...checkWorkflow(workflow, catalog, models, settings)] };
 }
