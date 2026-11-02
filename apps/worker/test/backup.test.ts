@@ -5,6 +5,7 @@
 // vendor or carries a provider or model field.
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { turnsToday } from '../src/db.ts';
 import { handleTurn, health, makeRedactor } from '../src/turn.ts';
 import { createMemory } from '../../../packages/core/src/prompt.ts';
 import type { UserRow } from '../src/db.ts';
@@ -64,13 +65,15 @@ const PART = [line({ t: 'say', text: 'A web tier.' }), line({ t: 'node', id: 'ap
 const qwenFilteredMid: Handler = (c) => sse(c, qev({ choices: [{ index: 0, delta: { content: PART } }] }) + qev({ error: { code: 'DataInspectionFailed', message: 'Output data may contain inappropriate content.' } }) + 'data: [DONE]\n\n');
 const cev = (type: string, data: Record<string, unknown> = {}): string => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`;
 const REST = [line({ t: 'node', id: 'db', product: 'rds', label: 'DB' }), line({ t: 'edge', id: 'e1', from: 'app', to: 'db' }), line({ t: 'say', text: `Added it (${CLAUDE_KEY}).` }), line({ t: 'done', summary: 'ok' })].join('\n') + '\n';
-const claudeOk: Handler = (c) => {
+const claudeReply = (text: string): Handler => (c) => {
   let s = cev('message_start', { message: { id: 'm', type: 'message', role: 'assistant', model: 'claude-opus-5-5', content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 2000, output_tokens: 1, cache_read_input_tokens: 15000, cache_creation_input_tokens: 0 } } });
   s += cev('content_block_start', { index: 0, content_block: { type: 'text', text: '' } });
-  for (let i = 0; i < REST.length; i += 40) s += cev('content_block_delta', { index: 0, delta: { type: 'text_delta', text: REST.slice(i, i + 40) } });
+  for (let i = 0; i < text.length; i += 40) s += cev('content_block_delta', { index: 0, delta: { type: 'text_delta', text: text.slice(i, i + 40) } });
   s += cev('content_block_stop', { index: 0 }) + cev('message_delta', { delta: { stop_reason: 'end_turn', stop_sequence: null, stop_details: null }, usage: { output_tokens: 300 } }) + cev('message_stop');
   return sse(c, s);
 };
+
+const claudeOk = claudeReply(REST);
 
 const OPTS = { firstByteTimeoutMs: 2000, idleTimeoutMs: 2000, totalTimeoutMs: 5000, retries: 0, backoffMs: 1 } as Record<string, unknown>;
 const BACKUP_OPTS = { maxRetries: 0, watchdogs: { firstByteTimeoutMs: 2000, idleTimeoutMs: 2000, totalTimeoutMs: 5000 } };
@@ -106,6 +109,7 @@ describe('Worker: the backup', () => {
     assert.deepEqual(events.filter((e) => e.type === 'status').map((e) => e.code), ['finish', 'continue']);
     assert.deepEqual(events.filter((e) => e.type === 'status').map((e) => e.text), ['Finishing the diagram…', 'Finishing the diagram…']);
     for (const e of events) for (const k of ['provider', 'model', 'servedModel', 'reason', 'rescue']) assert.equal(k in e, false, `${String(e.type)} event has no ${k}`);
+    noBackendFields(events);
     assert.equal(events.some((e) => e.type === 'error'), false, 'the filter stop of the first pass is not shown');
     assert.doesNotMatch(text, HIDDEN, 'no line of the stream names the backup vendor');
     assert.doesNotMatch(headerText(res), HIDDEN, 'nor does a response header');
@@ -177,4 +181,53 @@ describe('Worker: nothing a browser can fetch names the backup vendor', () => {
     assert.doesNotMatch(await bad.text(), HIDDEN);
     assert.doesNotMatch(headerText(bad), HIDDEN);
   });
+});
+
+const WORKFLOW_REPLY = [
+  { t: 'step', id: 'start', kind: 'trigger', label: 'Incoming request' },
+  { t: 'step', id: 'draft', kind: 'ai', ai: 'qwen3.8-flash', task: 'generate', label: 'Draft', model: 'discard', provider: 'discard' },
+  { t: 'step', id: 'end', kind: 'end', label: 'Ready' },
+  { t: 'link', id: 'a', from: 'start', to: 'draft', reason: 'discard' },
+  { t: 'link', id: 'b', from: 'draft', to: 'end' },
+  { t: 'done', summary: 'Ready' },
+].map(line).join('\n') + '\n';
+
+function noBackendFields(v: unknown): void {
+  const banned = ['provider', 'model', 'servedModel', 'fallbackModel', 'reason', 'rescue', 'backup'];
+  if (Array.isArray(v)) { v.forEach(noBackendFields); return; }
+  if (!v || typeof v !== 'object') return;
+  for (const [key, value] of Object.entries(v)) {
+    assert.ok(!banned.includes(key), `wire contains ${key}`);
+    noBackendFields(value);
+  }
+}
+
+test('Worker workflow backup rescue commits without backend fields and books two units, then one', async () => {
+  const env = makeEnv({ ANTHROPIC_API_KEY: CLAUDE_KEY });
+  const user = await approved(env);
+  const calls: Call[] = [];
+  const ctx = makeCtx();
+  const filtered: Handler = () => new Response('{"code":"DataInspectionFailed"}', { status: 400 });
+  let memory = createMemory();
+  for (let i = 0; i < 2; i++) {
+    const request = new Request('https://architect.alikorea-demo.com/api/turn', { method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: 'wf', mode: 'workflow', ask: 'Design', memory }) });
+    const primary: Handler = (c) => sse(c, qev({ choices: [{ delta: { content: line({ t: 'done', summary: 'Kept' }) + '\n' } }] })
+      + 'data: [DONE]\n\n');
+    const res = await handleTurn(request, env, ctx, user, { fetchImpl: router([i ? primary : filtered], [claudeReply(WORKFLOW_REPLY)], calls),
+      turnOptions: OPTS, backupOptions: BACKUP_OPTS, log: () => undefined });
+    assert.equal(res.status, 200);
+    const text = await res.clone().text();
+    assert.doesNotMatch(text, HIDDEN);
+    const events = await ndjson(res);
+    noBackendFields(events);
+    await ctx.flush();
+    const commit = events.find((e) => e.type === 'commit');
+    assert.ok(commit);
+    memory = commit.memory as typeof memory;
+    assert.equal(memory.workflow!.nodes.draft.ai, 'qwen3.8-flash');
+    assert.deepEqual(memory.graph, createMemory().graph);
+    assert.equal(await turnsToday(env.DB, user.id, Date.now()), i ? 3 : 2);
+  }
 });

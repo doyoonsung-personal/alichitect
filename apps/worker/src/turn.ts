@@ -19,6 +19,9 @@ import { DEFAULT_BASE_URL, DEFAULT_MODEL, FALLBACK_MODEL, createCacheTracker } f
 import type { BackupCall, BackupGateResult, CacheTracker, RunTurnOptions } from '../../../packages/core/src/llm.ts';
 import { claudeBackupConfig, createClaudeBackup } from '../../../packages/core/src/claude.ts';
 import type { ClaudeBackupOptions } from '../../../packages/core/src/claude.ts';
+import modelsFile from '../../../packages/core/catalog/models.json' with { type: 'json' };
+import { createModelTable } from '../../../packages/core/src/models.ts';
+import type { ModelFile, ModelTable } from '../../../packages/core/src/models.ts';
 import { buildSystemPrompt } from '../../../packages/core/src/prompt.ts';
 import { createCatalog } from '../../../packages/core/src/catalog.ts';
 import type { CatalogFile } from '../../../packages/core/src/catalog.ts';
@@ -40,12 +43,14 @@ const DEFAULT_DEADLINE_MS = 240_000;
 
 /* ---------- the catalog and system prompt: built once per isolate, on first use ---------- */
 
-let shared: { catalog: Catalog; system: string; tracker: CacheTracker } | null = null;
+let shared: { catalog: Catalog; system: string; workflowSystem: string; models: ModelTable; tracker: CacheTracker } | null = null;
 
-export function sharedTurnState(): { catalog: Catalog; system: string; tracker: CacheTracker } {
+export function sharedTurnState(): { catalog: Catalog; system: string; workflowSystem: string; models: ModelTable; tracker: CacheTracker } {
   if (!shared) {
     const catalog = createCatalog(products as unknown as CatalogFile, offerings as unknown as CatalogFile);
-    shared = { catalog, system: buildSystemPrompt(catalog), tracker: createCacheTracker() };
+    const models = createModelTable(modelsFile as ModelFile);
+    shared = { catalog, models, system: buildSystemPrompt(catalog),
+      workflowSystem: buildSystemPrompt(catalog, 'workflow', models), tracker: createCacheTracker() };
   }
   return shared;
 }
@@ -82,7 +87,10 @@ export function health(env: Env): Response {
     keyConfigured: !!env.DASHSCOPE_API_KEY,
     inFlight: 0,
     maxInFlight: 1, // per user
-    limits: { askChars: LIMITS.askChars, turns: LIMITS.turns, nodes: LIMITS.nodes, requirements: LIMITS.requirements, bodyBytes: MAX_BODY_BYTES },
+    limits: {
+      workflowNodes: LIMITS.workflowNodes, workflowEdges: LIMITS.workflowEdges, workflowGroups: LIMITS.workflowGroups,
+      askChars: LIMITS.askChars, turns: LIMITS.turns, nodes: LIMITS.nodes, requirements: LIMITS.requirements, bodyBytes: MAX_BODY_BYTES ,
+    },
     uptimeS: 0,
   });
 }
@@ -208,7 +216,7 @@ export async function handleTurn(request: Request, env: Env, ctx: ExecutionConte
   const backup = backupCfg
     ? createClaudeBackup({ ...deps.backupOptions, apiKey: backupCfg.apiKey, model: backupCfg.model, fetchImpl: deps.backupFetchImpl ?? deps.fetchImpl ?? ((u, i) => fetch(u, i)) })
     : undefined;
-  const { catalog, system, tracker } = sharedTurnState();
+  const { catalog, system, workflowSystem, models, tracker } = sharedTurnState();
   const enc = new TextEncoder();
   const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
   const writer = writable.getWriter();
@@ -226,7 +234,7 @@ export async function handleTurn(request: Request, env: Env, ctx: ExecutionConte
     deadlineHit = true;
     ac.abort();
   }, cfg.deadlineMs);
-  const emit = (e: WireEvent): void => {
+  const emit = (e: WireEvent<'cloud' | 'workflow'>): void => {
     if (closed) return;
     if (e.type === 'commit') committed = true;
     writer.write(enc.encode(redact(JSON.stringify(e)) + '\n')).catch(() => {
@@ -258,12 +266,14 @@ export async function handleTurn(request: Request, env: Env, ctx: ExecutionConte
     let outcome: TurnOutcome = { outcome: 'aborted', lang, statuses: [], summaryCostUsd: 0, backupLog: [] };
     let internal = false;
     try {
-      outcome = await executeTurn(
+      outcome = await executeTurn<'cloud' | 'workflow'>(
         turnReq,
         {
           apiKey,
           catalog,
           system,
+          workflowSystem,
+          models,
           model: cfg.model,
           fallbackModel: cfg.fallbackModel,
           baseUrl: cfg.baseUrl,

@@ -154,7 +154,7 @@ describe('server: the backup', () => {
       if (v && typeof v === 'object') {
         for (const [k, x] of Object.entries(v)) {
           assert.ok(!FIELDS.has(k), `${at}.${k} must not reach the browser`);
-          if (k !== 'memory') walk(x, `${at}.${k}`);
+          walk(x, `${at}.${k}`);
         }
       }
     };
@@ -222,4 +222,49 @@ describe('server: the backup', () => {
       await srv.close();
     }
   });
+});
+
+const WORKFLOW_REPLY = [
+  { t: 'step', id: 'start', kind: 'trigger', label: 'Incoming request' },
+  { t: 'step', id: 'draft', kind: 'ai', ai: 'qwen3.8-flash', task: 'generate', label: 'Draft', model: 'discard', provider: 'discard' },
+  { t: 'step', id: 'end', kind: 'end', label: 'Ready' },
+  { t: 'link', id: 'a', from: 'start', to: 'draft', reason: 'discard' },
+  { t: 'link', id: 'b', from: 'draft', to: 'end' },
+  { t: 'done', summary: 'Ready' },
+].map(line).join('\n') + '\n';
+
+function noBackendFields(v: unknown): void {
+  const banned = ['provider', 'model', 'servedModel', 'fallbackModel', 'reason', 'rescue', 'backup'];
+  if (Array.isArray(v)) { v.forEach(noBackendFields); return; }
+  if (!v || typeof v !== 'object') return;
+  for (const [key, value] of Object.entries(v)) {
+    assert.ok(!banned.includes(key), `wire contains ${key}`);
+    noBackendFields(value);
+  }
+}
+
+test('server workflow backup rescue commits and round trips without backend fields', async () => {
+  const calls: Call[] = [];
+  const { srv, base } = await start({ backup: { apiKey: CLAUDE_KEY, options: backupOpts },
+    fetchImpl: router([qwenFilteredHttp, (c) => sse(c, qev({ choices: [{ delta: { content: line({ t: 'done', summary: 'Kept' }) + '\n' } }] })
+      + 'data: [DONE]\n\n')], [(c) => sse(c, claudeText(WORKFLOW_REPLY))], calls) });
+  try {
+    let memory = createMemory();
+    for (let i = 0; i < 2; i++) {
+      const res = await fetch(`${base}/api/turn`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: 'workflow', mode: 'workflow', ask: 'Design', memory }) });
+      assert.equal(res.status, 200);
+      const text = await res.text();
+      assert.doesNotMatch(text, HIDDEN);
+      const events = lines(text);
+      noBackendFields(events);
+      const commit = events.find((e) => e.type === 'commit');
+      assert.ok(commit);
+      memory = commit.memory as typeof memory;
+      assert.deepEqual(Object.keys(memory.workflow!.nodes), ['start', 'draft', 'end']);
+      assert.equal(memory.workflow!.nodes.draft.ai, 'qwen3.8-flash');
+      assert.deepEqual(memory.graph, createMemory().graph);
+    }
+    assert.match(JSON.stringify(calls[2].body.messages), /Draft/);
+  } finally { await srv.close(); }
 });

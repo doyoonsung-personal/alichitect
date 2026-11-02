@@ -25,6 +25,11 @@
 // Browser-safe (fetch, TextDecoder, AbortController only); the Anthropic SDK is imported by claude.ts alone. The API key
 // is only ever put in the Authorization header.
 import type { ApplyResult, Catalog, Constraint, Graph, Op, Provider, ServerEvent, SessionMemory, Warning, WarningCode } from './types.ts';
+import type { TurnMode, WorkflowGraph, WorkflowOp } from './types.ts';
+import type { ModelTable } from './models.ts';
+import { applyWorkflowOp, createWorkflowCtx, emptyWorkflow, endWorkflowTurn } from './workflow.ts';
+import type { WorkflowApplyResult } from './workflow.ts';
+import { checkWorkflow, repairWorkflow, validateWorkflowOp } from './workflow-validate.ts';
 import { createLineParser, completeLines } from './ndjson.ts';
 import { checkLifecycle } from './catalog.ts';
 import { cachedTokens, creationTokens, costOf, estimateCost, priceOf } from './pricing.ts';
@@ -217,15 +222,18 @@ export interface StreamTimings {
   hedgeAtMs: number | null; // when the hedge request was sent, if it was
 }
 
-export type TurnEvent =
+export type TurnEvent<M extends TurnMode = 'cloud'> =
   | { type: 'say'; id: number; text: string; final: boolean }
-  | { type: 'op'; seq: number; op: Op; added: string[]; updated: string[]; removed: string[] }
+  | { type: 'op'; seq: number; op: M extends 'cloud' ? Op : Op | WorkflowOp; added: string[]; updated: string[]; removed: string[] }
   | { type: 'warn'; warning: Warning }
   | { type: 'usage'; usage: Usage; costUsd: number }
   | { type: 'done'; summary: string; timings: StreamTimings; finishReason: string | null; truncated: boolean }
   | { type: 'error'; error: TurnError };
 
-export interface StreamTurnOptions {
+export interface StreamTurnOptions<M extends TurnMode = 'cloud'> {
+  mode?: M;
+  models?: ModelTable;
+  workflow?: WorkflowGraph;
   apiKey: string;
   baseUrl?: string;
   model?: string;
@@ -236,7 +244,7 @@ export interface StreamTurnOptions {
   /** Reducer state; one per session or turn. Default: a fresh ctx. */
   ctx?: ApplyCtx;
   signal?: AbortSignal;
-  onEvent?: (e: TurnEvent) => void;
+  onEvent?: (e: TurnEvent<M>) => void;
   /** The prefix is expected in the cache: picks the warm watchdogs (first token within 8 s) instead of the cold ones (12 s). Default false. */
   warm?: boolean;
   /** Overrides of the warm and cold watchdog tables; the single-value options below win over these. */
@@ -256,6 +264,7 @@ export interface StreamTurnOptions {
 }
 
 export interface StreamResult {
+  workflow?: WorkflowGraph;
   model: string;
   /** Who served the call: 'qwen' (streamTurn) or 'claude' (the claude.ts backup). */
   provider: Provider;
@@ -263,7 +272,7 @@ export interface StreamResult {
   servedModel?: string;
   graph: Graph; // after the streamed ops, before graph repair
   ctx: ApplyCtx;
-  ops: Op[];
+  ops: Array<Op | WorkflowOp>;
   raw: unknown[]; // parsed objects before validation
   rawProducts: string[]; // product strings exactly as the model wrote them (node, insert, rec, plan)
   results: ApplyResult[];
@@ -564,10 +573,14 @@ const charsOf = (messages: ChatMessage[]): number =>
  * Streams one model turn: SSE -> content deltas -> NDJSON lines -> validateOp -> applyOp. Emits events as they
  * happen and returns everything it saw. The graph is not repaired here (runTurn does that at the end of the turn).
  */
-export async function streamTurn(o: StreamTurnOptions): Promise<StreamResult> {
+export async function streamTurn<M extends TurnMode = 'cloud'>(input: StreamTurnOptions<M>): Promise<StreamResult> {
+  const o = input as unknown as StreamTurnOptions<TurnMode>;
   const model = o.model ?? DEFAULT_MODEL;
   const dog = watchdogsFor(!!o.warm, o.watchdogs);
-  return streamOps({ model, provider: 'qwen', messages: o.messages, catalog: o.catalog, graph: o.graph, ctx: o.ctx, onEvent: o.onEvent, prices: o.prices }, (h) =>
+  return streamOps({
+    mode: o.mode, models: o.models, workflow: o.workflow, model, provider: 'qwen', messages: o.messages,
+    catalog: o.catalog, graph: o.graph, ctx: o.ctx, onEvent: o.onEvent, prices: o.prices,
+  }, (h) =>
     rawStream(
       {
         apiKey: o.apiKey,
@@ -587,7 +600,10 @@ export async function streamTurn(o: StreamTurnOptions): Promise<StreamResult> {
 }
 
 /** What streamOps needs besides its token source. */
-export interface OpStreamOptions {
+export interface OpStreamOptions<M extends TurnMode = 'cloud'> {
+  mode?: M;
+  models?: ModelTable;
+  workflow?: WorkflowGraph;
   model: string;
   provider: Provider;
   /** The request's messages; only their size is used here (the cost estimate when no usage record arrived). */
@@ -595,8 +611,59 @@ export interface OpStreamOptions {
   catalog: Catalog;
   graph?: Graph;
   ctx?: ApplyCtx;
-  onEvent?: (e: TurnEvent) => void;
+  onEvent?: (e: TurnEvent<M>) => void;
   prices?: Record<string, Price>;
+  pipeline?: StreamPipeline;
+}
+
+/** Document-specific operations; each stream gets fresh pending state. */
+export interface StreamPipeline {
+  createContext(): ApplyCtx;
+  validate(raw: unknown, ctx: ApplyCtx): { op?: Op | WorkflowOp; warnings: Warning[] };
+  apply(result: StreamResult, op: Op | WorkflowOp, ctx: ApplyCtx): ApplyResult;
+  flush(result: StreamResult, ctx: ApplyCtx): Warning[];
+  products(raw: Record<string, unknown>): string[];
+  isNode(op: Op | WorkflowOp): boolean;
+}
+
+function streamPipeline(o: OpStreamOptions<TurnMode>): StreamPipeline {
+  const products = (raw: Record<string, unknown>): string[] => {
+    const t = String(raw.t ?? raw.type ?? '');
+    if (t === 'plan' && Array.isArray(raw.products)) return raw.products.filter((p): p is string => typeof p === 'string');
+    const kinds = o.mode === 'workflow' ? ['step', 'splice'] : ['node', 'insert', 'rec'];
+    return kinds.includes(t) && typeof raw.product === 'string' ? [raw.product] : [];
+  };
+  if (o.mode !== 'workflow') return {
+    createContext: createCtx,
+    validate: (raw, ctx) => validateOp(raw, o.catalog, ctx),
+    apply: (r, op, ctx) => applyOp(r.graph, op as Op, ctx),
+    flush: (r, ctx) => endTurn(r.graph, ctx).warnings,
+    products,
+    isNode: (op) => op.t === 'node' || op.t === 'insert',
+  };
+  if (!o.models) throw new Error('Workflow streams need a model table');
+  const wfCtx = createWorkflowCtx();
+  return {
+    createContext: createCtx,
+    validate: (raw, ctx) => validateWorkflowOp(raw, o.catalog, o.models!, ctx),
+    apply: (r, op, ctx) => {
+      if (isWorkflowOp(op)) {
+        const res = applyWorkflowOp(r.workflow!, op, wfCtx);
+        r.workflow = res.workflow;
+        return { graph: r.graph, added: res.added, updated: res.updated, removed: res.removed, tombstones: [], warnings: res.warnings };
+      }
+      const res = applyOp(r.graph, op, ctx);
+      if (op.t === 'done') res.warnings.push(...endWorkflowTurn(wfCtx));
+      return res;
+    },
+    flush: (_r, _ctx) => endWorkflowTurn(wfCtx),
+    products,
+    isNode: (op) => op.t === 'step' || op.t === 'splice',
+  };
+}
+
+function isWorkflowOp(op: Op | WorkflowOp): op is WorkflowOp {
+  return ['step', 'link', 'each', 'splice', 'unstep'].includes(op.t);
 }
 
 /**
@@ -604,9 +671,11 @@ export interface OpStreamOptions {
  * applyOp, with say (partial and final), op, warn, usage, error and done events. streamTurn runs it over Model Studio's
  * SSE stream; claude.ts runs it over the Anthropic SDK's stream, so both providers draw through the same path.
  */
-export async function streamOps(o: OpStreamOptions, source: RawSource): Promise<StreamResult> {
+export async function streamOps<M extends TurnMode = 'cloud'>(input: OpStreamOptions<M>, source: RawSource): Promise<StreamResult> {
+  // The selected pipeline emits only the vocabulary selected by the caller's mode.
+  const o = input as unknown as OpStreamOptions<TurnMode>;
   const model = o.model;
-  const emit = (e: TurnEvent): void => {
+  const emit = (e: TurnEvent<TurnMode>): void => {
     if (!o.onEvent) return;
     try {
       o.onEvent(e);
@@ -614,8 +683,10 @@ export async function streamOps(o: OpStreamOptions, source: RawSource): Promise<
       /* a listener error must not break the stream */
     }
   };
-  const ctx = o.ctx ?? createCtx();
+  const pipeline = o.pipeline ?? streamPipeline(o);
+  const ctx = o.ctx ?? pipeline.createContext();
   const r: StreamResult = {
+    ...(o.mode === 'workflow' ? { workflow: o.workflow ?? emptyWorkflow() } : {}),
     model,
     provider: o.provider,
     graph: o.graph ?? { groups: {}, nodes: {}, edges: {}, recs: [] },
@@ -651,7 +722,8 @@ export async function streamOps(o: OpStreamOptions, source: RawSource): Promise<
   let lastPartial: string | null = null;
 
   const warn = (ws: readonly Warning[]): void => {
-    for (const w of ws) {
+    for (const finding of ws) {
+      const w = o.mode === 'workflow' ? { ...finding, view: 'workflow' as const } : finding;
       r.warnings.push(w);
       emit({ type: 'warn', warning: w });
     }
@@ -659,21 +731,17 @@ export async function streamOps(o: OpStreamOptions, source: RawSource): Promise<
 
   const handle = (raw: unknown): void => {
     r.raw.push(raw);
-    if (isObj(raw)) {
-      const t = String(raw.t ?? raw.type ?? '');
-      if ((t === 'node' || t === 'insert' || t === 'rec') && typeof raw.product === 'string') r.rawProducts.push(raw.product);
-      if (t === 'plan' && Array.isArray(raw.products)) for (const p of raw.products) if (typeof p === 'string') r.rawProducts.push(p);
-    }
-    const v = validateOp(raw, o.catalog, ctx);
+    if (isObj(raw)) r.rawProducts.push(...pipeline.products(raw));
+    const v = pipeline.validate(raw, ctx);
     warn(v.warnings);
     const op = v.op;
     if (!op) return;
     r.ops.push(op);
     const ms = at();
     if (r.timings.firstOpMs === null) r.timings.firstOpMs = ms;
-    if ((op.t === 'node' || op.t === 'insert') && r.timings.firstNodeMs === null) r.timings.firstNodeMs = ms;
+    if (pipeline.isNode(op) && r.timings.firstNodeMs === null) r.timings.firstNodeMs = ms;
     r.timings.lastOpMs = ms;
-    const res = applyOp(r.graph, op, ctx);
+    const res = pipeline.apply(r, op, ctx);
     r.graph = res.graph;
     r.results.push(res);
     warn(res.warnings);
@@ -733,7 +801,7 @@ export async function streamOps(o: OpStreamOptions, source: RawSource): Promise<
     },
   });
   parser.end();
-  if (!r.doneSeen) warn(endTurn(r.graph, ctx).warnings);
+  if (!r.doneSeen) warn(pipeline.flush(r, ctx));
   Object.assign(r.timings, outcome.timings);
   r.hedged = outcome.hedged;
   r.hedgeWon = outcome.hedgeWon;
@@ -891,13 +959,16 @@ export function defaultConstraintChecker(input: Parameters<ConstraintChecker>[0]
 }
 
 /** What a backup provider's stream call takes: the same messages and graph a Model Studio call would get. */
-export interface BackupStreamOptions {
+export interface BackupStreamOptions<M extends TurnMode = 'cloud'> {
+  mode?: M;
+  models?: ModelTable;
+  workflow?: WorkflowGraph;
   messages: ChatMessage[];
   catalog: Catalog;
   graph?: Graph;
   ctx?: ApplyCtx;
   signal?: AbortSignal;
-  onEvent?: (e: TurnEvent) => void;
+  onEvent?: (e: TurnEvent<M>) => void;
   prices?: Record<string, Price>;
 }
 
@@ -909,13 +980,14 @@ export interface BackupStreamOptions {
 export interface BackupProvider {
   provider: Provider;
   model: string;
-  stream(o: BackupStreamOptions): Promise<StreamResult>;
+  stream<M extends TurnMode = 'cloud'>(o: BackupStreamOptions<M>): Promise<StreamResult>;
   /** One plain-text call (proposal.ts drafts the proposal's narrative with it when the content filter stops Qwen). Optional: a backup without it rescues turns only. */
   complete?(o: BackupCompleteOptions): Promise<BackupCompleteResult>;
 }
 
 /** What a backup's plain-text call takes: Chat Completions messages, an output cap, the caller's signal and a text listener. */
 export interface BackupCompleteOptions {
+  mode?: TurnMode;
   messages: ChatMessage[];
   maxTokens?: number;
   signal?: AbortSignal;
@@ -963,7 +1035,9 @@ export interface BackupCall {
 /** Least time left of the turn deadline for which a rescue still starts; a Claude call needs about 20 to 60 s. */
 export const BACKUP_MIN_MS_LEFT = 60_000;
 
-export interface RunTurnOptions {
+export interface RunTurnOptions<M extends TurnMode = 'cloud'> {
+  mode?: M;
+  models?: ModelTable;
   apiKey: string;
   baseUrl?: string;
   model?: string;
@@ -985,7 +1059,7 @@ export interface RunTurnOptions {
    * The backup's usage and error events, which onEvent never receives (a browser must not see Claude's token counts,
    * error codes or fallback detail). For logs. The backup's say, op and warn events go to onEvent as usual.
    */
-  onBackupDetail?: (e: TurnEvent & { phase: 'main' | 'repair' }) => void;
+  onBackupDetail?: (e: TurnEvent<M> & { phase: 'main' | 'repair' }) => void;
   /** Model for the next attempt after a stall (no first token, idle, unexpected reasoning, total). Default FALLBACK_MODEL (qwen3.7-max, thinking off); null or '' disables failover. */
   fallbackModel?: string | null;
   /** Wait before the fallback attempt. Default 0: fail over at once. */
@@ -1003,7 +1077,7 @@ export interface RunTurnOptions {
   maxTokens?: number;
   temperature?: number;
   signal?: AbortSignal;
-  onEvent?: (e: TurnEvent & { phase: 'main' | 'repair' }) => void;
+  onEvent?: (e: TurnEvent<M> & { phase: 'main' | 'repair' }) => void;
   /** Explicit cache markers: 'none' (implicit caching, the v1 default), 'system' or 'two' (system block + newest history message). */
   cache?: CacheMode;
   /** true/false forces the warm or cold watchdogs; default: ask the tracker whether this prefix was used recently. */
@@ -1048,7 +1122,7 @@ export interface RepairInfo {
   /** Who served the follow-up; runTurn always sets it (optional only for records written before the Claude backup existed). */
   provider?: Provider;
   findings: Warning[];
-  ops: Op[];
+  ops: Array<Op | WorkflowOp>;
   content: string;
   usage: Usage | null;
   costUsd: number;
@@ -1127,11 +1201,12 @@ export interface TurnStats {
 }
 
 export interface RunTurnResult {
+  workflowDiff?: WorkflowApplyResult;
   memory: SessionMemory;
   stats: TurnStats;
   messages: ChatMessage[];
   content: string;
-  ops: Op[];
+  ops: Array<Op | WorkflowOp>;
   says: string[];
   reqs: string[];
   /** Constraints pinned this turn (req ops with regions or avoid); memory.constraints already holds them merged. */
@@ -1174,7 +1249,7 @@ function dedupe(ws: readonly Warning[]): Warning[] {
   const seen = new Set<string>();
   const out: Warning[] = [];
   for (const w of ws) {
-    const k = `${w.code}|${w.severity}|${w.ids.join(',')}|${w.msg}`;
+    const k = `${w.view ?? 'cloud'}|${w.code}|${w.severity}|${w.ids.join(',')}|${w.msg}`;
     if (seen.has(k)) continue;
     seen.add(k);
     out.push(w);
@@ -1225,11 +1300,16 @@ const isRefusal = (e: TurnError | undefined): boolean => !!e && e.code === 'refu
  * without done and/or error-level findings get at most one follow-up turn, which is asked to fix the diagram and
  * correct its narration.
  */
-export async function runTurn(memory: SessionMemory, ask: string, catalog: Catalog, opts: RunTurnOptions): Promise<RunTurnResult> {
+export async function runTurn<M extends TurnMode = 'cloud'>(
+  memory: SessionMemory, ask: string, catalog: Catalog, input: RunTurnOptions<M>,
+): Promise<RunTurnResult> {
+  const opts = input as unknown as RunTurnOptions<TurnMode>;
   const started = now();
-  const system = opts.system ?? buildSystemPrompt(catalog);
+  const workflowMode = opts.mode === 'workflow';
+  if (workflowMode && !opts.models) throw new Error('Workflow turns need a model table');
+  const system = opts.system ?? buildSystemPrompt(catalog, opts.mode, opts.models);
   const window = opts.window ?? DEFAULT_WINDOW;
-  const messages = buildMessages(memory, ask, { system, window, maxAskChars: opts.maxAskChars, cache: opts.cache });
+  const messages = buildMessages(memory, ask, { system, mode: opts.mode, window, maxAskChars: opts.maxAskChars, cache: opts.cache });
   const model = opts.model ?? DEFAULT_MODEL;
   const fb = opts.fallbackModel === undefined ? FALLBACK_MODEL : opts.fallbackModel;
   const fallback = fb && fb !== model ? fb : undefined;
@@ -1246,6 +1326,8 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     }
   };
   const common = {
+    mode: opts.mode,
+    models: opts.models,
     apiKey: opts.apiKey,
     baseUrl: opts.baseUrl,
     catalog,
@@ -1260,7 +1342,8 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     prices: opts.prices,
     fetchImpl: opts.fetchImpl,
   };
-  const onEventFor = (phase: 'main' | 'repair'): ((e: TurnEvent) => void) | undefined => (opts.onEvent ? (e) => opts.onEvent!({ ...e, phase }) : undefined);
+  const onEventFor = (phase: 'main' | 'repair'): ((e: TurnEvent<TurnMode>) => void) | undefined =>
+    (opts.onEvent ? (e) => opts.onEvent!({ ...e, phase }) : undefined);
   let usageSum = { prompt: 0, cached: 0, created: 0, completion: 0 };
   let cost = 0;
   let estimated = false;
@@ -1285,7 +1368,7 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
   let rescue: RescueInfo | undefined;
   // What the browser may see of a backup call: its say, op and warn events (the drawing), and a done event without the
   // finish reason (Claude's stop reason is an operational detail). Its usage and error events (token counts, error codes) go to onBackupDetail, for logs.
-  const backupEventsFor = (phase: 'main' | 'repair'): ((e: TurnEvent) => void) => (e) => {
+  const backupEventsFor = (phase: 'main' | 'repair'): ((e: TurnEvent<TurnMode>) => void) => (e) => {
     if (e.type === 'usage' || e.type === 'error') {
       if (opts.onBackupDetail) {
         try {
@@ -1300,9 +1383,12 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     opts.onEvent({ ...(e.type === 'done' ? { ...e, finishReason: null } : e), phase });
   };
   let backupCalls = 0;
-  const onBackupStream = async (msgs: ChatMessage[], graph: Graph, phase: 'main' | 'repair'): Promise<StreamResult> => {
+  const onBackupStream = async (msgs: ChatMessage[], graph: Graph, phase: 'main' | 'repair', workflow?: WorkflowGraph): Promise<StreamResult> => {
     backupUsed = true;
-    const s = await backup!.stream({ messages: msgs, catalog, graph, ctx: createCtx(), signal: opts.signal, onEvent: backupEventsFor(phase), prices: opts.prices });
+    const s = await backup!.stream({
+      mode: opts.mode, models: opts.models, workflow, messages: msgs, catalog, graph, ctx: createCtx(),
+      signal: opts.signal, onEvent: backupEventsFor(phase), prices: opts.prices,
+    });
     backupCalls++;
     if (opts.onBackupCall) {
       try {
@@ -1362,7 +1448,9 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
   let useModel = model;
   for (let attempt = 0; ; attempt++) {
     const warm = isWarm(useModel);
-    const s = await streamTurn({ ...common, model: useModel, warm, messages, graph: memory.graph, ctx: createCtx(), onEvent: onEventFor('main') });
+    const s = await streamTurn({
+      ...common, model: useModel, warm, messages, workflow: memory.workflow, graph: memory.graph, ctx: createCtx(), onEvent: onEventFor('main'),
+    });
     book(s, 'main');
     attempts.push({ model: useModel, provider: s.provider, warm, error: s.error, ops: s.ops.length, costUsd: s.costUsd, totalMs: s.timings.totalMs, hedged: s.hedged });
     if (s.timings.firstByteMs !== null) touch(useModel);
@@ -1397,7 +1485,7 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
   const rescuable = wantsRescue && (await admitBackup());
   if (rescuable && m.ops.length === 0) {
     status({ code: 'fallback', phase: 'main', provider: backup!.provider, model: backup!.model, reason: m.error!.code, attempt: attempts.length + 1, text: rescueText(m.model) });
-    const s = await onBackupStream(messages, memory.graph, 'main');
+    const s = await onBackupStream(messages, memory.graph, 'main', memory.workflow);
     book(s, 'main');
     attempts.push({ model: s.model, provider: s.provider, ...(s.servedModel ? { servedModel: s.servedModel } : {}), warm: false, error: s.error, ops: s.ops.length, costUsd: s.costUsd, totalMs: s.timings.totalMs, hedged: false });
     rescue = rescueOf('turn', m, s);
@@ -1413,7 +1501,7 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
   const hardFail = (!!m.error && m.ops.length === 0) || filtered;
   const checker = opts.checkConstraints === undefined ? defaultConstraintChecker : opts.checkConstraints;
   const checkC = (g: Graph, says: readonly string[], pinned: readonly Constraint[]): Warning[] => {
-    if (!checker || !pinned.length) return [];
+    if (workflowMode || !checker || !pinned.length) return [];
     try {
       return checker({ graph: g, says, constraints: pinned, catalog });
     } catch {
@@ -1443,11 +1531,22 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     ...impliedLifts(pinnedNow, reqs.filter((t) => !cs.some((c) => c.text === t)), catalog).map((x): Constraint => ({ text: x.text, lifts: x.lifts })),
   ];
   let pinned = pin(memory.constraints ?? [], withImplied(memory.constraints ?? [], m.reqs, m.constraints));
-  const warningsBefore = [...m.warnings, ...checkGraph(m.graph, catalog), ...checkC(m.graph, m.says, pinned)];
-  const rep = repairGraph(m.graph, catalog, { constraints: pinned });
+  const tag = (ws: Warning[]): Warning[] => workflowMode ? ws.map((w) => ({ ...w, view: 'workflow' })) : ws;
+  const repair = (s: StreamResult) => {
+    if (!workflowMode) return repairGraph(s.graph, catalog, { constraints: pinned });
+    const r = repairWorkflow(s.workflow!, catalog, opts.models!, memory.workflowSettings);
+    return { graph: memory.graph, workflow: r.workflow, warnings: tag(r.warnings) };
+  };
+  const remainingFor = (ws: Warning[], repaired: Warning[], graph: Graph): Warning[] => workflowMode
+    ? dedupe(tag([...ws.filter((w) => !w.repaired && w.severity !== 'info'), ...repaired.filter((w) => !w.repaired)]))
+    : remaining(ws, repaired, graph, catalog);
+  const warningsBefore = tag([...m.warnings, ...(workflowMode
+    ? checkWorkflow(m.workflow!, catalog, opts.models!, memory.workflowSettings) : checkGraph(m.graph, catalog)), ...checkC(m.graph, m.says, pinned)]);
+  const rep = repair(m);
   let finalGraph = rep.graph;
+  let finalWorkflow = 'workflow' in rep ? rep.workflow : memory.workflow;
   const fixes = rep.warnings.filter((w) => w.repaired);
-  let warningsAfter = dedupe([...remaining(m.warnings, rep.warnings, finalGraph, catalog), ...checkC(finalGraph, m.says, pinned)]);
+  let warningsAfter = dedupe([...remainingFor(m.warnings, rep.warnings, finalGraph), ...checkC(finalGraph, m.says, pinned)]);
   let repairInfo: RepairInfo | undefined;
   let finalDone = m.doneSeen;
   const errors = warningsAfter.filter((w) => w.severity === 'error');
@@ -1459,7 +1558,9 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     // A half-written last line is an artifact of the cut-off, and the model's own message below no longer contains it.
     const tail = m.truncated ? m.content.slice(m.content.lastIndexOf('\n') + 1).trim().slice(0, 60) : '';
     const findings = warningsAfter.filter((w) => w.severity !== 'info' && !(tail && w.code === 'bad-json' && w.msg.includes(tail)));
-    const rmsgs = buildRepairMessages(messages, completeLines(m.content), finalGraph, findings, { truncated: m.truncated });
+    const rmsgs = buildRepairMessages(messages, completeLines(m.content), finalGraph, findings, {
+      truncated: m.truncated, ...(workflowMode ? { workflow: finalWorkflow } : {}),
+    });
     // The follow-up stays on the provider and model that answered; after a stall it goes straight to the fallback. A reply
     // Model Studio's filter stopped is continued on the backup, and a backup reply stays there (Model Studio filtered it).
     const onBackup = !!backup && (rescueContinue || m.provider === backup.provider);
@@ -1479,8 +1580,11 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     });
     if (followModel === fallback) fallbackUsed = true;
     let s = onBackup
-      ? await onBackupStream(rmsgs, finalGraph, 'repair')
-      : await streamTurn({ ...common, model: followModel, warm: isWarm(followModel), messages: rmsgs, graph: finalGraph, ctx: createCtx(), onEvent: onEventFor('repair') });
+      ? await onBackupStream(rmsgs, finalGraph, 'repair', finalWorkflow)
+      : await streamTurn({
+        ...common, model: followModel, warm: isWarm(followModel), messages: rmsgs, workflow: finalWorkflow,
+        graph: finalGraph, ctx: createCtx(), onEvent: onEventFor('repair'),
+      });
     book(s, 'repair');
     if (!onBackup && s.timings.firstByteMs !== null) touch(followModel);
     // A backup follow-up never falls back to qwen3.7-max: Model Studio filtered this reply.
@@ -1488,7 +1592,10 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
       status({ code: 'fallback', phase: 'repair', model: fallback, reason: s.error.code, attempt: 2, text: STALL_CODES.has(s.error.code) ? stallText(followModel, s.error, fallback) : `${followModel} failed (${s.error.code}); switching to ${fallback}.` });
       followModel = fallback;
       fallbackUsed = true;
-      s = await streamTurn({ ...common, model: followModel, warm: isWarm(followModel), messages: rmsgs, graph: finalGraph, ctx: createCtx(), onEvent: onEventFor('repair') });
+      s = await streamTurn({
+        ...common, model: followModel, warm: isWarm(followModel), messages: rmsgs, workflow: finalWorkflow,
+        graph: finalGraph, ctx: createCtx(), onEvent: onEventFor('repair'),
+      });
       book(s, 'repair');
       if (s.timings.firstByteMs !== null) touch(followModel);
     }
@@ -1499,7 +1606,8 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     if (!isFiltered(s.error) && !isRefusal(s.error)) {
       // A filtered or refused follow-up is dropped whole: the main result stands.
       pinned = pin(pinned, withImplied(pinned, s.reqs, s.constraints));
-      const rep2 = repairGraph(s.graph, catalog, { constraints: pinned });
+      const rep2 = repair(s);
+      if ('workflow' in rep2) finalWorkflow = rep2.workflow;
       finalGraph = rep2.graph;
       fixes.push(...rep2.warnings.filter((w) => w.repaired));
       m.says.push(...s.says);
@@ -1510,7 +1618,7 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
       m.questions = latestById([...m.questions, ...s.questions], ASK_LIMITS.askPerTurn);
       m.rawProducts.push(...s.rawProducts);
       // Say lines of the main reply that broke a constraint were reported and corrected; only an uncorrected reply is checked again.
-      warningsAfter = dedupe([...remaining(s.warnings, rep2.warnings, finalGraph, catalog), ...checkC(finalGraph, s.says.length ? s.says : m.says, pinned)]);
+      warningsAfter = dedupe([...remainingFor(s.warnings, rep2.warnings, finalGraph), ...checkC(finalGraph, s.says.length ? s.says : m.says, pinned)]);
     } else {
       repairInfo.ops = [];
     }
@@ -1524,17 +1632,28 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
       { code: 'reply-incomplete', ids: [], severity: 'warn', repaired: false, msg: 'The reply is incomplete. The diagram keeps what was drawn.' },
     ];
   }
+  warningsAfter = tag(warningsAfter);
   const diff = diffGraphs(memory.graph, finalGraph);
-  const changes = compactChanges([diff]);
+  const workflowDiff = workflowMode ? diffWorkflows(memory.workflow ?? emptyWorkflow(), finalWorkflow!) : undefined;
+  const changes = workflowDiff ? workflowChanges(workflowDiff) : compactChanges([diff]);
   const clippedAsk = Array.from(ask.trim()).slice(0, opts.maxAskChars ?? DEFAULT_MAX_ASK_CHARS).join('');
   let next: SessionMemory = memory;
   if (!hardFail) {
     next = {
-      turns: [...memory.turns, { role: 'user', text: clippedAsk }, { role: 'assistant', text: m.says.join('\n'), changes }],
+      turns: [...memory.turns, { role: 'user', text: clippedAsk, ...(workflowMode ? { mode: 'workflow' as const } : {}) },
+        { role: 'assistant', text: m.says.join('\n'), changes, ...(workflowMode ? { mode: 'workflow' as const } : {}) }],
       requirements: dropRequirements(mergeRequirements(memory.requirements ?? [], m.reqs), replacedTexts),
       graph: finalGraph,
       tombstones: [...(memory.tombstones ?? []), ...diff.tombstones].slice(-80),
     };
+    for (const key of ['workflow', 'workflowTombstones', 'workflowSettings', 'estimate'] as const) {
+      if (memory[key] !== undefined) Object.assign(next, { [key]: memory[key] });
+    }
+    if (workflowDiff) {
+      next.workflow = finalWorkflow;
+      next.workflowTombstones = [...(memory.workflowTombstones ?? []), ...workflowDiff.tombstones].slice(-80);
+      next.tombstones = memory.tombstones;
+    }
     if (pinned.length) next.constraints = pinned;
     // Assumptions persist by id until a pinned requirement settles them; questions are replaced every assistant turn.
     const assumptions = mergeAssumptions(memory.assumptions ?? [], m.assumptions, next.requirements, undefined, clippedAsk);
@@ -1582,6 +1701,7 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
   };
   return {
     memory: next,
+    ...(workflowDiff ? { workflowDiff } : {}),
     stats,
     messages,
     content: m.content,
@@ -1596,6 +1716,28 @@ export async function runTurn(memory: SessionMemory, ask: string, catalog: Catal
     diff,
     changes,
   };
+}
+
+/** Stable net workflow changes, independent of record insertion order. */
+export function diffWorkflows(before: WorkflowGraph, after: WorkflowGraph): WorkflowApplyResult {
+  const stable = (value: object): string => JSON.stringify(Object.entries(value).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
+  const result: WorkflowApplyResult = { workflow: after, added: [], updated: [], removed: [], tombstones: [], warnings: [] };
+  for (const key of ['groups', 'nodes', 'edges'] as const) {
+    const a = before[key], b = after[key];
+    for (const id of Object.keys(a).sort()) {
+      if (!Object.hasOwn(b, id)) {
+        result.removed.push(id);
+        result.tombstones.push(a[id]);
+      } else if (stable(a[id]) !== stable(b[id])) result.updated.push(id);
+    }
+    for (const id of Object.keys(b).sort()) if (!Object.hasOwn(a, id)) result.added.push(id);
+  }
+  return result;
+}
+
+function workflowChanges(diff: WorkflowApplyResult): string {
+  const parts = [ ...diff.added.map((id) => '+' + id), ...diff.updated.map((id) => '~' + id), ...diff.removed.map((id) => '-' + id) ];
+  return parts.join(' ').slice(0, 2000) || 'no workflow changes';
 }
 
 // ---------- rolling summary ----------
@@ -1631,7 +1773,8 @@ export function historyOverflows(memory: SessionMemory, window = DEFAULT_WINDOW)
 export async function foldSummary(
   memory: SessionMemory,
   window: number,
-  opts: Pick<RunTurnOptions, 'apiKey' | 'baseUrl' | 'signal' | 'prices' | 'fetchImpl' | 'onCost' | 'onStatus'> & { timeouts?: Partial<typeof SUMMARY_TIMEOUTS> },
+  opts: Pick<RunTurnOptions<TurnMode>, 'apiKey' | 'baseUrl' | 'signal' | 'prices' | 'fetchImpl' | 'onCost' | 'onStatus'>
+    & { timeouts?: Partial<typeof SUMMARY_TIMEOUTS> },
   model = SUMMARY_MODEL,
 ): Promise<SessionMemory> {
   const ex = exchangesOf(memory.turns);

@@ -16,6 +16,9 @@
 import http from 'node:http';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Catalog, ProposalEvent, ProposalRequest, ServerEvent } from '../../../packages/core/src/types.ts';
+import modelsFile from '../../../packages/core/catalog/models.json' with { type: 'json' };
+import { createModelTable } from '../../../packages/core/src/models.ts';
+import type { ModelFile, ModelTable } from '../../../packages/core/src/models.ts';
 import { buildSystemPrompt } from '../../../packages/core/src/prompt.ts';
 import { createCacheTracker } from '../../../packages/core/src/llm.ts';
 import type { CacheTracker, ConstraintChecker, RunTurnOptions } from '../../../packages/core/src/llm.ts';
@@ -120,6 +123,8 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
   const fetchBackup = deps.backup?.fetchImpl ?? deps.fetchImpl;
   const backup = deps.backup ? createClaudeBackup({ ...deps.backup.options, apiKey: deps.backup.apiKey, model: deps.backup.model, ...(fetchBackup ? { fetchImpl: fetchBackup } : {}) }) : undefined;
   const log = deps.log ?? createTurnLog(config.logFile, redact);
+  const models = createModelTable(modelsFile as ModelFile);
+  const workflowSystem = buildSystemPrompt(catalog, 'workflow', models);
   const system = buildSystemPrompt(catalog); // byte-stable; built once
   const tracker = deps.tracker ?? createCacheTracker();
   const sessions = new Set<string>();
@@ -173,7 +178,10 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
           keyConfigured: !!deps.apiKey,
           inFlight: turns,
           maxInFlight: config.maxInFlight,
-          limits: { askChars: LIMITS.askChars, turns: LIMITS.turns, nodes: LIMITS.nodes, requirements: LIMITS.requirements, bodyBytes: config.maxBodyBytes },
+          limits: {
+            workflowNodes: LIMITS.workflowNodes, workflowEdges: LIMITS.workflowEdges, workflowGroups: LIMITS.workflowGroups,
+            askChars: LIMITS.askChars, turns: LIMITS.turns, nodes: LIMITS.nodes, requirements: LIMITS.requirements, bodyBytes: config.maxBodyBytes ,
+          },
           uptimeS: Math.round((Date.now() - startedAt) / 1000),
         },
         cors,
@@ -227,7 +235,7 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
       ac.abort();
     }, config.turnDeadlineMs);
     let committed = false;
-    const emit = (e: WireEvent): void => {
+    const emit = (e: WireEvent<'cloud' | 'workflow'>): void => {
       if (res.writableEnded || res.destroyed) return;
       if (e.type === 'commit') committed = true;
       res.write(redact(JSON.stringify(e)) + '\n');
@@ -237,9 +245,14 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
     try {
       res.writeHead(200, { ...BASE_HEADERS, ...cors, 'Content-Type': 'application/x-ndjson; charset=utf-8', 'X-Accel-Buffering': 'no' });
       res.flushHeaders();
-      outcome = await executeTurn(
+      outcome = await executeTurn<'cloud' | 'workflow'>(
         turnReq,
-        { apiKey: deps.apiKey, catalog, system, model: config.model, fallbackModel: config.fallbackModel, baseUrl: config.baseUrl, tracker, backup, msLeft: () => config.turnDeadlineMs - (Date.now() - t0), fetchImpl: deps.fetchImpl, checkConstraints: deps.checkConstraints, turnOptions: deps.turnOptions },
+        {
+          apiKey: deps.apiKey, catalog, system, workflowSystem, models, model: config.model,
+          fallbackModel: config.fallbackModel, baseUrl: config.baseUrl, tracker, backup,
+          msLeft: () => config.turnDeadlineMs - (Date.now() - t0), fetchImpl: deps.fetchImpl,
+          checkConstraints: deps.checkConstraints, turnOptions: deps.turnOptions,
+        },
         emit,
         ac.signal,
       );
