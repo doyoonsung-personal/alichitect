@@ -1,6 +1,8 @@
 // Validated, immutable updates. Reset removes an override instead of freezing a default.
 import type { Effect, WorkflowSettings, WorkflowEstimateSettings, WorkflowGraph } from '@ali/core/types.ts';
 import type { StringKey } from '../i18n/t.ts';
+import { ESTIMATE_LIMITS } from '@ali/core/workflow-estimate-limits.ts';
+import { workflowChoiceSets } from '@ali/core/workflow-estimate.ts';
 export function approvalOverride(current: WorkflowSettings, effect: Effect, choice: 'default' | 'require' | 'waive'): WorkflowSettings {
   const next = { ...current, approvalOn: (current.approvalOn ?? []).filter((e) => e !== effect),
     approvalOff: (current.approvalOff ?? []).filter((e) => e !== effect) };
@@ -15,11 +17,34 @@ export type EstimateEdit =
   | { map: 'steps'; id: string; field: 'inTokens' | 'outTokens' | 'thinking' | 'offline'; value?: number | boolean }
   | { map: 'items' | 'loops'; id: string; field: 'typical' | 'upper'; value?: number }
   | { map: 'agents'; id: string; field: 'typical' | 'upper' | 'resultTokens' | 'searchesPerRequest'; value?: number };
+
+// Arithmetic caps are private to the estimator; keep these few values aligned with its LIMITS.
+export function estimateEditRange(edit: EstimateEdit, workflow: WorkflowGraph): { min: number; max: number } {
+  const range = { min: 0, max: ESTIMATE_LIMITS.amount as number };
+  if (edit.map === 'runsPerMonth') range.max = ESTIMATE_LIMITS.runsPerMonth;
+  if (edit.map === 'guardTypes') range.max = ESTIMATE_LIMITS.guardTypes;
+  if (edit.map === 'steps') range.max = Math.min(range.max, 1_000_000);
+  if (edit.map === 'items') range.max = Math.min(range.max, 10_000);
+  if (edit.map === 'shares') return workflowChoiceSets(workflow).shares[edit.id] ?? { min: 0, max: 0 };
+  if (edit.map === 'loops') return workflowChoiceSets(workflow).loops[edit.id] ?? { min: 0, max: 0 };
+  if (edit.map === 'agents') {
+    if (edit.field === 'resultTokens') range.max = Math.min(range.max, 1_000_000);
+    else if (edit.field === 'searchesPerRequest') range.max = Math.min(range.max, 100);
+    else {
+      const turns = workflow.nodes[edit.id]?.turns;
+      range.min = 1;
+      range.max = Math.max(1, Math.ceil(Math.min(turns !== undefined && Number.isFinite(turns) && turns >= 0 ? turns : 10, 50)));
+    }
+  }
+  return range;
+}
+
 export function applyEstimateEdit(current: WorkflowEstimateSettings, edit: EstimateEdit, workflow: WorkflowGraph):
   { ok: true; value: WorkflowEstimateSettings } | { ok: false; key: StringKey } {
   const invalid = { ok: false as const, key: 'workflow.cost.invalid' as const };
   const v = edit.value;
-  if (typeof v === 'number' && (!Number.isFinite(v) || v < 0)) return invalid;
+  const range = estimateEditRange(edit, workflow), sets = workflowChoiceSets(workflow);
+  if (typeof v === 'number' && (!Number.isFinite(v) || v < range.min || v > range.max)) return invalid;
   if (typeof v === 'number' && edit.map !== 'shares' && !Number.isInteger(v)) return invalid;
   if (edit.map === 'shares' && typeof v === 'number' && v > 1) return invalid;
   if ('id' in edit) {
@@ -28,7 +53,8 @@ export function applyEstimateEdit(current: WorkflowEstimateSettings, edit: Estim
     if (['loops', 'shares'].includes(edit.map) && !workflow.edges[edit.id]) return invalid;
     if (edit.map === 'agents' && workflow.nodes[edit.id].kind !== 'agent') return invalid;
     if (edit.map === 'guardTypes' && workflow.nodes[edit.id].kind !== 'guard') return invalid;
-    if (edit.map === 'shares' && workflow.edges[edit.id].kind !== 'branch') return invalid;
+    if (v !== undefined && edit.map === 'shares' && !sets.shares[edit.id]) return invalid;
+    if (v !== undefined && edit.map === 'loops' && !sets.loops[edit.id]) return invalid;
   }
   if (edit.map === 'steps' && v !== undefined) {
     const bool = edit.field === 'thinking' || edit.field === 'offline';
@@ -49,17 +75,17 @@ export function applyEstimateEdit(current: WorkflowEstimateSettings, edit: Estim
   }
   if ('id' in edit && ['items', 'loops', 'agents'].includes(edit.map)) {
     const pair = (target[edit.map] as Record<string, { typical?: number; upper?: number }> | undefined)?.[edit.id];
-    const max = edit.map === 'agents' ? workflow.nodes[edit.id].turns ?? 10
-      : edit.map === 'loops' ? workflow.edges[edit.id].max ?? 3 : Infinity;
+    const max = edit.map === 'agents' ? estimateEditRange({ map: 'agents', id: edit.id, field: 'upper' }, workflow).max
+      : edit.map === 'loops' ? sets.loops[edit.id]?.max ?? 3 : 10_000;
     const t = pair?.typical ?? (edit.map === 'items' ? 3 : edit.map === 'agents' ? Math.ceil(max / 2) : Math.min(1, max));
     const u = pair?.upper ?? (edit.map === 'items' ? 10 : max);
     if (t > u || u > max || (edit.map === 'agents' && t < 1)) return invalid;
   }
   if (edit.map === 'shares') {
-    const siblings = Object.values(workflow.edges).filter((e) => e.kind === 'branch' && e.from === workflow.edges[edit.id].from);
-    const values = siblings.map((e) => next.shares?.[e.id]);
+    const siblings = sets.choices[workflow.edges[edit.id].from] ?? [];
+    const values = siblings.map((id) => next.shares?.[id]);
     const sum = values.reduce<number>((a, b) => a + (b ?? 0), 0);
-    if (sum > 1 + 1e-9 || (values.every((v) => v !== undefined) && Math.abs(sum - 1) > 1e-9)) {
+    if (sum > 1 + 1e-9 || (values.length && values.every((v) => v !== undefined) && Math.abs(sum - 1) > 1e-9)) {
       return { ok: false, key: 'workflow.cost.invalidShares' };
     }
   }
