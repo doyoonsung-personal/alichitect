@@ -3,12 +3,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadCatalog, loadModels } from '../src/catalog-node.ts';
 import { estimateTokens, isRecommendable, PROMPT_ROW_FORMAT } from '../src/catalog.ts';
-import { approvalRuleText } from '../src/approval.ts';
+import { approvalRuleText, needsApproval } from '../src/approval.ts';
+import { createModelTable } from '../src/models.ts';
 import { createMemory, formatAssumptions, formatQuestions, formatRequirements } from '../src/prompt.ts';
-import { applyWorkflowOp, createWorkflowCtx, emptyWorkflow, endWorkflowTurn } from '../src/workflow.ts';
-import { repairWorkflow, validateWorkflowOp } from '../src/workflow-validate.ts';
+import { applyWorkflowOp, createWorkflowCtx, emptyWorkflow, endWorkflowTurn, makeStep } from '../src/workflow.ts';
+import { checkWorkflow, repairWorkflow, validateWorkflowOp } from '../src/workflow-validate.ts';
 import { buildWorkflowSystemPrompt, serializeWorkflow, workflowUserContent } from '../src/workflow-prompt.ts';
-import type { Warning, WorkflowGraph, WorkflowNode } from '../src/types.ts';
+import type { Warning, WorkflowGraph, WorkflowNode, WorkflowSettings } from '../src/types.ts';
 
 const catalog = loadCatalog();
 const models = loadModels();
@@ -25,7 +26,7 @@ test('workflow prompt is byte-stable with identical inputs and freshly loaded ta
 
 test('workflow prompt has a pinned budget band below 15,000 estimated tokens', () => {
   const tokens = estimateTokens(prompt);
-  assert.ok(tokens >= 7000 && tokens < 9000, `Workflow prompt grew or lost content: ${tokens} estimated tokens`);
+  assert.ok(tokens >= 8000 && tokens < 8500, `Workflow prompt grew or lost content: ${tokens} estimated tokens`);
   assert.ok(tokens < 15000);
 });
 
@@ -44,7 +45,7 @@ test('workflow prompt includes the op contract, all fourteen rules and shared ap
     'approvalOn, then approvalOff', 'approved again', 'max counts', 'parallel is false', 'join defaults to all',
     'at call time', 'Standard-mode callback', 'Hong Kong', 'never promise Singapore-only processing',
   ]) assert.ok(prompt.includes(phrase), phrase);
-  const sections = ['# Output contract', '# Semantics', '# Rules', '# Model table', '# Catalog subset', exampleHeading];
+  const sections = ['# Output contract', '# Semantics', '# Rules', '# Model table', '# Model capabilities', '# Catalog subset', exampleHeading];
   const positions = sections.map((section) => prompt.indexOf(section));
   assert.ok(positions.every((pos, i) => pos >= 0 && (i === 0 || pos > positions[i - 1])));
 });
@@ -53,6 +54,122 @@ test('workflow prompt excludes prices and hidden-backend names but includes the 
   assert.ok(prompt.includes(models.promptRows()));
   assert.doesNotMatch(prompt, /\$|\b(?:claude|anthropic)\b/i);
   assert.doesNotMatch(prompt, /"(?:price|fee|usd|perUnit)"|\b(?:USD|CNY|RMB)\s*\d|\d\s*(?:USD|CNY|RMB)\b/i);
+});
+
+function betweenTriggerAndEnd(work: WorkflowNode): WorkflowGraph {
+  return {
+    nodes: { start: { id: 'start', kind: 'trigger', label: 'Start' }, [work.id]: work, end: { id: 'end', kind: 'end', label: 'End' } },
+    edges: { before: { id: 'before', from: 'start', to: work.id }, after: { id: 'after', from: work.id, to: 'end' } },
+    groups: {},
+  };
+}
+
+test('approval guidance does not gate an ordinary Update ticket write', () => {
+  const wf = betweenTriggerAndEnd({ id: 'work', kind: 'act', label: 'Update ticket', effect: 'write' });
+  assert.deepEqual(checkWorkflow(wf, catalog, models), []);
+  assert.ok(prompt.includes('Gate inline actions whose effective approval policy requires approval.'));
+  assert.doesNotMatch(prompt, /Gate inline actions on every path/);
+});
+
+test('approval guidance covers exempt effects and explicit overrides in policy order', () => {
+  for (const effect of ['read', 'write', 'reply', 'notify'] as const) {
+    const wf = betweenTriggerAndEnd({ id: 'work', kind: 'act', label: 'Update ticket', effect });
+    assert.equal(needsApproval(wf.nodes.work), false);
+    assert.deepEqual(checkWorkflow(wf, catalog, models).filter((w) => w.code === 'wf-approval'), []);
+  }
+  const cases: Array<{ effect: 'write' | 'send'; approval?: 'required' | 'skip'; settings: WorkflowSettings; required: boolean }> = [
+    { effect: 'write', settings: { approvalOn: ['write'] }, required: true },
+    { effect: 'write', settings: { approvalOn: ['write'], approvalOff: ['write'] }, required: true },
+    { effect: 'write', approval: 'required', settings: { approvalOff: ['write'] }, required: true },
+    { effect: 'write', approval: 'skip', settings: { approvalOn: ['write'] }, required: false },
+    { effect: 'send', settings: { approvalOff: ['send'] }, required: false },
+    { effect: 'send', approval: 'skip', settings: { approvalOn: ['send'] }, required: false },
+    { effect: 'send', approval: 'required', settings: { approvalOff: ['send'] }, required: true },
+  ];
+  for (const { effect, approval, settings, required } of cases) {
+    const work: WorkflowNode = { id: 'work', kind: 'act', label: 'Update ticket', effect };
+    if (approval) work.approval = approval;
+    assert.equal(needsApproval(work, settings), required);
+    const warnings = checkWorkflow(betweenTriggerAndEnd(work), catalog, models, settings).filter((w) => w.code === 'wf-approval');
+    assert.deepEqual(warnings.map((w) => w.severity), required ? ['warn'] : effect === 'send' ? ['info'] : []);
+  }
+  assert.ok(prompt.includes('Gate inline actions whose effective approval policy requires approval.'));
+  assert.ok(prompt.includes('read, write, reply and notify need no approval by default.'));
+  assert.ok(prompt.includes('per-step approval wins, then approvalOn, then approvalOff, then the policy.'));
+});
+
+test('model guidance exposes the region conflict for qwen3.8-flash classification in ap-southeast-5', () => {
+  const wf = betweenTriggerAndEnd({ id: 'work', kind: 'ai', label: 'Classify', task: 'classify', ai: 'qwen3.8-flash' });
+  const warnings = checkWorkflow(wf, catalog, models, { region: 'ap-southeast-5' });
+  assert.deepEqual(warnings.map((w) => w.code), ['wf-ai-region']);
+  assert.match(warnings[0].msg, /ap-southeast-5/);
+  assert.deepEqual(checkWorkflow(wf, catalog, models, { region: 'ap-southeast-1' }), []);
+  assert.ok(prompt.includes('qwen3.8-flash | regions: ap-southeast-1 |'));
+  assert.ok(prompt.includes('regions is the allowed region list; match the session region or explain the conflict.'));
+});
+
+test('model guidance exposes unsupported pdf_parse attached to a qwen3.8-max planner', () => {
+  const wf = betweenTriggerAndEnd({ id: 'work', kind: 'agent', label: 'Plan', task: 'plan', ai: 'qwen3.8-max', turns: 10 });
+  wf.nodes.pdf = { id: 'pdf', kind: 'tool', label: 'Read PDF', on: 'work', tool: 'pdf_parse' };
+  const warnings = checkWorkflow(wf, catalog, models);
+  assert.deepEqual(warnings.map((w) => w.code), ['wf-ai-mismatch']);
+  assert.match(warnings[0].msg, /qwen3\.8-max does not support pdf_parse/);
+  const row = prompt.split('\n').find((line) => line.startsWith('qwen3.8-max | regions:'));
+  assert.ok(row);
+  assert.ok(row.includes('function calling: yes'));
+  assert.ok(row.includes('built-in tools: web_search,web_search_image,web_extractor,code_interpreter,mcp'));
+  assert.ok(!row.includes('pdf_parse'));
+  assert.ok(prompt.includes('Attach only built-in tools listed for that model; none means no built-in tools are supported.'));
+});
+
+test('capabilities come from every ModelTable row and preserve unknown versus unsupported without prices', () => {
+  const table = createModelTable({
+    version: 'test', scope: 'international', tools: [...models.tools.values()],
+    models: [
+      ...models.models,
+      { ...models.models[0], id: 'qwen-test-none', regions: ['ap-southeast-5', 'ap-southeast-3'], functions: false, tools: [] },
+      { ...models.models[0], id: 'qwen-test-unknown', functions: null, tools: null },
+    ],
+  });
+  const before = structuredClone(table.models);
+  const text = buildWorkflowSystemPrompt(catalog, table);
+  const rows = text.split('\n').filter((line) => line.includes(' | regions: '));
+  assert.equal(rows.length, table.models.length);
+  for (const model of table.models) {
+    const row = rows.find((line) => line.startsWith(`${model.id} |`));
+    assert.ok(row, model.id);
+    const fields = row.split(' | ');
+    assert.equal(fields.length, 4);
+    assert.deepEqual(fields[1].slice('regions: '.length).split(','), model.regions);
+    assert.equal(fields[2], `function calling: ${model.functions === null ? 'unknown' : model.functions ? 'yes' : 'no'}`);
+    assert.equal(fields[3], `built-in tools: ${model.tools === null ? 'unknown' : model.tools.length ? model.tools.join(',') : 'none'}`);
+  }
+  assert.ok(text.includes('unknown means support is not established; confirm before relying on it.'));
+  assert.ok(text.includes('Agents need function calling: yes.'));
+  assert.ok(text.includes(table.promptRows()));
+  assert.doesNotMatch(rows.join('\n'), /price|fee|usd|perUnit|\$/i);
+  assert.equal(buildWorkflowSystemPrompt(catalog, table), text);
+  assert.deepEqual(table.models, before);
+});
+
+test('schema-optional ai is required for every ai and agent step, including Classify on fc', () => {
+  const raw = { t: 'step', id: 'work', kind: 'ai', label: 'Classify', task: 'classify', runs: 'fc' } as const;
+  const validated = validateWorkflowOp(raw, catalog, models);
+  assert.deepEqual(validated.warnings, []);
+  assert.deepEqual(validated.op, raw);
+  for (const kind of ['ai', 'agent'] as const) {
+    const wf = betweenTriggerAndEnd({ ...makeStep(raw), kind });
+    if (kind === 'agent') wf.nodes.work.turns = 10;
+    const missing = checkWorkflow(wf, catalog, models).filter((w) => w.code === 'wf-ai-missing');
+    assert.deepEqual(missing.map((w) => w.severity), ['error']);
+    wf.nodes.work.ai = 'not-a-model';
+    assert.equal(checkWorkflow(wf, catalog, models).filter((w) => w.code === 'wf-ai-missing').length, 1);
+    wf.nodes.work.ai = kind === 'agent' ? 'qwen3.8-max' : 'qwen3.8-flash';
+    assert.deepEqual(checkWorkflow(wf, catalog, models), []);
+  }
+  assert.ok(prompt.includes('Other fields are schema-optional but may be required by step kind; omit only unused fields.'));
+  assert.ok(prompt.includes('Every ai and agent step requires ai set to a valid model-table id, including in splice ops.'));
+  assert.doesNotMatch(prompt, /Other fields are optional: omit unused fields/);
 });
 
 test('catalog subset uses original row format and only recommendable international entries', () => {
