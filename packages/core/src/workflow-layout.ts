@@ -1,5 +1,5 @@
 // Sticky workflow cells and row bands. Pure, browser-safe, and independent of the viewport.
-import type { WorkflowGraph, WorkflowNode, WorkflowEdge } from './types.ts';
+import type { WorkflowGraph, WorkflowNode, WorkflowEdge, WorkflowOp } from './types.ts';
 import type { Rect, LayoutCard, LayoutFrame, LayoutState, MeasureText, TitleSet } from './layout.ts';
 import { GEOMETRY, fitTitle, layoutDiff, unrelatedMoves } from './layout.ts';
 
@@ -28,12 +28,15 @@ export interface WorkflowLayoutState extends Omit<LayoutState, 'mode' | 'cards' 
   workflow: {
     cells: Record<string, WorkflowCell>;
     arrival: string[];
+    roles: Record<string, 'inline' | 'attached'>;
     branchRows: number[];
     rowTops: number[];
     rowHeights: number[];
     /** Id-sorted membership; physical slots preserve arrivals and holes until tidy. */
     stacks: Record<string, string[]>;
     attachmentSlots: Record<string, string[]>;
+    /** Physical reservations per inline root, including holes left by removed descendants. */
+    attachmentOffsets: Record<string, Record<string, number>>;
     spans: Record<string, WorkflowSpan[]>;
     edges: Record<string, { from: string; to: string }>;
     routes: Record<string, { loop: boolean; backwards: boolean }>;
@@ -43,6 +46,8 @@ export interface WorkflowLayoutState extends Omit<LayoutState, 'mode' | 'cards' 
 }
 export interface WorkflowLayoutOptions {
   tidy?: boolean;
+  /** The applied operation. Only explicit splice provenance permits horizontal translations. */
+  op?: WorkflowOp;
   /** Spare attachment rows per band. Three prevents overflow for a flat, collapsed stack. */
   spareRows?: number;
   measureText?: MeasureText;
@@ -100,15 +105,19 @@ export function layoutWorkflow(
   const forward = edges.filter((e) => !loops.has(e.id) && inlineIds.has(e.from) && inlineIds.has(e.to));
   const cells: Record<string, WorkflowCell> = {};
   for (const id of Object.keys(old?.cells ?? {}).sort(compare)) cells[id] = { ...old!.cells[id] };
-  for (const n of inline) if (old && !old.arrival.includes(n.id)) delete cells[n.id];
+  const roles: WorkflowLayoutState['workflow']['roles'] = {};
+  for (const n of nodes) roles[n.id] = n.on ? 'attached' : 'inline';
+  for (const n of inline) if (old?.roles[n.id] === 'attached') delete cells[n.id];
   const arrival = [...(old?.arrival ?? [])];
   const branchRows = [...(old?.branchRows ?? [])];
   const moves: WorkflowLayoutState['workflow']['moves'] = [];
   const spliceFrom = new Map<string, string>();
   for (const e of edges) {
+    if (opts.op?.t !== 'splice' || opts.op.into !== e.id) continue;
     const before = old?.edges[e.id];
-    if (!before || before.from !== e.from || before.to === e.to || has(cells, e.to) || !inlineIds.has(e.to)) continue;
+    if (!before || before.from !== e.from || before.to === e.to || !inlineIds.has(e.to)) continue;
     if (!edges.some((half) => half.from === e.to && half.to === before.to && !old?.edges[half.id])) continue;
+    delete cells[e.to];
     spliceFrom.set(e.to, e.from);
     const a = cells[e.from];
     const b = cells[before.to];
@@ -129,7 +138,7 @@ export function layoutWorkflow(
     if (has(cells, id)) continue;
     const node = wf.nodes[id];
     const incoming = forward.filter((e) => e.to === id && cells[e.from]);
-    const last = [...arrival].reverse().find((key) => inlineIds.has(key));
+    const last = [...arrival].reverse().find((key) => key !== id && inlineIds.has(key));
     const predecessor = spliceFrom.get(id) ?? incoming[0]?.from ?? (node.after && cells[node.after] ? node.after : last);
     const p = predecessor ? cells[predecessor] : undefined;
     const column = old
@@ -162,6 +171,10 @@ export function layoutWorkflow(
   }
   const cards: Record<string, WorkflowCard> = {};
   const offsets: Record<string, number> = {};
+  const attachmentOffsets: Record<string, Record<string, number>> = {};
+  for (const root of Object.keys(old?.attachmentOffsets ?? {}).sort(compare)) {
+    attachmentOffsets[root] = { ...old!.attachmentOffsets[root] };
+  }
   const visited = new Set<string>();
   const measure = opts.measureText ?? ((text: string, px: number) => Array.from(text).length * px);
   const makeCard = (id: string, root: string, offset: number, slot: string, index: number): void => {
@@ -172,22 +185,27 @@ export function layoutWorkflow(
     if (!n || !cell) return;
     cells[id] = { ...cell };
     offsets[id] = offset;
-    const visible = (attachmentSlots[id] ?? []).slice(0, W.visibleAttachments).filter((key) => stacks[id]?.includes(key));
+    const visible = (attachmentSlots[id] ?? []).filter((key) => stacks[id]?.includes(key)).slice(0, W.visibleAttachments);
     cards[id] = {
       id, kind: 'node', product: n.product ?? '', frame: '', slot, index,
       x: cell.column * W.columnPitch, y: 0, w: G.cardW, h: G.cardH, badges: [],
       title: fitTitle(n.label, measure), hiddenAttached: (stacks[id]?.length ?? 0) - visible.length,
     };
     // New descendants append below occupied slots, including descendants of sibling sub-agents.
-    for (const child of (attachmentSlots[id] ?? []).slice(0, W.visibleAttachments)) {
+    for (const child of visible) {
       const sameCell = (key: string): boolean => cells[key]?.row === cell.row && cells[key]?.column === cell.column;
       const sameHost = prev?.cards[child]?.slot === `${id}#attached`;
-      const priorOffset = sameHost && old ? (prev!.cards[child].y - old.rowTops[cell.row]) / W.rowPitch : undefined;
-      const priorOffsets = Object.keys(prev?.cards ?? {}).filter((key) => sameCell(key) && old?.cells[key]?.row === cell.row)
-        .map((key) => (prev!.cards[key].y - old!.rowTops[cell.row]) / W.rowPitch);
-      const occupied = Object.keys(offsets).filter(sameCell).map((key) => offsets[key]);
-      const childOffset = priorOffset ?? Math.max(offset, ...priorOffsets, ...occupied) + 1;
-      if (visible.includes(child)) makeCard(child, root, childOffset, `${id}#attached`, attachmentSlots[id].indexOf(child));
+      const reserved = attachmentOffsets[root] ??= {};
+      const priorOffset = sameHost && prev?.cards[id]
+        ? offset + (prev.cards[child].y - prev.cards[id].y) / W.rowPitch : reserved[child];
+      const occupied = [
+        ...Object.keys(offsets).filter(sameCell).map((key) => offsets[key]),
+        ...Object.keys(reserved).filter((key) => key !== child).map((key) => reserved[key]),
+      ];
+      const childOffset = priorOffset !== undefined && priorOffset > offset && !occupied.includes(priorOffset)
+        ? priorOffset : Math.max(offset, ...occupied) + 1;
+      reserved[child] = childOffset;
+      makeCard(child, root, childOffset, `${id}#attached`, attachmentSlots[id].indexOf(child));
     }
     for (const child of stacks[id] ?? []) if (!has(cells, child)) cells[child] = { ...cell };
   };
@@ -240,7 +258,10 @@ export function layoutWorkflow(
   return {
     version: 2, mode: 'workflow', width: bounds.w, height: bounds.h, pathY: 0,
     cards: orderedCards, frames, badges: {}, slots: attachmentSlots, shelves: {}, shelfKinds: {}, order: {}, bounds,
-    workflow: { cells, arrival, branchRows, rowTops, rowHeights, stacks, attachmentSlots, spans, edges: savedEdges, routes, moves },
+    workflow: {
+      cells, arrival, roles, branchRows, rowTops, rowHeights, stacks, attachmentSlots, attachmentOffsets,
+      spans, edges: savedEdges, routes, moves,
+    },
   };
 }
 
