@@ -6,10 +6,10 @@ export interface WorkflowEstimate {
   typical: { perRunUsd: number; monthlyUsd: number };
   upper: { perRunUsd: number; monthlyUsd: number };
   runsPerMonth: number;
-  // Reachable inline steps in execution order, including alternate routes; attachments are represented by their host.
+  // Reachable inline steps in forward topological order; attachments are represented by their host.
   oneRun: string[];
   scope: 'international' | 'global';
-  // Scenario amounts are USD contributions per run, not the rate per billing unit. Upper selects one complete route.
+  // Scenario amounts are USD contributions per run. Upper selects a complete route unless a resource diagnostic says otherwise.
   lines: Array<{
     id: string; label: string; kind: 'model' | 'tool' | 'guardrails' | 'platform';
     unit: string; typical: number; upper: number; source: string;
@@ -46,23 +46,120 @@ const valid = (n: number | undefined): n is number => n !== undefined && Number.
 const sorted = <T extends { id: string }>(xs: T[]): T[] => xs.sort((a, b) => a.id.localeCompare(b.id, 'en'));
 const add = (counts: Counts, id: string, n: number): void => { counts.set(id, (counts.get(id) ?? 0) + n); };
 
+const LIMITS = { requests: 50, tokens: 1_000_000, items: 10_000, iterations: 100, volume: 1_000_000_000, calls: 100 };
+const RESOURCE_LIMIT = 'Workflow estimate decision-diagram budget exceeded';
+
+// Reduced multiway decision diagrams share independent choices and joins, never execution frontiers.
+function diagrams(probabilities: number[][]) {
+  type Entry = { variable: number; children: number[]; value: number };
+  const entries: Entry[] = [];
+  const unique = new Map<string, number>();
+  const memo = new Map<string, number>();
+  let operations = 0;
+  const make = (variable: number, children: number[], value = 0): number => {
+    if (children.length && children.every((id) => id === children[0])) return children[0];
+    const key = children.length ? `${variable}:${children.join(',')}` : `v:${value}`;
+    const old = unique.get(key);
+    if (old !== undefined) return old;
+    if (entries.length >= 8192) throw new Error(RESOURCE_LIMIT);
+    const id = entries.length;
+    entries.push({ variable, children, value });
+    unique.set(key, id);
+    return id;
+  };
+  const constant = (value: number): number => make(Infinity, [], value);
+  const apply = (op: 'or' | 'and' | 'add' | 'multiply', a: number, b: number): number => {
+    if (++operations > 131072) throw new Error(RESOURCE_LIMIT);
+    const key = `${op}:${Math.min(a, b)}:${Math.max(a, b)}`;
+    const old = memo.get(key);
+    if (old !== undefined) return old;
+    const x = entries[a], y = entries[b];
+    const variable = Math.min(x.variable, y.variable);
+    const value = op === 'or' ? Math.max(x.value, y.value) : op === 'and' ? Math.min(x.value, y.value)
+      : op === 'add' ? x.value + y.value : x.value * y.value;
+    const result = variable === Infinity ? constant(value) : make(variable, probabilities[variable].map((_, i) =>
+      apply(op, x.variable === variable ? x.children[i] : a, y.variable === variable ? y.children[i] : b)));
+    memo.set(key, result);
+    return result;
+  };
+  const expectedMemo = new Map<number, number>();
+  const expected = (id: number): number => {
+    const old = expectedMemo.get(id);
+    if (old !== undefined) return old;
+    const e = entries[id];
+    const value = e.children.length ? e.children.reduce((s, child, i) => s + probabilities[e.variable][i] * expected(child), 0) : e.value;
+    expectedMemo.set(id, value);
+    return value;
+  };
+  const bestMemo = new Map<number, number>();
+  const best = (id: number): number => {
+    const old = bestMemo.get(id);
+    if (old !== undefined) return old;
+    const e = entries[id];
+    const value = e.children.length ? Math.max(...e.children.map(best)) : e.value;
+    bestMemo.set(id, value);
+    return value;
+  };
+  const assignment = (id: number): Map<number, number> => {
+    const choices = new Map<number, number>();
+    while (entries[id].children.length) {
+      const e = entries[id];
+      const i = e.children.findIndex((child) => best(child) === best(id));
+      choices.set(e.variable, i);
+      id = e.children[i];
+    }
+    return choices;
+  };
+  const evaluate = (id: number, choices: Map<number, number>): number => {
+    while (entries[id].children.length) {
+      const e = entries[id];
+      id = e.children[choices.get(e.variable) ?? 0];
+    }
+    return entries[id].value;
+  };
+  const supportMemo = new Map<number, Set<number>>();
+  const support = (id: number): Set<number> => {
+    const old = supportMemo.get(id);
+    if (old) return old;
+    const e = entries[id];
+    const variables = new Set<number>();
+    if (e.children.length) {
+      variables.add(e.variable);
+      for (const child of e.children) for (const variable of support(child)) variables.add(variable);
+    }
+    supportMemo.set(id, variables);
+    return variables;
+  };
+  return { constant, make, apply, expected, assignment, evaluate, support };
+}
+
 export function estimateWorkflow(
   wf: WorkflowGraph, models: ModelTable, catalog: Catalog, settings: WorkflowEstimateSettings = {},
 ): WorkflowEstimate {
   const assumptions = new Map<string, string>();
   const assume = (key: string, text: string): void => { assumptions.set(key, text); };
-  const number = (n: number | undefined, fallback: number, key: string, text: string): number => {
-    if (valid(n)) return n;
+  const number = (n: number | undefined, fallback: number, key: string, text: string, limit = LIMITS.tokens): number => {
+    if (valid(n)) {
+      if (n > limit) assume(`${key}:limit`, `${key}: capped at ${limit}.`);
+      return Math.min(n, limit);
+    }
     assume(key, text);
     return fallback;
   };
-  const pair = (value: { typical?: number; upper?: number } | undefined, t: number, u: number, key: string): [number, number] => {
-    const typical = number(value?.typical, t, `${key}:typical`, `${key}: typical assumes ${t}.`);
-    const upper = number(value?.upper, u, `${key}:upper`, `${key}: upper assumes ${u}.`);
+  const pair = (
+    value: { typical?: number; upper?: number } | undefined, t: number, u: number, key: string, limit: number,
+  ): [number, number] => {
+    const typical = number(value?.typical, t, `${key}:typical`, `${key}: typical assumes ${t}.`, limit);
+    const upper = number(value?.upper, u, `${key}:upper`, `${key}: upper assumes ${u}.`, limit);
     if (upper < typical) assume(`${key}:order`, `${key}: upper raised to typical so the upper scenario cannot be smaller.`);
     return [typical, Math.max(typical, upper)];
   };
-  const runsPerMonth = number(settings.runsPerMonth, 10_000, 'runsPerMonth', 'Assume 10,000 trigger events per month.');
+  const runsPerMonth = number(settings.runsPerMonth, 10_000, 'runsPerMonth', 'Assume 10,000 trigger events per month.', LIMITS.volume);
+  const finite = (value: number): number => {
+    if (Number.isFinite(value) && value <= Number.MAX_SAFE_INTEGER) return Math.max(0, value);
+    assume('arithmetic:limit', 'Amounts exceeding the safe numeric range are saturated at Number.MAX_SAFE_INTEGER USD.');
+    return Number.MAX_SAFE_INTEGER;
+  };
   const scope = settings.scope ?? 'international';
   if (!settings.scope) assume('scope', 'International pricing scope.');
   if (scope === 'global') assume('scope:global', 'Prices for International scope; Global is usually lower.');
@@ -105,7 +202,7 @@ export function estimateWorkflow(
     assume('roots', 'No trigger: estimate one pass from each source step in the partial graph.');
   }
   if (roots.length > 1) assume('triggers', 'One run is one trigger event; trigger alternatives have equal typical shares, upper uses the costliest.');
-  const active = new Set(roots.flatMap((n) => [...reachable(n.id, dag)]));
+  const active = new Set(roots.flatMap((n) => [...reachable(n.id, edges)]));
   const order: string[] = [];
   const pending = new Set(inline.filter((n) => active.has(n.id)).map((n) => n.id));
   while (pending.size) {
@@ -115,27 +212,22 @@ export function estimateWorkflow(
   }
   const included = new Set(active);
   for (let i = 0; i < nodes.length; i++) for (const n of nodes) if (n.on && included.has(n.on)) included.add(n.id);
-  const multipliers = new Map<string, [number, number]>();
+  const loops: Array<{ edge: WorkflowEdge; members: Set<string>; passes: [number, number] }> = [];
   const repeatItems = new Map<string, [number, number]>();
-  for (const n of nodes) multipliers.set(n.id, [1, 1]);
   for (const group of sorted(Object.values(wf.groups))) {
     if (!nodes.some((n) => included.has(n.id) && n.repeat === group.id)) continue;
-    const items = pair(settings.items?.[group.id], 3, 10, `items:${group.id}`);
+    const items = pair(settings.items?.[group.id], 3, 10, `items:${group.id}`, LIMITS.items);
     repeatItems.set(group.id, items);
   }
   for (const e of edges.filter((e) => retries.includes(e) || back.has(e.id))) {
     if (!active.has(e.from)) continue;
-    const fromTarget = reachable(e.to, dag);
-    if (!fromTarget.has(e.from)) continue;
-    const toSource = reachable(e.from, dag, true);
-    const max = valid(e.max) ? Math.floor(e.max) : 3;
+    // Stop at the retry's source: its forward exit is taken once, outside the excursion.
+    const members = reachable(e.to, dag.filter((link) => link.from !== e.from));
+    const max = Math.floor(number(e.max, 3, `loop:${e.id}:max`, `${e.id}: assume at most 3 extra passes.`, LIMITS.iterations));
     if (!valid(e.max)) assume(`loop:${e.id}:max`, `${e.id}: unbounded retry/edit assumes at most 3 extra passes.`);
-    const passes = pair(settings.loops?.[e.id], Math.min(1, max), max, `loops:${e.id}`);
-    assume(`loop:${e.id}:meaning`, `${e.id}: iterations are extra passes, after the initial pass.`);
-    for (const id of fromTarget) if (toSource.has(id)) {
-      const m = multipliers.get(id)!;
-      multipliers.set(id, [m[0] * (1 + passes[0]), m[1] * (1 + passes[1])]);
-    }
+    const passes = pair(settings.loops?.[e.id], Math.min(1, max), max, `loops:${e.id}`, max);
+    assume(`loop:${e.id}:meaning`, `${e.id}: extra passes use this link's per-run budget, shared across overlapping cycles.`);
+    loops.push({ edge: e, members, passes });
   }
   const lines: Line[] = [];
   const unpriced: WorkflowEstimate['unpriced'] = [];
@@ -144,13 +236,14 @@ export function estimateWorkflow(
   const missing = (id: string, label: string, unit: string, why: string): void => { unpriced.push({ id, label, unit, why }); };
   const line = (n: WorkflowNode, suffix: string, kind: Line['kind'], unit: string, typical: number, upper: number, source: string): void => {
     const id = `${n.id}:${suffix}`;
-    lines.push({ id, label: n.label, kind, unit, typical, upper, source });
+    lines.push({ id, label: n.label, kind, unit, typical: finite(typical), upper: finite(upper), source });
     owners.set(id, n.id);
   };
   const requests = new Map<string, [number, number]>();
   for (const n of nodes.filter((n) => included.has(n.id) && n.kind === 'agent')) {
-    const turns = Math.max(1, Math.ceil(number(n.turns, 10, `agent:${n.id}:turns`, `${n.label}: assume a maximum of 10 requests.`)));
-    const p = pair(settings.agents?.[n.id], Math.ceil(turns / 2), turns, `agent:${n.id}:requests`);
+    const turns = Math.max(1, Math.ceil(number(n.turns, 10, `agent:${n.id}:turns`,
+      `${n.label}: assume a maximum of 10 requests.`, LIMITS.requests)));
+    const p = pair(settings.agents?.[n.id], Math.ceil(turns / 2), turns, `agent:${n.id}:requests`, LIMITS.requests);
     requests.set(n.id, [Math.max(1, Math.ceil(p[0])), Math.max(1, Math.ceil(p[1]))]);
   }
   for (const n of nodes.filter((n) => included.has(n.id))) {
@@ -204,7 +297,7 @@ export function estimateWorkflow(
               assume(`${n.id}:cache`, `${n.label}: implicit prefix cache hits 50% typical, 0% upper.`);
               if (scenario === 'typical') price -= prefix * 0.5 * ((tier.in ?? 0) - tier.cacheHit);
             }
-            total += price / 1_000_000;
+            total = finite(total + price / 1_000_000);
           }
           return total;
         };
@@ -223,7 +316,7 @@ export function estimateWorkflow(
         const host = n.on ? byId.get(n.on) : undefined;
         if (n.tool === 'web_search' && host?.kind === 'agent') {
           const searches = number(settings.agents?.[host.id]?.searchesPerRequest, 1, `${host.id}:searches`,
-            `${host.label}: one web search per model request, including the final request.`);
+            `${host.label}: one web search per model request, including the final request.`, LIMITS.calls);
           const turns = requests.get(host.id)!;
           calls = [turns[0] * searches, turns[1] * searches];
         } else assume(`${n.id}:calls`, `${n.label}: one tool invocation per host/step pass.`);
@@ -236,7 +329,8 @@ export function estimateWorkflow(
     }
     if (n.kind === 'guard' && (!n.product || n.product === 'ai-guardrails')) {
       if (!n.product) assume(`${n.id}:guard-product`, `${n.label}: guard without a product assumes AI Guardrails.`);
-      const types = number(settings.guardTypes?.[n.id], 2, `${n.id}:guard-types`, `${n.label}: 2 detection types (injection and compliance).`);
+      const types = number(settings.guardTypes?.[n.id], 2, `${n.id}:guard-types`,
+        `${n.label}: 2 detection types (injection and compliance).`, LIMITS.calls);
       line(n, 'guardrails', 'guardrails', FEES.guardrails.unit, types * FEES.guardrails.usd, types * FEES.guardrails.usd, FEES.guardrails.source);
     }
     const platforms: Array<keyof typeof FEES> = [];
@@ -287,7 +381,7 @@ export function estimateWorkflow(
     const counts: Counts = new Map();
     const n = byId.get(id)!;
     const index = scenario === 'typical' ? 0 : 1;
-    let multiplier = multipliers.get(id)![index];
+    let multiplier = 1;
     const inherited = new Set(groups);
     if (n.repeat && !groups.has(n.repeat)) {
       multiplier *= repeatItems.get(n.repeat)?.[index] ?? 1;
@@ -311,58 +405,109 @@ export function estimateWorkflow(
     if (Math.abs(total - 1) > 1e-10) assume(`shares:${out[0].from}:normalise`, `${out[0].from}: route shares normalised; all-zero shares use equal split.`);
     return raw.map((n) => total ? n / total : 1 / out.length);
   };
-  // Merge identical future frontiers, retaining expected visits or the costliest history. Shared joins execute once.
+  // Each loop contributes one bounded excursion; no other loop can replenish its budget.
   const usage = (scenario: Scenario): Counts => {
-    const prices = new Map<string, number>();
-    for (const l of lines) add(prices, owners.get(l.id)!, l[scenario]);
-    const score = (counts: Counts): number => [...counts].reduce((sum, [id, count]) => sum + count * (prices.get(id) ?? 0), 0);
-    type State = { future: Set<string>; counts: Counts; probability: number };
-    let states: State[] = roots.map((n) => ({ future: new Set([n.id]), counts: new Map(), probability: 1 / roots.length }));
+    const index = scenario === 'typical' ? 0 : 1;
+    const probabilities: number[][] = [];
+    const choices = new Map<string, number>();
+    if (roots.length > 1) probabilities.push(roots.map(() => 1 / roots.length));
     for (const id of order) {
-      const merged = new Map<string, State>();
-      const merge = (s: State): void => {
-        if (!s.probability) return;
-        const key = [...s.future].sort().join('|');
-        const old = merged.get(key);
-        if (!old) { merged.set(key, s); return; }
-        if (scenario === 'upper') {
-          if (score(s.counts) > score(old.counts)) merged.set(key, s);
-        } else {
-          const probability = old.probability + s.probability;
-          const counts: Counts = new Map();
-          for (const [id, n] of old.counts) add(counts, id, n * old.probability / probability);
-          for (const [id, n] of s.counts) add(counts, id, n * s.probability / probability);
-          merged.set(key, { future: s.future, counts, probability });
-        }
-      };
-      for (const s of states) {
-        if (!s.future.has(id)) { merge(s); continue; }
-        const future = new Set(s.future);
-        future.delete(id);
-        const counts = new Map(s.counts);
-        for (const [key, n] of nodeCounts(id, scenario)) add(counts, key, n);
-        const out = dag.filter((e) => e.from === id);
-        const alternatives = out.some((e) => e.kind === 'branch' || e.kind === 'escalate' || e.outcome);
-        if (alternatives && out.length > 1) {
-          const shares = weights(out);
-          out.forEach((e, i) => merge({
-            future: new Set([...future, e.to]), counts,
-            probability: scenario === 'typical' ? s.probability * shares[i] : s.probability,
-          }));
-        } else merge({ future: new Set([...future, ...out.map((e) => e.to)]), counts, probability: s.probability });
+      const out = dag.filter((e) => e.from === id);
+      if (out.length > 1 && out.some((e) => e.kind === 'branch' || e.kind === 'escalate' || e.outcome)) {
+        choices.set(id, probabilities.length);
+        probabilities.push(weights(out));
       }
-      states = [...merged.values()];
     }
-    return states[0]?.counts ?? new Map();
+    const d = diagrams(probabilities);
+    const zero = d.constant(0), one = d.constant(1);
+    const selector = (variable: number, choice: number): number =>
+      d.make(variable, probabilities[variable].map((_, i) => i === choice ? one : zero));
+    const gates = new Map<string, number>();
+    const fallback = (): Counts => {
+      const counts: Counts = new Map();
+      for (const id of order) {
+        const passes = 1 + loops.filter((loop) => loop.members.has(id)).reduce((sum, loop) => sum + loop.passes[index], 0);
+        for (const [key, n] of nodeCounts(id, scenario)) add(counts, key, n * passes);
+      }
+      return counts;
+    };
+    if (assumptions.has('resources')) return fallback();
+    try {
+      for (const id of order) dag.filter((e) => e.from === id).forEach((e, i) => {
+        gates.set(e.id, choices.has(id) ? selector(choices.get(id)!, i) : one);
+      });
+      const propagate = (seeds: Map<string, number>, members = active, stop = ''): Map<string, number> => {
+        const result = new Map(seeds);
+        for (const id of order) for (const e of dag.filter((e) => e.from === id && id !== stop && members.has(e.to))) {
+          const incoming = d.apply('and', result.get(id) ?? zero, gates.get(e.id)!);
+          result.set(e.to, d.apply('or', result.get(e.to) ?? zero, incoming));
+        }
+        return result;
+      };
+      const seeds = new Map(roots.map((n, i) => [n.id, roots.length > 1 ? selector(0, i) : one]));
+      const base = propagate(seeds);
+      let reached = base;
+      // Boolean reachability closes in at most V rounds, even when retries introduce new steps.
+      for (let round = 0; round < inline.length; round++) {
+        const next = new Map(reached);
+        for (const loop of loops) if (loop.passes[index] > 0) {
+          const e = loop.edge;
+          next.set(e.to, d.apply('or', next.get(e.to) ?? zero, reached.get(e.from) ?? zero));
+        }
+        const updated = propagate(next);
+        if (order.every((id) => (updated.get(id) ?? zero) === (reached.get(id) ?? zero))) break;
+        reached = updated;
+      }
+      const visits = new Map(base);
+      for (const loop of loops) {
+        const excursion = propagate(new Map([[loop.edge.to, reached.get(loop.edge.from) ?? zero]]), loop.members, loop.edge.from);
+        for (const id of loop.members) {
+          const extra = d.apply('multiply', excursion.get(id) ?? zero, d.constant(loop.passes[index]));
+          visits.set(id, d.apply('add', visits.get(id) ?? zero, extra));
+        }
+      }
+      const counts = new Map<string, number>();
+      for (const id of order) for (const [key, count] of nodeCounts(id, scenario)) {
+        const value = d.apply('multiply', visits.get(id) ?? zero, d.constant(count));
+        counts.set(key, d.apply('add', counts.get(key) ?? zero, value));
+      }
+      if (scenario === 'typical') return new Map([...counts].map(([id, value]) => [id, d.expected(value)]));
+      // Maximise independent cost factors separately, even when their prices are all different.
+      const factors: Array<{ value: number; variables: Set<number> }> = [];
+      for (const l of lines) {
+        const value = d.apply('multiply', counts.get(owners.get(l.id)!) ?? zero, d.constant(l.upper));
+        factors.push({ value, variables: new Set(d.support(value)) });
+      }
+      const assignment = new Map<number, number>();
+      while (factors.length) {
+        const component = factors.shift()!;
+        for (let i = 0; i < factors.length;) {
+          const factor = factors[i];
+          if ([...factor.variables].some((v) => component.variables.has(v))) {
+            component.value = d.apply('add', component.value, factor.value);
+            for (const v of factor.variables) component.variables.add(v);
+            factors.splice(i, 1);
+            i = 0;
+          } else i++;
+        }
+        for (const [variable, choice] of d.assignment(component.value)) assignment.set(variable, choice);
+      }
+      return new Map([...counts].map(([id, value]) => [id, d.evaluate(value, assignment)]));
+    } catch (error) {
+      if (!(error instanceof Error) || error.message !== RESOURCE_LIMIT) throw error;
+      assume('resources', 'Exact evaluation limited to 8192 diagram nodes and 131072 operations per scenario. '
+        + 'Budget exceeded: affected scenario uses a conservative sum of all reachable steps and per-link retry budgets, not a selected route.');
+      return fallback();
+    }
   };
   const typicalCounts = usage('typical');
   const upperCounts = usage('upper');
   for (const l of lines) {
-    l.typical *= typicalCounts.get(owners.get(l.id)!) ?? 0;
-    l.upper *= upperCounts.get(owners.get(l.id)!) ?? 0;
+    l.typical = finite(l.typical * (typicalCounts.get(owners.get(l.id)!) ?? 0));
+    l.upper = finite(l.upper * (upperCounts.get(owners.get(l.id)!) ?? 0));
   }
-  const typical = lines.reduce((sum, l) => sum + l.typical, 0);
-  const upper = lines.reduce((sum, l) => sum + l.upper, 0);
+  const typical = lines.reduce((sum, l) => finite(sum + l.typical), 0);
+  const upper = lines.reduce((sum, l) => finite(sum + l.upper), 0);
   const depth = new Map<string, number>();
   const modelDepth = (id: string, seen = new Set<string>()): number => {
     if (seen.has(id)) return 0;
@@ -380,8 +525,8 @@ export function estimateWorkflow(
     longest = Math.max(longest, current);
   }
   return {
-    typical: { perRunUsd: typical, monthlyUsd: typical * runsPerMonth },
-    upper: { perRunUsd: upper, monthlyUsd: upper * runsPerMonth },
+    typical: { perRunUsd: typical, monthlyUsd: finite(typical * runsPerMonth) },
+    upper: { perRunUsd: upper, monthlyUsd: finite(upper * runsPerMonth) },
     runsPerMonth, oneRun: order, scope, lines, unpriced, fixed: [...fixed.values()].sort((a, b) => a.id.localeCompare(b.id, 'en')),
     assumptions: [...assumptions].sort(([a], [b]) => a.localeCompare(b, 'en')).map(([key, text]) => ({ key, text })),
     coverage: 'Priced usage subtotal: model tokens, built-in tools, AI Guardrails, CloudFlow, EventBridge, Direct Mail and Chat App fees; '
