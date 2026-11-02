@@ -17,7 +17,8 @@ import { ADMIN, API_KEY, call, makeCtx, makeEnv, ndjson, req, signIn } from './h
 
 const CLAUDE_KEY = 'sk-ant-api03-WORKER-SECRET-0123456789abcdef';
 // the words no browser may receive (assembled so this file stays greppable for the real thing)
-const HIDDEN = new RegExp(['cl' + 'aude', 'anth' + 'ropic', 'qwen', 'DataInspection', 'inappropriate'].join('|'), 'i');
+// A design's own Qwen models may be named in step sections (PLAN.md D7); the backend's vendor names may not.
+const HIDDEN = new RegExp(['cl' + 'aude', 'anth' + 'ropic', 'DataInspection', 'inappropriate'].join('|'), 'i');
 const enc = new TextEncoder();
 const line = (o: unknown): string => JSON.stringify(o);
 const abortError = (): Error => Object.assign(new Error('aborted'), { name: 'AbortError' });

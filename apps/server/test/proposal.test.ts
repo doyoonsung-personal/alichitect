@@ -24,7 +24,8 @@ const CAT = loadCatalog();
 const KEY = 'sk-test-SECRET-0123456789abcdef';
 const CLAUDE_KEY = 'sk-ant-api03-CLAUDE-SECRET-0123456789abcdef';
 const ORIGIN = 'http://localhost:5174';
-const HIDDEN = new RegExp(['cl' + 'aude', 'anth' + 'ropic', 'qwen', 'DataInspection', 'inappropriate'].join('|'), 'i');
+// A design's own Qwen models may be named in step sections (PLAN.md D7); the backend's vendor names may not.
+const HIDDEN = new RegExp(['cl' + 'aude', 'anth' + 'ropic', 'DataInspection', 'inappropriate'].join('|'), 'i');
 const line = (o: unknown): string => JSON.stringify(o);
 const ASK = 'Our ticket site crashed for 40 minutes during a big sale. Keep PostgreSQL.';
 
