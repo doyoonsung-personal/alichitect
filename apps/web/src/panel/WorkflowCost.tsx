@@ -16,28 +16,28 @@ export function WorkflowCost(p: WorkflowCostProps) {
   for (const n of ranked) {
     if (n.ai || n.kind === 'ai' || n.kind === 'agent') {
       for (const field of ['inTokens', 'outTokens', 'thinking', 'offline'] as const) drivers.push({
-        label: n.label + ' ? ' + t('workflow.cost.' + field as 'workflow.cost.inTokens'),
+        label: n.label + ' · ' + t('workflow.cost.' + field as 'workflow.cost.inTokens'),
         edit: { map: 'steps', id: n.id, field }, value: p.estimateSettings.steps?.[n.id]?.[field],
       });
     }
     if (n.kind === 'agent') for (const field of ['typical', 'upper', 'resultTokens', 'searchesPerRequest'] as const) {
-      drivers.push({ label: n.label + ' ? ' + t(field === 'resultTokens' ? 'workflow.cost.resultTokens'
+      drivers.push({ label: n.label + ' · ' + t(field === 'resultTokens' ? 'workflow.cost.resultTokens'
         : field === 'searchesPerRequest' ? 'workflow.cost.searches' : 'workflow.cost.requests') +
-        (field === 'typical' || field === 'upper' ? ' ? ' + t('workflow.cost.' + field as 'workflow.cost.typical') : ''),
+        (field === 'typical' || field === 'upper' ? ' · ' + t('workflow.cost.' + field as 'workflow.cost.typical') : ''),
       edit: { map: 'agents', id: n.id, field }, value: p.estimateSettings.agents?.[n.id]?.[field] });
     }
-    if (n.kind === 'guard') drivers.push({ label: n.label + ' ? ' + t('workflow.cost.guardTypes'),
+    if (n.kind === 'guard') drivers.push({ label: n.label + ' · ' + t('workflow.cost.guardTypes'),
       edit: { map: 'guardTypes', id: n.id }, value: p.estimateSettings.guardTypes?.[n.id] });
   }
   for (const g of Object.values(p.workflow.groups)) for (const field of ['typical', 'upper'] as const) drivers.push({
-    label: g.over + ' ? ' + t('workflow.cost.items') + ' ? ' + t('workflow.cost.' + field as 'workflow.cost.typical'),
+    label: g.over + ' · ' + t('workflow.cost.items') + ' · ' + t('workflow.cost.' + field as 'workflow.cost.typical'),
     edit: { map: 'items', id: g.id, field }, value: p.estimateSettings.items?.[g.id]?.[field],
   });
   for (const edge of Object.values(p.workflow.edges)) {
-    if (edge.kind === 'branch') drivers.push({ label: (edge.label ?? edge.id) + ' ? ' + t('workflow.cost.share'),
+    if (edge.kind === 'branch') drivers.push({ label: (edge.label ?? edge.id) + ' · ' + t('workflow.cost.share'),
       edit: { map: 'shares', id: edge.id }, value: p.estimateSettings.shares?.[edge.id] });
     if (edge.kind === 'loop') for (const field of ['typical', 'upper'] as const) drivers.push({
-      label: edge.id + ' ? ' + t('workflow.cost.loops') + ' ? ' + t('workflow.cost.' + field as 'workflow.cost.typical'),
+      label: edge.id + ' · ' + t('workflow.cost.loops') + ' · ' + t('workflow.cost.' + field as 'workflow.cost.typical'),
       edit: { map: 'loops', id: edge.id, field }, value: p.estimateSettings.loops?.[edge.id]?.[field],
     });
   }
@@ -57,9 +57,9 @@ export function WorkflowCost(p: WorkflowCostProps) {
       <tbody>{e.lines.map((l) => <tr key={l.id}><th scope="row">{l.label}<small>{l.source}</small></th>
         <td>{l.unit}</td><td>{usd(l.typical)}</td><td>{usd(l.upper)}</td></tr>)}</tbody></table>
     <h4>{t('workflow.cost.fixed')}</h4><ul>{e.fixed.map((l) => <li key={l.id}>
-      {l.label} ? {l.unit}: {l.monthlyUsd === null ? t('workflow.cost.unpriced') : usd(l.monthlyUsd)}<small>{l.source}</small></li>)}</ul>
+      {l.label} · {l.unit}: {l.monthlyUsd === null ? t('workflow.cost.unpriced') : usd(l.monthlyUsd)}<small>{l.source}</small></li>)}</ul>
     <h4>{t('workflow.cost.unpriced')}</h4><ul>{e.unpriced.map((l) =>
-      <li key={l.id}>{l.label} ? {l.unit}: {unpricedReason(l.why, t)}</li>)}</ul>
+      <li key={l.id}>{l.label} · {l.unit}: {unpricedReason(l.why, t)}</li>)}</ul>
     <h4>{t('workflow.cost.assumptions')}</h4><ul>{e.assumptions.map((a) => <li key={a.key}>{assumptionText(a, p.workflow, t)}</li>)}</ul>
     {e.scope === 'global' && <p>{t('workflow.cost.globalNote')}</p>}
     <details><summary>{t('workflow.cost.drivers')}</summary>
