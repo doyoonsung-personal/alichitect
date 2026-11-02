@@ -1,0 +1,782 @@
+{
+  "id": "stub-mixed-workflow",
+  "title": "Support email triage",
+  "lang": "en",
+  "recordedAt": "2026-11-03",
+  "source": "Fake stream of core support-email-triage.json",
+  "model": "",
+  "note": "Synthetic deterministic stream; no live model call.",
+  "synthetic": true,
+  "turns": [
+    {
+      "ask": "Draw a support backend",
+      "ev": [
+        [
+          100,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "node",
+              "id": "in",
+              "product": "fc",
+              "label": "Email backend"
+            }
+          }
+        ],
+        [
+          200,
+          {
+            "type": "commit",
+            "memory": {
+              "turns": [
+                {
+                  "role": "user",
+                  "text": "Draw a support backend"
+                },
+                {
+                  "role": "assistant",
+                  "text": "Email backend"
+                }
+              ],
+              "requirements": [],
+              "graph": {
+                "groups": {},
+                "nodes": {
+                  "in": {
+                    "id": "in",
+                    "product": "fc",
+                    "label": "Email backend",
+                    "group": null
+                  }
+                },
+                "edges": {},
+                "recs": []
+              },
+              "tombstones": []
+            },
+            "changes": "+in",
+            "warnings": []
+          }
+        ]
+      ]
+    },
+    {
+      "ask": "Set up an agent that triages inbound support emails and drafts replies for approval",
+      "mode": "workflow",
+      "ev": [
+        [
+          100,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "step",
+              "id": "in",
+              "kind": "trigger",
+              "label": "Email webhook",
+              "product": "eventbridge",
+              "runs": "fc",
+              "untrusted": true,
+              "private": true
+            }
+          }
+        ],
+        [
+          200,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "step",
+              "id": "guard",
+              "kind": "guard",
+              "label": "Screen injection",
+              "product": "ai-guardrails",
+              "runs": "fc"
+            }
+          }
+        ],
+        [
+          300,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "step",
+              "id": "route",
+              "kind": "ai",
+              "label": "Intent and urgency",
+              "task": "classify",
+              "product": "model-studio",
+              "ai": "qwen3.8-flash",
+              "runs": "fc"
+            }
+          }
+        ],
+        [
+          400,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "step",
+              "id": "kb",
+              "kind": "knowledge",
+              "label": "Retrieve help centre",
+              "task": "retrieve",
+              "product": "tablestore",
+              "ai": "text-embedding-v4",
+              "runs": "fc"
+            }
+          }
+        ],
+        [
+          500,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "step",
+              "id": "rank",
+              "kind": "knowledge",
+              "label": "Rank evidence",
+              "task": "rerank",
+              "product": "model-studio",
+              "ai": "qwen3-rerank",
+              "runs": "fc"
+            }
+          }
+        ],
+        [
+          600,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "step",
+              "id": "draft",
+              "kind": "ai",
+              "label": "Draft grounded answer",
+              "task": "generate",
+              "product": "model-studio",
+              "ai": "qwen3.8-flash",
+              "runs": "fc"
+            }
+          }
+        ],
+        [
+          700,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "step",
+              "id": "check",
+              "kind": "ai",
+              "label": "Check evidence",
+              "task": "check",
+              "product": "model-studio",
+              "ai": "qwen3.7-plus",
+              "runs": "fc"
+            }
+          }
+        ],
+        [
+          800,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "step",
+              "id": "gate",
+              "kind": "decide",
+              "label": "Evidence quality",
+              "runs": "fc"
+            }
+          }
+        ],
+        [
+          900,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "step",
+              "id": "human",
+              "kind": "human",
+              "label": "Approve exact email",
+              "task": "approve",
+              "runs": "customer",
+              "subject": "draft"
+            }
+          }
+        ],
+        [
+          1000,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "step",
+              "id": "manual",
+              "kind": "human",
+              "label": "Resolve manually",
+              "task": "review",
+              "runs": "customer"
+            }
+          }
+        ],
+        [
+          1100,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "step",
+              "id": "send",
+              "kind": "act",
+              "label": "Send approved email",
+              "product": "direct-mail",
+              "effect": "send",
+              "runs": "fc"
+            }
+          }
+        ],
+        [
+          1200,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "step",
+              "id": "log",
+              "kind": "act",
+              "label": "Write trace",
+              "product": "tablestore",
+              "effect": "write",
+              "runs": "fc"
+            }
+          }
+        ],
+        [
+          1300,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "step",
+              "id": "end",
+              "kind": "end",
+              "label": "Done"
+            }
+          }
+        ],
+        [
+          1400,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l1",
+              "from": "in",
+              "to": "guard",
+              "kind": "next"
+            }
+          }
+        ],
+        [
+          1500,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l2",
+              "from": "guard",
+              "to": "route",
+              "kind": "next"
+            }
+          }
+        ],
+        [
+          1600,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l3",
+              "from": "route",
+              "to": "kb",
+              "kind": "next"
+            }
+          }
+        ],
+        [
+          1700,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l4",
+              "from": "kb",
+              "to": "rank",
+              "kind": "next"
+            }
+          }
+        ],
+        [
+          1800,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l5",
+              "from": "rank",
+              "to": "draft",
+              "kind": "next"
+            }
+          }
+        ],
+        [
+          1900,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l6",
+              "from": "draft",
+              "to": "check",
+              "kind": "next"
+            }
+          }
+        ],
+        [
+          2000,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l7",
+              "from": "check",
+              "to": "gate",
+              "kind": "next"
+            }
+          }
+        ],
+        [
+          2100,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l8",
+              "from": "gate",
+              "to": "human",
+              "kind": "branch",
+              "label": "Grounded"
+            }
+          }
+        ],
+        [
+          2200,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l9",
+              "from": "gate",
+              "to": "draft",
+              "kind": "loop",
+              "label": "Revise",
+              "max": 2
+            }
+          }
+        ],
+        [
+          2300,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l10",
+              "from": "gate",
+              "to": "manual",
+              "kind": "escalate",
+              "label": "Budget spent",
+              "outcome": "exhausted"
+            }
+          }
+        ],
+        [
+          2400,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l11",
+              "from": "human",
+              "to": "send",
+              "kind": "branch",
+              "outcome": "approve"
+            }
+          }
+        ],
+        [
+          2500,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l12",
+              "from": "human",
+              "to": "log",
+              "kind": "branch",
+              "outcome": "reject"
+            }
+          }
+        ],
+        [
+          2600,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l13",
+              "from": "human",
+              "to": "draft",
+              "kind": "branch",
+              "outcome": "edit"
+            }
+          }
+        ],
+        [
+          2700,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l14",
+              "from": "manual",
+              "to": "log",
+              "kind": "next"
+            }
+          }
+        ],
+        [
+          2800,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l15",
+              "from": "send",
+              "to": "log",
+              "kind": "next"
+            }
+          }
+        ],
+        [
+          2900,
+          {
+            "type": "op",
+            "phase": "main",
+            "op": {
+              "t": "link",
+              "id": "l16",
+              "from": "log",
+              "to": "end",
+              "kind": "next"
+            }
+          }
+        ],
+        [
+          3000,
+          {
+            "type": "commit",
+            "memory": {
+              "turns": [
+                {
+                  "role": "user",
+                  "text": "Draw a support backend"
+                },
+                {
+                  "role": "assistant",
+                  "text": "Email backend"
+                },
+                {
+                  "role": "user",
+                  "text": "Set up an agent that triages inbound support emails and drafts replies for approval",
+                  "mode": "workflow"
+                },
+                {
+                  "role": "assistant",
+                  "text": "Draft replies for approval.",
+                  "mode": "workflow"
+                }
+              ],
+              "requirements": [],
+              "graph": {
+                "groups": {},
+                "nodes": {
+                  "in": {
+                    "id": "in",
+                    "product": "fc",
+                    "label": "Email backend",
+                    "group": null
+                  }
+                },
+                "edges": {},
+                "recs": []
+              },
+              "tombstones": [],
+              "workflow": {
+                "nodes": {
+                  "in": {
+                    "id": "in",
+                    "kind": "trigger",
+                    "label": "Email webhook",
+                    "product": "eventbridge",
+                    "runs": "fc",
+                    "untrusted": true,
+                    "private": true
+                  },
+                  "guard": {
+                    "id": "guard",
+                    "kind": "guard",
+                    "label": "Screen injection",
+                    "product": "ai-guardrails",
+                    "runs": "fc"
+                  },
+                  "route": {
+                    "id": "route",
+                    "kind": "ai",
+                    "label": "Intent and urgency",
+                    "task": "classify",
+                    "product": "model-studio",
+                    "runs": "fc",
+                    "ai": "qwen3.8-flash"
+                  },
+                  "kb": {
+                    "id": "kb",
+                    "kind": "knowledge",
+                    "label": "Retrieve help centre",
+                    "task": "retrieve",
+                    "product": "tablestore",
+                    "runs": "fc",
+                    "ai": "text-embedding-v4"
+                  },
+                  "rank": {
+                    "id": "rank",
+                    "kind": "knowledge",
+                    "label": "Rank evidence",
+                    "task": "rerank",
+                    "product": "model-studio",
+                    "runs": "fc",
+                    "ai": "qwen3-rerank"
+                  },
+                  "draft": {
+                    "id": "draft",
+                    "kind": "ai",
+                    "label": "Draft grounded answer",
+                    "task": "generate",
+                    "product": "model-studio",
+                    "runs": "fc",
+                    "ai": "qwen3.8-flash"
+                  },
+                  "check": {
+                    "id": "check",
+                    "kind": "ai",
+                    "label": "Check evidence",
+                    "task": "check",
+                    "product": "model-studio",
+                    "runs": "fc",
+                    "ai": "qwen3.7-plus"
+                  },
+                  "gate": {
+                    "id": "gate",
+                    "kind": "decide",
+                    "label": "Evidence quality",
+                    "runs": "fc"
+                  },
+                  "human": {
+                    "id": "human",
+                    "kind": "human",
+                    "label": "Approve exact email",
+                    "task": "approve",
+                    "runs": "customer",
+                    "subject": "draft"
+                  },
+                  "manual": {
+                    "id": "manual",
+                    "kind": "human",
+                    "label": "Resolve manually",
+                    "task": "review",
+                    "runs": "customer"
+                  },
+                  "send": {
+                    "id": "send",
+                    "kind": "act",
+                    "label": "Send approved email",
+                    "product": "direct-mail",
+                    "runs": "fc",
+                    "effect": "send"
+                  },
+                  "log": {
+                    "id": "log",
+                    "kind": "act",
+                    "label": "Write trace",
+                    "product": "tablestore",
+                    "runs": "fc",
+                    "effect": "write"
+                  },
+                  "end": {
+                    "id": "end",
+                    "kind": "end",
+                    "label": "Done"
+                  }
+                },
+                "edges": {
+                  "l1": {
+                    "id": "l1",
+                    "from": "in",
+                    "to": "guard",
+                    "kind": "next"
+                  },
+                  "l2": {
+                    "id": "l2",
+                    "from": "guard",
+                    "to": "route",
+                    "kind": "next"
+                  },
+                  "l3": {
+                    "id": "l3",
+                    "from": "route",
+                    "to": "kb",
+                    "kind": "next"
+                  },
+                  "l4": {
+                    "id": "l4",
+                    "from": "kb",
+                    "to": "rank",
+                    "kind": "next"
+                  },
+                  "l5": {
+                    "id": "l5",
+                    "from": "rank",
+                    "to": "draft",
+                    "kind": "next"
+                  },
+                  "l6": {
+                    "id": "l6",
+                    "from": "draft",
+                    "to": "check",
+                    "kind": "next"
+                  },
+                  "l7": {
+                    "id": "l7",
+                    "from": "check",
+                    "to": "gate",
+                    "kind": "next"
+                  },
+                  "l8": {
+                    "id": "l8",
+                    "from": "gate",
+                    "to": "human",
+                    "kind": "branch",
+                    "label": "Grounded"
+                  },
+                  "l9": {
+                    "id": "l9",
+                    "from": "gate",
+                    "to": "draft",
+                    "kind": "loop",
+                    "label": "Revise",
+                    "max": 2
+                  },
+                  "l10": {
+                    "id": "l10",
+                    "from": "gate",
+                    "to": "manual",
+                    "kind": "escalate",
+                    "label": "Budget spent",
+                    "outcome": "exhausted"
+                  },
+                  "l11": {
+                    "id": "l11",
+                    "from": "human",
+                    "to": "send",
+                    "kind": "branch",
+                    "outcome": "approve"
+                  },
+                  "l12": {
+                    "id": "l12",
+                    "from": "human",
+                    "to": "log",
+                    "kind": "branch",
+                    "outcome": "reject"
+                  },
+                  "l13": {
+                    "id": "l13",
+                    "from": "human",
+                    "to": "draft",
+                    "kind": "branch",
+                    "outcome": "edit"
+                  },
+                  "l14": {
+                    "id": "l14",
+                    "from": "manual",
+                    "to": "log",
+                    "kind": "next"
+                  },
+                  "l15": {
+                    "id": "l15",
+                    "from": "send",
+                    "to": "log",
+                    "kind": "next"
+                  },
+                  "l16": {
+                    "id": "l16",
+                    "from": "log",
+                    "to": "end",
+                    "kind": "next"
+                  }
+                },
+                "groups": {}
+              },
+              "workflowTombstones": [],
+              "workflowSettings": {
+                "region": "ap-southeast-1"
+              },
+              "estimate": {
+                "runsPerMonth": 1000,
+                "loops": {
+                  "revise": {
+                    "typical": 1,
+                    "upper": 2
+                  }
+                }
+              }
+            },
+            "changes": "Support email triage",
+            "warnings": []
+          }
+        ]
+      ]
+    }
+  ]
+}

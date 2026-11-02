@@ -17,6 +17,11 @@ const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object
 
 function validMemory(m: unknown): m is SessionMemory {
   if (!isObj(m) || !Array.isArray(m.turns) || !Array.isArray(m.requirements) || !Array.isArray(m.tombstones)) return false;
+  const wf = m.workflow;
+  if (wf !== undefined && (!isObj(wf) || !isObj(wf.nodes) || !isObj(wf.edges) || !isObj(wf.groups))) return false;
+  if (m.workflowTombstones !== undefined && !Array.isArray(m.workflowTombstones)) return false;
+  if (m.workflowSettings !== undefined && !isObj(m.workflowSettings)) return false;
+  if (m.estimate !== undefined && !isObj(m.estimate)) return false;
   const g = m.graph;
   return isObj(g) && isObj(g.groups) && isObj(g.nodes) && isObj(g.edges) && Array.isArray(g.recs);
 }
@@ -37,6 +42,8 @@ export function reviveSession(v: unknown): SessionRecord | null {
   }
   return {
     id: v.id,
+    mode: v.mode === 'workflow' ? 'workflow' : 'cloud',
+    ...(isObj(v.workflowProvenance) ? { workflowProvenance: v.workflowProvenance as SessionRecord['provenance'] } : {}),
     createdAt: typeof v.createdAt === 'number' ? v.createdAt : 0,
     updatedAt: typeof v.updatedAt === 'number' ? v.updatedAt : 0,
     title: v.title,

@@ -2,8 +2,13 @@
 // clock in them, so replays and tests are exact. One reducer owns the turn: the working raw graph (core applyOp on each
 // streamed op), the display graph (displayGraph over repairGraph), the layout (layoutGraph with the previous layout, for
 // stability), the record model of the revision in progress, and the commit that replaces memory with the server's.
-import type { Catalog, Graph, Op, SessionMemory, Warning } from '@ali/core/types.ts';
+import type { Catalog, Graph, Op, SessionMemory, TurnMode, Warning, WorkflowGraph, WorkflowOp } from '@ali/core/types.ts';
 import { applyOp, createCtx, emptyGraph } from '@ali/core/reducer.ts';
+import { applyWorkflowOp, createWorkflowCtx, emptyWorkflow } from '@ali/core/workflow.ts';
+import { repairWorkflow } from '@ali/core/workflow-validate.ts';
+import { createModelTable } from '@ali/core/models.ts';
+import type { ModelFile } from '@ali/core/models.ts';
+import modelFile from '@ali/catalog/models.json' with { type: 'json' };
 import { repairGraph } from '@ali/core/validate.ts';
 import { defaultConstraintChecker } from '@ali/core/llm.ts';
 import type { ConstraintChecker } from '@ali/core/llm.ts';
@@ -18,7 +23,7 @@ import { CONSTRAINT_CODES } from '../stream/events.ts';
 import type { WireEvent } from '../stream/events.ts';
 import { t } from '../i18n/t.ts';
 import type { Lang } from '../i18n/t.ts';
-import { applyChange, countChanges, reconcileChanges } from './changes.ts';
+import { applyChange, countChanges, reconcileChanges, workflowChanges } from './changes.ts';
 import { addLifecycle, lifecycleNote } from './lifecycle.ts';
 import { unpinFrom } from './requirements.ts';
 import type {
@@ -40,6 +45,8 @@ import type {
 import type { Health } from '../stream/events.ts';
 import type { Account } from '../stream/account.ts';
 
+const models = createModelTable(modelFile as ModelFile);
+
 export interface StoreDeps {
   catalog: Catalog;
   /** Pinned-constraint checker used when a repair turn starts without any constraint warning having streamed. Default: the server's. */
@@ -51,10 +58,11 @@ export type Action =
   | { type: 'lang/set'; lang: Lang }
   | { type: 'conn/set'; mode: ConnMode; health: Health | null; now: number }
   | { type: 'account/set'; account: Account | null }
+  | { type: 'session/mode'; mode: TurnMode }
   | { type: 'session/new'; id: string; now: number }
   | { type: 'session/open'; record: SessionRecord; now: number }
   | { type: 'sessions/list'; sessions: SessionSummary[] }
-  | { type: 'turn/start'; ask: string; now: number; replayOf?: string | null; /** Try again: the failed or stopped revision at the end of the record is replaced by this one. */ replaceLast?: boolean }
+  | { type: 'turn/start'; mode?: TurnMode; ask: string; now: number; replayOf?: string | null; replaceLast?: boolean }
   | { type: 'rev/discardFailed' }
   | { type: 'turn/event'; event: WireEvent; now: number }
   | { type: 'turn/flush'; now: number }
@@ -86,6 +94,7 @@ export function emptyMemory(): SessionMemory {
 export function newSessionRecord(id: string, now: number): SessionRecord {
   return {
     id,
+    mode: 'cloud',
     createdAt: now,
     updatedAt: now,
     title: '',
@@ -111,6 +120,7 @@ export function createInitialState(init: { lang: Lang; sessions?: SessionSummary
     turn: { phase: 'idle', lastTextAt: null, startedAt: null },
     work: null,
     display: emptyDisplay(),
+    workflowDisplay: { graph: emptyWorkflow(), version: 0, reason: 'empty' },
     canvas: init.canvas ?? { w: 0, h: 0 },
     ui: { panelOpen: false, focusDiagram: false, highlight: null, panTo: null, reveal: null, hoverCard: null, toast: null, live: null, handoff: false, composerDraft: null },
     replay: null,
@@ -193,7 +203,7 @@ function relayout(state: AppState, deps: StoreDeps, graph: Graph, reason: Displa
 }
 
 function sameFix(a: AutoFix, b: AutoFix): boolean {
-  return a.code === b.code && a.ids.join(',') === b.ids.join(',');
+  return (a.view ?? 'cloud') === (b.view ?? 'cloud') && a.code === b.code && a.ids.join(',') === b.ids.join(',');
 }
 
 const NOT_AN_AUTO_FIX: ReadonlySet<Warning['code']> = new Set<Warning['code']>(['alias-resolved', 'retired-product', 'unknown-id']);
@@ -202,7 +212,7 @@ function mergeFixes(have: AutoFix[], warnings: readonly Warning[]): AutoFix[] {
   let out = have;
   for (const w of warnings) {
     if (!w.repaired || NOT_AN_AUTO_FIX.has(w.code)) continue;
-    const fix: AutoFix = { code: w.code, ids: w.ids };
+    const fix: AutoFix = { code: w.code, ids: w.ids, ...(w.view ? { view: w.view } : {}) };
     if (!out.some((f) => sameFix(f, fix))) out = [...out, fix];
   }
   return out;
@@ -238,6 +248,9 @@ export function reduce(state: AppState, action: Action, deps: StoreDeps): AppSta
       return { ...state, account: action.account };
     case 'sessions/list':
       return { ...state, sessions: action.sessions, sessionsVersion: state.sessionsVersion + 1 };
+    case 'session/mode':
+      return { ...state, session: { ...state.session, mode: action.mode },
+        ui: { ...state.ui, highlight: null, hoverCard: null, panTo: null } };
     case 'session/new':
       return {
         ...createInitialState({ lang: state.lang, sessions: state.sessions, canvas: state.canvas, id: action.id, now: action.now }),
@@ -251,7 +264,8 @@ export function reduce(state: AppState, action: Action, deps: StoreDeps): AppSta
       const base: AppState = {
         ...state,
         view: 'working',
-        session: rec,
+        session: { ...rec, mode: rec.mode ?? 'cloud' },
+        workflowDisplay: workflowDisplay(state, rec.memory.workflow ?? emptyWorkflow(), 'restore'),
         work: null,
         turn: { phase: 'idle', lastTextAt: null, startedAt: null },
         replay: null,
@@ -260,7 +274,8 @@ export function reduce(state: AppState, action: Action, deps: StoreDeps): AppSta
       return relayout(base, deps, rec.memory.graph, 'restore', { refit: true, animate: false, fresh: true });
     }
     case 'turn/start':
-      return startTurn(action.replaceLast ? discardFailed(state) : state, action.ask, action.now, action.replayOf ?? null);
+      return startTurn(action.replaceLast ? discardFailed(state) : state, action.ask, action.now, action.replayOf ?? null,
+        action.mode ?? (action.replaceLast ? latestRevision(state)?.mode ?? 'cloud' : state.session.mode ?? 'cloud'));
     case 'rev/discardFailed':
       return discardFailed(state);
     case 'turn/event':
@@ -284,13 +299,24 @@ export function reduce(state: AppState, action: Action, deps: StoreDeps): AppSta
       return state.ui.panelOpen === action.open ? state : { ...state, ui: { ...state.ui, panelOpen: action.open } };
     case 'ui/focusDiagram':
       return { ...state, ui: { ...state.ui, focusDiagram: action.on } };
-    case 'ui/highlight':
-      return { ...state, ui: { ...state.ui, highlight: action.highlight } };
+    case 'ui/highlight': {
+      let highlight = action.highlight;
+      if (highlight && !highlight.view) {
+        const rev = state.session.revisions.find((r) => r.n === highlight?.revision);
+        const line = state.session.revisions.flatMap((r) => [...r.changes, ...r.fix.changes])
+          .find((l) => l.cards === highlight?.cards && l.ghosts === highlight?.ghosts);
+        const view = rev?.mode ?? line?.view;
+        if (view) highlight = { ...highlight, view };
+      }
+      return { ...state, ui: { ...state.ui, highlight } };
+    }
     case 'ui/panTo':
       return { ...state, ui: { ...state.ui, panTo: { ids: action.ids, seq: (state.ui.panTo?.seq ?? 0) + 1 } } };
     case 'ui/reveal': {
       const rev = state.session.revisions.find((r) => r.n === action.revision);
-      const highlight: Highlight | null = rev ? { source: 'revision', cards: rev.cards, ghosts: rev.gone, revision: rev.n } : state.ui.highlight;
+      const highlight: Highlight | null = rev
+        ? { source: 'revision', cards: rev.cards, ghosts: rev.gone, revision: rev.n, ...(rev.mode ? { view: rev.mode } : {}) }
+        : state.ui.highlight;
       return { ...state, ui: { ...state.ui, highlight, reveal: { revision: action.revision, seq: (state.ui.reveal?.seq ?? 0) + 1 } } };
     }
     case 'ui/hoverCard':
@@ -341,7 +367,7 @@ function discardFailed(state: AppState): AppState {
   return { ...state, session, turn: { phase: 'idle', lastTextAt: null, startedAt: null } };
 }
 
-function startTurn(state: AppState, ask: string, now: number, replayOf: string | null): AppState {
+function startTurn(state: AppState, ask: string, now: number, replayOf: string | null, mode: TurnMode): AppState {
   const text = ask.trim();
   const session = state.session;
   const n = session.revisions.length + 1;
@@ -349,6 +375,9 @@ function startTurn(state: AppState, ask: string, now: number, replayOf: string |
   const shown = state.display.layout ? new Set(Object.keys(state.display.layout.cards)) : new Set<string>();
   const work: TurnWork = {
     n,
+    mode,
+    rawWorkflow: mem.workflow ?? emptyWorkflow(),
+    workflowCtx: createWorkflowCtx(),
     base: mem,
     raw: mem.graph,
     ctx: createCtx(),
@@ -369,10 +398,11 @@ function startTurn(state: AppState, ask: string, now: number, replayOf: string |
     view: 'working',
     session: {
       ...session,
+      mode,
       title: session.title || text,
       updatedAt: now,
       replayOf: replayOf ?? session.replayOf,
-      revisions: [...session.revisions, emptyRevision(n, text, now)],
+      revisions: [...session.revisions, { ...emptyRevision(n, text, now), mode }],
     },
     work,
     turn: { phase: 'waiting', lastTextAt: null, startedAt: now },
@@ -451,6 +481,9 @@ function onOp(state: AppState, work: TurnWork, ev: Extract<WireEvent, { type: 'o
   if (op.t === 'say') return next; // the say event carries the text; the op repeats it
   if (op.t === 'assume' || op.t === 'ask') return onAssumeOrAsk(next, op); // not graph ops: they feed the chips and the questions
 
+  if (isWorkflowOp(op)) return work.mode === 'workflow' ? onWorkflowOp(next, work, op, phase) : next;
+  if (work.mode === 'workflow' && !['req', 'gap', 'done'].includes(op.t)) return next;
+
   const toFix = phase === 'repair' && work.follow !== 'continue';
   const res = applyOp(work.raw, op, work.ctx);
   const touched = new Set(work.touched);
@@ -527,6 +560,15 @@ function onStatus(state: AppState, work: TurnWork, code: Extract<WireEvent, { ty
   if (code === 'repair' || code === 'continue') {
     // The server's follow-up turn starts from the repaired graph with a fresh reducer context: mirror that, so its ops
     // (which name ids of the repaired graph) apply to the same graph here.
+    if (work.mode === 'workflow') {
+      const rep = repairWorkflow(work.rawWorkflow, deps.catalog, models, work.base.workflowSettings);
+      const follow = code === 'continue' ? 'continue' : 'repair';
+      next = { ...next, work: { ...work, rawWorkflow: rep.workflow, workflowCtx: createWorkflowCtx(),
+        follow, dirty: true, autoFixes: mergeFixes(work.autoFixes, rep.warnings.map((w) => ({ ...w, view: 'workflow' }))) },
+        turn: { ...next.turn, phase: 'repairing' } };
+      return patchLast(next, (r) => follow === 'repair'
+        ? { ...r, fix: { ...r.fix, state: 'fixing' } } : { ...r, truncated: false });
+    }
     const rep = repairGraph(work.raw, deps.catalog, { constraints: work.constraints });
     const follow = code === 'continue' ? 'continue' : 'repair';
     next = {
@@ -559,6 +601,10 @@ function onStatus(state: AppState, work: TurnWork, code: Extract<WireEvent, { ty
 function flush(state: AppState, deps: StoreDeps): AppState {
   const work = state.work;
   if (!work || !work.dirty) return state;
+  if (work.mode === 'workflow') {
+    return { ...state, workflowDisplay: workflowDisplay(state, work.rawWorkflow, 'batch'),
+      work: { ...work, dirty: false, batches: work.batches + 1 } };
+  }
   const d = displayOpenTurn({ raw: work.raw, catalog: deps.catalog, drawn: work.drawn, shownAtTurnStart: work.shownAtTurnStart, touched: work.touched, constraints: work.constraints });
   const first = work.batches === 0;
   // refit only at turn start (the first batch of the first turn): the customer is reading mid-turn
@@ -573,17 +619,28 @@ function flush(state: AppState, deps: StoreDeps): AppState {
 function onCommit(state: AppState, work: TurnWork, ev: Extract<WireEvent, { type: 'commit' }>, now: number, deps: StoreDeps): AppState {
   const memory = ev.memory;
   const committed = memory.graph;
-  const diff = diffGraphs(work.base.graph, committed);
-  const isCard = (id: string): boolean => id.startsWith('rec:') || has(committed.nodes, id) || has(work.base.graph.nodes, id);
-  const cards = [...diff.added, ...diff.updated].filter((id) => isCard(id) && !has(committed.edges, id) && !has(committed.groups, id));
-  const gone = diff.removed.filter((id) => isCard(id) && !has(work.base.graph.edges, id) && !has(work.base.graph.groups, id));
-  const autoFixes = mergeFixes(work.autoFixes, repairGraph(work.raw, deps.catalog, { constraints: work.constraints }).warnings);
+  const workflow = work.mode === 'workflow';
+  const beforeWorkflow = work.base.workflow ?? emptyWorkflow();
+  const afterWorkflow = memory.workflow ?? emptyWorkflow();
+  const beforeDoc = workflow ? beforeWorkflow : work.base.graph;
+  const afterDoc = workflow ? afterWorkflow : committed;
+  const diff = workflow ? workflowNodeDiff(beforeWorkflow, afterWorkflow) : diffGraphs(work.base.graph, committed);
+  const isCard = (id: string): boolean => id.startsWith('rec:') || has(afterDoc.nodes, id) || has(beforeDoc.nodes, id);
+  const cards = [...diff.added, ...diff.updated].filter((id) => isCard(id) && !has(afterDoc.edges, id) && !has(afterDoc.groups, id));
+  const gone = diff.removed.filter((id) => isCard(id) && !has(beforeDoc.edges, id) && !has(beforeDoc.groups, id));
+  const autoFixes = mergeFixes(work.autoFixes, [...(workflow ? ev.warnings : []), ...(workflow
+    ? repairWorkflow(work.rawWorkflow, deps.catalog, models, work.base.workflowSettings).warnings.map((w) => ({ ...w, view: 'workflow' as const }))
+    : repairGraph(work.raw, deps.catalog, { constraints: work.constraints }).warnings)]);
   const n = work.n;
 
   let next = state;
   next = patchLast(next, (r) => {
-    const changes = reconcileChanges(r.changes, work.base.graph, committed, deps.catalog, 'main', true);
-    const fixChanges = reconcileChanges(r.fix.changes, work.base.graph, committed, deps.catalog, 'repair', false);
+    const wfLines = workflow ? workflowChanges(beforeWorkflow, afterWorkflow, 'main') : [];
+    const repairKeys = new Set(r.fix.changes.map((l) => l.key));
+    const changes = workflow ? wfLines.filter((l) => !repairKeys.has(l.key))
+      : reconcileChanges(r.changes, work.base.graph, committed, deps.catalog, 'main', true);
+    const fixChanges = workflow ? wfLines.filter((l) => repairKeys.has(l.key)).map((l) => ({ ...l, phase: 'repair' as const }))
+      : reconcileChanges(r.fix.changes, work.base.graph, committed, deps.catalog, 'repair', false);
     const stillBroken = ev.warnings.some((w) => CONSTRAINT_CODES.has(w.code));
     const incomplete = ev.warnings.some((w) => w.code === 'reply-incomplete');
     let fixState = r.fix.state;
@@ -610,7 +667,7 @@ function onCommit(state: AppState, work: TurnWork, ev: Extract<WireEvent, { type
     };
   });
 
-  const provenance = { ...next.session.provenance };
+  const provenance = { ...(workflow ? next.session.workflowProvenance : next.session.provenance) };
   for (const id of diff.added) if (isCard(id)) provenance[id] = { addedIn: n, changedIn: n };
   for (const id of diff.updated) if (isCard(id)) provenance[id] = { addedIn: provenance[id]?.addedIn ?? n, changedIn: n };
   for (const id of diff.removed) delete provenance[id];
@@ -619,10 +676,13 @@ function onCommit(state: AppState, work: TurnWork, ev: Extract<WireEvent, { type
     if (has(reqPinnedIn, text)) continue;
     reqPinnedIn[text] = n;
   }
-  const session: SessionRecord = { ...next.session, memory, updatedAt: now, reqPinnedIn, provenance };
+  const session: SessionRecord = { ...next.session, memory, updatedAt: now, reqPinnedIn,
+    ...(workflow ? { workflowProvenance: provenance } : { provenance }) };
   session.summarizedThrough = memory.summary ? Math.max(session.summarizedThrough, foldedThrough(session, memory)) : session.summarizedThrough;
   next = { ...next, session, work: null, turn: { phase: 'idle', lastTextAt: null, startedAt: null } };
-  next = relayout(next, deps, committed, 'commit', { refit: true, animate: true });
+  next = workflow
+    ? { ...next, workflowDisplay: workflowDisplay(next, afterWorkflow, 'commit') }
+    : relayout(next, deps, committed, 'commit', { refit: true, animate: true });
   const rev = next.session.revisions[next.session.revisions.length - 1];
   const broken = ev.warnings.find((w) => CONSTRAINT_CODES.has(w.code));
   next = live(next, t(next.lang, 'live.drawn', { n, added: rev.added, removed: rev.removed }));
@@ -674,7 +734,9 @@ function endWithoutCommit(state: AppState, deps: StoreDeps, status: 'failed' | '
   next = { ...next, session: { ...next.session, reqPinnedIn }, work: null };
   next = { ...next, turn: { phase: status === 'failed' ? 'error' : 'idle', lastTextAt: null, startedAt: null } };
   // the streamed cards leave and the committed graph returns
-  next = relayout(next, deps, work.base.graph, 'revert', { refit: true, animate: true });
+  next = work.mode === 'workflow'
+    ? { ...next, workflowDisplay: workflowDisplay(next, work.base.workflow ?? emptyWorkflow(), 'revert') }
+    : relayout(next, deps, work.base.graph, 'revert', { refit: true, animate: true });
   if (status === 'failed') {
     const rev = next.session.revisions[next.session.revisions.length - 1];
     next = live(next, t(next.lang, 'live.failed', { n: rev.n, message: error?.message ?? '' }));
@@ -694,4 +756,38 @@ export function isBusy(state: AppState): boolean {
 
 export function sessionSummary(s: SessionRecord): SessionSummary {
   return { id: s.id, title: s.title, updatedAt: s.updatedAt, revisions: s.revisions.length };
+}
+
+// Workflow display snapshots stay separate until the workflow canvas supplies layout.
+function workflowDisplay(state: AppState, graph: WorkflowGraph, reason: DisplayReason): AppState['workflowDisplay'] {
+  return { graph, version: state.workflowDisplay.version + 1, reason };
+}
+
+function isWorkflowOp(op: Op | WorkflowOp): op is WorkflowOp {
+  return ['step', 'link', 'each', 'splice', 'unstep'].includes(op.t);
+}
+
+function workflowNodeDiff(base: WorkflowGraph, after: WorkflowGraph): { added: string[]; updated: string[]; removed: string[] } {
+  return {
+    added: Object.keys(after.nodes).filter((id) => !has(base.nodes, id)),
+    updated: Object.keys(after.nodes).filter((id) => has(base.nodes, id)
+      && JSON.stringify(base.nodes[id]) !== JSON.stringify(after.nodes[id])),
+    removed: Object.keys(base.nodes).filter((id) => !has(after.nodes, id)),
+  };
+}
+
+function onWorkflowOp(state: AppState, work: TurnWork, op: WorkflowOp, phase: 'main' | 'repair'): AppState {
+  const ctx = { ...work.workflowCtx, pending: [...work.workflowCtx.pending], removedThisTurn: [...work.workflowCtx.removedThisTurn] };
+  const res = applyWorkflowOp(work.rawWorkflow, op, ctx);
+  const toFix = phase === 'repair' && work.follow !== 'continue';
+  const changes = workflowChanges(work.rawWorkflow, res.workflow, toFix ? 'repair' : 'main');
+  const built = [...new Set([...work.built, ...res.added, ...res.updated])].filter((id) => has(res.workflow.nodes, id));
+  const next = { ...state, work: { ...work, rawWorkflow: res.workflow, workflowCtx: ctx,
+    dirty: work.dirty || res.workflow !== work.rawWorkflow, built } };
+  return patchLast(next, (r) => {
+    const lines = toFix ? r.fix.changes : r.changes;
+    const keys = new Set(changes.map((l) => l.key));
+    const merged = [...lines.filter((l) => !keys.has(l.key)), ...changes];
+    return toFix ? { ...r, fix: { ...r.fix, changes: merged } } : { ...r, changes: merged };
+  });
 }

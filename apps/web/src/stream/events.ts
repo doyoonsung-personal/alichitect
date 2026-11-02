@@ -1,9 +1,9 @@
 // What travels on POST /api/turn: every llm.ts TurnEvent with its phase, plus the server's own events.
-import type { ServerEvent, Warning } from '@ali/core/types.ts';
+import type { ServerEvent, Warning, WorkflowOp } from '@ali/core/types.ts';
 import type { TurnEvent } from '@ali/core/llm.ts';
 
 export type Phase = 'main' | 'repair';
-export type WireEvent = (TurnEvent & { phase: Phase }) | ServerEvent;
+export type WireEvent = (TurnEvent & { phase: Phase }) | { type: 'op'; op: WorkflowOp; phase: Phase } | ServerEvent;
 export type WireType = WireEvent['type'];
 export type StatusCode = Extract<ServerEvent, { type: 'status' }>['code'];
 

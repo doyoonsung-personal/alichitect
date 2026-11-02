@@ -1,6 +1,6 @@
 // Change lines: the op events of a revision turned into the record's change list (spec 7.10). Pure. Names come from
 // the catalog (short names), never from the model's spelling; the line holds data, and the console words it.
-import type { ApplyResult, Catalog, CatalogEntry, Graph, GraphNode, Op } from '@ali/core/types.ts';
+import type { ApplyResult, Catalog, CatalogEntry, Graph, GraphNode, Op, WorkflowGraph } from '@ali/core/types.ts';
 import { normalizeKey } from '@ali/core/catalog.ts';
 import type { ChangeLine } from './types.ts';
 import type { Phase } from '../stream/events.ts';
@@ -315,4 +315,42 @@ export function countChanges(lines: readonly ChangeLine[]): { added: number; rem
     }
   }
   return { added, removed };
+}
+
+// Workflow history uses its own keys; cloud keys remain compatible with saved records.
+export function workflowChanges(base: WorkflowGraph, after: WorkflowGraph, phase: Phase): ChangeLine[] {
+  const lines: ChangeLine[] = [];
+  for (const id of new Set([...Object.keys(base.nodes), ...Object.keys(after.nodes)])) {
+    const a = base.nodes[id];
+    const b = after.nodes[id];
+    if (JSON.stringify(a) === JSON.stringify(b)) continue;
+    const kind = !a ? 'added' : !b ? 'removed' : 'changed';
+    lines.push({
+      key: `workflow:node:${id}`, view: 'workflow', kind, phase, name: (b ?? a).label,
+      cards: b ? [id] : [], ghosts: b ? [] : [id],
+    });
+  }
+  for (const id of new Set([...Object.keys(base.edges), ...Object.keys(after.edges)])) {
+    const a = base.edges[id];
+    const b = after.edges[id];
+    if (JSON.stringify(a) === JSON.stringify(b)) continue;
+    const e = b ?? a;
+    const g = b ? after : base;
+    lines.push({
+      key: `workflow:edge:${id}`, view: 'workflow', kind: b ? 'connections' : 'connectionsRemoved', phase,
+      name: '', count: 1, pairs: [[g.nodes[e.from]?.label ?? e.from, g.nodes[e.to]?.label ?? e.to]],
+      cards: [e.from, e.to].filter((x) => has(after.nodes, x)),
+      ghosts: [e.from, e.to].filter((x) => !has(after.nodes, x) && has(base.nodes, x)),
+    });
+  }
+  for (const id of new Set([...Object.keys(base.groups), ...Object.keys(after.groups)])) {
+    const a = base.groups[id];
+    const b = after.groups[id];
+    if (JSON.stringify(a) === JSON.stringify(b)) continue;
+    lines.push({
+      key: `workflow:group:${id}`, view: 'workflow', kind: 'changed', phase, name: (b ?? a).over,
+      cards: Object.values(after.nodes).filter((n) => n.repeat === id).map((n) => n.id), ghosts: [],
+    });
+  }
+  return lines;
 }

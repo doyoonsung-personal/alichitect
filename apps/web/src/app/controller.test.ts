@@ -344,3 +344,36 @@ test('sign out posts to the address /api/me gave', async () => {
   t.c.signOut();
   assert.equal(t.signedOutVia(), '/auth/logout');
 });
+
+test('retry sends the captured workflow mode after the active mode changes and reload keeps it', async () => {
+  let calls = 0;
+  const t = setup({ turn: () => ++calls === 1
+    ? new Response(JSON.stringify({ type: 'fatal', code: 'network', message: '', retryable: true }) + '\n')
+    : turnResponse(loadFixtureFile('stub-workflow')) });
+  await t.c.boot();
+  t.c.setMode('workflow');
+  t.c.submit('Triage emails');
+  await until(() => t.store.getState().session.revisions[0]?.status === 'failed');
+  t.c.setMode('cloud');
+  t.c.retry();
+  await until(() => t.store.getState().session.revisions[0]?.status === 'done');
+  const requests = t.requests.filter((r) => r.url.endsWith('/api/turn'));
+  assert.deepEqual(requests.map((r) => (r.body as { mode: string }).mode), ['workflow', 'workflow']);
+  assert.equal(t.store.getState().session.revisions[0].mode, 'workflow');
+  assert.equal(t.store.getState().session.mode, 'workflow');
+  const back = setup({ sessions: t.sessions, resumeId: t.store.getState().session.id });
+  await back.c.boot();
+  assert.equal(back.store.getState().session.mode, 'workflow');
+  assert.deepEqual(back.store.getState().session.memory, t.store.getState().session.memory);
+  t.c.dispose();
+  back.c.dispose();
+});
+
+test('ordinary requests explicitly default to cloud', async () => {
+  const t = setup();
+  await t.c.boot();
+  t.c.submit('Draw a backend');
+  await until(() => t.store.getState().session.revisions[0]?.status === 'done');
+  assert.equal((t.requests.find((r) => r.url.endsWith('/api/turn'))!.body as { mode: string }).mode, 'cloud');
+  t.c.dispose();
+});

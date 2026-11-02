@@ -1,0 +1,2029 @@
+{
+  "id": "large-dual",
+  "mode": "workflow",
+  "createdAt": 0,
+  "updatedAt": 3001,
+  "title": "Draw a support backend",
+  "memory": {
+    "turns": [
+      {
+        "role": "user",
+        "text": "Draw a support backend"
+      },
+      {
+        "role": "assistant",
+        "text": "Email backend"
+      },
+      {
+        "role": "user",
+        "text": "Set up an agent that triages inbound support emails and drafts replies for approval",
+        "mode": "workflow"
+      },
+      {
+        "role": "assistant",
+        "text": "Draft replies for approval.",
+        "mode": "workflow"
+      }
+    ],
+    "requirements": [],
+    "graph": {
+      "groups": {},
+      "nodes": {
+        "in": {
+          "id": "in",
+          "product": "fc",
+          "label": "Email backend",
+          "group": null
+        },
+        "cloud-0": {
+          "id": "cloud-0",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 0",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-1": {
+          "id": "cloud-1",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 1",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-2": {
+          "id": "cloud-2",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 2",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-3": {
+          "id": "cloud-3",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 3",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-4": {
+          "id": "cloud-4",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 4",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-5": {
+          "id": "cloud-5",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 5",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-6": {
+          "id": "cloud-6",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 6",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-7": {
+          "id": "cloud-7",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 7",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-8": {
+          "id": "cloud-8",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 8",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-9": {
+          "id": "cloud-9",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 9",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-10": {
+          "id": "cloud-10",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 10",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-11": {
+          "id": "cloud-11",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 11",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-12": {
+          "id": "cloud-12",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 12",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-13": {
+          "id": "cloud-13",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 13",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-14": {
+          "id": "cloud-14",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 14",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-15": {
+          "id": "cloud-15",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 15",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-16": {
+          "id": "cloud-16",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 16",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-17": {
+          "id": "cloud-17",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 17",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-18": {
+          "id": "cloud-18",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 18",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-19": {
+          "id": "cloud-19",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 19",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-20": {
+          "id": "cloud-20",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 20",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-21": {
+          "id": "cloud-21",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 21",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-22": {
+          "id": "cloud-22",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 22",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-23": {
+          "id": "cloud-23",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 23",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-24": {
+          "id": "cloud-24",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 24",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-25": {
+          "id": "cloud-25",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 25",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-26": {
+          "id": "cloud-26",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 26",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-27": {
+          "id": "cloud-27",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 27",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-28": {
+          "id": "cloud-28",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 28",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-29": {
+          "id": "cloud-29",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 29",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-30": {
+          "id": "cloud-30",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 30",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-31": {
+          "id": "cloud-31",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 31",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-32": {
+          "id": "cloud-32",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 32",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-33": {
+          "id": "cloud-33",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 33",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-34": {
+          "id": "cloud-34",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 34",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-35": {
+          "id": "cloud-35",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 35",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-36": {
+          "id": "cloud-36",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 36",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-37": {
+          "id": "cloud-37",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 37",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-38": {
+          "id": "cloud-38",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 38",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-39": {
+          "id": "cloud-39",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 39",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-40": {
+          "id": "cloud-40",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 40",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-41": {
+          "id": "cloud-41",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 41",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-42": {
+          "id": "cloud-42",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 42",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-43": {
+          "id": "cloud-43",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 43",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-44": {
+          "id": "cloud-44",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 44",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-45": {
+          "id": "cloud-45",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 45",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-46": {
+          "id": "cloud-46",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 46",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-47": {
+          "id": "cloud-47",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 47",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-48": {
+          "id": "cloud-48",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 48",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-49": {
+          "id": "cloud-49",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 49",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-50": {
+          "id": "cloud-50",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 50",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-51": {
+          "id": "cloud-51",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 51",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-52": {
+          "id": "cloud-52",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 52",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-53": {
+          "id": "cloud-53",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 53",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-54": {
+          "id": "cloud-54",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 54",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-55": {
+          "id": "cloud-55",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 55",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-56": {
+          "id": "cloud-56",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 56",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-57": {
+          "id": "cloud-57",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 57",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-58": {
+          "id": "cloud-58",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 58",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-59": {
+          "id": "cloud-59",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 59",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-60": {
+          "id": "cloud-60",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 60",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-61": {
+          "id": "cloud-61",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 61",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-62": {
+          "id": "cloud-62",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 62",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-63": {
+          "id": "cloud-63",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 63",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-64": {
+          "id": "cloud-64",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 64",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-65": {
+          "id": "cloud-65",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 65",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-66": {
+          "id": "cloud-66",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 66",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-67": {
+          "id": "cloud-67",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 67",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-68": {
+          "id": "cloud-68",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 68",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-69": {
+          "id": "cloud-69",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 69",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-70": {
+          "id": "cloud-70",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 70",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-71": {
+          "id": "cloud-71",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 71",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-72": {
+          "id": "cloud-72",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 72",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-73": {
+          "id": "cloud-73",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 73",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-74": {
+          "id": "cloud-74",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 74",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-75": {
+          "id": "cloud-75",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 75",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-76": {
+          "id": "cloud-76",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 76",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-77": {
+          "id": "cloud-77",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 77",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-78": {
+          "id": "cloud-78",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 78",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-79": {
+          "id": "cloud-79",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 79",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-80": {
+          "id": "cloud-80",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 80",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-81": {
+          "id": "cloud-81",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 81",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-82": {
+          "id": "cloud-82",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 82",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-83": {
+          "id": "cloud-83",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 83",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-84": {
+          "id": "cloud-84",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 84",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-85": {
+          "id": "cloud-85",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 85",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-86": {
+          "id": "cloud-86",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 86",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-87": {
+          "id": "cloud-87",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 87",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-88": {
+          "id": "cloud-88",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 88",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-89": {
+          "id": "cloud-89",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 89",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-90": {
+          "id": "cloud-90",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 90",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-91": {
+          "id": "cloud-91",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 91",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-92": {
+          "id": "cloud-92",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 92",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-93": {
+          "id": "cloud-93",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 93",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-94": {
+          "id": "cloud-94",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 94",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-95": {
+          "id": "cloud-95",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 95",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-96": {
+          "id": "cloud-96",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 96",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-97": {
+          "id": "cloud-97",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 97",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-98": {
+          "id": "cloud-98",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 98",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-99": {
+          "id": "cloud-99",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 99",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-100": {
+          "id": "cloud-100",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 100",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-101": {
+          "id": "cloud-101",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 101",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-102": {
+          "id": "cloud-102",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 102",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-103": {
+          "id": "cloud-103",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 103",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-104": {
+          "id": "cloud-104",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 104",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-105": {
+          "id": "cloud-105",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 105",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-106": {
+          "id": "cloud-106",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 106",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-107": {
+          "id": "cloud-107",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 107",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-108": {
+          "id": "cloud-108",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 108",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-109": {
+          "id": "cloud-109",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 109",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-110": {
+          "id": "cloud-110",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 110",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-111": {
+          "id": "cloud-111",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 111",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-112": {
+          "id": "cloud-112",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 112",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-113": {
+          "id": "cloud-113",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 113",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-114": {
+          "id": "cloud-114",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 114",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-115": {
+          "id": "cloud-115",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 115",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-116": {
+          "id": "cloud-116",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 116",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-117": {
+          "id": "cloud-117",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 117",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-118": {
+          "id": "cloud-118",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 118",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-119": {
+          "id": "cloud-119",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 119",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-120": {
+          "id": "cloud-120",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 120",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-121": {
+          "id": "cloud-121",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 121",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-122": {
+          "id": "cloud-122",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 122",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-123": {
+          "id": "cloud-123",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 123",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-124": {
+          "id": "cloud-124",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 124",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-125": {
+          "id": "cloud-125",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 125",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-126": {
+          "id": "cloud-126",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 126",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-127": {
+          "id": "cloud-127",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 127",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-128": {
+          "id": "cloud-128",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 128",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-129": {
+          "id": "cloud-129",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 129",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-130": {
+          "id": "cloud-130",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 130",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-131": {
+          "id": "cloud-131",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 131",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-132": {
+          "id": "cloud-132",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 132",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-133": {
+          "id": "cloud-133",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 133",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-134": {
+          "id": "cloud-134",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 134",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-135": {
+          "id": "cloud-135",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 135",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-136": {
+          "id": "cloud-136",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 136",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-137": {
+          "id": "cloud-137",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 137",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-138": {
+          "id": "cloud-138",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 138",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        },
+        "cloud-139": {
+          "id": "cloud-139",
+          "product": "fc",
+          "group": null,
+          "label": "Support backend 139",
+          "why": "Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. Handles inbound support requests. "
+        }
+      },
+      "edges": {},
+      "recs": []
+    },
+    "tombstones": [],
+    "workflow": {
+      "nodes": {
+        "in": {
+          "id": "in",
+          "kind": "trigger",
+          "label": "Email webhook",
+          "product": "eventbridge",
+          "runs": "fc",
+          "untrusted": true,
+          "private": true
+        },
+        "guard": {
+          "id": "guard",
+          "kind": "guard",
+          "label": "Screen injection",
+          "product": "ai-guardrails",
+          "runs": "fc"
+        },
+        "route": {
+          "id": "route",
+          "kind": "ai",
+          "label": "Intent and urgency",
+          "task": "classify",
+          "product": "model-studio",
+          "runs": "fc",
+          "ai": "qwen3.8-flash"
+        },
+        "kb": {
+          "id": "kb",
+          "kind": "knowledge",
+          "label": "Retrieve help centre",
+          "task": "retrieve",
+          "product": "tablestore",
+          "runs": "fc",
+          "ai": "text-embedding-v4"
+        },
+        "rank": {
+          "id": "rank",
+          "kind": "knowledge",
+          "label": "Rank evidence",
+          "task": "rerank",
+          "product": "model-studio",
+          "runs": "fc",
+          "ai": "qwen3-rerank"
+        },
+        "draft": {
+          "id": "draft",
+          "kind": "ai",
+          "label": "Draft grounded answer",
+          "task": "generate",
+          "product": "model-studio",
+          "runs": "fc",
+          "ai": "qwen3.8-flash"
+        },
+        "check": {
+          "id": "check",
+          "kind": "ai",
+          "label": "Check evidence",
+          "task": "check",
+          "product": "model-studio",
+          "runs": "fc",
+          "ai": "qwen3.7-plus"
+        },
+        "gate": {
+          "id": "gate",
+          "kind": "decide",
+          "label": "Evidence quality",
+          "runs": "fc"
+        },
+        "human": {
+          "id": "human",
+          "kind": "human",
+          "label": "Approve exact email",
+          "task": "approve",
+          "runs": "customer",
+          "subject": "draft"
+        },
+        "manual": {
+          "id": "manual",
+          "kind": "human",
+          "label": "Resolve manually",
+          "task": "review",
+          "runs": "customer"
+        },
+        "send": {
+          "id": "send",
+          "kind": "act",
+          "label": "Send approved email",
+          "product": "direct-mail",
+          "runs": "fc",
+          "effect": "send"
+        },
+        "log": {
+          "id": "log",
+          "kind": "act",
+          "label": "Write trace",
+          "product": "tablestore",
+          "runs": "fc",
+          "effect": "write"
+        },
+        "end": {
+          "id": "end",
+          "kind": "end",
+          "label": "Done"
+        },
+        "step-0": {
+          "id": "step-0",
+          "kind": "ai",
+          "label": "Draft 0",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-1": {
+          "id": "step-1",
+          "kind": "ai",
+          "label": "Draft 1",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-2": {
+          "id": "step-2",
+          "kind": "ai",
+          "label": "Draft 2",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-3": {
+          "id": "step-3",
+          "kind": "ai",
+          "label": "Draft 3",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-4": {
+          "id": "step-4",
+          "kind": "ai",
+          "label": "Draft 4",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-5": {
+          "id": "step-5",
+          "kind": "ai",
+          "label": "Draft 5",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-6": {
+          "id": "step-6",
+          "kind": "ai",
+          "label": "Draft 6",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-7": {
+          "id": "step-7",
+          "kind": "ai",
+          "label": "Draft 7",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-8": {
+          "id": "step-8",
+          "kind": "ai",
+          "label": "Draft 8",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-9": {
+          "id": "step-9",
+          "kind": "ai",
+          "label": "Draft 9",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-10": {
+          "id": "step-10",
+          "kind": "ai",
+          "label": "Draft 10",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-11": {
+          "id": "step-11",
+          "kind": "ai",
+          "label": "Draft 11",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-12": {
+          "id": "step-12",
+          "kind": "ai",
+          "label": "Draft 12",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-13": {
+          "id": "step-13",
+          "kind": "ai",
+          "label": "Draft 13",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-14": {
+          "id": "step-14",
+          "kind": "ai",
+          "label": "Draft 14",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-15": {
+          "id": "step-15",
+          "kind": "ai",
+          "label": "Draft 15",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-16": {
+          "id": "step-16",
+          "kind": "ai",
+          "label": "Draft 16",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-17": {
+          "id": "step-17",
+          "kind": "ai",
+          "label": "Draft 17",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-18": {
+          "id": "step-18",
+          "kind": "ai",
+          "label": "Draft 18",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-19": {
+          "id": "step-19",
+          "kind": "ai",
+          "label": "Draft 19",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-20": {
+          "id": "step-20",
+          "kind": "ai",
+          "label": "Draft 20",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-21": {
+          "id": "step-21",
+          "kind": "ai",
+          "label": "Draft 21",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-22": {
+          "id": "step-22",
+          "kind": "ai",
+          "label": "Draft 22",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-23": {
+          "id": "step-23",
+          "kind": "ai",
+          "label": "Draft 23",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        },
+        "step-24": {
+          "id": "step-24",
+          "kind": "ai",
+          "label": "Draft 24",
+          "ai": "qwen3.7-plus",
+          "why": "Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. Draft a response using approved knowledge. "
+        }
+      },
+      "edges": {
+        "l1": {
+          "id": "l1",
+          "from": "in",
+          "to": "guard",
+          "kind": "next"
+        },
+        "l2": {
+          "id": "l2",
+          "from": "guard",
+          "to": "route",
+          "kind": "next"
+        },
+        "l3": {
+          "id": "l3",
+          "from": "route",
+          "to": "kb",
+          "kind": "next"
+        },
+        "l4": {
+          "id": "l4",
+          "from": "kb",
+          "to": "rank",
+          "kind": "next"
+        },
+        "l5": {
+          "id": "l5",
+          "from": "rank",
+          "to": "draft",
+          "kind": "next"
+        },
+        "l6": {
+          "id": "l6",
+          "from": "draft",
+          "to": "check",
+          "kind": "next"
+        },
+        "l7": {
+          "id": "l7",
+          "from": "check",
+          "to": "gate",
+          "kind": "next"
+        },
+        "l8": {
+          "id": "l8",
+          "from": "gate",
+          "to": "human",
+          "kind": "branch",
+          "label": "Grounded"
+        },
+        "l9": {
+          "id": "l9",
+          "from": "gate",
+          "to": "draft",
+          "kind": "loop",
+          "label": "Revise",
+          "max": 2
+        },
+        "l10": {
+          "id": "l10",
+          "from": "gate",
+          "to": "manual",
+          "kind": "escalate",
+          "label": "Budget spent",
+          "outcome": "exhausted"
+        },
+        "l11": {
+          "id": "l11",
+          "from": "human",
+          "to": "send",
+          "kind": "branch",
+          "outcome": "approve"
+        },
+        "l12": {
+          "id": "l12",
+          "from": "human",
+          "to": "log",
+          "kind": "branch",
+          "outcome": "reject"
+        },
+        "l13": {
+          "id": "l13",
+          "from": "human",
+          "to": "draft",
+          "kind": "branch",
+          "outcome": "edit"
+        },
+        "l14": {
+          "id": "l14",
+          "from": "manual",
+          "to": "log",
+          "kind": "next"
+        },
+        "l15": {
+          "id": "l15",
+          "from": "send",
+          "to": "log",
+          "kind": "next"
+        },
+        "l16": {
+          "id": "l16",
+          "from": "log",
+          "to": "end",
+          "kind": "next"
+        }
+      },
+      "groups": {}
+    },
+    "workflowTombstones": [],
+    "workflowSettings": {
+      "region": "ap-southeast-1"
+    },
+    "estimate": {
+      "runsPerMonth": 1000,
+      "loops": {
+        "revise": {
+          "typical": 1,
+          "upper": 2
+        }
+      }
+    }
+  },
+  "revisions": [
+    {
+      "n": 1,
+      "ask": "Draw a support backend",
+      "askLang": "en",
+      "startedAt": 1,
+      "status": "done",
+      "note": "",
+      "changes": [
+        {
+          "cards": [
+            "in"
+          ],
+          "ghosts": [],
+          "key": "added:in",
+          "kind": "added",
+          "phase": "main",
+          "product": "fc",
+          "name": "Function Compute",
+          "label": "Email backend"
+        }
+      ],
+      "reqs": [],
+      "lifecycle": [],
+      "fix": {
+        "autoFixes": [],
+        "constraint": [],
+        "state": "none",
+        "note": "",
+        "changes": []
+      },
+      "statusLine": null,
+      "truncated": false,
+      "durationMs": 200,
+      "error": null,
+      "commitWarnings": [],
+      "added": 1,
+      "removed": 0,
+      "cards": [
+        "in"
+      ],
+      "gone": [],
+      "assumes": [],
+      "asks": [],
+      "mode": "cloud"
+    },
+    {
+      "n": 2,
+      "ask": "Set up an agent that triages inbound support emails and drafts replies for approval",
+      "askLang": "en",
+      "startedAt": 1,
+      "status": "done",
+      "note": "",
+      "changes": [
+        {
+          "key": "workflow:node:in",
+          "view": "workflow",
+          "kind": "added",
+          "phase": "main",
+          "name": "Email webhook",
+          "cards": [
+            "in"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:node:guard",
+          "view": "workflow",
+          "kind": "added",
+          "phase": "main",
+          "name": "Screen injection",
+          "cards": [
+            "guard"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:node:route",
+          "view": "workflow",
+          "kind": "added",
+          "phase": "main",
+          "name": "Intent and urgency",
+          "cards": [
+            "route"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:node:kb",
+          "view": "workflow",
+          "kind": "added",
+          "phase": "main",
+          "name": "Retrieve help centre",
+          "cards": [
+            "kb"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:node:rank",
+          "view": "workflow",
+          "kind": "added",
+          "phase": "main",
+          "name": "Rank evidence",
+          "cards": [
+            "rank"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:node:draft",
+          "view": "workflow",
+          "kind": "added",
+          "phase": "main",
+          "name": "Draft grounded answer",
+          "cards": [
+            "draft"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:node:check",
+          "view": "workflow",
+          "kind": "added",
+          "phase": "main",
+          "name": "Check evidence",
+          "cards": [
+            "check"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:node:gate",
+          "view": "workflow",
+          "kind": "added",
+          "phase": "main",
+          "name": "Evidence quality",
+          "cards": [
+            "gate"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:node:human",
+          "view": "workflow",
+          "kind": "added",
+          "phase": "main",
+          "name": "Approve exact email",
+          "cards": [
+            "human"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:node:manual",
+          "view": "workflow",
+          "kind": "added",
+          "phase": "main",
+          "name": "Resolve manually",
+          "cards": [
+            "manual"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:node:send",
+          "view": "workflow",
+          "kind": "added",
+          "phase": "main",
+          "name": "Send approved email",
+          "cards": [
+            "send"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:node:log",
+          "view": "workflow",
+          "kind": "added",
+          "phase": "main",
+          "name": "Write trace",
+          "cards": [
+            "log"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:node:end",
+          "view": "workflow",
+          "kind": "added",
+          "phase": "main",
+          "name": "Done",
+          "cards": [
+            "end"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l1",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Email webhook",
+              "Screen injection"
+            ]
+          ],
+          "cards": [
+            "in",
+            "guard"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l2",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Screen injection",
+              "Intent and urgency"
+            ]
+          ],
+          "cards": [
+            "guard",
+            "route"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l3",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Intent and urgency",
+              "Retrieve help centre"
+            ]
+          ],
+          "cards": [
+            "route",
+            "kb"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l4",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Retrieve help centre",
+              "Rank evidence"
+            ]
+          ],
+          "cards": [
+            "kb",
+            "rank"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l5",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Rank evidence",
+              "Draft grounded answer"
+            ]
+          ],
+          "cards": [
+            "rank",
+            "draft"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l6",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Draft grounded answer",
+              "Check evidence"
+            ]
+          ],
+          "cards": [
+            "draft",
+            "check"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l7",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Check evidence",
+              "Evidence quality"
+            ]
+          ],
+          "cards": [
+            "check",
+            "gate"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l8",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Evidence quality",
+              "Approve exact email"
+            ]
+          ],
+          "cards": [
+            "gate",
+            "human"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l9",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Evidence quality",
+              "Draft grounded answer"
+            ]
+          ],
+          "cards": [
+            "gate",
+            "draft"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l10",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Evidence quality",
+              "Resolve manually"
+            ]
+          ],
+          "cards": [
+            "gate",
+            "manual"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l11",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Approve exact email",
+              "Send approved email"
+            ]
+          ],
+          "cards": [
+            "human",
+            "send"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l12",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Approve exact email",
+              "Write trace"
+            ]
+          ],
+          "cards": [
+            "human",
+            "log"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l13",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Approve exact email",
+              "Draft grounded answer"
+            ]
+          ],
+          "cards": [
+            "human",
+            "draft"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l14",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Resolve manually",
+              "Write trace"
+            ]
+          ],
+          "cards": [
+            "manual",
+            "log"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l15",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Send approved email",
+              "Write trace"
+            ]
+          ],
+          "cards": [
+            "send",
+            "log"
+          ],
+          "ghosts": []
+        },
+        {
+          "key": "workflow:edge:l16",
+          "view": "workflow",
+          "kind": "connections",
+          "phase": "main",
+          "name": "",
+          "count": 1,
+          "pairs": [
+            [
+              "Write trace",
+              "Done"
+            ]
+          ],
+          "cards": [
+            "log",
+            "end"
+          ],
+          "ghosts": []
+        }
+      ],
+      "reqs": [],
+      "lifecycle": [],
+      "fix": {
+        "autoFixes": [],
+        "constraint": [],
+        "state": "none",
+        "note": "",
+        "changes": []
+      },
+      "statusLine": null,
+      "truncated": false,
+      "durationMs": 3000,
+      "error": null,
+      "commitWarnings": [],
+      "added": 13,
+      "removed": 0,
+      "cards": [
+        "in",
+        "guard",
+        "route",
+        "kb",
+        "rank",
+        "draft",
+        "check",
+        "gate",
+        "human",
+        "manual",
+        "send",
+        "log",
+        "end"
+      ],
+      "gone": [],
+      "assumes": [],
+      "asks": [],
+      "mode": "workflow"
+    }
+  ],
+  "reqPinnedIn": {},
+  "provenance": {
+    "in": {
+      "addedIn": 1,
+      "changedIn": 1
+    }
+  },
+  "summarizedThrough": 0,
+  "summarizing": false,
+  "replayOf": null,
+  "workflowProvenance": {
+    "in": {
+      "addedIn": 2,
+      "changedIn": 2
+    },
+    "guard": {
+      "addedIn": 2,
+      "changedIn": 2
+    },
+    "route": {
+      "addedIn": 2,
+      "changedIn": 2
+    },
+    "kb": {
+      "addedIn": 2,
+      "changedIn": 2
+    },
+    "rank": {
+      "addedIn": 2,
+      "changedIn": 2
+    },
+    "draft": {
+      "addedIn": 2,
+      "changedIn": 2
+    },
+    "check": {
+      "addedIn": 2,
+      "changedIn": 2
+    },
+    "gate": {
+      "addedIn": 2,
+      "changedIn": 2
+    },
+    "human": {
+      "addedIn": 2,
+      "changedIn": 2
+    },
+    "manual": {
+      "addedIn": 2,
+      "changedIn": 2
+    },
+    "send": {
+      "addedIn": 2,
+      "changedIn": 2
+    },
+    "log": {
+      "addedIn": 2,
+      "changedIn": 2
+    },
+    "end": {
+      "addedIn": 2,
+      "changedIn": 2
+    }
+  }
+}
