@@ -191,7 +191,7 @@ function FixBlock({ ctx, r, slot }: { ctx: ConsoleCtx; r: Revision; slot: Return
       {fix.autoFixes.length ? (
         <div className="fix__auto" data-sep={hasTurn || undefined}>
           <button type="button" className="fix__toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
-            <span>{t('rec.autoFixes', { n: fix.autoFixes.length })}</span>
+            <span>{t(r.mode === 'workflow' ? 'workflow.fix.heading' : 'rec.autoFixes', { n: fix.autoFixes.length })}</span>
             <Icon name={open ? 'chevronUp' : 'chevronDown'} size={14} />
           </button>
           {open ? (
