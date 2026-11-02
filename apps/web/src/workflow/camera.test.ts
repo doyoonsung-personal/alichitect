@@ -50,3 +50,26 @@ for (const [width, columns] of [[790, 4], [560, 3], [440, 2]]) {
       && (c.x + c.w) * v.zoom + v.x <= width).length >= columns);
   });
 }
+
+test('Codex #6 follows new branches and changed earlier nodes rather than geometry order', async () => {
+  const { newestWorkflowStep } = await import('./camera.ts');
+  const a = { id: 'a', kind: 'trigger' as const, label: 'a' };
+  const b = { id: 'b', kind: 'ai' as const, label: 'b', after: 'a' };
+  const c = { id: 'c', kind: 'ai' as const, label: 'c', after: 'a' };
+  const before = { nodes: { a, b }, edges: {}, groups: {} };
+  const branch = { ...before, nodes: { a, b, c } };
+  assert.equal(newestWorkflowStep(before, branch, 'b'), 'c');
+  const revised = { ...branch, nodes: { a, b: { ...b, label: 'Changed' }, c } };
+  assert.equal(newestWorkflowStep(branch, revised, 'c'), 'b');
+  assert.equal(newestWorkflowStep(revised, structuredClone(revised), 'b'), 'b');
+});
+
+test('C15 zoom keeps the visible centre fixed including panel occlusion', async () => {
+  const { zoomWorkflowViewport } = await import('./camera.ts');
+  for (const h of [440, 140]) {
+    const visible = { x: 0, y: 110, w: 800, h }, current = { x: -300, y: 134, zoom: .8 };
+    const next = zoomWorkflowViewport(current, .9, visible);
+    assert.ok(Math.abs((400 - next.x) / next.zoom - (400 - current.x) / current.zoom) < 1e-9);
+    assert.ok(Math.abs((110 + h / 2 - next.y) / next.zoom - (110 + h / 2 - current.y) / current.zoom) < 1e-9);
+  }
+});

@@ -19,7 +19,7 @@ export type WorkflowCardNodeType = Node<{
 }, 'workflowCard'>;
 export function WorkflowCardNode({ data: d }: NodeProps<WorkflowCardNodeType>) {
   const c = d.card;
-  return <button className="wf-card nodrag" data-wf-card={c.id} data-lit={d.highlighted || undefined}
+  return <button className="wf-card nodrag nopan" data-wf-card={c.id} data-lit={d.highlighted || undefined}
     data-ghost={d.ghost || undefined} data-enter={d.delay !== null || undefined}
     style={{ width: c.w, height: c.h, animationDelay: (d.delay ?? 0) + 'ms' }}
     tabIndex={d.tab && !d.ghost ? 0 : -1} aria-describedby="workflow-keys"
@@ -41,7 +41,7 @@ export function WorkflowCardNode({ data: d }: NodeProps<WorkflowCardNodeType>) {
 }
 export type WorkflowRepeatNodeType = Node<{ bracket: WorkflowScene['brackets'][number] }, 'workflowRepeat'>;
 export function WorkflowRepeatNode({ data: { bracket: b } }: NodeProps<WorkflowRepeatNodeType>) {
-  return <div className="wf-bracket" style={{ width: b.w, height: b.h }} aria-hidden="true">{b.label}</div>;
+  return <div className="wf-bracket" title={b.label} style={{ width: b.w, height: b.h }} aria-hidden="true">{b.label}</div>;
 }
 export type WorkflowEdgeNodeType = Node<{ edges: WorkflowEdgeDrawing[]; width: number; height: number; t: TFn }, 'workflowEdges'>;
 export function WorkflowEdgeNode({ data: d }: NodeProps<WorkflowEdgeNodeType>) {

@@ -69,3 +69,21 @@ for (const file of files) test('scene and routing: ' + file, () => {
     }
   }
 });
+
+for (const lang of ['en', 'ko', 'zh'] as const) test('C38 repeat plural: ' + lang, () => {
+  const t = makeT(lang);
+  assert.ok(!t('workflow.edge.loop', { n: 1 }).includes('{'));
+  if (lang === 'en') {
+    assert.equal(t('workflow.edge.loop', { n: 1 }), 'Repeat, up to 1 extra pass');
+    assert.equal(t('workflow.edge.loop', { n: 2 }), 'Repeat, up to 2 extra passes');
+  }
+});
+
+for (const lang of ['en', 'ko', 'zh'] as const) test('C30 edge semantics without invented bounds: ' + lang, async () => {
+  const { workflowEdgeText } = await import('./scene.ts'), t = makeT(lang);
+  const branch = { id: 'l11', from: 'human', to: 'send', kind: 'branch' as const, outcome: 'approve' as const };
+  assert.equal(workflowEdgeText(branch, false, t), t('workflow.outcome.approve'));
+  assert.equal(workflowEdgeText({ id: 'lr', from: 'check', to: 'draft', kind: 'loop' }, true, t), '');
+  assert.equal(workflowEdgeText({ id: 'lr', from: 'check', to: 'draft', kind: 'loop', label: 'Revise', max: 2 }, true, t),
+    'Revise \u00b7 ' + t('workflow.edge.loop', { n: 2 }));
+});

@@ -411,7 +411,8 @@ function Stage(p: CanvasProps): ReactElement {
       const data: FrameData = { view: f, emptyText: f.empty && f.kind === 'solution' && f.lane === 'cloud' ? t('canvas.mapEmpty') : null, enter: clock.frameEnter(f.id, now) };
       out.push({ id: 'f:' + f.id, type: 'frame', position: { x: f.x, y: f.y }, width: f.w, height: f.h, data, zIndex: f.depth, draggable: false, selectable: false, focusable: false, connectable: false, className: clock.moving('f:' + f.id, now) ? 'is-moving' : undefined });
     }
-    out.push({ id: 'edges', type: 'edges', position: { x: 0, y: 0 }, width: 1, height: 1, data: edgeData, zIndex: 10, draggable: false, selectable: false, focusable: false, connectable: false });
+    out.push({ id: '~edges', type: 'edges', style: { pointerEvents: 'none' }, position: { x: 0, y: 0 }, width: 1, height: 1,
+      data: edgeData, zIndex: 10, draggable: false, selectable: false, focusable: false, connectable: false });
     const dimming = lit.size > 0;
     const badgeHot = hotId ? cardOfId(hotId) : null;
     for (const c of scene.cards) {

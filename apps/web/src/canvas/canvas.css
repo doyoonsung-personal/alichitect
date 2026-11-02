@@ -22,7 +22,7 @@
 .cv .react-flow__attribution { background: transparent; font-size: var(--t-12); line-height: var(--lh-12); padding: 0 var(--s-3); margin: 0 var(--s-2) var(--s-2) 0; }
 /* a link, not a disabled control: it holds 4.5:1 (ink-3) in both themes */
 .cv .react-flow__attribution a { color: var(--ink-3); text-decoration: none; }
-.cv .react-flow__node[data-id='edges'] { pointer-events: none; }
+.cv .react-flow__node[data-id='~edges'] { pointer-events: none; }
 .cv .react-flow__node-frame { pointer-events: none; }
 
 /* ---------- moves: only the nodes that changed ease (spec section 10) ---------- */

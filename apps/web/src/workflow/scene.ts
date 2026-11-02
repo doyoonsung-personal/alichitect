@@ -1,5 +1,5 @@
 // Semantic workflow scene. No React, DOM or export dependencies.
-import type { Catalog, WorkflowGraph, WorkflowNode, WorkflowSettings } from '@ali/core/types.ts';
+import type { Catalog, WorkflowGraph, WorkflowEdge, WorkflowNode, WorkflowSettings } from '@ali/core/types.ts';
 import type { ModelTable } from '@ali/core/models.ts';
 import type { Rect } from '@ali/core/layout.ts';
 import { needsApproval, waived } from '@ali/core/approval.ts';
@@ -57,13 +57,17 @@ export function buildWorkflowScene(input: {
     id: r.id, group: r.group, x: r.x, y: r.y, w: r.w, h: r.h, nodes: r.nodes,
     label: t('workflow.badge.repeat', { over: workflow.groups[r.group]?.over ?? r.label }),
   }));
-  const edgeLabels = Object.fromEntries(Object.values(workflow.edges).map((e) => [e.id, [
-    e.label, e.outcome ? t('workflow.outcome.' + e.outcome as 'workflow.outcome.approve') : '',
-    layout.source.workflow.routes[e.id]?.loop && e.max !== undefined ? t('workflow.edge.loop', { n: e.max }) : '',
-    e.kind === 'escalate' ? t('workflow.edge.escalate') : '',
-  ].filter(Boolean).join(' · ')]));
+  const edgeLabels = Object.fromEntries(Object.values(workflow.edges).map((e) =>
+    [e.id, workflowEdgeText(e, layout.source.workflow.routes[e.id]?.loop ?? false, t)]));
   const rects = [...cards, ...brackets];
   const bounds = { ...layout.source.bounds, h: Math.max(0, ...rects.map((r) => r.y + r.h)) };
   return { cards, brackets, edgeLabels, byId: new Map(cards.map((c) => [c.id, c])),
     attachmentOwners: layout.attachmentOwners, hiddenAttachmentIds: layout.hiddenAttachmentIds, bounds };
+}
+
+export function workflowEdgeText(e: WorkflowEdge, loop: boolean, t: TFn): string {
+  return [e.label, e.outcome ? t('workflow.outcome.' + e.outcome as 'workflow.outcome.approve') : '',
+    loop && e.max !== undefined ? t('workflow.edge.loop', { n: e.max }) : '',
+    e.kind === 'escalate' ? t('workflow.edge.escalate') : '',
+  ].filter(Boolean).join(' · ');
 }
