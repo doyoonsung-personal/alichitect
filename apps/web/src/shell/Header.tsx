@@ -23,6 +23,10 @@ export function Header(): ReactElement {
   const mode = useAppState((s) => s.session.mode ?? 'cloud');
   const workflow = useWorkflowProps();
   const canvasGraph = useAppState((s) => s.display.graph);
+  const hasWorkflow = Object.keys(workflow.workflow.nodes).length > 0;
+  const hasCloud = Object.keys(canvasGraph.nodes).length > 0 || canvasGraph.recs.length > 0;
+  const showWorkflow = mode === 'workflow' || hasWorkflow;
+  const showCloud = mode === 'cloud' || hasCloud;
   return (
     <header className="header">
       <BrandMark lang={lang} name={t('app.name')} size="header" onHome={() => c.newSession()} homeLabel={t('header.home')} homeDisabled={streaming} />
@@ -31,11 +35,11 @@ export function Header(): ReactElement {
       </p>
       <div className="header__right">
         <ModeState />
-        {Object.keys(workflow.workflow.nodes).length > 0 && <label className="workflow-diagrams">
+        {showWorkflow && <label className="workflow-diagrams">
           <span className="visually-hidden">{t('focus.label')}</span>
           <select aria-label={t('focus.label')} value={mode} onChange={(e) => c.setMode(e.target.value as 'cloud' | 'workflow')}>
             <option value="workflow">{t('focus.workflow')}</option>
-            {Object.keys(canvasGraph.nodes).length > 0 && <option value="cloud">{t('focus.cloud')}</option>}
+            {showCloud && <option value="cloud">{t('focus.cloud')}</option>}
           </select>
         </label>}
         <button type="button" className="btn btn--ghost" aria-pressed={focus} onClick={() => c.setFocusDiagram(!focus)}>

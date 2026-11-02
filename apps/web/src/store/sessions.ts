@@ -2,6 +2,8 @@
 // missing (private window, blocked site data), full (quota), or hold something that is not ours (corruption, an older
 // shape). The app works without it; a failed save is reported to the caller, never thrown.
 import type { SessionMemory } from '@ali/core/types.ts';
+import { layoutWorkflow } from '@ali/core/workflow-layout.ts';
+import type { WorkflowLayoutState } from '@ali/core/workflow-layout.ts';
 import type { Revision, SessionRecord, SessionSummary } from './types.ts';
 
 export const STORAGE_KEY = 'ab.sessions.v1';
@@ -14,6 +16,16 @@ export interface KeyValueStorage {
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+
+function savedWorkflowLayout(v: unknown, memory: SessionMemory): WorkflowLayoutState | undefined {
+  if (!memory.workflow || !isObj(v) || v.mode !== 'workflow' || !isObj(v.workflow) || !isObj(v.cards)) return;
+  try {
+    const layout = v as unknown as WorkflowLayoutState;
+    const rebuilt = layoutWorkflow(memory.workflow, layout);
+    if (Object.values(rebuilt.workflow.cells).some((c) => !Number.isFinite(c.column) || !Number.isFinite(c.row))) return;
+    return layout;
+  } catch { return; }
+}
 
 function validMemory(m: unknown): m is SessionMemory {
   if (!isObj(m) || !Array.isArray(m.turns) || !Array.isArray(m.requirements) || !Array.isArray(m.tombstones)) return false;
@@ -40,9 +52,11 @@ export function reviveSession(v: unknown): SessionRecord | null {
     if (!validRevision(r)) return null;
     revisions.push(r.status === 'waiting' || r.status === 'streaming' ? { ...r, status: 'stopped', changes: [], statusLine: null } : r);
   }
+  const workflowLayout = savedWorkflowLayout(v.workflowLayout, v.memory);
   return {
     id: v.id,
     mode: v.mode === 'workflow' ? 'workflow' : 'cloud',
+    ...(workflowLayout ? { workflowLayout } : {}),
     ...(isObj(v.workflowProvenance) ? { workflowProvenance: v.workflowProvenance as SessionRecord['provenance'] } : {}),
     createdAt: typeof v.createdAt === 'number' ? v.createdAt : 0,
     updatedAt: typeof v.updatedAt === 'number' ? v.updatedAt : 0,
