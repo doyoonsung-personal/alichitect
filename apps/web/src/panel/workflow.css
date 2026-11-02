@@ -1,9 +1,57 @@
- .wf-panel .pp__body { padding: 12px 18px; overflow: auto; }
-.wf-panel table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; }
-.wf-panel th, .wf-panel td { padding: 8px; border-bottom: 1px solid var(--line-1); text-align: left; overflow-wrap: anywhere; }
-.wf-panel small { display: block; font-weight: normal; overflow-wrap: anywhere; }
-.wf-panel p, .wf-panel li { font-size: 13px; }
-.wf-panel li { margin-bottom: 12px; }
-.wf-panel button, .wf-driver input, .wf-driver select { background: var(--sheet); color: var(--ink); border: 1px solid var(--line-1); padding: 5px; }
-.wf-driver { margin-top: 10px; border: 1px solid var(--line-1); }
-.wf-driver input { width: 100px; }
+/* Workflow-only adaptations of the cloud panel rows, tables and notes. */
+.wf-panel .pp__body { min-width: 0; }
+.wf-panel__steps { margin: 0; padding: 0; list-style: none; }
+.wf-panel__step { padding: var(--s-4) var(--s-5); border-bottom: 1px solid var(--line-1); }
+.wf-panel__step:hover, .wf-panel__step:focus-within { background: var(--surface-2); }
+.wf-panel__glyph { flex: none; color: var(--ink-2); }
+.wf-panel .pp-prod__text { flex: 1; }
+.wf-panel__heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--s-1); }
+.wf-panel__heading h3 { margin: 0; font-size: var(--t-14); line-height: var(--lh-14); }
+.wf-panel .pp-show { flex: none; margin: 0; }
+.wf-panel .pp-notes { gap: var(--s-2); font-size: var(--t-13); line-height: var(--lh-13); }
+.wf-panel .pp-notes p { margin: 0; }
+.wf-panel .pp-muted { color: var(--ink-3); }
+.wf-panel .wf-card__model {
+  display: inline-block; max-width: 100%; padding: var(--s-1) var(--s-2); border-radius: var(--r-control);
+  background: var(--record); color: var(--ink-2); font-size: var(--t-12); line-height: var(--lh-12);
+  white-space: normal; overflow: visible; overflow-wrap: anywhere;
+}
+.wf-panel__section, .wf-panel .wf-cost h3 {
+  margin: 0; padding: var(--s-5) var(--s-5) var(--s-3);
+  font-size: var(--t-14); line-height: var(--lh-14); font-weight: var(--w-medium);
+}
+.wf-panel th, .wf-panel td { overflow-wrap: anywhere; }
+.wf-panel small { display: block; font-size: var(--t-12); line-height: var(--lh-12); color: var(--ink-3); font-weight: var(--w-regular); }
+
+/* WorkflowCost is owned separately; these scoped selectors mirror pp-table and pp-row until it adopts the classes. */
+.wf-panel .wf-cost { font-size: var(--t-13); line-height: var(--lh-13); overflow-wrap: anywhere; }
+.wf-panel .wf-cost table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+.wf-panel .wf-cost th, .wf-panel .wf-cost td {
+  padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--line-1); text-align: left; vertical-align: top;
+  font-weight: var(--w-regular);
+}
+.wf-panel .wf-cost tr > :first-child { padding-left: var(--s-5); }
+.wf-panel .wf-cost thead th {
+  position: sticky; top: 0; z-index: 1; background: var(--sheet); color: var(--ink-3);
+  font-size: var(--t-12); line-height: var(--lh-12); font-weight: var(--w-medium);
+}
+.wf-panel .wf-cost tbody tr:hover > * { background: var(--surface-2); }
+.wf-panel .wf-cost tbody th { font-weight: var(--w-medium); }
+.wf-panel .num, .wf-panel .wf-cost tr > :nth-last-child(-n+2) { text-align: right; font-variant-numeric: var(--num); }
+.wf-panel .wf-cost > p, .wf-panel .wf-cost > ul, .wf-panel .wf-cost > details {
+  margin: var(--s-3) var(--s-5); color: var(--ink-3);
+}
+.wf-panel .wf-cost h4 {
+  margin: var(--s-5) var(--s-5) var(--s-2); font-size: var(--t-13); line-height: var(--lh-13); font-weight: var(--w-medium);
+}
+.wf-panel .wf-cost ul { padding-left: var(--s-4); }
+.wf-panel .wf-cost li + li { margin-top: var(--s-2); }
+.wf-panel .wf-cost summary { cursor: pointer; color: var(--ink-2); font-weight: var(--w-medium); }
+.wf-panel .wf-driver { min-width: 0; margin: var(--s-3) 0; padding: var(--s-3); border: 1px solid var(--line-1); }
+.wf-panel .wf-driver legend { max-width: 100%; color: var(--ink-2); }
+.wf-panel .wf-driver input, .wf-panel .wf-driver select, .wf-panel .wf-driver button {
+  max-width: 100%; margin: var(--s-1); padding: var(--s-1) var(--s-2);
+  background: var(--sheet); color: var(--ink); border: 1px solid var(--line-control); border-radius: var(--r-control);
+}
+.wf-panel .wf-driver input { width: 100px; }
+.wf-panel .wf-driver button:hover { background: var(--surface-2); }

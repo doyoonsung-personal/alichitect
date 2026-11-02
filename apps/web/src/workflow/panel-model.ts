@@ -1,20 +1,44 @@
 // Panel rows preserve hidden attachments and never infer a runtime from a service.
-import type { Catalog, WorkflowGraph } from '@ali/core/types.ts';
+import type { Catalog, WorkflowGraph, WorkflowNode } from '@ali/core/types.ts';
+import { layoutWorkflow } from '@ali/core/workflow-layout.ts';
+import type { WorkflowLayoutState } from '@ali/core/workflow-layout.ts';
 import type { ModelTable } from '@ali/core/models.ts';
 import type { WorkflowEstimate } from '@ali/core/workflow-estimate.ts';
 import type { TFn } from '../i18n/t.ts';
+
+// Repeat groups occupy their first member's position; attachments travel with their host.
+export function workflowPanelOrder(workflow: WorkflowGraph, layout = layoutWorkflow(workflow)): WorkflowNode[] {
+  const cells = layout.workflow.cells;
+  const compare = (a: WorkflowNode, b: WorkflowNode): number =>
+    (cells[a.id]?.column ?? Infinity) - (cells[b.id]?.column ?? Infinity)
+    || (cells[a.id]?.row ?? Infinity) - (cells[b.id]?.row ?? Infinity)
+    || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  const nodes = Object.values(workflow.nodes).sort(compare), seen = new Set<string>(), ordered: WorkflowNode[] = [];
+  const add = (n: WorkflowNode): void => {
+    if (seen.has(n.id)) return;
+    seen.add(n.id); ordered.push(n);
+    for (const child of nodes.filter((child) => child.on === n.id)) add(child);
+  };
+  for (const n of nodes.filter((n) => !n.on || !workflow.nodes[n.on])) {
+    if (n.repeat) for (const member of nodes.filter((m) => !m.on && m.repeat === n.repeat)) add(member);
+    else add(n);
+  }
+  for (const n of nodes) add(n);
+  return ordered;
+}
+
 export function buildWorkflowPanelModel(input: {
-  workflow: WorkflowGraph; catalog: Catalog; models: ModelTable; estimate: WorkflowEstimate; t: TFn;
+  workflow: WorkflowGraph; catalog: Catalog; models: ModelTable; estimate: WorkflowEstimate; t: TFn; layout?: WorkflowLayoutState;
 }) {
   const { workflow, catalog, models, estimate, t } = input;
   const service = (id: string) => catalog.byId.get(id)?.name ?? id;
-  const rows = Object.values(workflow.nodes).sort((a, b) =>
-    (a.repeat ?? a.id).localeCompare(b.repeat ?? b.id) || a.id.localeCompare(b.id)).map((n) => ({
-    id: n.id, label: n.label, kind: t('workflow.kind.' + n.kind as 'workflow.kind.ai'),
-    task: n.task ? t('workflow.task.' + n.task as 'workflow.task.generate') : t('workflow.unspecified'),
+  const rows = workflowPanelOrder(workflow, input.layout).map((n) => ({
+    id: n.id, label: n.label, glyph: n.kind, compact: n.kind === 'trigger' || n.kind === 'end',
+    kind: t('workflow.kind.' + n.kind as 'workflow.kind.ai'),
+    task: n.task ? t('workflow.task.' + n.task as 'workflow.task.generate') : '',
     model: n.ai ? (models.model(n.ai)?.name ?? n.ai) : '',
-    runtime: n.runs === 'customer' ? t('workflow.runtime.customer') : n.runs ? service(n.runs) : t('workflow.unspecified'),
-    services: n.product ? service(n.product) : t('workflow.unspecified'), why: n.why ?? '',
+    runtime: n.runs === 'customer' ? t('workflow.runtime.customer') : n.runs ? service(n.runs) : '',
+    services: n.product ? service(n.product) : '', why: n.why ?? '',
     host: n.on ? workflow.nodes[n.on]?.label ?? n.on : '', repeat: n.repeat ?? '',
   }));
   return { rows, estimate };
