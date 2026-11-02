@@ -16,13 +16,13 @@ the canonical source. Tests validate every source graph and score it against its
 The 20 `wf-ko-*` and `wf-zh-*` cases (category `i18n`) translate ten canonical asks into
 Korean and Chinese (Qwen Flash drafts, checked by hand). They keep the structural
 expectations and drop the English mention regexes; `lang` makes the runner check that
-say and ask text come back in the ask's language.
+say, ask, step labels and why text come back in the ask's language. Product and model names are excluded from script counts.
 
 Expectations deliberately omit optional persistence, exact step counts, node IDs,
 edge topology, and incidental runtime choices. Required kinds and tasks describe
 capabilities requested by the user. All canonical cases require Model Studio;
 WhatsApp also requires Chat App Message Service. A task can be implemented by an
-AI step or an agent. Tier requirements are explicit only where the task warrants a
+AI step or an agent, except approve and takeover, which require a human step. Tier requirements are explicit only where the task warrants a
 hard constraint (the small-model ticket classifier); other tier choices are judged.
 
 `expect.workflow` accepts:
@@ -37,7 +37,7 @@ hard constraint (the small-model ticket classifier); other tier choices are judg
 - `tiers`: task to allowed tier array (`small`, `mid`, `large`). Every step of that
   task must name a model of an allowed tier, and the task must exist.
 - `products`, `runtimes`: arrays of any-of groups, matched separately against
-  `product` and `runs`. Any step with an `ai` id also uses Model Studio, without
+  `product` and `runs`. An ai, agent or knowledge step with an `ai` id also uses Model Studio, without
   requiring a redundant `product`. Runtime groups can include `customer`.
 - `forbiddenProducts`: checked against both service and runtime fields, including inferred Model Studio use.
 - `forbiddenKinds`, `forbiddenTasks`: used to catch unnecessary approval.
@@ -46,8 +46,8 @@ hard constraint (the small-model ticket classifier); other tier choices are judg
 
 Approval and loop assertions rerun the production `checkWorkflow` on the repaired
 workflow. Any `wf-approval` finding fails, including an informational waiver; cases
-intentionally testing a waiver can disable `approvals`. Loops must have bounds and
-exhausted exits, and agents must have numeric turn limits. International checks
+intentionally testing a waiver can disable `approvals`. Automated loops must have bounds and
+exhausted exits; unbounded edit routes from human approve steps are intentional, and agents must have numeric turn limits. International checks
 reject unknown, China-only, restricted, legacy, retired and closed products. The
 usual `noErrors` setting also checks fresh core findings and stored post-repair errors.
 
@@ -76,7 +76,7 @@ tools continue working. Cloud rubric text and parsing remain unchanged.
 Reviewed every failed assertion in the 43 stored baseline runs. Corrections are
 capability checks, not repairs to those model outputs:
 
-- Model Studio is implied by `ai` on any step. This fixes all 43 redundant-service
+- Model Studio is implied by `ai` on model-calling kinds (ai, agent and knowledge). This fixes all 43 redundant-service
   failures; it does not infer a runtime or excuse an invalid model id.
 - Voice understanding and speaking can share a realtime model. Audio input meets
   `transcribe` and audio output meets `speak`; omni/ASR with text output cannot

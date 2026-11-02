@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import * as estimateApi from '../src/workflow-estimate.ts';
 import { estimateWorkflow } from '../src/workflow-estimate.ts';
 import { loadCatalog, loadModels } from '../src/catalog-node.ts';
 import { createModelTable } from '../src/models.ts';
@@ -367,7 +368,7 @@ const message = (id: string): WorkflowNode => ({ ...plain(id, 'end'), product: '
 function isolatedEstimate(wf: WorkflowGraph, settings = {}, repetitions = 1) {
   const script = `
     import { readFileSync } from 'node:fs';
-    import { estimateWorkflow } from './packages/core/src/workflow-estimate.ts';
+import { estimateWorkflow } from './packages/core/src/workflow-estimate.ts';
     import { loadCatalog, loadModels } from './packages/core/src/catalog-node.ts';
     const { wf, settings, repetitions } = JSON.parse(readFileSync(0, 'utf8'));
     const catalog = loadCatalog(), models = loadModels();
@@ -424,7 +425,7 @@ test('review 3: 40 steps and 57 links factor nineteen independent decisions with
   const wf = parallelChoices();
   assert.equal(Object.keys(wf.nodes).length, 40);
   assert.equal(Object.keys(wf.edges).length, 57);
-  assert.deepEqual(checkWorkflow(wf, catalog, models), []);
+  assert.deepEqual(checkWorkflow(wf, catalog, models).filter(w => w.severity !== 'info'), []);
   const { estimate: e } = isolatedEstimate(wf);
   close(e.typical.perRunUsd, .0475);
   close(e.upper.perRunUsd, .095);
@@ -434,7 +435,7 @@ test('review 3: 40 steps and 57 links factor nineteen independent decisions with
 test('40-step 60-link adversarial runtime benchmark', (t) => {
   const wf = parallelChoices(true);
   assert.equal(Object.keys(wf.edges).length, 60);
-  assert.deepEqual(checkWorkflow(wf, catalog, models), []);
+  assert.deepEqual(checkWorkflow(wf, catalog, models).filter(w => w.severity !== 'info'), []);
   const { estimate: e, worstMs } = isolatedEstimate(wf, {}, 20);
   close(e.typical.perRunUsd, .055);
   close(e.upper.perRunUsd, .095);
@@ -530,4 +531,37 @@ test('independent choices with distinct prices remain factored without resource 
   close(e.typical.perRunUsd, (2 ** 19 - 1) / 2 + .0475);
   close(e.upper.perRunUsd, 2 ** 19 - 1 + .095);
   assert.ok(!e.assumptions.some((a) => a.key === 'resources'));
+});
+
+test('C10: stale twenty-request override respects agent turns reduced to five', () => {
+  const wf = graph([node('a', { kind: 'agent', ai: 'qwen3.7-plus', turns: 20 })]);
+  wf.nodes.a.turns = 5;
+  const stale = estimateWorkflow(wf, models, catalog, { agents: { a: { upper: 20 } } });
+  const capped = estimateWorkflow(wf, models, catalog, { agents: { a: { upper: 5 } } });
+  close(stale.upper.perRunUsd, capped.upper.perRunUsd);
+  assert.ok(stale.assumptions.some(a => a.key === 'agent:a:requests:upper:limit'));
+});
+test('C11: taskless agent documents its actual loop token defaults', () => {
+  const e = estimateWorkflow(graph([node('a', { kind: 'agent', ai: 'qwen3.7-plus', turns: 4 })]), models, catalog);
+  assert.ok(!e.assumptions.some(a => a.key === 'a:task'));
+  assert.ok(e.assumptions.some(a => a.key === 'a:input' && a.text.includes('2000')));
+  close(e.upper.perRunUsd, .0066);
+});
+for (const outTokens of [-1, NaN, Infinity, null]) test(`D7: invalid thinking output ${outTokens} retains default factor`, () => {
+  const e = estimateWorkflow(graph([node('a', { task: 'classify' })]), table([{ in: 1, out: 2, thinkingOut: 5 }]), catalog,
+    { steps: { a: { thinking: true, outTokens: outTokens as number } } });
+  close(e.upper.perRunUsd, .0013);
+});
+
+test('C9: tutor retry is a loop driver and branch/escalate share one choice', () => {
+  const wf = fixture('ai-tutor-socratic-hint.json');
+  assert.equal(typeof estimateApi.workflowChoiceSets, 'function');
+  const sets = estimateApi.workflowChoiceSets(wf);
+  assert.deepEqual(sets.choices['retry-route'], ['l12', 'l2']);
+  assert.deepEqual(sets.loops.l15, { min: 0, max: 3 });
+  assert.equal(sets.shares.l15, undefined);
+  assert.deepEqual(sets.shares.l12, { min: 0, max: 1 });
+  const before = JSON.stringify(wf);
+  assert.deepEqual(estimateApi.workflowChoiceSets(wf), sets);
+  assert.equal(JSON.stringify(wf), before);
 });

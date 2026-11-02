@@ -133,6 +133,94 @@ function diagrams(probabilities: number[][]) {
   return { constant, make, apply, expected, assignment, evaluate, support };
 }
 
+function routes(wf: WorkflowGraph) {
+  const nodes = sorted(Object.values(wf.nodes));
+  const inline = nodes.filter((n) => !n.on);
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const edges = sorted(Object.values(wf.edges)).filter((e) => byId.has(e.from) && byId.has(e.to)
+    && !byId.get(e.from)!.on && !byId.get(e.to)!.on);
+  const humanEdit = (e: WorkflowEdge): boolean => e.outcome === 'edit'
+    && byId.get(e.from)?.kind === 'human' && byId.get(e.from)?.task === 'approve';
+  const forward = edges.filter((e) => e.kind !== 'loop' && !humanEdit(e));
+  const reachable = (start: string, links: WorkflowEdge[], reverse = false): Set<string> => {
+    const seen = new Set<string>();
+    const todo = [start];
+    while (todo.length) {
+      const id = todo.pop()!;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      for (const edge of links) if ((reverse ? edge.to : edge.from) === id) todo.push(reverse ? edge.from : edge.to);
+    }
+    return seen;
+  };
+  const retries = edges.filter((e) => e.kind === 'loop'
+    || (humanEdit(e) && reachable(e.to, forward).has(e.from)));
+  forward.push(...edges.filter((e) => humanEdit(e) && !retries.includes(e)));
+  // Back links have their own bounded multiplier. The remaining graph must be a DAG, including on partial streamed input.
+  const state = new Map<string, number>();
+  const back = new Set<string>();
+  const visit = (id: string): void => {
+    state.set(id, 1);
+    for (const e of forward.filter((e) => e.from === id)) {
+      if (state.get(e.to) === 1) back.add(e.id);
+      else if (!state.has(e.to)) visit(e.to);
+    }
+    state.set(id, 2);
+  };
+  for (const n of inline) if (!state.has(n.id)) visit(n.id);
+  const dag = forward.filter((e) => !back.has(e.id));
+  const roots = inline.filter((n) => n.kind === 'trigger');
+  if (!roots.length && inline.length) {
+    roots.push(...inline.filter((n) => !dag.some((e) => e.to === n.id)));
+
+  }
+
+  const active = new Set(roots.flatMap((n) => [...reachable(n.id, edges)]));
+  const order: string[] = [];
+  const pending = new Set(inline.filter((n) => active.has(n.id)).map((n) => n.id));
+  while (pending.size) {
+    const id = [...pending].find((id) => !dag.some((e) => e.to === id && pending.has(e.from)))!;
+    pending.delete(id);
+    order.push(id);
+  }
+  const included = new Set(active);
+  for (let i = 0; i < nodes.length; i++) for (const n of nodes) if (n.on && included.has(n.on)) included.add(n.id);
+  return { nodes, inline, byId, edges, dag, roots, active, order, included, retries, back, reachable };
+}
+
+/** Estimator drivers, in edge-id order. choices groups sibling share edges by source; shares range from 0 to 1.
+ * Unspecified sibling shares divide the remaining probability; a complete set should sum to 1.
+ * loops are extra passes per run (typical <= upper), from 0 to max, default max 3, capped at 100.
+ * Cyclic human edits and fallback back-edges take loop counts, never shares. Forward edits are alternatives.
+ * Parallel next links and unreachable/attached links take neither. Pure; uses the estimator's route analysis.
+ */
+export function workflowChoiceSets(wf: WorkflowGraph): {
+  choices: Record<string, string[]>;
+  shares: Record<string, { min: number; max: number }>;
+  loops: Record<string, { min: number; max: number }>;
+} {
+  const r = routes(wf);
+  const choices: Record<string, string[]> = {};
+  const shares: Record<string, { min: number; max: number }> = {};
+  const loops: Record<string, { min: number; max: number }> = {};
+  for (const id of r.order) {
+    const out = r.dag.filter(e => e.from === id);
+    if (!exclusive(out)) continue;
+    choices[id] = out.map(e => e.id);
+    for (const e of out) shares[e.id] = { min: 0, max: 1 };
+  }
+  for (const e of r.edges) {
+    if (r.active.has(e.from) && (r.retries.includes(e) || r.back.has(e.id))) {
+      loops[e.id] = { min: 0, max: Math.floor(valid(e.max) ? Math.min(e.max, LIMITS.iterations) : 3) };
+    }
+  }
+  return { choices, shares, loops };
+}
+
+function exclusive(out: WorkflowEdge[]): boolean {
+  return out.length > 1 && out.some(e => e.kind === 'branch' || e.kind === 'escalate' || e.outcome);
+}
+
 export function estimateWorkflow(
   wf: WorkflowGraph, models: ModelTable, catalog: Catalog, settings: WorkflowEstimateSettings = {},
 ): WorkflowEstimate {
@@ -163,55 +251,11 @@ export function estimateWorkflow(
   const scope = settings.scope ?? 'international';
   if (!settings.scope) assume('scope', 'International pricing scope.');
   if (scope === 'global') assume('scope:global', 'Prices for International scope; Global is usually lower.');
-  const nodes = sorted(Object.values(wf.nodes));
-  const inline = nodes.filter((n) => !n.on);
-  const byId = new Map(nodes.map((n) => [n.id, n]));
-  const edges = sorted(Object.values(wf.edges)).filter((e) => byId.has(e.from) && byId.has(e.to)
-    && !byId.get(e.from)!.on && !byId.get(e.to)!.on);
-  const forward = edges.filter((e) => e.kind !== 'loop' && e.outcome !== 'edit');
-  const reachable = (start: string, links: WorkflowEdge[], reverse = false): Set<string> => {
-    const seen = new Set<string>();
-    const todo = [start];
-    while (todo.length) {
-      const id = todo.pop()!;
-      if (seen.has(id)) continue;
-      seen.add(id);
-      for (const edge of links) if ((reverse ? edge.to : edge.from) === id) todo.push(reverse ? edge.from : edge.to);
-    }
-    return seen;
-  };
-  const retries = edges.filter((e) => e.kind === 'loop'
-    || (e.outcome === 'edit' && reachable(e.to, forward).has(e.from)));
-  forward.push(...edges.filter((e) => e.outcome === 'edit' && !retries.includes(e)));
-  // Back links have their own bounded multiplier. The remaining graph must be a DAG, including on partial streamed input.
-  const state = new Map<string, number>();
-  const back = new Set<string>();
-  const visit = (id: string): void => {
-    state.set(id, 1);
-    for (const e of forward.filter((e) => e.from === id)) {
-      if (state.get(e.to) === 1) back.add(e.id);
-      else if (!state.has(e.to)) visit(e.to);
-    }
-    state.set(id, 2);
-  };
-  for (const n of inline) if (!state.has(n.id)) visit(n.id);
-  const dag = forward.filter((e) => !back.has(e.id));
-  const roots = inline.filter((n) => n.kind === 'trigger');
-  if (!roots.length && inline.length) {
-    roots.push(...inline.filter((n) => !dag.some((e) => e.to === n.id)));
+  const { nodes, inline, byId, edges, dag, roots, active, order, included, retries, back, reachable } = routes(wf);
+  if (!inline.some(n => n.kind === 'trigger') && inline.length) {
     assume('roots', 'No trigger: estimate one pass from each source step in the partial graph.');
   }
   if (roots.length > 1) assume('triggers', 'One run is one trigger event; trigger alternatives have equal typical shares, upper uses the costliest.');
-  const active = new Set(roots.flatMap((n) => [...reachable(n.id, edges)]));
-  const order: string[] = [];
-  const pending = new Set(inline.filter((n) => active.has(n.id)).map((n) => n.id));
-  while (pending.size) {
-    const id = [...pending].find((id) => !dag.some((e) => e.to === id && pending.has(e.from)))!;
-    pending.delete(id);
-    order.push(id);
-  }
-  const included = new Set(active);
-  for (let i = 0; i < nodes.length; i++) for (const n of nodes) if (n.on && included.has(n.on)) included.add(n.id);
   const loops: Array<{ edge: WorkflowEdge; members: Set<string>; passes: [number, number] }> = [];
   const repeatItems = new Map<string, [number, number]>();
   for (const group of sorted(Object.values(wf.groups))) {
@@ -243,7 +287,7 @@ export function estimateWorkflow(
   for (const n of nodes.filter((n) => included.has(n.id) && n.kind === 'agent')) {
     const turns = Math.max(1, Math.ceil(number(n.turns, 10, `agent:${n.id}:turns`,
       `${n.label}: assume a maximum of 10 requests.`, LIMITS.requests)));
-    const p = pair(settings.agents?.[n.id], Math.ceil(turns / 2), turns, `agent:${n.id}:requests`, LIMITS.requests);
+    const p = pair(settings.agents?.[n.id], Math.ceil(turns / 2), turns, `agent:${n.id}:requests`, turns);
     requests.set(n.id, [Math.max(1, Math.ceil(p[0])), Math.max(1, Math.ceil(p[1]))]);
   }
   for (const n of nodes.filter((n) => included.has(n.id))) {
@@ -263,7 +307,7 @@ export function estimateWorkflow(
         let defaults = TOKENS[n.task ?? ''];
         if (!defaults) {
           defaults = TOKENS.generate;
-          assume(`${n.id}:task`, `${n.label}: no section 9 token row for ${n.task ?? 'unspecified task'}; use the generate sizes.`);
+          if (n.kind !== 'agent') assume(`${n.id}:task`, `${n.label}: no section 9 token row for ${n.task ?? 'unspecified task'}; use the generate sizes.`);
         }
         const agent = n.kind === 'agent';
         const input = number(opts.inTokens, agent ? 2_000 : defaults.input, `${n.id}:input`,
@@ -276,7 +320,7 @@ export function estimateWorkflow(
         assume(`${n.id}:prefix`, `${n.label}: static prefix ${prefix} tokens; dynamic content is not cached.`);
         const r = agent ? number(settings.agents?.[n.id]?.resultTokens, 800, `${n.id}:results`, `${n.label}: tool result r = 800 tokens.`) : 0;
         if (agent) assume(`${n.id}:history`, `${n.label}: full history; S = 150 per attached tool, c = 150; N includes the final answer.`);
-        const outputFactor = thinking && opts.outTokens === undefined ? 3 : 1;
+        const outputFactor = thinking && !valid(opts.outTokens) ? 3 : 1;
         if (outputFactor === 3) assume(`${n.id}:thinking-output`, `${n.label}: thinking multiplies default output tokens by 3.`);
         const batch = opts.offline === true && model.batch === true;
         if (batch) assume(`${n.id}:batch`, `${n.label}: batch is 50% of list prices; cache does not stack (NOTES Batch 6).`);
@@ -413,7 +457,7 @@ export function estimateWorkflow(
     if (roots.length > 1) probabilities.push(roots.map(() => 1 / roots.length));
     for (const id of order) {
       const out = dag.filter((e) => e.from === id);
-      if (out.length > 1 && out.some((e) => e.kind === 'branch' || e.kind === 'escalate' || e.outcome)) {
+      if (exclusive(out)) {
         choices.set(id, probabilities.length);
         probabilities.push(weights(out));
       }

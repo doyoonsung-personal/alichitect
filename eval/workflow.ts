@@ -1,5 +1,5 @@
 // Workflow assertions use the production reachability checks on the final, repaired graph.
-import type { Catalog, Effect, WorkflowNodeKind, WorkflowTask } from '../packages/core/src/types.ts';
+import type { Catalog, Effect, WorkflowNodeKind, WorkflowNode, WorkflowTask } from '../packages/core/src/types.ts';
 import type { ModelEntry, ModelTable } from '../packages/core/src/models.ts';
 import { WORKFLOW_TASKS } from '../packages/core/src/models.ts';
 import { checkWorkflow } from '../packages/core/src/workflow-validate.ts';
@@ -37,10 +37,11 @@ export function workflowAssertions(
   const nodes = Object.values(v.workflow.nodes);
   const warnings = checkWorkflow(v.workflow, catalog, models, v.workflowSettings);
   for (const kind of e.kinds ?? []) add(`workflow kind ${kind}`, nodes.some((n) => n.kind === kind));
+  const modelStep = (n: WorkflowNode): boolean => ['ai', 'agent', 'knowledge'].includes(n.kind) && !!n.ai;
   const hasTask = (task: WorkflowTask): boolean => nodes.some((n) => {
-    if (n.task === task) return true;
+    if (n.task === task) return !['approve', 'takeover'].includes(task) || n.kind === 'human';
     if (task === 'extract' && n.kind === 'tool' && n.tool === 'pdf_parse') return true;
-    const model = n.ai ? models.model(n.ai) : undefined;
+    const model = modelStep(n) ? models.model(n.ai!) : undefined;
     return task === 'transcribe' ? !!model?.in.includes('audio') : task === 'speak' && !!model?.out.includes('audio');
   });
   for (const task of e.tasks ?? []) add(`workflow task ${task}`, hasTask(task));
@@ -60,10 +61,10 @@ export function workflowAssertions(
   for (const [key, field] of [['products', 'product'], ['runtimes', 'runs']] as const) {
     for (const group of e[key] ?? []) {
       add(`workflow ${key} ${group.join('|')}`, nodes.some((n) => group.includes(n[field] ?? '')
-        || (key === 'products' && group.includes('model-studio') && !!n.ai)));
+        || (key === 'products' && group.includes('model-studio') && modelStep(n))));
     }
   }
-  const used = [...new Set(nodes.flatMap((n) => [n.product, n.runs, ...(n.ai ? ['model-studio'] : [])]
+  const used = [...new Set(nodes.flatMap((n) => [n.product, n.runs, ...(modelStep(n) ? ['model-studio'] : [])]
     .filter((p): p is string => !!p)))];
   for (const p of e.forbiddenProducts ?? []) add(`workflow forbids ${p}`, !used.includes(p));
   if (e.international !== false) {
@@ -81,10 +82,10 @@ export function workflowAssertions(
   };
   if (e.approvals !== false) clean('workflow every approval-needing effect gated on every path', ['wf-approval']);
   if (e.boundedLoops !== false) {
-    clean('workflow loops have bounds and exits', ['wf-loop-exit', 'wf-cycle']);
+    clean('workflow automated loops have bounds and exits', ['wf-loop-exit', 'wf-cycle']);
     const bad = nodes.filter((n) => n.kind === 'agent' && (!Number.isInteger(n.turns) || n.turns! < 1 || n.turns! > 50));
     const links = Object.values(v.workflow.edges).filter((l) => l.kind === 'loop' && (!Number.isInteger(l.max) || l.max! < 1));
-    add('workflow numeric agent and loop bounds', !bad.length && !links.length, [...bad, ...links].map((x) => x.id).join(', '));
+    add('workflow numeric agent and automated loop bounds', !bad.length && !links.length, [...bad, ...links].map((x) => x.id).join(', '));
   }
   if (e.noWarnings?.length) clean('workflow required checks clean', e.noWarnings);
   if (noErrors) {
