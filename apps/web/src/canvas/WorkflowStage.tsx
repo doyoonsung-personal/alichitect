@@ -219,6 +219,7 @@ function Stage(p: WorkflowViewProps) {
     document.addEventListener('keydown', escape);
     return () => document.removeEventListener('keydown', escape);
   }, [open, hover]);
+  // Only observe live moves: React Flow delays move-end callbacks, whose viewport may already be stale.
   const observeMove = (v: typeof viewport) => {
     const start = moveStart.current;
     if (start && (Math.abs(v.x - start.x) > 1 || Math.abs(v.y - start.y) > 1 || Math.abs(v.zoom - start.zoom) > .001)) {
@@ -275,8 +276,7 @@ function Stage(p: WorkflowViewProps) {
         moveStart.current = event?.isTrusted && !programmatic.current ? currentView.current : null;
         observeMove(v);
       }}
-      onMove={(_, v) => observeMove(v)}
-      onMoveEnd={(_, v) => { observeMove(v); moveStart.current = null; }} proOptions={{ hideAttribution: true }} />
+      onMove={(_, v) => observeMove(v)} proOptions={{ hideAttribution: true }} />
     {!scene.cards.length && <p className="wf-empty">{p.t('workflow.canvas.empty')}</p>}
     {anchor && card && <WorkflowPopover card={card} view={p} anchor={anchor} machine={hover} close={close}
       viewport={viewport} visible={visible} edgeLabels={scene.edgeLabels} />}

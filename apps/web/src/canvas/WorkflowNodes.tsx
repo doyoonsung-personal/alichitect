@@ -56,8 +56,10 @@ export function WorkflowCardNode({ data: d }: NodeProps<WorkflowCardNodeType>) {
     </button>
     {details.expandable && !d.ghost && <button type="button" className="wf-card__fold nodrag nopan" data-wf-fold={c.id}
       aria-expanded={d.unfolded} aria-controls={overlayId} aria-label={d.t(d.unfolded ? 'workflow.card.fold' : 'workflow.card.unfold')}
-      onPointerEnter={d.suppressPopover} onFocus={d.suppressPopover} onPointerDown={(e) => e.stopPropagation()}
-      onClick={(e) => { e.stopPropagation(); d.toggleFold(); }}>
+      onPointerEnter={(e) => { e.stopPropagation(); d.suppressPopover(); }} onFocus={d.suppressPopover}
+      onPointerDown={(e) => { e.stopPropagation(); d.suppressPopover(); }}
+      onPointerUp={(e) => { e.stopPropagation(); d.suppressPopover(); }}
+      onClick={(e) => { e.stopPropagation(); d.suppressPopover(); d.toggleFold(); }}>
       <span aria-hidden="true">{d.unfolded ? '\u2303' : '\u2304'}</span>
     </button>}
     {details.expandable && <div id={overlayId} className="wf-card__details nodrag nopan" data-wf-details={c.id}
