@@ -289,3 +289,28 @@ All three turns committed: status 200, no fatal error, no vendor names or banned
 - **Pushed:** `phase-1` was pushed, and `main` was fast-forwarded to `c4d9b6a`.
 - **Deploy:** run 41550040669 on `main` with `confirm=deploy` succeeded in about 1 minute. Every step passed: preflight, the web build, the Worker tests, the D1 migrations and deploy (version `69e0430f-a85e-45f6-be9f-42dac120d9b4`), and the health check.
 - **Live:** `/api/health` answers `{"ok":true}`. The app and its assets sit behind the sign-in, so the UI was not inspected after the deploy; no password was entered.
+
+## Compact workflow rows (2026-11-03, the user's request after the deploy)
+- **The problem:** branch rows sat about 900 web units below the main row (per-row attachment reserve × 2.5), so they were off the first view.
+- **Three Codex rounds** (fix-rows), each checked by independent verifiers:
+  - per-column reserves under hosts only;
+  - a constant 116 web units per core slot;
+  - uniform 92-unit cards with a ⌄ fold overlay, as the user suggested. Safety icons stay on the card.
+- **Verification found and fixed:**
+  - tallest-card pitch motion;
+  - late-attachment and unstep motion;
+  - bracket re-keying;
+  - labels in the branch band;
+  - legacy saved layouts (now laid out fresh on reopen);
+  - a late `each`.
+- **Also fixed (fix-flake):**
+  - a real camera bug: a delayed `onMoveEnd` snapped the view back after a user pan;
+  - the hover popover covered the fold arrow, so real clicks opened the popover.
+- **Gates on `df4c857`:** root 1108/1108, web 719/719, Worker 276/276, typechecks clean, cloud hash unchanged.
+- **Live (real Qwen, 1150 px):**
+  - every card is 72 px on screen (92 × 0.786);
+  - 5, 3 and 2 columns at the three widths;
+  - the branch card ("Escalate to live agent") sits directly under the main row;
+  - a real-mouse fold click unfolds it (popover closed, no card moved), and Escape folds it.
+- **Not pushed or deployed yet.**
+- **Video models gap:** `models.json` has no Wan or other video-generation model. In phase 0b I scoped the table to what the 32 samples needed, so a video-ad workflow reports a gap. Qwen deep research on the international video models is running (`results/wan-research.md`); a Codex job adds them after the facts are checked.
