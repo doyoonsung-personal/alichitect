@@ -26,7 +26,7 @@ test('workflow prompt is byte-stable with identical inputs and freshly loaded ta
 
 test('workflow prompt has a pinned budget band below 15,000 estimated tokens', () => {
   const tokens = estimateTokens(prompt);
-  assert.ok(tokens >= 9500 && tokens < 10000, `Workflow prompt grew or lost content: ${tokens} estimated tokens`);
+  assert.ok(tokens >= 10000 && tokens < 10500, `Workflow prompt grew or lost content: ${tokens} estimated tokens`);
   assert.ok(tokens < 15000);
 });
 
@@ -54,6 +54,23 @@ test('workflow prompt excludes prices and hidden-backend names but includes the 
   assert.ok(prompt.includes(models.promptRows()));
   assert.doesNotMatch(prompt, /\$|\b(?:claude|anthropic)\b/i);
   assert.doesNotMatch(prompt, /"(?:price|fee|usd|perUnit)"|\b(?:USD|CNY|RMB)\s*\d|\d\s*(?:USD|CNY|RMB)\b/i);
+});
+
+test('video guidance and model rows distinguish generation inputs, audio and clip limits without prices', () => {
+  assert.match(prompt, /video ads and clips, use task create with a video model: wan3\.0-video by default/);
+  assert.match(prompt, /HappyHorse text\/image-to-video with audio/);
+  assert.match(prompt, /Never say Alibaba has no video model/);
+  for (const model of models.models.filter((m) => m.out.includes('video'))) {
+    const row = prompt.split('\n').find((line) => line.startsWith(`${model.id} | ${model.tier} |`))!;
+    assert.ok(row, model.id);
+    assert.ok(row.includes(`${model.in.join(',')}>video,audio | create |`));
+    assert.ok(row.includes(`${model.video!.maxSeconds} s`));
+    assert.match(row, /720P\/1080P/); assert.match(row, /audio/);
+    assert.doesNotMatch(row, /\$|USD|perUnit|free quota/);
+    assert.deepEqual(checkWorkflow(betweenTriggerAndEnd({
+      id: 'work', kind: 'ai', label: 'Create video ad', task: 'create', ai: model.id,
+    }), catalog, models), []);
+  }
 });
 
 test('live failure guidance distinguishes delivery, hand-offs, approval and customer systems', () => {

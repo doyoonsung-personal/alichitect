@@ -287,9 +287,59 @@ test('workflow bases retain settings and estimate beside an empty cloud diagram'
   } finally { unlinkSync(file); }
 });
 
+test('video cases accept all seven models with native audio and reject missing approval or availability claims', () => {
+  const cases = loadCases(path.join(EVAL_DIR, 'cases-workflow')).filter((c) => ['wf-video-ad', 'wf-ko-video-ad'].includes(c.id));
+  assert.equal(cases.length, 2); assert.deepEqual(checkCases(cases, catalog), []);
+  const videoIds = models.models.filter((m) => m.out.includes('video')).map((m) => m.id);
+  for (const item of cases) for (const ai of videoIds) {
+    const g = approved(); g.nodes.draft.task = 'create'; g.nodes.draft.ai = ai; g.nodes.send.effect = 'publish';
+    const v = view(g);
+    v.says = [item.lang === 'ko' ? `${ai} 모델로 음성이 있는 세로형 광고를 만들고 사람이 승인한 후 게시합니다.`
+      : `${ai} creates the video with voice-over, for a person to approve before publishing.`];
+    for (const turn of item.turns) {
+      assert.ok(item.reference.includes(ai));
+      assert.deepEqual(turn.expect?.mention?.[0], videoIds);
+      const raw = { t: 'step', ...g.nodes.draft };
+      assert.deepEqual(validateWorkflowOp(raw, catalog, models).warnings, []);
+      assert.ok(evaluateTurn(v, turn, item.lang!, names, catalog).every((a) => a.pass));
+      g.edges.bypass = edge('draft', 'send');
+      assert.ok(evaluateTurn(v, turn, item.lang!, names, catalog).some((a) => !a.pass && a.name.includes('every path')));
+      delete g.edges.bypass;
+      const bad = { ...v, says: ['Alibaba has no video models.'] };
+      assert.ok(evaluateTurn(bad, turn, item.lang!, names, catalog).some((a) => !a.pass && a.type === 'notMention'));
+    }
+  }
+});
+
+test('Korean video follow-up keeps the clip and approval and names an available model without a gap, offline', async () => {
+  const item = loadCases(path.join(EVAL_DIR, 'cases-workflow')).find((c) => c.id === 'wf-ko-video-ad')!;
+  assert.equal(item.turns[1].ask, '알리바바 모델은 사용 불가한가?');
+  const g = approved(); g.nodes.draft.task = 'create'; g.nodes.draft.ai = 'wan3.0-video'; g.nodes.send.effect = 'publish';
+  let calls = 0;
+  const ctx = { catalog, system: buildSystemPrompt(catalog), names, model: 'fake', fallback: 'fake',
+    signal: new AbortController().signal, runTurnImpl: async (memory, ask, _catalog, opts) => {
+      assert.equal(opts.mode, 'workflow'); assert.match(opts.system!, /wan3\.0-video/);
+      if (calls++) {
+        assert.equal(ask, '알리바바 모델은 사용 불가한가?'); assert.deepEqual(memory.workflow, g);
+      }
+      const says = ['알리바바의 wan3.0-video를 사용할 수 있습니다. 동영상 생성 기능의 공백 없이 음성이 있는 광고를 만들고 승인 후 게시합니다.'];
+      return { memory: { ...memory, workflow: g }, ops: [], says, reqs: [], gaps: [], rawProducts: [],
+        changes: '', content: '', stats } as unknown as RunTurnResult;
+    } } as UnitContext;
+  const r = await runUnit(item, 1, ctx);
+  assert.equal(calls, 2); assert.equal(r.pass, true);
+  for (const turn of r.turns) {
+    assert.ok(Object.values(turn.workflow!.nodes).some((n) => n.task === 'create' && n.ai === 'wan3.0-video'));
+    assert.deepEqual(turn.gaps, []); assert.ok(!turn.ops.some((o) => o.t === 'gap'));
+    assert.ok(turn.says.some((s) => s.includes('wan3.0-video')));
+    assert.deepEqual(checkWorkflow(turn.workflow!, catalog, models).filter((w) => w.code === 'wf-approval'), []);
+  }
+  assert.deepEqual(r.turns[1].workflowBefore, r.turns[0].workflow);
+});
+
 test('all 32 canonical fixtures validate and satisfy their conservative one-turn expectations', () => {
   const cases = loadCases(path.join(EVAL_DIR, 'cases-workflow'));
-  assert.equal(cases.length, 63); assert.deepEqual(checkCases(cases, catalog), []);
+  assert.equal(cases.length, 65); assert.deepEqual(checkCases(cases, catalog), []);
   const fixtureDir = path.join(EVAL_DIR, '../packages/core/test/fixtures/workflows');
   const files = readdirSync(fixtureDir).filter((f) => f.endsWith('.json'));
   assert.equal(files.length, 32);

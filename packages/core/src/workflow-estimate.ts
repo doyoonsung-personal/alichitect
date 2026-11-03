@@ -1,6 +1,14 @@
 // Workflow usage arithmetic. Prices are International; fixed capacity is kept outside usage totals.
 import type { Catalog, WorkflowEdge, WorkflowEstimateSettings, WorkflowGraph, WorkflowNode } from './types.ts';
-import type { ModelTable } from './models.ts';
+import type { ModelTable, VideoResolution } from './models.ts';
+import { ESTIMATE_LIMITS } from './workflow-estimate-limits.ts';
+
+// Additive estimator inputs; the pinned session contract and its admission path remain unchanged.
+export interface VideoEstimateSettings extends Omit<WorkflowEstimateSettings, 'steps'> {
+  steps?: Record<string, NonNullable<WorkflowEstimateSettings['steps']>[string] & {
+    clipSeconds?: number; resolution?: VideoResolution;
+  }>;
+}
 
 export interface WorkflowEstimate {
   typical: { perRunUsd: number; monthlyUsd: number };
@@ -222,7 +230,7 @@ function exclusive(out: WorkflowEdge[]): boolean {
 }
 
 export function estimateWorkflow(
-  wf: WorkflowGraph, models: ModelTable, catalog: Catalog, settings: WorkflowEstimateSettings = {},
+  wf: WorkflowGraph, models: ModelTable, catalog: Catalog, settings: VideoEstimateSettings = {},
 ): WorkflowEstimate {
   const assumptions = new Map<string, string>();
   const assume = (key: string, text: string): void => { assumptions.set(key, text); };
@@ -295,14 +303,31 @@ export function estimateWorkflow(
     if (n.kind !== 'human' && (n.ai || n.kind === 'ai' || n.kind === 'agent')) {
       const model = n.ai ? models.model(n.ai) : undefined;
       const opts = settings.steps?.[n.id] ?? {};
+      const video = n.task === 'create' && model?.out.includes('video') && model.price?.unit === 'second';
       const thinking = opts.thinking ?? false;
-      if (opts.thinking === undefined) assume(`${n.id}:thinking`, `${n.label}: thinking off.`);
-      if (opts.offline === undefined) assume(`${n.id}:offline`, `${n.label}: online requests, without batch.`);
+      if (!video && opts.thinking === undefined) assume(`${n.id}:thinking`, `${n.label}: thinking off.`);
+      if (!video && opts.offline === undefined) assume(`${n.id}:offline`, `${n.label}: online requests, without batch.`);
       const deferred = ['see', 'transcribe', 'speak', 'create'].includes(n.task ?? '') || model?.price?.unit !== 'mtok';
-      if (!model?.price || deferred) {
+      if (video && model) {
+        const max = Math.min(model.video!.maxSeconds, ESTIMATE_LIMITS.clipSeconds);
+        const min = model.video!.minSeconds ?? 1;
+        const requested = number(opts.clipSeconds, Math.min(15, max), `${n.id}:clipSeconds`,
+          `${n.label}: typical assumes a ${Math.min(15, max)} s output clip.`, max);
+        const seconds = Math.max(min, Math.min(max, Math.ceil(requested)));
+        if (seconds !== requested) assume(`${n.id}:clipSeconds:bound`, `${n.label}: clip seconds rounded up and bounded to ${min}-${max} s.`);
+        const resolution = opts.resolution ?? 720;
+        const rate = model.price!.tiers.find((t) => t.resolution === resolution)?.perUnit;
+        const upperRate = model.price!.tiers.find((t) => t.resolution === 1080)?.perUnit;
+        assume(`${n.id}:video`, `${n.label}: one output clip per step pass; typical ${seconds} s at ${resolution}P; upper ${max} s at 1080P.`);
+        assume(`${n.id}:video:list`, `${n.label}: International list prices; native audio included; no promotional, free-quota or batch deductions.`);
+        if (model.in.includes('video')) assume(`${n.id}:video:input`, `${n.label}: no billable reference-video input assumed; only output seconds priced.`);
+        if (!ESTIMATE_LIMITS.resolutions.includes(resolution) || !valid(rate) || !valid(upperRate)) {
+          missing(`${n.id}:model`, n.label, 'second', `No confirmed video rate for ${resolution}P typical and 1080P upper.`);
+        } else line(n, 'model', 'model', 'second', seconds * rate, max * upperRate, model.source);
+      } else if (!model?.price || deferred) {
         missing(`${n.id}:model`, n.label, model?.price?.unit ?? 'model usage',
           !model ? 'Model is missing from the price table.' : !model.price ? 'No confirmed model price.'
-            : 'Image, video and voice quantities are not estimated in this release.');
+            : 'Image, voice or unsupported media quantities are not estimated in this release.');
       } else {
         let defaults = TOKENS[n.task ?? ''];
         if (!defaults) {
@@ -573,8 +598,11 @@ export function estimateWorkflow(
     upper: { perRunUsd: upper, monthlyUsd: finite(upper * runsPerMonth) },
     runsPerMonth, oneRun: order, scope, lines, unpriced, fixed: [...fixed.values()].sort((a, b) => a.id.localeCompare(b.id, 'en')),
     assumptions: [...assumptions].sort(([a], [b]) => a.localeCompare(b, 'en')).map(([key, text]) => ({ key, text })),
-    coverage: 'Priced usage subtotal: model tokens, built-in tools, AI Guardrails, CloudFlow, EventBridge, Direct Mail and Chat App fees; '
-      + 'excludes compute time, storage, indexing, channel fees, human review, voice/image/video usage and fixed monthly capacity listed separately.',
+    coverage: 'Priced usage subtotal: model tokens, video output seconds with native audio, built-in tools, AI Guardrails, '
+      + 'CloudFlow, EventBridge, Direct Mail and Chat App fees. Video defaults: one 15 s clip at 720P per step pass; '
+      + 'upper 30 s or model maximum at 1080P; overrides and limits are named in assumptions. '
+      + 'Excludes compute time, storage, indexing, channel fees, human review, standalone voice/image usage, '
+      + 'reference-video input usage and fixed monthly capacity listed separately.',
     latency: { modelStepsOnLongestPath: longest, humanWaits: nodes.filter((n) => active.has(n.id) && n.kind === 'human').map((n) => n.label) },
   };
 }

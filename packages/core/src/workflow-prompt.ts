@@ -153,6 +153,8 @@ function rules(): string[] {
     '7. Use the tier the task needs: small for classify, route, extract, summarise, translate; mid for drafts, RAG, vision with tools and agents;',
     'large for planners, orchestrators and hard reasoning. Use only model-table ids and match input/output kinds and tool support.',
     'Speech needs an audio-input model before text classification: ASR, omni or realtime. Use an audio-output model for spoken answers.',
+    'For video ads and clips, use task create with a video model: wan3.0-video by default, or HappyHorse text/image-to-video with audio.',
+    'Never say Alibaba has no video model.',
     'Scans need OCR or vision input. Image understanding is not image search. Use only established model/tool combinations.',
     'Function calling does not imply built-in tool support. For custom APIs use a concrete customer adapter, not an unsupported built-in.',
     'Escalate low-confidence work to a larger model. Use ai calls to draft text; code_interpreter runs code, not another hidden model.',

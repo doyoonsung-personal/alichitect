@@ -469,3 +469,153 @@ There are two models, not one:
 - **`qwen-audio-3.1-asr-flash-streaming`** (live): $0.93 / $0.70.
 
 The Batch 4 line above that gives $0.93 / $0.70 for "qwen-audio-3.1-asr-flash" means the streaming variant. `models.json` lists both.
+
+## Video models (checked 2026-11-03)
+
+Source: the local `wan-research.md` Qwen research report. The orchestrator checked the
+International pricing rows and model-selection page on 2026-11-03; this implementation
+made no network calls. Rates below are USD per second of output, for the International
+Singapore deployment scope (`ap-southeast-1`). Global-scope CNY-derived duplicates are
+not used. Free quotas and promotional discounts are not deducted by the estimator.
+
+- Pricing, checked 2026-11-03: https://www.alibabacloud.com/help/en/model-studio/model-pricing
+- Selection, checked 2026-11-03: https://www.alibabacloud.com/help/en/model-studio/video-generate-edit-model/
+
+### Video models: wan3.0-video
+
+Checked 2026-11-03: International list prices 480P $0.05, 720P $0.10, 1080P $0.20;
+30 s free quota. The pricing page labels this model "Limited-time 30% off"; use list
+prices. The selection page lists text/image-to-video and reference-to-video.
+Prices: https://www.alibabacloud.com/help/en/model-studio/model-pricing
+Selection: https://www.alibabacloud.com/help/en/model-studio/video-generate-edit-model/
+
+Text, image, reference, video and audio input; up to 30 s, 30 fps; audio on by default:
+per the Qwen research report, cited page https://www.alibabacloud.com/help/en/model-studio/wan3-0-video
+and https://www.alibabacloud.com/help/en/model-studio/wan3-video-generation-api-reference .
+The report states input plus output is at most 30 s for video references. The estimator
+assumes no billable reference-video input and names that limitation.
+
+### Video models: wan3.0-video-prime
+
+Checked 2026-11-03: International list prices 480P $0.068, 720P $0.14, 1080P $0.28;
+no free quota. The selection page lists text/image-to-video and reference-to-video.
+Prices: https://www.alibabacloud.com/help/en/model-studio/model-pricing
+Selection: https://www.alibabacloud.com/help/en/model-studio/video-generate-edit-model/
+
+Accelerated Wan 3.0 with the same input modes and audio, up to 30 s at 30 fps:
+per the Qwen research report, cited page https://www.alibabacloud.com/help/en/model-studio/wan3-0-video-prime
+and https://www.alibabacloud.com/help/en/model-studio/wan3-video-generation-api-reference .
+
+### Video models: happyhorse-1.1-t2v
+
+Checked 2026-11-03: International list prices 480P $0.07, 720P $0.14, 1080P $0.18;
+10 s free quota. The selection page recommends it for videos with audio from text prompts.
+Prices: https://www.alibabacloud.com/help/en/model-studio/model-pricing
+Selection: https://www.alibabacloud.com/help/en/model-studio/video-generate-edit-model/
+
+3-15 s at 24 fps with native audio: per the Qwen research report, cited page
+https://www.alibabacloud.com/help/en/model-studio/happyhorse-text-to-video-api-reference
+and https://www.alibabacloud.com/help/en/model-studio/video-generate-edit-model/ .
+
+### Video models: happyhorse-1.1-i2v
+
+Checked 2026-11-03: International list prices 480P $0.07, 720P $0.14, 1080P $0.18;
+10 s free quota. The selection page lists image-to-video.
+Prices: https://www.alibabacloud.com/help/en/model-studio/model-pricing
+Selection: https://www.alibabacloud.com/help/en/model-studio/video-generate-edit-model/
+
+First frame and prompt input, 3-15 s at 24 fps with native audio: per the Qwen research report,
+cited page https://www.alibabacloud.com/help/en/model-studio/video-generate-edit-model/ .
+
+### Video models: happyhorse-1.1-r2v
+
+Checked 2026-11-03: International list prices 480P $0.07, 720P $0.14, 1080P $0.18;
+10 s free quota. The selection page lists reference-to-video.
+Prices: https://www.alibabacloud.com/help/en/model-studio/model-pricing
+Selection: https://www.alibabacloud.com/help/en/model-studio/video-generate-edit-model/
+
+1-9 reference images plus prompt, 3-15 s at 24 fps with native audio:
+per the Qwen research report, cited page https://www.alibabacloud.com/help/en/model-studio/happyhorse-reference-to-video-api-reference
+and https://www.alibabacloud.com/help/en/model-studio/video-generate-edit-model/ .
+
+### Video models: wan2.7-t2v
+
+Checked 2026-11-03: International list prices 720P $0.10, 1080P $0.15; no free quota.
+The selection page gives text-to-video, 720P/1080P, 2-15 s at 30 fps, with audio sync.
+Prices: https://www.alibabacloud.com/help/en/model-studio/model-pricing
+Selection: https://www.alibabacloud.com/help/en/model-studio/video-generate-edit-model/
+
+### Video models: wan2.7-i2v
+
+Checked 2026-11-03: International list prices 720P $0.10, 1080P $0.15; no free quota.
+Prices: https://www.alibabacloud.com/help/en/model-studio/model-pricing
+First or first-and-last frames plus prompt, 2-15 s with audio: per the Qwen research report,
+cited page https://www.alibabacloud.com/help/en/model-studio/image-to-video-general-api-reference .
+Only text and image inputs are represented; continuation is not assumed to establish direct video input.
+
+### Representation and estimator decisions
+
+- Families are `wan` and `happyhorse`, rather than labeling these models Qwen. `mid`
+  is the workflow creation tier, matching image creation. Function calling is false;
+  built-in tools and batch support are unestablished (`null`). All seven use task `create`.
+- `ga` follows the report's available-API interpretation. Wan's API preview wording
+  conflicts with its official-launch announcement, per the Qwen research report, cited page
+  https://www.alibabacloud.com/en/news/product/video-generation-model-wan30-officially-launched-nsb .
+- `price.unit: second`, numeric tier `resolution`, and optional `video` duration limits
+  are additive. Prompt notes expose modes, audio, duration, resolution and established fps;
+  neither rates nor free quotas are rendered in the prompt.
+- One clip per step pass (one per simple run); repeats and retries use existing multipliers.
+  Typical defaults to 15 s/720P; upper is 30 s or the model maximum/1080P. Step overrides
+  are `clipSeconds` and `resolution`; seconds round up and clamp to model limits.
+  Unsupported resolutions remain unpriced, never silently substituted. Native audio is included.
+- `VideoEstimateSettings` extends the existing per-step shape inside `workflow-estimate.ts`.
+  `types.ts` is pinned and outside ownership, so the session contract is not edited.
+  UI integration needs its step settings type, request-admission allowlist, web settings
+  edit union/bounds, persistence validation and explicit cost controls to preserve these fields.
+  The existing UI is not a generic driver editor. Its localized coverage strings also need
+  to consume the estimator's new video coverage; no web or admission files are changed here.
+  Specifically: `packages/core/src/types.ts`, `apps/server/src/request.ts`,
+  `apps/web/src/workflow/settings.ts`, `apps/web/src/panel/WorkflowCost.tsx`,
+  `apps/web/src/workflow/panel-model.ts` and `apps/web/src/i18n/strings.json` need integration.
+  The panel's explicit unit/assumption/reason translation maps need `second`, video
+  assumptions and new unpriced reasons. Until then those display generic fallback text,
+  and the hard-coded panel coverage still excludes video even though the subtotal prices it.
+
+### Video change validation (2026-11-03)
+
+Full suites ran once each using `npm.cmd test`:
+
+| Suite | Passed | Failed | Total |
+| --- | ---: | ---: | ---: |
+| Root (core, eval, server) | 1125 | 0 | 1125 |
+| Web | 718 | 1 | 719 |
+| Worker | 276 | 0 | 276 |
+
+The web failure is `the logos render in Chrome`, `scripts/icons/test/icons.test.ts:209`:
+Puppeteer timed out after 30,000 ms. Its isolated rerun also failed (0/1) with the same
+timeout. An earlier occurrence is already recorded in the workflow eval README; no web files changed.
+
+Core and web initially reported a possibly-undefined model in the new video branch.
+An explicit model guard fixed the narrowing; both typechecks passed on rerun. Worker
+typecheck passed on its first run. The estimator's focused suite passed 87/87 after
+that guard change; the full suites were not repeated.
+
+`node eval/check-cases.ts`: 174 cases, 207 turns, all well formed (65 workflow cases).
+Workflow prompt: 10,181 estimated tokens, band 10,000-10,499, ceiling 15,000.
+Cloud `buildSystemPrompt(loadCatalog())` SHA-256 passed:
+`998fab223daba0a4407930f0f6f61e90cf100d7783ca4b13008636526d049313`.
+
+Files changed: `packages/core/catalog/models.json`; `packages/core/src/models.ts`,
+`workflow-estimate.ts`, `workflow-estimate-limits.ts`, `workflow-prompt.ts`; their
+`models.test.ts`, `workflow-estimate.test.ts`, `workflow-prompt.test.ts` tests;
+this NOTES file; `eval/cases-workflow/README.md`; `eval/test/workflow.test.ts`.
+Files created: `eval/cases-workflow/wf-video-ad.json` and `wf-ko-video-ad.json`.
+
+Departures/remaining work: pinned shared settings and admission files prevent end-to-end
+editing/persistence of the new estimator overrides; the explicit UI needs the integration
+listed above. The existing eval schema has no exact-model allowlist or no-gap assertion:
+those requirements live in judge references and the offline fake-runner regression,
+with model mentions and common false-availability claims checked by existing assertions.
+Extending those generic assertions requires unowned `eval/workflow.ts`/`eval/lib.ts`.
+Live generation/judge quality was not measured. No network or live model calls, deployments
+or commits were made; the supplied brief and research report were left untouched.

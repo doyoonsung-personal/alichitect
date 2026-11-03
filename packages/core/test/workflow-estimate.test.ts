@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import * as estimateApi from '../src/workflow-estimate.ts';
 import { estimateWorkflow } from '../src/workflow-estimate.ts';
+import { ESTIMATE_LIMITS } from '../src/workflow-estimate-limits.ts';
 import { loadCatalog, loadModels } from '../src/catalog-node.ts';
 import { createModelTable } from '../src/models.ts';
 import type { ModelEntry, PriceTier } from '../src/models.ts';
@@ -34,6 +35,72 @@ function fixture(file: string): WorkflowGraph {
   for (const op of f.ops) wf = applyWorkflowOp(wf, op, ctx).workflow;
   return wf;
 }
+
+test('Wan video output costs 15 seconds times $0.10 = $1.50 per run, with a 30-second 1080P upper', () => {
+  const wf = graph([node('video', { task: 'create', ai: 'wan3.0-video' })]);
+  const e = estimateWorkflow(wf, models, catalog, { runsPerMonth: 100 });
+  close(e.typical.perRunUsd, 1.50); close(e.upper.perRunUsd, 6);
+  close(e.typical.monthlyUsd, 150); close(e.upper.monthlyUsd, 600);
+  assert.deepEqual(e.unpriced, []); assert.equal(e.lines[0].unit, 'second');
+  assert.match(e.lines[0].source, /NOTES Video models: wan3.0-video/);
+  assert.ok(e.assumptions.some((a) => /one output clip.*15 s at 720P.*30 s at 1080P/.test(a.text)));
+  assert.ok(e.assumptions.some((a) => /no promotional, free-quota or batch deductions/.test(a.text)));
+  assert.ok(!e.assumptions.some((a) => /thinking|input tokens|output tokens/.test(a.text)));
+  assert.match(e.coverage, /video output seconds with native audio/);
+  assert.doesNotMatch(e.coverage, /voice\/image\/video usage/);
+});
+
+test('all video model rates and upper duration caps are used without discounting quotas', () => {
+  for (const [ai, typical, upper] of [
+    ['wan3.0-video-prime', 2.1, 8.4], ['happyhorse-1.1-t2v', 2.1, 2.7],
+    ['happyhorse-1.1-i2v', 2.1, 2.7], ['happyhorse-1.1-r2v', 2.1, 2.7],
+    ['wan2.7-t2v', 1.5, 2.25], ['wan2.7-i2v', 1.5, 2.25],
+  ] as const) {
+    const e = estimateWorkflow(graph([node('a', { ai, task: 'create' })]), models, catalog);
+    close(e.typical.perRunUsd, typical); close(e.upper.perRunUsd, upper); assert.deepEqual(e.unpriced, []);
+  }
+});
+
+test('per-step clip settings select resolution and bound duration without mutating inputs', () => {
+  const wf = graph([node('a', { ai: 'wan3.0-video', task: 'create' })]);
+  const settings = { steps: { a: { clipSeconds: 10, resolution: 480 as const, offline: true, thinking: true } } };
+  const before = structuredClone({ wf, settings, models: models.models });
+  const e = estimateWorkflow(wf, models, catalog, settings);
+  close(e.typical.perRunUsd, 0.5); close(e.upper.perRunUsd, 6);
+  assert.deepEqual({ wf, settings, models: models.models }, before);
+  assert.equal(ESTIMATE_LIMITS.clipSeconds, 30);
+  assert.deepEqual(ESTIMATE_LIMITS.resolutions, [480, 720, 1080]);
+  for (const [seconds, expected] of [[1e9, 3], [NaN, 1.5], [Infinity, 1.5], [-1, 1.5], [0, 0.1], [2.1, 0.3]]) {
+    const result = estimateWorkflow(wf, models, catalog, { steps: { a: { clipSeconds: seconds } } });
+    close(result.typical.perRunUsd, expected); assert.ok(Number.isFinite(result.upper.monthlyUsd));
+  }
+  const hh = graph([node('a', { ai: 'happyhorse-1.1-t2v', task: 'create' })]);
+  close(estimateWorkflow(hh, models, catalog, { steps: { a: { clipSeconds: 1, resolution: 1080 } } }).typical.perRunUsd, 0.54);
+  close(estimateWorkflow(hh, models, catalog, { steps: { a: { clipSeconds: 30 } } }).typical.perRunUsd, 2.1);
+});
+
+test('unsupported video resolution is unpriced, and image creation remains explicitly unpriced', () => {
+  const e = estimateWorkflow(graph([node('a', { ai: 'wan2.7-t2v', task: 'create' })]), models, catalog,
+    { steps: { a: { resolution: 480 } } });
+  assert.deepEqual(e.lines, []); assert.match(e.unpriced[0].why, /No confirmed video rate for 480P/);
+  const image = estimateWorkflow(graph([node('a', { ai: 'qwen-image-2.0', task: 'create' })]), models, catalog);
+  assert.deepEqual(image.lines, []); assert.match(image.unpriced[0].why, /Image, voice/);
+});
+
+test('video clips follow branch shares, repeat items and retries like other priced steps', () => {
+  const wf = graph([
+    node('start', { kind: 'trigger', ai: undefined }), node('ad', { ai: 'wan3.0-video', task: 'create', repeat: 'products' }),
+    node('quality', { kind: 'decide', ai: undefined }),
+    node('end', { kind: 'end', ai: undefined }),
+  ], [edge('start', 'ad', { kind: 'branch' }), edge('start', 'end', { kind: 'branch' }), edge('ad', 'quality'),
+    edge('quality', 'end', { outcome: 'exhausted' }), { id: 'retry', from: 'quality', to: 'ad', kind: 'loop', max: 1 }]);
+  wf.groups.products = { id: 'products', over: 'each product' };
+  const e = estimateWorkflow(wf, models, catalog, {
+    shares: { 'start-ad': 0.25, 'start-end': 0.75 }, items: { products: { typical: 2, upper: 3 } },
+    loops: { retry: { typical: 1, upper: 1 } },
+  });
+  close(e.typical.perRunUsd, 0.25 * 2 * 2 * 1.5); close(e.upper.perRunUsd, 3 * 2 * 6);
+});
 
 for (const [task, input, output] of [
   ['classify', 700, 40], ['extract', 1000, 150], ['retrieve', 50, 0], ['rerank', 8050, 0],
