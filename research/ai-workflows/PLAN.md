@@ -969,6 +969,8 @@ The estimate takes the deployment scope from the session (International by defau
     - every run passing on 100 of 109 cases, as before;
     - `ai-07-training-residency` fell from 2/3 to 0/3, both times from the model's own choices.
 
+**Phase 8, implemented on 2026-11-03.** **Where it runs** sends one cloud turn with a deployment brief derived from the committed workflow. Both diagrams are saved in the session, and the header selects which one a follow-up edits. A changed workflow or placement setting marks the deployment as outdated and offers a redraw. The app lists missing services, and the proposal includes both vector diagrams plus any outstanding notices. Regression cases are in `eval/cases-deployment/`.
+
 **Order.** The contract comes before the layout spike: a layout that holds still but draws the wrong semantics proves nothing. The spike still comes before the pipeline work, because layout remains the largest single risk.
 
 ### Recommended first release

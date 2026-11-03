@@ -9,21 +9,35 @@ import { wt } from '../../src/export/workflow-strings.ts';
 import type { ProposalDraft } from '@ali/core/types.ts';
 import { usd } from '../../src/workflow/panel-model.ts';
 import { xt } from '../../src/export/strings.ts';
+import { makeT } from '../../src/i18n/t.ts';
+import { deploymentSource } from '@ali/core/workflow-deployment.ts';
 
 for (const lang of ['en', 'ko', 'zh'] as const) for (const mixed of [false, true]) {
   test(`${lang}: ${mixed ? 'mixed drafted' : 'workflow-only basic'} PDF includes generated sections and readable vector tiles`, async () => {
     const state = mixed ? playFixture('ha', lang).getState() : createInitialState({ lang, id: 'workflow', now: 0 });
     state.session.mode = 'workflow';
     state.session.memory.workflow = workflowFixture(25, lang);
+    if (mixed) {
+      state.session.memory.deploymentSource = deploymentSource(state.session.memory);
+      if (lang === 'ko') state.session.memory.workflow.nodes['step-0'].label += ' (수정됨)';
+    }
     const draft: ProposalDraft | null = mixed ? { lang, complete: true, exec: 'Workflow executive summary.', outcomes: [], needs: [], why: {},
       tradeoffs: [], next: [], steps: { 'step-1': 'Explain the first model step.' } } : null;
     const result = await generateFromState(state, { draft });
     const check = await checkPdf(result.bytes, state, { draft });
     assert.deepEqual(check.problems, []);
-    const diagrams = result.report.diagramPages;
+    const allDiagrams = result.report.diagramPages;
+    const diagrams = allDiagrams.filter(d => d.id === 'workflow');
+    assert.equal(allDiagrams.length, diagrams.length + Number(mixed));
+    if (mixed) {
+      const deployment = allDiagrams.at(-1)!;
+      assert.equal(deployment.id, 'cloud');
+      assert.ok(deployment.page > diagrams.at(-1)!.page);
+      const title = makeT(lang)(lang === 'ko' ? 'deployment.outdatedTitle' : 'deployment.title');
+      assert.ok(check.info.pages[deployment.page - 1].text.includes(title));
+    }
     assert.ok(diagrams[0].overview);
     assert.ok(diagrams.length > 2);
-    assert.ok(diagrams.every((d) => d.id === 'workflow'));
     assert.ok(diagrams.slice(1).every((d) => d.scale * 14 >= 11));
     for (const [index, diagram] of diagrams.entries()) {
       const page = check.info.pages[diagram.page - 1];

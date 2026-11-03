@@ -39,6 +39,8 @@ import type { ApplyCtx } from './reducer.ts';
 import { checkGraph, constraintChecker, repairGraph, validateOp } from './validate.ts';
 import { impliedLifts, mergeConstraintsDetailed } from './constraints.ts';
 import { checkWorkflowConstraints } from './workflow-constraints.ts';
+import { deploymentSource, deploymentWarnings } from './workflow-deployment.ts';
+import { prefixKey } from './prefix-key.ts';
 import { diffGraphs } from './diff.ts';
 import { identityBoundary } from './identity-matcher.ts';
 import { ASK_LIMITS, latestById, mergeAssumptions } from './asks.ts';
@@ -138,15 +140,7 @@ export function createCacheTracker(ttlMs = 15 * 60_000): CacheTracker {
 
 export const defaultCacheTracker: CacheTracker = createCacheTracker();
 
-/** Short stable key for a model and system prompt (FNV-1a over the UTF-16 code units, plus the length). */
-export function prefixKey(model: string, system: string): string {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < system.length; i++) {
-    h ^= system.charCodeAt(i);
-    h = Math.imul(h, 0x01000193) >>> 0;
-  }
-  return `${model}:${h.toString(16)}:${system.length}`;
-}
+export { prefixKey } from './prefix-key.ts';
 
 // ---------- SSE ----------
 
@@ -1046,6 +1040,7 @@ export interface BackupCall {
 export const BACKUP_MIN_MS_LEFT = 60_000;
 
 export interface RunTurnOptions<M extends TurnMode = 'cloud'> {
+  intent?: 'deployment';
   mode?: M;
   models?: ModelTable;
   apiKey: string;
@@ -1319,7 +1314,7 @@ export async function runTurn<M extends TurnMode = 'cloud'>(
   if (workflowMode && !opts.models) throw new Error('Workflow turns need a model table');
   const system = opts.system ?? buildSystemPrompt(catalog, opts.mode, opts.models);
   const window = opts.window ?? DEFAULT_WINDOW;
-  const messages = buildMessages(memory, ask, { system, mode: opts.mode, window, maxAskChars: opts.maxAskChars, cache: opts.cache });
+  const messages = buildMessages(memory, ask, { system, mode: opts.mode, intent: opts.intent, window, maxAskChars: opts.maxAskChars, cache: opts.cache });
   const model = opts.model ?? DEFAULT_MODEL;
   const fb = opts.fallbackModel === undefined ? FALLBACK_MODEL : opts.fallbackModel;
   const fallback = fb && fb !== model ? fb : undefined;
@@ -1513,7 +1508,7 @@ export async function runTurn<M extends TurnMode = 'cloud'>(
   // (A question is a say line and done, so it is a normal turn.) The user sees a retryable error and the diagram is unchanged.
   if (!m.error && m.ops.length === 0 && !aborted()) m.error = { code: 'empty-reply', message: 'the model returned no operations', retryable: true };
   const filtered = isFiltered(m.error) && !rescueContinue;
-  const hardFail = (!!m.error && m.ops.length === 0) || filtered;
+  let hardFail = (!!m.error && m.ops.length === 0) || filtered;
   const checker = opts.checkConstraints === undefined ? defaultConstraintChecker : opts.checkConstraints;
   const checkC = (g: Graph, says: readonly string[], pinned: readonly Constraint[], workflow?: WorkflowGraph): Warning[] => {
     if (!checker || !pinned.length) return [];
@@ -1642,6 +1637,13 @@ export async function runTurn<M extends TurnMode = 'cloud'>(
     }
   }
 
+  // A deployment click promises a complete diagram. Never replace a previous deployment with a partial redraw.
+  if (opts.intent === 'deployment' && !hardFail) {
+    if (!finalDone || !Object.keys(finalGraph.nodes).length) {
+      hardFail = true;
+      m.error ??= { code: 'empty-reply', message: 'No completed deployment diagram', retryable: true };
+    }
+  }
   if (pinNotes.length) warningsAfter = [...warningsAfter, ...pinNotes];
   if (rescue && !finalDone && !hardFail) {
     // The backup could not finish a reply Model Studio's filter stopped: what was drawn is committed, and the user is told.
@@ -1664,7 +1666,7 @@ export async function runTurn<M extends TurnMode = 'cloud'>(
       graph: finalGraph,
       tombstones: [...(memory.tombstones ?? []), ...diff.tombstones].slice(-80),
     };
-    for (const key of ['workflow', 'workflowTombstones', 'workflowSettings', 'estimate'] as const) {
+    for (const key of ['workflow', 'workflowTombstones', 'workflowSettings', 'estimate', 'deploymentSource'] as const) {
       if (memory[key] !== undefined) Object.assign(next, { [key]: memory[key] });
     }
     if (workflowDiff) {
@@ -1688,6 +1690,10 @@ export async function runTurn<M extends TurnMode = 'cloud'>(
     if (assumptions.length) next.assumptions = assumptions;
     if (m.questions.length) next.questions = m.questions;
     if (memory.summary) next.summary = memory.summary;
+    if (opts.intent === 'deployment') {
+      next.deploymentSource = deploymentSource(memory);
+    }
+    warningsAfter.push(...deploymentWarnings(next));
     if (opts.summarize && !aborted()) next = await foldSummary(next, window, { ...opts, onStatus: status }, typeof opts.summarize === 'object' ? opts.summarize.model : undefined);
   }
 

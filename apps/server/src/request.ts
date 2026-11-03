@@ -269,6 +269,11 @@ function memory(v: unknown, p: string): SessionMemory {
     if (list.length) m.questions = list;
   }
   if (own(o, 'workflow') !== undefined) m.workflow = workflow(own(o, 'workflow'), `${p}.workflow`);
+  if (own(o, 'deploymentSource') !== undefined) {
+    const source = str(own(o, 'deploymentSource'), `${p}.deploymentSource`, 32)!;
+    if (!/^wf1:[0-9a-f]{1,8}:\d{1,8}$/.test(source)) fail(`${p}.deploymentSource`, 'invalid workflow version');
+    m.deploymentSource = source;
+  }
   if (own(o, 'workflowTombstones') !== undefined) {
     m.workflowTombstones = arr(own(o, 'workflowTombstones'), `${p}.workflowTombstones`, LIMITS.workflowTombstones)!
       .map((x, i) => workflowTombstone(x, `${p}.workflowTombstones[${i}]`));
@@ -290,11 +295,15 @@ export function checkTurnRequest(body: unknown): RequestCheck {
     const ask = str(own(o, 'ask'), 'ask', LIMITS.askChars, { nonEmpty: true })!;
     const turnMode = mode(own(o, 'mode'), 'mode');
     const parsed = memory(own(o, 'memory'), 'memory');
+    const intent = own(o, 'intent');
+    if (intent !== undefined && (intent !== 'deployment' || turnMode !== 'cloud' || !Object.keys(parsed.workflow?.nodes ?? {}).length)) {
+      fail('intent', 'drawing a deployment requires cloud mode and a workflow with steps');
+    }
     if (parsed.workflow || turnMode === 'workflow') {
       const retained = { ...parsed, turns: [], tombstones: [], workflowTombstones: [] };
       if (memoryBytes(retained) > TURN_MEMORY_BUDGET) fail('memory', 'retained documents exceed the next-request budget');
     }
-    return { ok: true, value: { sessionId, ask, mode: turnMode, memory: parsed } };
+    return { ok: true, value: { sessionId, ask, mode: turnMode, memory: parsed, ...(intent === 'deployment' ? { intent } : {}) } };
   } catch (e) {
     if (e instanceof Bad) return { ok: false, code: 'bad-request', message: e.message };
     return { ok: false, code: 'bad-request', message: 'invalid request body' };

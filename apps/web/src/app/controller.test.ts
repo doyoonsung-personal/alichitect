@@ -429,6 +429,24 @@ test('ordinary requests explicitly default to cloud', async () => {
   t.c.dispose();
 });
 
+test('retrying a failed deployment resends the workflow and retains the explicit deployment intent', async () => {
+  const t = setup({ turn: () => new Response(JSON.stringify({ type: 'fatal', code: 'network', message: '', retryable: true }) + '\n') });
+  await t.c.boot();
+  const record = t.store.getState().session;
+  t.store.dispatch({ type: 'session/open', now: 1, record: { ...record, mode: 'workflow', memory: { ...record.memory,
+    workflow: { nodes: { start: { id: 'start', kind: 'trigger', label: 'Invoice' } }, edges: {}, groups: {} } } } });
+  t.c.drawDeployment();
+  t.c.drawDeployment(); // a second click while streaming must not book another turn
+  await until(() => t.store.getState().session.revisions.at(-1)?.status === 'failed');
+  assert.equal(t.store.getState().session.mode, 'workflow');
+  t.c.retry();
+  await until(() => t.store.getState().session.revisions.at(-1)?.status === 'failed');
+  const requests = t.requests.filter(r => r.url.endsWith('/api/turn')).map(r => r.body as { intent: string; mode: string });
+  assert.deepEqual(requests.map(r => [r.intent, r.mode]), [['deployment', 'cloud'], ['deployment', 'cloud']]);
+  assert.equal(t.store.getState().session.revisions.length, 1);
+  t.c.dispose();
+});
+
 test('workflow setting actions save through the existing persistence path', async () => {
   const { c, store, sessions } = setup({ turn: () => turnResponse(loadFixtureFile('stub-mixed-workflow'), 1) });
   await c.boot();

@@ -104,6 +104,7 @@ export interface RevisionError {
 }
 
 export interface Revision {
+  intent?: 'deployment';
   mode?: TurnMode;
   /** 1-based, in order of asking. */
   n: number;

@@ -333,15 +333,23 @@ export function buildDocument(i: PdfInput): PdfReport {
 
   // ---------- the diagram ----------
   function diagramSection(): void {
-    if (i.diagrams[0]?.view === 'workflow') { workflowDiagrams(); return; }
-    const diagram = i.diagrams[0]?.drawing ?? null;
+    if (!i.diagrams.length) cloudDiagram();
+    for (const diagram of i.diagrams) {
+      if (diagram.view === 'workflow') workflowDiagram(diagram);
+      else cloudDiagram(diagram);
+    }
+  }
+
+  function cloudDiagram(entry?: PdfDiagram): void {
+    const diagram = entry?.drawing;
     const fitOn = (size: PageSize): number =>
       diagram ? Math.min((size[0] - 2 * margin) / diagram.width, (size[1] - CONTENT_TOP - 30 - 28 - FOOTER_RULE_FROM_BOTTOM - 8) / diagram.height, 1.3) : 1;
     // a diagram that would have to shrink below the readable scale moves to a larger sheet
     const diagramSheet: PageSize = fitOn(A4_LANDSCAPE) < MIN_DIAGRAM_SCALE ? A3_LANDSCAPE : A4_LANDSCAPE;
     newPage(diagramSheet);
-    outline(xt('diagram.heading'));
-    heading(xt('diagram.heading'));
+    const title = entry?.title ?? xt('diagram.heading');
+    outline(title);
+    heading(title);
     if (!diagram) {
       ts.line(margin, ts.baseline(y, body.lh, body.px), xt('diagram.empty'), ink(body.px, 400, COLOR.ink3));
     } else {
@@ -361,38 +369,37 @@ export function buildDocument(i: PdfInput): PdfReport {
           warningCallback: () => {},
         });
       }
-      report.diagramPage = { size: size === A3_LANDSCAPE ? 'A3' : 'A4', scale: Math.round(scale * 1000) / 1000 };
-      report.diagramPages.push({ id: 'cloud', page: doc.bufferedPageRange().count, ...report.diagramPage, overview: false });
+      const value = { size: size === A3_LANDSCAPE ? 'A3' as const : 'A4' as const, scale: Math.round(scale * 1000) / 1000 };
+      report.diagramPage ??= value;
+      report.diagramPages.push({ id: 'cloud', page: doc.bufferedPageRange().count, ...value, overview: false });
     }
   }
 
-  function workflowDiagrams(): void {
-    for (const diagram of i.diagrams) {
-      const pages = diagram.pages;
-      if (!pages?.length) throw new Error('Workflow diagram requires a measured page plan');
-      pages.forEach((p, index) => {
-        newPage(p.size === 'A3' ? A3_LANDSCAPE : A4_LANDSCAPE);
-        const title = p.overview ? wt(model.lang, 'diagram.overview') : index === 0 ? diagram.title
-          : wt(model.lang, 'diagram.detail', { n: index, total: pages.length - 1 });
-        outline(title);
-        heading(title);
-        if (index + 1 < pages.length) {
-          const page = doc.bufferedPageRange().count;
-          const continuation = wt(model.lang, 'diagram.continued', { page: page + 1 });
-          ts.line(margin, ts.baseline(y, 16, 9), continuation, ink(9));
-          y += 18;
-        }
-        const x = margin + (contentW() - p.drawing.width * p.scale) / 2;
-        const top = y + Math.max(0, bottomLimit() - y - p.drawing.height * p.scale) / 2;
-        if (!i.dry) SVGtoPDF(doc, stripSize(p.drawing.svg), x, top, {
-          width: p.drawing.width * p.scale, height: p.drawing.height * p.scale,
-          assumePt: true, preserveAspectRatio: 'xMinYMin meet', fontCallback: (family) => family,
-        });
-        const value = { size: p.size, scale: p.scale };
-        report.diagramPage ??= value;
-        report.diagramPages.push({ id: diagram.id, page: doc.bufferedPageRange().count, ...value, overview: p.overview });
+  function workflowDiagram(diagram: PdfDiagram): void {
+    const pages = diagram.pages;
+    if (!pages?.length) throw new Error('Workflow diagram requires a measured page plan');
+    pages.forEach((p, index) => {
+      newPage(p.size === 'A3' ? A3_LANDSCAPE : A4_LANDSCAPE);
+      const title = p.overview ? wt(model.lang, 'diagram.overview') : index === 0 ? diagram.title
+        : wt(model.lang, 'diagram.detail', { n: index, total: pages.length - 1 });
+      outline(title);
+      heading(title);
+      if (index + 1 < pages.length) {
+        const page = doc.bufferedPageRange().count;
+        const continuation = wt(model.lang, 'diagram.continued', { page: page + 1 });
+        ts.line(margin, ts.baseline(y, 16, 9), continuation, ink(9));
+        y += 18;
+      }
+      const x = margin + (contentW() - p.drawing.width * p.scale) / 2;
+      const top = y + Math.max(0, bottomLimit() - y - p.drawing.height * p.scale) / 2;
+      if (!i.dry) SVGtoPDF(doc, stripSize(p.drawing.svg), x, top, {
+        width: p.drawing.width * p.scale, height: p.drawing.height * p.scale,
+        assumePt: true, preserveAspectRatio: 'xMinYMin meet', fontCallback: (family) => family,
       });
-    }
+      const value = { size: p.size, scale: p.scale };
+      report.diagramPage ??= value;
+      report.diagramPages.push({ id: diagram.id, page: doc.bufferedPageRange().count, ...value, overview: p.overview });
+    });
   }
 
   function workflowSections(): void {

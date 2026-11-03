@@ -1,4 +1,6 @@
 import { WorkflowSettings } from './WorkflowSettings.tsx';
+import { useMemo } from 'react';
+import { deploymentNotices } from '../workflow/deployment-notices.ts';
 import { useWorkflowProps } from '../workflow/props.ts';
 // The working view's header (48 px): the lockup (a link to the landing), the session title, and the controls.
 import type { ReactElement } from 'react';
@@ -22,6 +24,8 @@ export function Header(): ReactElement {
   const streaming = useAppState(isStreaming);
   const mode = useAppState((s) => s.session.mode ?? 'cloud');
   const workflow = useWorkflowProps();
+  const memory = useAppState((s) => s.session.memory);
+  const notices = useMemo(() => deploymentNotices(memory, workflow.catalog, t), [memory, workflow.catalog, t]);
   const canvasGraph = useAppState((s) => s.display.graph);
   const hasWorkflow = Object.keys(workflow.workflow.nodes).length > 0;
   const hasCloud = Object.keys(canvasGraph.nodes).length > 0 || canvasGraph.recs.length > 0;
@@ -37,11 +41,15 @@ export function Header(): ReactElement {
         <ModeState />
         {showWorkflow && <label className="workflow-diagrams">
           <span className="visually-hidden">{t('focus.label')}</span>
-          <select aria-label={t('focus.label')} value={mode} onChange={(e) => c.setMode(e.target.value as 'cloud' | 'workflow')}>
+          <select aria-label={t('focus.label')} disabled={streaming} value={mode} onChange={(e) => c.setMode(e.target.value as 'cloud' | 'workflow')}>
             <option value="workflow">{t('focus.workflow')}</option>
-            {showCloud && <option value="cloud">{t('focus.cloud')}</option>}
+            {showCloud && <option value="cloud">{t(memory.deploymentSource ? 'deployment.title' : 'focus.cloud')}</option>}
           </select>
         </label>}
+        {hasWorkflow && (!memory.deploymentSource || notices.length > 0 || !hasCloud) &&
+          <button className="btn btn--secondary" type="button" disabled={workflow.disabled} onClick={c.drawDeployment}>
+            {t(memory.deploymentSource ? 'deployment.redraw' : 'deployment.draw')}
+          </button>}
         <button type="button" className="btn btn--ghost" aria-pressed={focus} onClick={() => c.setFocusDiagram(!focus)}>
           <Icon name={focus ? 'showConsole' : 'focusDiagram'} />
           <span>{focus ? t('header.showConsole') : t('header.focusDiagram')}</span>
@@ -57,6 +65,7 @@ export function Header(): ReactElement {
         <AccountMenu />
       </div>
       {mode === 'workflow' && <WorkflowSettings {...workflow} />}
+      {notices.length > 0 && <div className="deployment-notices" role="status">{notices.map(text => <p key={text}>{text}</p>)}</div>}
     </header>
   );
 }

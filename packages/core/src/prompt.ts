@@ -15,6 +15,7 @@ import type { ApplyResult, Catalog, Constraint, Graph, GraphEdge, GraphGroup, Gr
 import type { TurnMode, WorkflowGraph } from './types.ts';
 import type { ModelTable } from './models.ts';
 import { buildWorkflowSystemPrompt, serializeWorkflow, workflowUserContent } from './workflow-prompt.ts';
+import { deploymentBrief } from './workflow-deployment.ts';
 import { REGIONS, regionInfo } from './regions.ts';
 import { diffGraphs } from './diff.ts';
 import { PROMPT_ROW_FORMAT, isRecommendable } from './catalog.ts';
@@ -37,6 +38,7 @@ export interface ChatMessage {
 export type CacheMode = 'none' | 'system' | 'two';
 
 export interface BuildOptions {
+  intent?: 'deployment';
   mode?: TurnMode;
   models?: ModelTable;
   /** Needed to build the system prompt, unless `system` is passed. */
@@ -419,6 +421,7 @@ export function formatQuestions(questions: SessionMemory['questions']): string |
 /** The newest user message: pinned requirements, current diagram, removed elements, assumptions and questions, then the message itself. */
 export function finalUserContent(memory: SessionMemory, ask: string, opts: BuildOptions = {}): string {
   const parts: string[] = [formatRequirements(memory.requirements ?? [], memory.constraints ?? [])];
+  if (opts.intent === 'deployment' && memory.workflow) parts.push(fence(deploymentBrief(memory)));
   const g = memory.graph;
   parts.push(isEmptyGraph(g) ? 'CURRENT DIAGRAM: empty (new design)' : `CURRENT DIAGRAM:\n${serializeDiagram(g)}`);
   const removed = serializeTombstones(g, memory.tombstones ?? [], opts.tombstoneNodes ?? DEFAULT_TOMBSTONE_NODES);

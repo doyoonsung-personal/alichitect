@@ -138,6 +138,7 @@ export type WarningCode =
   | 'wf-loop-exit' | 'wf-agent-turns' | 'wf-act-effect' | 'wf-approval' | 'wf-mixed-out'
   | 'wf-human-outcomes' | 'wf-reply-guard' | 'wf-trifecta' | 'wf-decision-review' | 'wf-ai-region'
   | 'wf-ai-mismatch' | 'wf-dangling-ref' | 'wf-gated-product'
+  | 'wf-deploy-stale' | 'wf-product-missing'
   | 'bad-json' | 'bad-op' | 'unknown-product' | 'alias-resolved' | 'retired-product' | 'china-only'
   | 'restricted' | 'dangling-edge' | 'missing-group' | 'containment' | 'dns-in-path' | 'path-order'
   | 'orphan-node' | 'duplicate-id' | 'cap-exceeded' | 'attach-host-missing'
@@ -192,6 +193,7 @@ export interface SessionMemory {
   tombstones: Array<GraphNode | GraphEdge | GraphGroup>;
   // The workflow view (research/ai-workflows/PLAN.md D1). All optional: a session without them is a cloud-only session.
   workflow?: WorkflowGraph;
+  deploymentSource?: string; // fingerprint of the committed workflow and placement settings used to draw the cloud graph
   workflowTombstones?: Array<WorkflowNode | WorkflowEdge | WorkflowGroup>; // removed workflow elements, bounded like tombstones
   workflowSettings?: WorkflowSettings; // session settings strip: region, approval overrides (PLAN.md D9)
   estimate?: WorkflowEstimateSettings; // cost-estimate inputs the user edited (PLAN.md section 9)
@@ -210,6 +212,7 @@ export interface Constraint {
 
 /** POST /api/turn body. The browser holds the session and sends it with each turn; the server keeps no session state. */
 export interface TurnRequest {
+  intent?: 'deployment'; // explicit request to draw the cloud graph from the workflow
   sessionId: string;
   ask: string;
   memory: SessionMemory;

@@ -131,6 +131,7 @@ export async function runUnit(c: EvalCase, run: number, ctx: UnitContext): Promi
         model: ctx.model,
         fallbackModel: ctx.fallback,
         mode,
+        intent: turn.intent,
         ...(mode === 'workflow' ? { models: loadModels() } : {}),
         system: mode === 'workflow' ? buildSystemPrompt(ctx.catalog, mode, loadModels()) : ctx.system,
         tracker: ctx.tracker,
@@ -200,7 +201,8 @@ export async function runUnit(c: EvalCase, run: number, ctx: UnitContext): Promi
       pass,
     });
     if (!pass) rec.pass = false;
-    if (r.stats.error && r.stats.ops === 0) {
+    if (r.stats.error && (r.stats.ops === 0 || (turn.intent === 'deployment' && r.memory === memory))) {
+      rec.pass = false;
       rec.apiError = `turn ${i + 1}: ${r.stats.error.code}: ${r.stats.error.message}`.slice(0, 300);
       break;
     }

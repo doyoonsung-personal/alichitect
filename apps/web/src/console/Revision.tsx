@@ -227,10 +227,10 @@ function ErrorBlock({ ctx, r }: { ctx: ConsoleCtx; r: Revision }): ReactElement 
               <span>{t('rec.retry')}</span>
             </button>
           ) : null}
-          <button type="button" className="btn btn--secondary" disabled={!!replay} onClick={actions.editAndResend}>
+          {r.intent !== 'deployment' && <button type="button" className="btn btn--secondary" disabled={!!replay} onClick={actions.editAndResend}>
             <Icon name="edit" />
             <span>{t('rec.editResend')}</span>
-          </button>
+          </button>}
         </div>
       ) : null}
     </div>

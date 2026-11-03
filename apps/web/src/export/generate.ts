@@ -14,7 +14,9 @@ import { createFontSet } from './fonts.ts';
 import type { FontSource } from './fonts.ts';
 import { buildProposal } from './model.ts';
 import { buildDocument } from './pdf.ts';
-import type { PdfReport } from './pdf.ts';
+import type { PdfDiagram, PdfReport } from './pdf.ts';
+import { makeT } from '../i18n/t.ts';
+import { isDeploymentStale } from '@ali/core/workflow-deployment.ts';
 import { layoutWorkflow } from '@ali/core/workflow-layout.ts';
 import type { WorkflowLayout } from '../workflow/layout-adapter.ts';
 import { models } from '../workflow/models.ts';
@@ -76,17 +78,20 @@ export async function generateProposalPdf(i: GenerateInput): Promise<GenerateRes
     workflow, layout: layoutWorkflow(workflow, i.workflowLayout), catalog: i.catalog, models,
     settings: i.session.memory.workflowSettings ?? {}, lang: i.lang, route: i.route,
   }) : null;
-  const routed = !prepared && i.layout && hasContent(i.graph) ? await routeDiagram(i.graph, i.layout, i.catalog, i.lang, i.route) : null;
+  const routed = i.layout && hasContent(i.graph) ? await routeDiagram(i.graph, i.layout, i.catalog, i.lang, i.route) : null;
+  const cloudTitle = i.session.memory.deploymentSource
+    ? makeT(i.lang)(isDeploymentStale(i.session.memory) ? 'deployment.outdatedTitle' : 'deployment.title')
+    : xt(i.lang, 'diagram.heading');
 
   const compose = (doc: PDFDocument, dry: boolean): { report: PdfReport; svg: Drawn | null } => {
     const workflowSvg = prepared ? drawWorkflowDiagram(prepared, fonts) : null;
-    const svg = workflowSvg ?? (routed ? drawDiagram(routed, fonts) : null);
-    const report = buildDocument({ model, fonts, ...(workflow ? { workflow } : {}), diagrams: svg ? [{
-      id: prepared ? 'workflow' : 'cloud', view: prepared ? 'workflow' : 'cloud',
-      title: prepared ? wt(i.lang, 'diagram.heading') : xt(i.lang, 'diagram.heading'), drawing: svg,
-      ...(workflowSvg ? { pages: workflowSvg.pages } : {}),
-    }] : [], logoSvg: i.logo?.svg ?? null, logoAspect: i.logo?.aspect ?? 7.421, dry, doc });
-    return { report, svg };
+    const cloudSvg = routed ? drawDiagram(routed, fonts) : null;
+    const diagrams: PdfDiagram[] = [];
+    if (workflowSvg) diagrams.push({ id: 'workflow', view: 'workflow', title: wt(i.lang, 'diagram.heading'), drawing: workflowSvg, pages: workflowSvg.pages });
+    if (cloudSvg) diagrams.push({ id: 'cloud', view: 'cloud', title: cloudTitle, drawing: cloudSvg });
+    const report = buildDocument({ model, fonts, ...(workflow ? { workflow } : {}), diagrams,
+      logoSvg: i.logo?.svg ?? null, logoAspect: i.logo?.aspect ?? 7.421, dry, doc });
+    return { report, svg: workflowSvg ?? cloudSvg };
   };
 
   // pass 1: dry, to learn which glyphs the document needs
@@ -138,7 +143,7 @@ export async function generateProposalPdf(i: GenerateInput): Promise<GenerateRes
     report: {
       ...out.report,
       totalMs: Math.round(now() - t0),
-      routeMs: prepared?.routeMs ?? routed?.routeMs ?? 0,
+      routeMs: (prepared?.routeMs ?? 0) + (routed?.routeMs ?? 0),
       router: prepared?.router ?? routed?.router ?? 'none',
       fontsMs: Math.round(fontsMs),
       drawMs: Math.round(drawMs),
