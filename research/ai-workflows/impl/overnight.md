@@ -314,3 +314,5 @@ All three turns committed: status 200, no fatal error, no vendor names or banned
   - a real-mouse fold click unfolds it (popover closed, no card moved), and Escape folds it.
 - **Not pushed or deployed yet.**
 - **Video models gap:** `models.json` has no Wan or other video-generation model. In phase 0b I scoped the table to what the 32 samples needed, so a video-ad workflow reports a gap. Qwen deep research on the international video models is running (`results/wan-research.md`); a Codex job adds them after the facts are checked.
+
+- **Deployed 2026-11-03** (the user asked to ship the row and canvas fixes without waiting for the video work): `main` fast-forwarded to `4f4c77d` (compact rows, uniform cards with the fold arrow, the camera snap-back fix, the fold-click fix). Run 41582768642 passed every step, including the health check; Worker version `811394ad-f8ab-4cb3-b626-d994c7de7e30`. The video-model work (`c3b2a64` and the two integration jobs) stays on `phase-1`.
