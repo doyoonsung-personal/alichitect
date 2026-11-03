@@ -168,6 +168,7 @@ export async function executeTurn<M extends TurnMode = 'cloud'>(
     model: deps.model,
     fallbackModel: deps.fallbackModel,
     mode: req.mode ?? 'cloud',
+    intent: req.intent,
     models: deps.models,
     system: req.mode === 'workflow' ? deps.workflowSystem : deps.system,
     tracker: deps.tracker,

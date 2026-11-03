@@ -1,0 +1,22 @@
+[
+  {
+    "id": "deploy-intake", "category": "pattern", "lang": "en", "base": "workflow-document-intake",
+    "title": "Draw cloud services from an invoice workflow",
+    "reference": "Place OSS, Function Compute and Model Studio in Singapore. Keep the customer's review external. Show the upload, extraction and review connections.",
+    "turns": [
+      { "ask": "Draw the cloud deployment for this workflow.", "intent": "deployment",
+        "expect": { "include": [["oss"], ["fc"], ["model-studio"]], "minNodes": 3, "noRecs": true } }
+    ]
+  },
+  {
+    "id": "deploy-intake-ko", "category": "i18n", "lang": "ko", "base": "workflow-document-intake", "of": "deploy-intake",
+    "title": "Draw and redraw a Korean deployment",
+    "reference": "Keep the workflow's three named cloud services across a redraw and respond in Korean.",
+    "turns": [
+      { "ask": "이 워크플로의 클라우드 배포 구성도를 그려 주세요.", "intent": "deployment",
+        "expect": { "include": [["oss"], ["fc"], ["model-studio"]] } },
+      { "ask": "현재 워크플로를 기준으로 배포 구성도를 다시 그려 주세요.", "intent": "deployment",
+        "expect": { "include": [["oss"], ["fc"], ["model-studio"]] } }
+    ]
+  }
+]

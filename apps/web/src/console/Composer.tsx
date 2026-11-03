@@ -17,6 +17,7 @@ const MIN_PX = 48;
 export function Composer({ ctx }: { ctx: ConsoleCtx }): ReactElement {
   const { t, turn, replay, askLimit, draft, actions } = ctx;
   const workflow = useAppState((s) => (s.session.mode ?? 'cloud') === 'workflow');
+  const deployment = useAppState((s) => !!s.session.memory.deploymentSource || (s.work && s.session.revisions.at(-1)?.intent === 'deployment'));
   const [text, setText] = useState('');
   const [composing, setComposing] = useState(false);
   const field = useRef<HTMLTextAreaElement>(null);
@@ -73,7 +74,7 @@ export function Composer({ ctx }: { ctx: ConsoleCtx }): ReactElement {
         if (!busy && canSend) send();
       }}
     >
-      {workflow && <p className="workflow-editing">{t('workflow.editing')}</p>}
+      {(workflow || deployment) && <p className="workflow-editing">{t(workflow ? 'workflow.editing' : 'deployment.editing')}</p>}
       <div className="cmp__box" data-flip="composer" data-busy={busy || undefined}>
         <textarea
           ref={field}

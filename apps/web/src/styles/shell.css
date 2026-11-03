@@ -500,6 +500,11 @@ a.menu__item {
 [data-view="workflow"] .header__right { flex-wrap: wrap; gap: 6px; min-width: 0; }
 [data-view="workflow"] .mode { flex: none; white-space: nowrap; }
 .workflow-diagrams select { max-width: 150px; background: var(--sheet); color: var(--ink); }
+.app--working:has(.workflow-diagrams) { grid-template-rows: auto minmax(0, 1fr); }
+.header:has(.workflow-diagrams) { height: auto; min-height: var(--header-h); flex-wrap: wrap; }
+.header:has(.workflow-diagrams) .header__right { flex-wrap: wrap; }
+.deployment-notices { flex: 1 0 100%; font-size: var(--t-13); color: var(--ink-2); max-height: 5em; overflow: auto; }
+.deployment-notices p { margin: 4px 0; }
 @media (max-width: 920px) {
   [data-view="workflow"] .header__right { flex-basis: 100%; margin-top: 6px; }
   [data-view="workflow"] .header__right .btn { padding: 4px 6px; }

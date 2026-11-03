@@ -15,7 +15,7 @@ import type { Store } from '../store/store.ts';
 import type { Action } from '../store/reducer.ts';
 import type { SessionStore } from '../store/sessions.ts';
 import type { Highlight, ReplaySpeed } from '../store/types.ts';
-import { isLang } from '../i18n/t.ts';
+import { isLang, makeT } from '../i18n/t.ts';
 import type { Lang } from '../i18n/t.ts';
 import type { CanvasSize } from '../canvas/layout.ts';
 
@@ -68,6 +68,7 @@ export interface Controller {
   newSession(): void;
   openSession(id: string): void;
   setMode(mode: TurnMode): void;
+  drawDeployment(): void;
   setWorkflowSettings(next: WorkflowSettings): void;
   setWorkflowEstimate(next: WorkflowEstimateSettings): void;
   tidyWorkflowView(): void;
@@ -174,7 +175,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     d({ type: 'conn/set', mode: h && h.keyConfigured ? 'live' : 'offline', health: h, now: env.now() });
   }
 
-  function start(ask: string, replaceLast: boolean, mode: TurnMode = st().session.mode ?? 'cloud'): void {
+  function start(ask: string, replaceLast: boolean, mode: TurnMode = st().session.mode ?? 'cloud', intent?: 'deployment'): void {
     const text = ask.trim();
     lastAsk = text;
     ac?.abort();
@@ -182,8 +183,8 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     ac = mine;
     const sessionId = st().session.id;
     const memory = st().session.memory;
-    d({ type: 'turn/start', ask: text, now: env.now(), replaceLast, mode });
-    const req: TurnRequest = { sessionId, ask: text, memory, mode };
+    d({ type: 'turn/start', ask: text, now: env.now(), replaceLast, mode, intent });
+    const req: TurnRequest = { sessionId, ask: text, memory, mode, intent };
     void postTurn(req, { signal: mine.signal, fetchImpl: env.fetchImpl, onEvent: onWire }).then((end) => {
       if (disposed || ac !== mine) return;
       if (end.kind === 'network') {
@@ -290,10 +291,16 @@ export function createController(store: Store, env: ControllerEnv): Controller {
       if (url) env.signOut?.(url);
     },
     submit,
+    drawDeployment() {
+      const s = st();
+      if (s.work || s.replay || !Object.keys(s.session.memory.workflow?.nodes ?? {}).length) return;
+      start(makeT(s.lang)('deployment.ask'), false, 'cloud', 'deployment');
+    },
     stop,
     retry() {
       const ask = lastFailedAsk();
-      if (ask && !st().work) start(ask, true, st().session.revisions.at(-1)?.mode ?? 'cloud');
+      const revision = st().session.revisions.at(-1);
+      if (ask && !st().work) start(ask, true, revision?.mode ?? 'cloud', revision?.intent);
     },
     editAndResend() {
       const ask = lastFailedAsk();

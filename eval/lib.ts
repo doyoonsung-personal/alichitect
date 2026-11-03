@@ -111,6 +111,7 @@ export interface Retain {
 }
 
 export interface EvalTurn {
+  intent?: 'deployment';
   ask: string;
   /** Repeat the ask this many times (oversized-input cases), separated by blank lines. */
   askRepeat?: number;
@@ -742,7 +743,7 @@ const EXPECT_KEYS: ReadonlySet<string> = new Set([
 const RETAIN_KEYS: ReadonlySet<string> = new Set(['exclude', 'include', 'req', 'regions', 'residency']);
 const EDIT_KEYS: ReadonlySet<string> = new Set(['maxNodeAdds', 'maxNodeRemoves', 'maxEdgeRemoves', 'maxChanged', 'minChanged', 'noGrowth']);
 const CASE_KEYS: ReadonlySet<string> = new Set(['mode', 'id', 'category', 'lang', 'of', 'title', 'base', 'reference', 'window', 'summarize', 'turns']);
-const TURN_KEYS: ReadonlySet<string> = new Set(['ask', 'askRepeat', 'expect', 'retain']);
+const TURN_KEYS: ReadonlySet<string> = new Set(['ask', 'intent', 'askRepeat', 'expect', 'retain']);
 const CATEGORIES: ReadonlySet<string> = new Set(['pattern', 'need', 'trap', 'edit', 'multiturn', 'i18n', 'adversarial']);
 const WARNING_CODES: ReadonlySet<string> = new Set([
   'bad-json', 'bad-op', 'unknown-product', 'alias-resolved', 'retired-product', 'china-only', 'restricted', 'dangling-edge', 'missing-group', 'containment',
@@ -802,6 +803,7 @@ export function checkCases(cases: EvalCase[], catalog: Catalog): string[] {
     c.turns.forEach((t, i) => {
       const w = `turn ${i + 1}`;
       unknownKeys(c, w, t, TURN_KEYS);
+      if (t.intent !== undefined && (t.intent !== 'deployment' || c.mode === 'workflow' || !c.base)) bad(c, `${w}: deployment requires a workflow base and cloud mode`);
       if (!t.ask?.trim()) bad(c, `${w} has no ask`);
       else if (!c.lang || c.lang === 'en') {
         const key = `${c.mode ?? 'cloud'}|${c.base ?? ''}|${t.ask.trim()}`;

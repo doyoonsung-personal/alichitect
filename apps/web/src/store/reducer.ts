@@ -68,7 +68,7 @@ export type Action =
   | { type: 'session/new'; id: string; now: number }
   | { type: 'session/open'; record: SessionRecord; now: number }
   | { type: 'sessions/list'; sessions: SessionSummary[] }
-  | { type: 'turn/start'; mode?: TurnMode; ask: string; now: number; replayOf?: string | null; replaceLast?: boolean }
+  | { type: 'turn/start'; mode?: TurnMode; intent?: 'deployment'; ask: string; now: number; replayOf?: string | null; replaceLast?: boolean }
   | { type: 'rev/discardFailed' }
   | { type: 'turn/event'; event: WireEvent; now: number }
   | { type: 'turn/flush'; now: number }
@@ -296,7 +296,7 @@ export function reduce(state: AppState, action: Action, deps: StoreDeps): AppSta
     }
     case 'turn/start':
       return startTurn(action.replaceLast ? discardFailed(state) : state, action.ask, action.now, action.replayOf ?? null,
-        action.mode ?? (action.replaceLast ? latestRevision(state)?.mode ?? 'cloud' : state.session.mode ?? 'cloud'));
+        action.mode ?? (action.replaceLast ? latestRevision(state)?.mode ?? 'cloud' : state.session.mode ?? 'cloud'), action.intent);
     case 'rev/discardFailed':
       return discardFailed(state);
     case 'turn/event':
@@ -393,7 +393,7 @@ function discardFailed(state: AppState): AppState {
   return { ...state, session, turn: { phase: 'idle', lastTextAt: null, startedAt: null } };
 }
 
-function startTurn(state: AppState, ask: string, now: number, replayOf: string | null, mode: TurnMode): AppState {
+function startTurn(state: AppState, ask: string, now: number, replayOf: string | null, mode: TurnMode, intent?: 'deployment'): AppState {
   const text = ask.trim();
   const session = state.session;
   const n = session.revisions.length + 1;
@@ -429,7 +429,7 @@ function startTurn(state: AppState, ask: string, now: number, replayOf: string |
       title: session.title || text,
       updatedAt: now,
       replayOf: replayOf ?? session.replayOf,
-      revisions: [...session.revisions, { ...emptyRevision(n, text, now), mode }],
+      revisions: [...session.revisions, { ...emptyRevision(n, text, now), mode, ...(intent ? { intent } : {}) }],
     },
     work,
     turn: { phase: 'waiting', lastTextAt: null, startedAt: now },
@@ -779,7 +779,9 @@ function endWithoutCommit(state: AppState, deps: StoreDeps, status: 'failed' | '
   // memory is unchanged, so the pinned requirements are too: drop the ones this revision announced mid-turn
   const reqPinnedIn = { ...next.session.reqPinnedIn };
   for (const text of Object.keys(reqPinnedIn)) if (reqPinnedIn[text] === work.n && !work.base.requirements.includes(text)) delete reqPinnedIn[text];
-  next = { ...next, session: { ...next.session, reqPinnedIn }, work: null };
+  const failedFirstDeployment = latestRevision(next)?.intent === 'deployment' && !work.base.deploymentSource
+    && !Object.keys(work.base.graph.nodes).length && !work.base.graph.recs.length;
+  next = { ...next, session: { ...next.session, reqPinnedIn, ...(failedFirstDeployment ? { mode: 'workflow' as const } : {}) }, work: null };
   next = { ...next, turn: { phase: status === 'failed' ? 'error' : 'idle', lastTextAt: null, startedAt: null } };
   // the streamed cards leave and the committed graph returns
   next = work.mode === 'workflow'

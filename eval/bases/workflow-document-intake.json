@@ -1,0 +1,18 @@
+{
+  "description": "A Singapore document intake workflow with a storage trigger and hosted extraction called by Function Compute.",
+  "workflowSettings": { "region": "ap-southeast-1" },
+  "workflow": {
+    "nodes": {
+      "upload": { "id": "upload", "kind": "trigger", "label": "Invoice uploaded to Object Storage Service", "product": "oss" },
+      "extract": { "id": "extract", "kind": "ai", "label": "Extract invoice fields", "task": "extract", "runs": "fc", "ai": "qwen3.8-flash" },
+      "review": { "id": "review", "kind": "human", "label": "Finance reviews extracted fields", "task": "review", "runs": "customer" },
+      "end": { "id": "end", "kind": "end", "label": "Review complete" }
+    },
+    "edges": {
+      "received": { "id": "received", "from": "upload", "to": "extract" },
+      "extracted": { "id": "extracted", "from": "extract", "to": "review" },
+      "reviewed": { "id": "reviewed", "from": "review", "to": "end" }
+    },
+    "groups": {}
+  }
+}

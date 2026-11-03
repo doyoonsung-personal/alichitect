@@ -14,6 +14,7 @@ import type { LayoutState } from '@ali/core/layout.ts';
 import { regionLabel } from '@ali/core/regions.ts';
 import type { Lang } from '../i18n/t.ts';
 import { makeT } from '../i18n/t.ts';
+import { deploymentNotices } from '../workflow/deployment-notices.ts';
 import { cautionOf, entryFor } from '../canvas/scene.ts';
 import { lineView } from '../console/logic.ts';
 import { buildPanelModel } from '../panel/model.ts';
@@ -376,6 +377,9 @@ export function buildProposal(i: ProposalInput): ProposalModel {
 
   // ---- the drafted narrative ----
   const workflow = buildWorkflow(mem, catalog, xt, i.draft, i.workflowLayout);
+  if (workflow) {
+    for (const text of deploymentNotices(mem, catalog, t)) workflow.openQuestions.push({ source: 'question', text, options: [] });
+  }
   const narrative = i.draft ? buildNarrative(i.draft, components, recs, xt, lang) : null;
   if (workflow && narrative) narrative.pricingNote = null;
   if (i.draft) {
