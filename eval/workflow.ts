@@ -12,7 +12,7 @@ export interface WorkflowExpect {
   tasksAny?: WorkflowTask[][]; // each group is any-of
   tiers?: Partial<Record<WorkflowTask, ModelEntry['tier'][]>>;
   modelOutputs?: Partial<Record<WorkflowTask, Modality[]>>; // some model step per task outputs all listed modalities
-  mentionModels?: Modality[]; // reply names a table model with each output modality
+  mentionModels?: Modality[]; // reply names a table model id, display name or family with each output modality
   noGaps?: string[]; // case-insensitive regexes over gap need/note
   notMention?: string[]; // case-insensitive regexes over model text; shared expect.notMention stays literal
   products?: string[][]; // each group is any-of; ai also implies Model Studio
@@ -47,6 +47,7 @@ export function workflowAssertions(
     if (n.task === task) return !['approve', 'takeover'].includes(task) || n.kind === 'human';
     if (task === 'extract' && n.kind === 'tool' && n.tool === 'pdf_parse') return true;
     const model = modelStep(n) ? models.model(n.ai!) : undefined;
+    // Native video audio meets speak too; a separate TTS step is optional.
     return task === 'transcribe' ? !!model?.in.includes('audio') : task === 'speak' && !!model?.out.includes('audio');
   });
   for (const task of e.tasks ?? []) add(`workflow task ${task}`, hasTask(task));
@@ -62,7 +63,7 @@ export function workflowAssertions(
   for (const output of e.mentionModels ?? []) {
     const candidates = models.models.filter((m) => m.out.includes(output));
     add(`workflow mentions ${output} model`, candidates.some((m) => [m.id, m.name]
-      .some((name) => reply.includes(name.normalize('NFKC').toLowerCase()))));
+      .some((name) => reply.includes(name.normalize('NFKC').toLowerCase())) || new RegExp(`\\b${m.family}\\b`, 'u').test(reply)));
   }
   const gaps = [...v.gaps, ...v.ops.filter((o) => o.t === 'gap')];
   for (const pattern of e.noGaps ?? []) {

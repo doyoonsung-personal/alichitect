@@ -6,16 +6,25 @@
 `wf-ko-video-ad` adds its Korean translation and the exact second turn
 `알리바바 모델은 사용 불가한가?`. There are now 65 workflow cases.
 
-Both require `create`, audio output (`speak` also accepts native audio), human approval
-before `publish`, a named video model, and no missing/mismatched model or approval findings.
+Both require `create`, audio output, human approval before `publish`, a named video
+model on the generation step, and no missing/mismatched model or approval findings.
+`speak` accepts an ai, agent or knowledge step whose model outputs audio, including
+HappyHorse and Wan 3.0 video with native audio; a separate TTS step remains acceptable.
+This is the same modality rule already used for realtime speech and audio-input
+`transcribe`. A tool carrying a video model still fails until production repair
+converts it to a model-backed step. Silent video alone does not satisfy `speak`.
 Every turn uses `modelOutputs: { "create": ["video"] }` to require a create step whose
 `ai` has video in the model table's output modalities. No model IDs are hard-coded:
 new video-output models qualify automatically, while image-only or video-input models do not.
 `noGaps` rejects video-related gap needs or notes in English, Korean and Chinese,
 including raw gap ops and the recorded gaps array.
 
-`mentionModels: ["video"]` requires the reply to name a video model's ID or display
-name from the table. The Korean follow-up retains all structural checks and uses
+`mentionModels: ["video"]` requires the reply to name a video model's ID, display
+name or family from the table (for example, HappyHorse or Wan). Family matching
+is case-insensitive and uses word boundaries, so "want" does not count as Wan.
+Only the Korean availability follow-up requires a reply mention: the first-turn
+asks request a workflow, where `modelOutputs` already requires the named model.
+The Korean follow-up retains all structural checks and uses
 `expect.workflow.notMention` regexes to reject claims such as "no text-to-video",
 "does not have a video model", "동영상 생성 모델이 없습니다" and "영상 생성을 지원하지 않습니다".
 These workflow regexes leave the shared literal `expect.notMention` matcher unchanged.
@@ -25,9 +34,59 @@ Offline tests cover table-driven models and names, image-only designs, multiling
 video gaps, availability denials, malformed expectations and the two-turn fake runner.
 They are not evidence of live model behavior.
 
-The workflow prompt is 10,181 estimated tokens; the pinned band is 10,000-10,499,
+The workflow prompt is 10,243 estimated tokens; the pinned band is 10,000-10,499,
 still below 15,000. Its video rows expose modes, native audio, resolution and duration
 limits without prices. The cloud prompt is unchanged.
+
+### Video run 1: offline tuning
+
+The prompt now explicitly requires image/video generation to use `kind: ai`,
+`task: create` and an output-compatible model-table ID, with a short video step op.
+Production repair converts inline tools carrying known image/video-output models
+to ai steps, clears the built-in `tool` reference and removes invalid effects.
+It emits a repaired `wf-bad-op` warning and preserves the chosen model, task and
+approval subjects. Attached tools and text/audio-only models are not converted.
+Video-labelled create steps without an `ai` get `wf-ai-missing`; repair never
+chooses a model. Existing missing-model errors on ai/agent steps remain errors.
+These changes reuse the pinned warning codes and leave shared types unchanged.
+
+Ran `node eval/run.ts --rescore <temporary-copy> --cases-dir eval/cases-workflow --no-judge`
+on copies of `video-run-1`. The normal rescore never repairs stored workflows.
+An additional, separate copy explicitly applied `repairWorkflow` to each stored
+final workflow before the same CLI rescore, to measure deterministic repair alone.
+Original files and copied judge results stayed byte-identical. In ordinary
+rescoring, every record field except assertions/pass was verified unchanged.
+In the repair experiment, only the workflow graphs were additionally changed;
+original ops, narration, before-graphs and recorded diagnostics were retained.
+
+| Stage | Conversations passing / pass@1 | Turns passing | Assertions passing |
+| --- | ---: | ---: | ---: |
+| Original scoring | 0/6 (0%) | 1/9 | 236/251 |
+| Eval corrections only | 2/6 (33.3%) | 3/9 | 236/245 |
+| Current checker, stored graphs unchanged | 2/6 (33.3%) | 3/9 | 235/245 |
+| Current checker plus explicit offline repair | 5/6 (83.3%) | 8/9 | 243/245 |
+
+Six first-turn reply-mention checks were removed. Family-name support adds no
+further passes here because the stored follow-ups already name model IDs. The
+native-audio rule was already implemented; tests now explicitly cover video,
+silent video, tool-kind rejection and separate TTS. The new missing-model warning
+adds one failed clean-check assertion without changing conversation pass counts.
+
+Five stored step instances were converted. They now produce second-based model
+estimate lines; the one-call HappyHorse test verifies 2.10 USD typical and 2.70 USD
+upper, with no built-in tool fee. Stored retry routes increase their estimates.
+The only remaining failed conversation is `wf-ko-video-ad#1`: its first turn has
+a video create tool with no model, failing output and missing-model checks. Its
+follow-up is repairable. No model is guessed and no live model/judge call was made;
+the prompt's effect on new model output remains unmeasured.
+
+Validation: focused tests 125/125; root suite 1,139/1,139; worker suite 276/276;
+web suite 718/719. The unchanged `scripts/icons/test/icons.test.ts` test
+`the logos render in Chrome` timed out after 30 seconds, as already documented in
+round 2 below. All three full suites ran once using `npm.cmd` on PowerShell; core,
+web and worker typechecks passed. No web files were edited and no full suite was
+rerun. The workflow prompt is price-free and its band is unchanged; cloud SHA-256
+remains `998fab223daba0a4407930f0f6f61e90cf100d7783ca4b13008636526d049313`.
 
 Run offline checks from the repository root:
 
@@ -61,7 +120,8 @@ hard constraint (the small-model ticket classifier); other tier choices are judg
   effect; this does not change approval policy or infer effects from labels.
 - `tasksAny`: arrays of any-of task groups. Each group must match a step.
   `transcribe` also accepts a model with audio input; `speak` also accepts a model
-  with audio output, including a single realtime step handling both capabilities.
+  with audio output, including a single realtime step handling both capabilities
+  or a video-generation step with native audio. Separate TTS is also acceptable.
   `extract` also accepts an explicit `tool` step using `pdf_parse`.
 - `tiers`: task to allowed tier array (`small`, `mid`, `large`). Every step of that
   task must name a model of an allowed tier, and the task must exist.
@@ -69,8 +129,9 @@ hard constraint (the small-model ticket classifier); other tier choices are judg
   `audio`). For each task, some ai, agent or knowledge step must name a table model
   that outputs every listed modality. Input modalities, labels and narration do not count.
 - `mentionModels`: non-empty output modality array. For each modality, the current
-  reply (`say` text or `done` summary) must contain a matching table model's ID or
-  display name, case-insensitively. A graph field or gap alone does not count.
+  reply (`say` text or `done` summary) must contain a matching table model's ID,
+  display name or family, case-insensitively. Family names require word boundaries.
+  A graph field or gap alone does not count.
 - `noGaps`: non-empty array of regex source strings. No gap's `need` or `note` may
   match any pattern; both emitted ops and recorded gaps are checked.
 - `notMention`: non-empty array of regex source strings checked against model text

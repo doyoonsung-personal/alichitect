@@ -1,10 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createCatalog } from '../src/catalog.ts';
-import { loadCatalog } from '../src/catalog-node.ts';
+import { loadCatalog, loadModels } from '../src/catalog-node.ts';
 import { createModelTable } from '../src/models.ts';
 import type { ModelEntry } from '../src/models.ts';
 import { checkWorkflow, repairWorkflow, validateWorkflowOp } from '../src/workflow-validate.ts';
+import { estimateWorkflow } from '../src/workflow-estimate.ts';
+import { makeStep } from '../src/workflow.ts';
 import type { CatalogEntry, Warning, WorkflowGraph, WorkflowNode, WorkflowEdge, WorkflowSettings } from '../src/types.ts';
 
 const model: ModelEntry = {
@@ -328,6 +330,97 @@ test('repaired warnings come first; repair is pure, idempotent, and leaves no fi
   assert.equal(again.workflow, r.workflow);
   assert.equal(again.warnings.some(w => w.repaired), false);
   assert.deepEqual(again.warnings, warnings(r.workflow));
+});
+
+test('inline image and video model tools become ai steps without mutating input or losing approval subjects', () => {
+  for (const output of ['image', 'video'] as const) for (const withEffect of [false, true]) {
+    const media = table({ out: [output], roles: ['create'] });
+    const wf = approved();
+    wf.nodes.draft = node('draft', 'tool', {
+      label: 'Create media', task: 'create', ai: model.id, tool: 'search', ...(withEffect ? { effect: 'write' as const } : {}),
+      after: 'start', runs: 'customer', why: 'Create the final artifact',
+    });
+    const before = structuredClone(wf); freeze(wf);
+    const r = repairWorkflow(wf, catalog, media);
+    assert.deepEqual(wf, before);
+    assert.deepEqual(r.workflow.nodes.draft, makeStep({
+      id: 'draft', kind: 'ai', label: 'Create media', task: 'create', after: 'start',
+      runs: 'customer', ai: model.id, why: 'Create the final artifact',
+    }));
+    assert.deepEqual(Object.keys(r.workflow.nodes.draft), ['id', 'kind', 'label', 'task', 'after', 'runs', 'ai', 'why']);
+    assert.equal(r.workflow.nodes.approve.subject, 'draft');
+    assert.deepEqual(r.workflow.edges, wf.edges);
+    assert.deepEqual(r.workflow.groups, wf.groups);
+    assert.ok(r.warnings.some((w) => w.code === 'wf-bad-op' && w.repaired && w.severity === 'warn'
+      && w.ids[0] === 'draft' && w.msg.includes(model.id)));
+    assert.deepEqual(checkWorkflow(r.workflow, catalog, media), []);
+    assert.equal(r.warnings.some((w) => !w.repaired), false);
+    freeze(r.workflow);
+    const again = repairWorkflow(r.workflow, catalog, media);
+    assert.equal(again.workflow, r.workflow);
+    assert.deepEqual(again.warnings, []);
+  }
+});
+
+test('generation repair follows output modalities, preserves tasks and leaves attached tools and other kinds alone', () => {
+  const media = table({ out: ['video', 'audio'], roles: ['create'] });
+  const wf = linear(start, agent, end);
+  wf.nodes.tool = node('tool', 'tool', { on: 'agent', task: 'create', ai: model.id, tool: 'search', effect: 'write' });
+  assert.equal(repairWorkflow(wf, catalog, media).workflow, wf);
+  for (const patch of [
+    { ai: 'unknown' }, {}, { kind: 'act' as const, ai: model.id }, { kind: 'knowledge' as const, ai: model.id },
+  ]) {
+    const g = linear(start, node('work', 'tool', { label: 'Create media', task: 'create', ...patch }), end);
+    const r = repairWorkflow(g, catalog, media);
+    assert.equal(r.workflow, g);
+    assert.equal(r.warnings.some((w) => w.repaired), false);
+  }
+  for (const output of ['text', 'audio'] as const) {
+    const g = linear(start, node('work', 'tool', { task: 'create', ai: model.id }), end);
+    assert.equal(repairWorkflow(g, catalog, table({ in: ['video', 'image'], out: [output] })).workflow, g);
+  }
+  const g = linear(start, node('work', 'tool', { task: 'generate', ai: model.id }), end);
+  const r = repairWorkflow(g, catalog, media);
+  assert.equal(r.workflow.nodes.work.kind, 'ai');
+  assert.equal(r.workflow.nodes.work.task, 'generate');
+});
+
+test('video creation without a model warns without guessing one, including Korean and Chinese labels', () => {
+  for (const label of ['Create VIDEO ad', 'Create videos', '동영상 생성', '비디오 제작', '生成视频', '製作影片']) {
+    const wf = linear(start, node('create', 'tool', { task: 'create', label }), end);
+    const before = structuredClone(wf); freeze(wf);
+    const findings = checkWorkflow(wf, catalog, models);
+    assert.deepEqual(findings.map((w) => [w.code, w.severity, w.repaired]), [['wf-ai-missing', 'warn', false]]);
+    assert.match(findings[0].msg, /Choose a video-output model/);
+    const r = repairWorkflow(wf, catalog, models);
+    assert.equal(r.workflow, wf);
+    assert.deepEqual(wf, before);
+    assert.deepEqual(r.warnings, findings);
+    assert.equal('ai' in r.workflow.nodes.create, false);
+  }
+  for (const step of [node('create', 'tool', { task: 'create', label: 'Create document' }),
+    node('read', 'tool', { task: 'extract', label: 'Read video metadata' })]) {
+    assert.deepEqual(checkWorkflow(linear(start, step, end), catalog, models), []);
+  }
+  const missing = linear(start, node('create', 'ai', { task: 'create', label: 'Create video' }), end);
+  assert.deepEqual(checkWorkflow(missing, catalog, models).map((w) => [w.code, w.severity]), [['wf-ai-missing', 'error']]);
+});
+
+test('repaired HappyHorse generation is priced as one model call with no built-in tool fee', () => {
+  const media = loadModels();
+  const wf = linear(start, node('video', 'tool', {
+    task: 'create', ai: 'happyhorse-1.1-t2v', tool: 'code_interpreter', effect: 'write',
+  }), end);
+  const r = repairWorkflow(wf, catalog, media);
+  const estimate = estimateWorkflow(r.workflow, media, catalog, { runsPerMonth: 100 });
+  assert.deepEqual(estimate.unpriced, []);
+  assert.equal(estimate.lines.length, 1);
+  assert.equal(estimate.lines[0].kind, 'model');
+  assert.equal(estimate.lines[0].unit, 'second');
+  assert.ok(Math.abs(estimate.typical.perRunUsd - 2.1) < 1e-10);
+  assert.ok(Math.abs(estimate.upper.perRunUsd - 2.7) < 1e-10);
+  assert.equal(estimate.typical.monthlyUsd, 210);
+  assert.equal(estimate.latency.modelStepsOnLongestPath, 1);
 });
 test('reply protection accounts for attached untrusted inputs and an unguarded bypass', () => {
   const wf = linear(start, agent, node('guard', 'guard'), node('reply', 'act', { effect: 'reply' }), end);

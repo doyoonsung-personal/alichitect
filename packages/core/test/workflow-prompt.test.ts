@@ -73,6 +73,21 @@ test('video guidance and model rows distinguish generation inputs, audio and cli
   }
 });
 
+test('image and video generation are explicit ai create calls with a valid example op', () => {
+  assert.ok(prompt.includes('Video and image generation: kind ai, task create, ai set to a model-table id'
+    + ' with video or image output respectively; never kind tool.'));
+  const raw = JSON.parse(prompt.split('\n').find((line) => line.startsWith('{"t":"step","id":"create-video"'))!);
+  const validated = validateWorkflowOp(raw, catalog, models);
+  assert.deepEqual(validated.warnings, []);
+  assert.deepEqual(validated.op, raw);
+  assert.equal(raw.kind, 'ai');
+  assert.equal(raw.task, 'create');
+  assert.ok(models.model(raw.ai)?.out.includes('video'));
+  const wf = betweenTriggerAndEnd(makeStep(raw));
+  assert.deepEqual(checkWorkflow(wf, catalog, models), []);
+  assert.deepEqual(repairWorkflow(wf, catalog, models), { workflow: wf, warnings: [] });
+});
+
 test('live failure guidance distinguishes delivery, hand-offs, approval and customer systems', () => {
   for (const phrase of [
     'effect belongs only on act, tool and memory steps',
