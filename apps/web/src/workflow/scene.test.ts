@@ -81,8 +81,24 @@ for (const file of files) test('scene and routing: ' + file, () => {
     const all = drawWorkflowEdges({ plan, routes, measure: (s) => s.length * 6 });
     for (const d of all) {
       assert.ok(d.points.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y)), JSON.stringify(d));
+      if (d.loop) {
+        for (const [id, end] of [[d.edge.from, d.points[0]], [d.edge.to, d.points.at(-1)!]] as const) {
+          const card = scene.byId.get(id)!;
+          const onSide = (end.x === card.x || end.x === card.x + card.w) && end.y >= card.y && end.y <= card.y + card.h;
+          const onTopOrBottom = (end.y === card.y || end.y === card.y + card.h) && end.x >= card.x && end.x <= card.x + card.w;
+          assert.ok(onSide || onTopOrBottom, `${d.id}: return arrow must touch ${id}`);
+        }
+      }
       for (let i = 1; i < d.points.length; i++) {
         const a = d.points[i - 1], b = d.points[i];
+        if (d.loop) {
+          assert.ok(a.x === b.x || a.y === b.y, `${d.id}: diagonal in return arrow`);
+          const c = d.points[i + 1];
+          if (c) {
+            const doublesBack = (b.x - a.x) * (c.x - b.x) < 0 || (b.y - a.y) * (c.y - b.y) < 0;
+            assert.ok(!doublesBack, `${d.id}: return arrow doubles back at (${b.x}, ${b.y})`);
+          }
+        }
         for (const r of plan.request.obstacles.filter((r) => r.id !== d.edge.from && r.id !== d.edge.to)) {
           const crosses = a.x === b.x ? a.x > r.x + 0.01 && a.x < r.x + r.w - 0.01
             && Math.max(a.y, b.y) > r.y + 0.01 && Math.min(a.y, b.y) < r.y + r.h - 0.01

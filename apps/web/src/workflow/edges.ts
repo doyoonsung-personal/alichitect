@@ -17,6 +17,15 @@ const labelRows = new WeakMap<WorkflowRoutePlan, {
   branchBands: Array<Pick<Rect, 'y' | 'h'>>;
   mainRowEdges: Set<string>;
 }>();
+
+// Each leg starts at a card. Stop where it first reaches the return lane:
+// following it all the way to its routing waypoint can leave a tail past the bend.
+function legToLane(points: Pt[], laneY: number): Pt[] {
+  const entry = points.findIndex((p) => p.y >= laneY);
+  if (entry < 1) return [];
+  return [...points.slice(0, entry), { x: points[entry - 1].x, y: laneY }];
+}
+
 export function planWorkflowEdges(input: {
   workflow: WorkflowGraph; scene: WorkflowScene; layout: WorkflowRenderLayout;
 }): WorkflowRoutePlan {
@@ -50,9 +59,12 @@ export function planWorkflowEdges(input: {
         return result.failed.length ? [] : result.routes[id] ?? [];
       };
       if (loop) {
-        const left = segment(e.id + ':a', a.id, e.id + ':way-a', a, { x: x1, y, w: 1, h: 1 });
-        const right = segment(e.id + ':b', b.id, e.id + ':way-b', b, { x: x2 + 8, y, w: 1, h: 1 });
-        explicit[e.id] = [...left, ...right.reverse()];
+        const from = legToLane(segment(e.id + ':a', a.id, e.id + ':way-a', a, { x: x1, y, w: 1, h: 1 }), y);
+        const to = legToLane(segment(e.id + ':b', b.id, e.id + ':way-b', b, { x: x2 + 8, y, w: 1, h: 1 }), y);
+        const joinFrom = from.at(-1), joinTo = to.at(-1);
+        explicit[e.id] = joinFrom && joinTo && joinFrom.x !== joinTo.x
+          ? [...from, ...to.reverse()]
+          : segment(e.id, a.id, b.id, a, b);
       } else {
         explicit[e.id] = segment(e.id, a.id, b.id, a, b);
       }

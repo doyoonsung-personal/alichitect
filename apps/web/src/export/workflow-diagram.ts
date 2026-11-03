@@ -45,13 +45,6 @@ function sceneFor(i: PrepareInput, fonts: WorkflowCardFonts) {
     body: (s: string, px: number) => fonts.width(s, px, 400) };
   const scene = fitWorkflowPdfScene(buildWorkflowScene({ ...i, layout, t: makeT(i.lang), measure }), fonts);
   const plan = planWorkflowEdges({ workflow: i.workflow, layout, scene });
-  // Loop waypoints are tiny rectangles; their ports can differ by half a unit in y.
-  for (const [id, points] of Object.entries(plan.explicit)) {
-    plan.explicit[id] = points.flatMap((p, k) => {
-      const prev = points[k - 1];
-      return prev && prev.x !== p.x && prev.y !== p.y ? [{ x: p.x, y: prev.y }, p] : [p];
-    });
-  }
   return { scene, plan };
 }
 export async function prepareWorkflowDiagram(i: PrepareInput) {
