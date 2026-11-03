@@ -1,4 +1,4 @@
-// Offline workflow checks through the real UI, served by Vite on a free loopback port in 5190-5192.
+// Offline workflow checks through the real UI, served by Vite on a free loopback port (WORKFLOW_PORT overrides the default).
 //   node scripts/e2e-workflow.mjs [--smoke] [--case=1150:10:false]
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
@@ -11,6 +11,18 @@ const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const selected = args.find((arg) => arg.startsWith('--case='))?.slice(7);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function moveToPane(page) {
+  const point = await page.$eval('.wf-stage', (el) => {
+    const r = el.getBoundingClientRect();
+    for (let y = r.bottom - 80; y > r.top + 110; y -= 20) {
+      for (let x = r.right - 20; x > r.left; x -= 20) {
+        if (document.elementFromPoint(x, y)?.classList.contains('react-flow__pane')) return { x, y };
+      }
+    }
+    throw new Error('No uncovered workflow pane to pan');
+  });
+  await page.mouse.move(point.x, point.y);
+}
 const free = (port) =>
   new Promise((res) => {
     const s = net.createServer();
@@ -19,7 +31,8 @@ const free = (port) =>
     s.listen(port, '127.0.0.1');
   });
 async function startServer() {
-  for (let port = 5190; port <= 5192; port++) {
+  const firstPort = Number(process.env.WORKFLOW_PORT ?? 5190);
+  for (let port = firstPort; port <= firstPort + 2; port++) {
     if (!(await free(port))) continue;
     const child = spawn(process.execPath, ['--input-type=module', '-e',
       "import {createServer} from 'vite'; const s=await createServer({configLoader:'native',cacheDir:'.workflow-cache',server:{port:" +
@@ -128,16 +141,15 @@ try {
     cases++;
     console.log('PASS support-email fixture', width, JSON.stringify(check));
     const seenBranches = new Set();
-    const stage = await page.$eval('.wf-stage', (el) => {
-      const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width };
-    });
-    await page.mouse.move(stage.x + stage.w / 2, stage.y + 250);
     for (let i = 0; i < 8; i++) {
       const panned = await inspect();
       if (panned.clippedBranches.length) throw new Error('Branch visibility: ' + JSON.stringify({ width, panned }));
       for (const id of panned.branches) seenBranches.add(id);
+      await moveToPane(page);
+      const beforePan = await page.$eval('.react-flow__viewport', (el) => el.style.transform);
       await page.mouse.wheel({ deltaX: 400, deltaY: 0 });
-      await sleep(100);
+      await page.waitForFunction((before) => document.querySelector('.react-flow__viewport').style.transform !== before,
+        { timeout: 3000 }, beforePan);
     }
     const branchIds = await page.evaluate(() => {
       const { graph, layout } = window.__ab.store.getState().workflowDisplay;
@@ -165,7 +177,7 @@ try {
     for (const focus of (args.includes('--smoke') ? [false] : [false, true, 'stage'])) {
     if (selected && selected !== `${width}:${count}:${focus}`) continue;
     const page = await browser.newPage();
-    await page.setViewport({ width: focus === 'stage' ? width + 360 : width, height: 700 });
+    await page.setViewport({ width: focus === 'stage' ? width + 360 : width, height: width === 1150 ? 800 : 700 });
     const lang = args.includes('--smoke') ? (width === 800 ? 'en' : width === 920 ? 'ko' : 'zh')
       : count === 10 ? 'en' : count === 15 ? 'ko' : 'zh';
     await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: count === 25 ? 'reduce' : 'no-preference' }]);
@@ -256,7 +268,28 @@ try {
       edges: [...document.querySelectorAll('.wf-edges path, .wf-edges text')].map((el) => el.outerHTML),
     }));
     const beforeFold = JSON.stringify(await geometry());
-    await page.click('[data-wf-fold="n1"]');
+    const mouseFold = async () => {
+      const point = await page.$eval('[data-wf-fold="n1"]', (button) => {
+        const r = button.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+      });
+      await page.mouse.move(point.x, point.y);
+      await page.mouse.down();
+      await page.mouse.up();
+      await page.waitForSelector('[data-wf-fold="n1"][aria-expanded="true"]', { timeout: 2000 }).catch(async () => {
+        const state = await page.evaluate(({ x, y }) => ({
+          hit: document.elementFromPoint(x, y)?.outerHTML.slice(0, 400),
+          popover: document.querySelector('.wf-pop')?.getBoundingClientRect().toJSON(),
+          fold: document.querySelector('[data-wf-fold="n1"]').getBoundingClientRect().toJSON(),
+        }), point);
+        throw new Error('Real mouse did not unfold: ' + JSON.stringify({ width, count, focus, state }));
+      });
+      await sleep(350);
+      if (await page.$('.wf-pop')) throw new Error('Fold mouse click opened a popover');
+      if (JSON.stringify(await geometry()) !== beforeFold) throw new Error('Fold mouse click moved the diagram');
+    };
+    // Enter the card briefly so the quick click must cancel its pending hover timer.
+    await page.hover('[data-wf-card="n1"]');
+    await mouseFold();
     await sleep(100);
     if (JSON.stringify(await geometry()) !== beforeFold) throw new Error('Unfold moved the diagram');
     const unfolded = await page.$eval('[data-wf-fold="n1"]', (button) => ({
@@ -271,6 +304,29 @@ try {
     if (JSON.stringify(await geometry()) !== beforeFold) throw new Error('Folding moved the diagram');
     if (!await page.$eval('[data-wf-fold="n1"]', (b) => b === document.activeElement && b.getAttribute('aria-expanded') === 'false')) {
       throw new Error('Escape did not restore fold-button focus');
+    }
+    await page.hover('[data-wf-card="n1"]');
+    await sleep(350);
+    await page.waitForSelector('.wf-pop');
+    const foldExposed = await page.$eval('[data-wf-fold="n1"]', (button) => {
+      const r = button.getBoundingClientRect();
+      return button.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
+    });
+    if (!foldExposed) throw new Error('Hover popover covered the fold arrow');
+    await mouseFold();
+    await page.keyboard.press('Escape');
+    if (!await page.$eval('[data-wf-fold="n1"]', (b) => b === document.activeElement && b.getAttribute('aria-expanded') === 'false')) {
+      throw new Error('Escape after hover-click did not restore fold-button focus');
+    }
+    for (const key of ['Enter', 'Space']) {
+      await page.focus('[data-wf-fold="n1"]');
+      await page.keyboard.press(key);
+      await page.waitForSelector('[data-wf-fold="n1"][aria-expanded="true"]');
+      if (await page.$('.wf-pop')) throw new Error('Fold keyboard activation opened a popover');
+      await page.keyboard.press('Escape');
+      if (!await page.$eval('[data-wf-fold="n1"]', (b) => b === document.activeElement && b.getAttribute('aria-expanded') === 'false')) {
+        throw new Error('Keyboard fold did not restore focus');
+      }
     }
     await page.click('[data-wf-fold="n1"]');
     await page.evaluate(() => {
@@ -298,9 +354,13 @@ try {
     await page.click('.wf-tools button');
     if (await page.$$eval('[data-wf-details]:not([hidden])', (els) => els.length)) throw new Error('Outside click did not fold');
     await page.click('[data-wf-fold="n0"]');
-    await page.mouse.move(width - 40, 300);
+    await page.waitForSelector('[data-wf-fold="n0"][aria-expanded="true"]');
+    const beforePan = await page.$eval('.react-flow__viewport', (el) => el.style.transform);
+    await moveToPane(page);
     await page.mouse.wheel({ deltaX: 1600, deltaY: 0 });
     try {
+      await page.waitForFunction((before) => document.querySelector('.react-flow__viewport').style.transform !== before,
+        { timeout: 3000 }, beforePan);
       await page.waitForFunction(() => {
         const card = document.querySelector('[data-wf-card="n0"]').getBoundingClientRect();
         const stage = document.querySelector('.wf-stage').getBoundingClientRect();
@@ -314,9 +374,33 @@ try {
       }));
       throw new Error('Offscreen card stayed unfolded: ' + JSON.stringify(state));
     }
+    const panned = await page.$eval('.react-flow__viewport', (el) => el.style.transform);
+    const staysPaused = () => page.evaluate((expected) => new Promise((resolve) => {
+      const viewport = document.querySelector('.react-flow__viewport');
+      const paused = () => viewport.style.transform === expected
+        && document.querySelector('.wf-tools [aria-pressed]').getAttribute('aria-pressed') === 'false';
+      let stable = paused();
+      const observer = new MutationObserver(() => { stable = stable && paused(); });
+      observer.observe(viewport, { attributes: true, attributeFilter: ['style'] });
+      // React Flow defers move-end by 150 ms. Catch stale Fit/scroll callbacks even if they snap back only briefly.
+      setTimeout(() => { observer.disconnect(); resolve(stable && paused()); }, 400);
+    }), panned);
+    if (!await staysPaused()) throw new Error('A delayed camera callback undid the user pan');
+    await page.evaluate(() => {
+      const { store } = window.__ab, s = store.getState();
+      store.dispatch({ type: 'turn/event', event: { type: 'commit',
+        memory: { ...s.session.memory, workflow: s.work.rawWorkflow }, changes: '', warnings: [] }, now: 8 });
+    });
+    if (!await staysPaused()) throw new Error('Commit re-fitted the paused camera');
     await page.click('#products .pp__handle');
     await page.waitForSelector('#products[data-open]');
+    if (!await staysPaused()) throw new Error('Panel resize re-fitted the paused camera');
     await page.keyboard.press('Escape');
+    await page.click('.wf-tools button');
+    await page.waitForFunction((before) => document.querySelector('.react-flow__viewport').style.transform !== before,
+      { timeout: 3000 }, panned);
+    await page.click('.wf-tools [aria-pressed="false"]');
+    await page.waitForSelector('.wf-tools [aria-pressed="true"]');
     cases++;
     console.log('PASS', width, count, focus === 'stage' ? 'canvas width' : focus ? 'focus' : 'console');
     await page.close();

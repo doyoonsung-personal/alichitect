@@ -31,8 +31,15 @@ export function WorkflowPopover(p: {
         });
         return;
       }
-      if (ref.current) ref.current.style.maxHeight = Math.max(40, bounds.h - 16) + 'px';
-      setPos(placePopover(a, { w: 300, h: ref.current?.offsetHeight ?? 240 }, bounds));
+      const width = ref.current?.offsetWidth ?? 300;
+      const beside = Math.max(a.x - bounds.x, bounds.x + bounds.w - a.x - a.w) >= width + 18;
+      const above = a.y - bounds.y - 18, below = bounds.y + bounds.h - a.y - a.h - 18;
+      // A tall hover popover must scroll beside or above/below its card, never cover the fold control.
+      if (ref.current) ref.current.style.maxHeight = Math.max(0, beside ? bounds.h - 16 : Math.max(above, below)) + 'px';
+      const height = ref.current?.offsetHeight ?? 240;
+      const pos = placePopover(a, { w: width, h: height }, bounds);
+      if (!beside) pos.y = below >= above ? a.y + a.h + 10 : a.y - height - 10;
+      setPos(pos);
     };
     update();
     const observer = new ResizeObserver(update);
