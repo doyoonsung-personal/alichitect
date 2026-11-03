@@ -20,6 +20,7 @@ const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object
 
 function savedWorkflowLayout(v: unknown, memory: SessionMemory): WorkflowLayoutState | undefined {
   if (!memory.workflow || !isObj(v) || v.mode !== 'workflow' || !isObj(v.workflow) || !isObj(v.cards)) return;
+  if (!isObj(v.workflow.hostHeights)) return;
   try {
     const layout = v as unknown as WorkflowLayoutState;
     const rebuilt = layoutWorkflow(memory.workflow, layout);

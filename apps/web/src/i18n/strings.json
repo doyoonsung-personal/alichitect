@@ -1,6 +1,9 @@
 {
   "_note": "UI strings for apps/web, keyed by component (see .impeccable/spec/app-spec.md section 9). en written by the design director. ko and zh first drafted by Qwen (qwen3.8-max on 2026-10-31 for the first 110 keys, qwen3.8-flash for the 52 keys added in the second pass) and corrected by hand: brief = request, held = met (충족/满足), zones = availability zones (가용 영역/可用区), revision = 리비전/修订, attach = 부착/附加于. Product names, Qwen and SaaS stay in English; zh may use 阿里云 for Alibaba Cloud (the official Chinese name). Server fatal and status copy lives in apps/server/src/messages.ts and arrives localized in the stream; it is not repeated here. Placeholders in braces are filled by the app; .one/.other are plural forms.",
   "en": {
+    "workflow.card.fold": "Fold details",
+    "workflow.card.attachments": "+{n} attachments",
+    "workflow.card.unfold": "Unfold details",
     "app.name": "Architecture Builder",
     "header.newSession": "New session",
     "header.sessions": "Sessions",
@@ -498,6 +501,9 @@
     "workflow.cost.unitName.unknown": "Usage unit"
   },
   "ko": {
+    "workflow.card.fold": "\uc138\ubd80 \uc815\ubcf4 \uc811\uae30",
+    "workflow.card.attachments": "\ucca8\ubd80 +{n}\uac1c",
+    "workflow.card.unfold": "\uc138\ubd80 \uc815\ubcf4 \ud3bc\uce58\uae30",
     "app.name": "아키텍처 빌더",
     "header.newSession": "새 세션",
     "header.sessions": "세션 목록",
@@ -995,6 +1001,9 @@
     "workflow.cost.unitName.unknown": "사용량 단위"
   },
   "zh": {
+    "workflow.card.fold": "\u6536\u8d77\u8be6\u60c5",
+    "workflow.card.attachments": "+{n} \u4e2a\u9644\u4ef6",
+    "workflow.card.unfold": "\u5c55\u5f00\u8be6\u60c5",
     "app.name": "架构构建器",
     "header.newSession": "新建会话",
     "header.sessions": "会话列表",

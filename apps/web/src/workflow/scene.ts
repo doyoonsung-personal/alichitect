@@ -6,7 +6,7 @@ import { needsApproval, waived } from '@ali/core/approval.ts';
 import type { Lang, TFn } from '../i18n/t.ts';
 import type { Measurer } from '../canvas/scene.ts';
 import type { WorkflowRenderLayout } from './layout-adapter.ts';
-import { workflowTitle } from './layout-adapter.ts';
+import { workflowCardTitle, WORKFLOW_CARD_H } from './layout-adapter.ts';
 export interface WorkflowCardView extends Rect {
   id: string; kind: WorkflowNode['kind']; node: WorkflowNode; label: string;
   titleLines: string[]; titlePx: number; product?: string; model?: string;
@@ -28,7 +28,7 @@ export function buildWorkflowScene(input: {
   const { workflow, layout, catalog, models, settings, t, measure } = input;
   const cards = Object.values(layout.source.cards).map((r): WorkflowCardView => {
     const n = workflow.nodes[r.id];
-    const title = workflowTitle(n.label, measure.title, r.w - 48);
+    const title = workflowCardTitle(n.label, measure.title, r.w - 48);
     const hidden = layout.hiddenAttachmentIds.filter((id) => {
       let host = layout.attachmentOwners[id];
       const seen = new Set<string>();
@@ -44,9 +44,7 @@ export function buildWorkflowScene(input: {
     if (n.kind === 'human') badges.push(t('workflow.badge.wait'));
     if (n.effect) badges.push(t('workflow.effect.' + n.effect as 'workflow.effect.read'));
     if (needsApproval(n, settings)) badges.push(t('workflow.badge.approval'));
-    // Integer port centres keep the channel router's coordinate keys exact.
-    const h = Math.ceil(Math.max(60, 18 + Math.max(22, title.lines.length * title.px * 1.25)
-      + (n.product ? 18 : 0) + (n.ai ? 24 : 0) + badges.length * 18 + (hidden.length ? 18 : 0)) / 2) * 2;
+    const h = WORKFLOW_CARD_H;
     return { id: n.id, kind: n.kind, node: n, label: n.label, x: r.x, y: r.y, w: r.w, h,
       titleLines: title.lines, titlePx: title.px,
       ...(n.product ? { product: catalog.byId.get(n.product)?.short ?? n.product } : {}),
@@ -70,4 +68,19 @@ export function workflowEdgeText(e: WorkflowEdge, loop: boolean, t: TFn): string
     loop && e.max !== undefined ? t('workflow.edge.loop', { n: e.max }) : '',
     e.kind === 'escalate' ? t('workflow.edge.escalate') : '',
   ].filter(Boolean).join(' · ');
+}
+
+
+/** Fold content is presentation-only; the complete scene stays available to the PDF and popover. */
+export function workflowCardDetails(card: WorkflowCardView, t: TFn) {
+  const usesModel = (card.kind === 'ai' || card.kind === 'agent') && !!card.model;
+  const clamped = card.titleLines.join('').replace(/\s/g, '') !== card.label.replace(/\s/g, '');
+  const lines = [
+    ...(clamped ? [card.label] : []),
+    ...(card.model ? [card.model + ' \u00b7 ' + t('workflow.model.candidate')] : []),
+    ...(usesModel && card.product ? [card.product] : []),
+    ...card.badges,
+  ];
+  const meta = usesModel ? card.model : card.product;
+  return { ...(meta !== undefined ? { meta } : {}), usesModel, lines, expandable: !!lines.length || !!card.hidden.length };
 }

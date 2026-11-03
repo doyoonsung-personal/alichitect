@@ -32,11 +32,14 @@ function Stage(p: WorkflowViewProps) {
   const [viewport, setViewport] = useState({ x: 24, y: 24, zoom: 1 });
   const [following, setFollowing] = useState(true);
   const [status, setStatus] = useState('');
+  const [unfolded, setUnfolded] = useState<string | null>(null);
+  const popoverFold = useRef<string | null>(null);
   const [focus, setFocus] = useState<string | null>(null), [open, setOpen] = useState<string | null>(null);
   const [, tick] = useState(0);
   const [routes, setRoutes] = useState<Record<string, Pt[]>>({});
-  const layout = useMemo(() => normalizeWorkflowLayout(p.workflow, p.layout), [p.workflow, p.layout]);
   const measure = useMemo(() => makeMeasurer('Arial, sans-serif'), []);
+  const layout = useMemo(() => normalizeWorkflowLayout(p.workflow, p.layout, { measure: measure.title, settings: p.settings }),
+    [p.workflow, p.layout, measure, p.settings]);
   const scene = useMemo(() => buildWorkflowScene({ workflow: p.workflow, layout, catalog: p.catalog,
     models, settings: p.settings, lang: p.lang, t: p.t, measure }), [p.workflow, layout, p.catalog, p.settings, p.lang, p.t, measure]);
   const plan = useMemo(() => planWorkflowEdges({ workflow: p.workflow, scene, layout }), [p.workflow, scene, layout]);
@@ -171,7 +174,45 @@ function Stage(p: WorkflowViewProps) {
       if (stop && restore) element(stop)?.focus();
     }
   }, [p.version]);
-  const close = () => { hover.escape(); if (open) element(open)?.focus(); hover.escape(); };
+  const foldButton = (id: string) => Array.from(root.current?.querySelectorAll<HTMLButtonElement>('[data-wf-fold]') ?? [])
+    .find((button) => button.dataset.wfFold === id);
+  const closeFold = () => {
+    setUnfolded(null);
+    if (unfolded) (foldButton(unfolded) ?? root.current?.querySelector<HTMLButtonElement>('.wf-tools button'))?.focus({ preventScroll: true });
+    hover.closeNow();
+  };
+  useEffect(() => {
+    if (!unfolded) return;
+    const outside = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element) || target.closest('[data-wf-shell]')?.getAttribute('data-wf-shell') !== unfolded) closeFold();
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeFold(); }
+    };
+    document.addEventListener('pointerdown', outside, true);
+    document.addEventListener('keydown', escape, true);
+    return () => {
+      document.removeEventListener('pointerdown', outside, true);
+      document.removeEventListener('keydown', escape, true);
+    };
+  }, [unfolded]);
+  useEffect(() => {
+    if (!unfolded) return;
+    const card = scene.byId.get(unfolded);
+    if (!card || card.x * viewport.zoom + viewport.x >= visible.w
+      || (card.x + card.w) * viewport.zoom + viewport.x <= 0
+      || card.y * viewport.zoom + viewport.y >= visible.y + visible.h
+      || (card.y + card.h) * viewport.zoom + viewport.y <= visible.y) closeFold();
+  }, [unfolded, scene, viewport.x, viewport.y, viewport.zoom, visible.w, visible.h]);
+  const close = () => {
+    hover.escape();
+    if (open) {
+      if (popoverFold.current === open) foldButton(open)?.focus({ preventScroll: true });
+      else element(open)?.focus();
+    }
+    popoverFold.current = null; hover.escape();
+  };
   useEffect(() => {
     if (!open) return;
     const escape = (e: KeyboardEvent) => { if (e.key === 'Escape') hover.closeNow(); };
@@ -192,15 +233,21 @@ function Stage(p: WorkflowViewProps) {
       data: { bracket: b }, selectable: false, focusable: false })),
     ...[...scene.cards, ...ghosts].map((card) => ({ id: card.id, type: 'workflowCard', position: { x: card.x, y: card.y }, width: card.w, height: card.h,
       style: { transition: clock.current.moving(card.id, performance.now()) && !prefersReducedMotion() ? 'transform 450ms ease' : 'none' },
-      data: { card, t: p.t, ghost: !scene.byId.has(card.id), tab: stop === card.id,
+      zIndex: unfolded === card.id ? 20 : 0,
+      data: { card, t: p.t, unfolded: unfolded === card.id,
+        toggleFold: () => { hover.closeNow(); if (unfolded === card.id) closeFold(); else setUnfolded(card.id); },
+        suppressPopover: () => hover.closeNow(), ghost: !scene.byId.has(card.id), tab: stop === card.id,
         highlighted: p.highlight?.cards.some((id) => id === card.id || card.hidden.includes(id)) ?? false,
         revision: p.tagged?.cards.includes(card.id) ? p.tagged.n : null,
         stamp: p.tagged?.cards.includes(card.id) ? clock.current.stamp(card.id, p.tagged.n, 0, performance.now()) : null,
         building: p.building.includes(card.id),
         delay: clock.current.enter(card.id, performance.now()),
-        enter: () => hover.pointerEnter(card.id), leave: () => hover.pointerLeave(card.id),
-        focus: () => { activeFocus.current = card.id; setFocus(card.id); reveal(card.id); hover.focus(card.id); }, blur: () => hover.blur(card.id),
-        open: () => { hover.click(card.id); hover.holdForFocus();
+        enter: () => { if (!unfolded) hover.pointerEnter(card.id); }, leave: () => hover.pointerLeave(card.id),
+        focus: () => { activeFocus.current = card.id; setFocus(card.id); reveal(card.id); if (!unfolded) hover.focus(card.id); },
+        blur: () => hover.blur(card.id),
+        open: (fromFold = false) => {
+          setUnfolded(null); popoverFold.current = fromFold ? card.id : null;
+          hover.click(card.id); hover.holdForFocus();
           requestAnimationFrame(() => document.querySelector<HTMLElement>('#cv-pop button')?.focus()); },
         key: (e: React.KeyboardEvent) => {
           if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;

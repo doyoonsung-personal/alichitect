@@ -1,5 +1,5 @@
 // Offline workflow checks through the real UI, served by Vite on a free loopback port in 5190-5192.
-//   node scripts/e2e-workflow.mjs [--smoke]
+//   node scripts/e2e-workflow.mjs [--smoke] [--case=1150:10:false]
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import net from 'node:net';
@@ -9,6 +9,7 @@ import puppeteer from 'puppeteer-core';
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
+const selected = args.find((arg) => arg.startsWith('--case='))?.slice(7);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const free = (port) =>
   new Promise((res) => {
@@ -37,7 +38,9 @@ async function startServer() {
   }
   throw new Error('no free port');
 }
-const CHROME = ['C:/Program Files/Google/Chrome/Application/chrome.exe', `${process.env.LOCALAPPDATA}/Google/Chrome/Application/chrome.exe`, 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find((p) => p && existsSync(p));
+const CHROME = ['C:/Program Files/Google/Chrome/Application/chrome.exe',
+  `${process.env.LOCALAPPDATA}/Google/Chrome/Application/chrome.exe`,
+  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find((p) => p && existsSync(p));
 
 
 console.log('Starting local workflow harness');
@@ -49,7 +52,8 @@ let cases = 0;
 const errors = [];
 try {
   const fixture = JSON.parse(readFileSync(path.join(WEB, '../../packages/core/test/fixtures/workflows/support-email-triage.json'), 'utf8'));
-  for (const [width, required] of [[1150, 4], [920, 3], [800, 2]]) {
+  for (const [width, required] of [[1150, 5], [920, 3], [800, 2]]) {
+    if (selected) continue;
     const page = await browser.newPage();
     await page.setViewport({ width, height: 800 });
     await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
@@ -79,7 +83,8 @@ try {
       await page.waitForSelector('[data-wf-card]');
       await sleep(60);
     }
-    const inspect = () => page.evaluate(() => {
+    const inlineIds = fixture.ops.filter((op) => op.t === 'step' && !op.on).map((op) => op.id);
+    const inspect = () => page.evaluate((inlineIds) => {
       const stage = document.querySelector('.wf-stage').getBoundingClientRect();
       const zoom = Number(/scale\(([^)]+)\)/.exec(document.querySelector('.react-flow__viewport').style.transform)?.[1]);
       const cards = [...document.querySelectorAll('[data-wf-card]')].map((el) => {
@@ -89,12 +94,16 @@ try {
           visible: r.left >= stage.left && r.right <= stage.right && r.top >= stage.top + 110 && r.bottom <= stage.bottom - 48,
           clipped: el.scrollHeight > el.clientHeight + 1 || title.scrollWidth > title.clientWidth + 1 };
       });
-      const visible = cards.filter((c) => c.visible);
+      const inline = cards.filter((c) => inlineIds.includes(c.id));
+      const visible = inline.filter((c) => c.visible);
+      const top = Math.min(...inline.map((c) => c.y));
+      const branches = inline.filter((c) => c.y > top + 1 && c.x >= stage.left && c.x + c.w <= stage.right);
       return { zoom, width: stage.width, following: document.querySelector('.wf-tools [aria-pressed]')?.getAttribute('aria-pressed') === 'true',
         columns: new Set(visible.map((c) => Math.round(c.x))).size,
+        branches: branches.map((c) => c.id), clippedBranches: branches.filter((c) => !c.visible),
         readable: cards.every((c) => c.titlePx >= 10.99), clipped: cards.filter((c) => c.clipped),
         newest: cards.filter((c) => c.x === Math.max(...cards.map((c) => c.x))).some((c) => c.visible) };
-    });
+    }, inlineIds);
     await sleep(300);
     const follow = await inspect();
     if (!follow.following || !follow.newest || !follow.readable || follow.zoom > 1) {
@@ -105,13 +114,41 @@ try {
       store.dispatch({ type: 'turn/event', event: { type: 'commit',
         memory: { ...s.session.memory, workflow: s.work.rawWorkflow }, changes: '', warnings: [] }, now: 4 });
     });
+    await page.evaluate(() => {
+      const { store } = window.__ab;
+      const { workflowLayout, ...record } = store.getState().session;
+      store.dispatch({ type: 'session/open', record, now: 5 });
+    });
     await sleep(300);
     const check = await inspect();
-    if (check.columns < required || !check.readable || check.zoom > 1 || check.clipped.length) {
+    if (check.columns < required || !check.readable || check.zoom < 11 / 14 - 0.000001 || check.zoom > 1
+      || check.clipped.length || check.clippedBranches.length) {
       throw new Error('Fixture fit: ' + JSON.stringify({ width, required, check }));
     }
     cases++;
     console.log('PASS support-email fixture', width, JSON.stringify(check));
+    const seenBranches = new Set();
+    const stage = await page.$eval('.wf-stage', (el) => {
+      const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width };
+    });
+    await page.mouse.move(stage.x + stage.w / 2, stage.y + 250);
+    for (let i = 0; i < 8; i++) {
+      const panned = await inspect();
+      if (panned.clippedBranches.length) throw new Error('Branch visibility: ' + JSON.stringify({ width, panned }));
+      for (const id of panned.branches) seenBranches.add(id);
+      await page.mouse.wheel({ deltaX: 400, deltaY: 0 });
+      await sleep(100);
+    }
+    const branchIds = await page.evaluate(() => {
+      const { graph, layout } = window.__ab.store.getState().workflowDisplay;
+      return Object.keys(graph.nodes).filter((id) => !graph.nodes[id].on && layout.workflow.cells[id].row > 0);
+    });
+    if (!branchIds.length || branchIds.some((id) => !seenBranches.has(id))) {
+      throw new Error('Branch columns were not exercised: ' + JSON.stringify({ width, branchIds, seen: [...seenBranches] }));
+    }
+    console.log('PASS branch visibility', width, [...seenBranches]);
+    await page.click('.wf-tools [aria-pressed="false"]');
+    await sleep(300);
     if (width === 1150) {
       await page.setViewport({ width: 800, height: 800 });
       await sleep(300);
@@ -126,6 +163,7 @@ try {
   }
   for (const width of [800, 920, 1150]) for (const count of (args.includes('--smoke') ? [10] : [10, 15, 25]))
     for (const focus of (args.includes('--smoke') ? [false] : [false, true, 'stage'])) {
+    if (selected && selected !== `${width}:${count}:${focus}`) continue;
     const page = await browser.newPage();
     await page.setViewport({ width: focus === 'stage' ? width + 360 : width, height: 700 });
     const lang = args.includes('--smoke') ? (width === 800 ? 'en' : width === 920 ? 'ko' : 'zh')
@@ -148,12 +186,17 @@ try {
     if (!await page.evaluate(() => window.__ab.store.getState().session.mode === 'workflow'
       && document.querySelector('.examples').hidden)) throw new Error('Landing focus did not switch');
     await page.click('input[name="focus"][value="cloud"]');
-    await page.evaluate(({ count, focus }) => {
+    await page.evaluate(({ count, focus, lang }) => {
       const { store, controller } = window.__ab;
       const s = store.getState(), nodes = {}, edges = {};
+      const title = { en: 'A detailed workflow title with many words ', ko: '세부 정보가 포함된 아주 긴 워크플로 제목 ',
+        zh: '包含许多细节的非常长的工作流标题' }[lang].repeat(20);
       for (let i = 0; i < count; i++) {
         nodes['n' + i] = { id: 'n' + i, kind: i === 0 ? 'trigger' : i === count - 1 ? 'end' : i === 3 ? 'human' : 'agent',
-          label: 'Step ' + i, ...(i > 0 && i < count - 1 && i !== 3 ? { ai: 'qwen-plus', turns: 5 } : {}) };
+          label: 'Step ' + i + ' ' + title,
+          ...(i === 1 ? { product: 'model-studio', approval: 'required', effect: 'send' } : {}),
+          ...(i > 0 && i < count - 1 && i !== 3 ? { ai: 'qwen3.8-flash', turns: 5 } : {}) };
+        if (i >= 4 && i <= 7) nodes['n' + i].effect = ['publish', 'pay', 'delete', 'admin'][i - 4];
         if (i) edges['e' + i] = { id: 'e' + i, from: 'n' + (i - 1), to: 'n' + i };
       }
       edges.loop = { id: 'loop', from: 'n4', to: 'n2', kind: 'loop', max: 2 };
@@ -162,7 +205,7 @@ try {
       store.dispatch({ type: 'session/open', record: { ...s.session, mode: 'workflow',
         memory: { ...s.session.memory, workflow: { nodes, edges, groups: {} } } }, now: 1 });
       controller.setFocusDiagram(focus === true);
-    }, { count, focus });
+    }, { count, focus, lang });
     await page.waitForSelector('[data-wf-card]');
     if (width === 800 && count === 10 && !focus) await page.screenshot({ path: path.join(WEB, '.workflow-preview.png') });
     await sleep(500);
@@ -173,9 +216,15 @@ try {
       const zoom = Number(/scale\(([^)]+)\)/.exec(document.querySelector('.react-flow__viewport').style.transform)?.[1]);
       return { cards: cards.length, stops: cards.filter((c) => c.tabIndex === 0).length,
         ids: ['diagram', 'products', 'workflow-keys'].every((id) => document.querySelectorAll('#' + id).length === 1),
+        cap: cards.every((c) => parseFloat(c.style.height) === 92 && c.scrollHeight <= c.clientHeight + 1),
+        titles: cards.every((c) => c.querySelectorAll('strong span').length <= 2
+          && (c.dataset.wfCard.startsWith('a')
+            || c.querySelector('strong').textContent.endsWith('…') && c.getAttribute('aria-label').length > 200)),
+        signals: ['approval', 'wait', 'send', 'publish', 'pay', 'delete', 'admin']
+          .every((signal) => !!document.querySelector(`[data-signal="${signal}"]`)),
         floor: cards.every((c) => parseFloat(getComputedStyle(c.querySelector('strong')).fontSize) * zoom >= 10.99) };
     });
-    if (check.cards !== count + 3 || check.stops !== 1 || !check.ids || !check.floor) {
+    if (check.cards !== count + 3 || check.stops !== 1 || !check.ids || !check.floor || !check.cap || !check.titles || !check.signals) {
       throw new Error(JSON.stringify({ width, count, focus, check }));
     }
     if (width === 800 && count === 10 && focus === false) {
@@ -193,7 +242,78 @@ try {
     await page.focus('[data-wf-card][tabindex="0"]');
     await page.keyboard.press('Enter');
     await page.waitForSelector('#cv-pop');
+    const fullLabel = await page.$eval('[data-wf-card][tabindex="0"]', (c) => c.getAttribute('aria-label'));
+    const popLabel = await page.$eval('#cv-pop h3', (h) => h.textContent);
+    if (popLabel.length < 200 || !fullLabel.startsWith(popLabel)) throw new Error('Popover lost the full title');
     await page.keyboard.press('Escape');
+    await page.click('.wf-tools button');
+    await sleep(300);
+    const geometry = () => page.evaluate(() => ({
+      viewport: document.querySelector('.react-flow__viewport').style.transform,
+      rects: [...document.querySelectorAll('[data-wf-card], .wf-bracket')].map((el) => {
+        const r = el.getBoundingClientRect(); return [r.x, r.y, r.width, r.height];
+      }),
+      edges: [...document.querySelectorAll('.wf-edges path, .wf-edges text')].map((el) => el.outerHTML),
+    }));
+    const beforeFold = JSON.stringify(await geometry());
+    await page.click('[data-wf-fold="n1"]');
+    await sleep(100);
+    if (JSON.stringify(await geometry()) !== beforeFold) throw new Error('Unfold moved the diagram');
+    const unfolded = await page.$eval('[data-wf-fold="n1"]', (button) => ({
+      expanded: button.getAttribute('aria-expanded'),
+      controlled: document.getElementById(button.getAttribute('aria-controls'))?.dataset.wfDetails,
+    }));
+    if (unfolded.expanded !== 'true' || unfolded.controlled !== 'n1' || await page.$('#cv-pop')) {
+      throw new Error('Fold control/popover interplay failed');
+    }
+    await page.keyboard.press('Escape');
+    await sleep(100);
+    if (JSON.stringify(await geometry()) !== beforeFold) throw new Error('Folding moved the diagram');
+    if (!await page.$eval('[data-wf-fold="n1"]', (b) => b === document.activeElement && b.getAttribute('aria-expanded') === 'false')) {
+      throw new Error('Escape did not restore fold-button focus');
+    }
+    await page.click('[data-wf-fold="n1"]');
+    await page.evaluate(() => {
+      const { store } = window.__ab;
+      store.dispatch({ type: 'turn/start', mode: 'workflow', ask: 'Keep unfolding', now: 5 });
+      const node = store.getState().work.rawWorkflow.nodes.n1;
+      store.dispatch({ type: 'turn/event', event: { type: 'op', phase: 'main', op: { t: 'step', ...node, why: 'Updated detail' } }, now: 6 });
+      store.dispatch({ type: 'turn/flush', now: 7 });
+    });
+    await sleep(100);
+    if (!await page.$eval('[data-wf-fold="n1"]', (b) => b.getAttribute('aria-expanded') === 'true')) {
+      throw new Error('Display batch closed the fold');
+    }
+    await page.click('[data-wf-details="n1"] .wf-card__attachments');
+    await page.waitForSelector('#cv-pop');
+    const popText = await page.$eval('#cv-pop', (p) => p.textContent);
+    if (!popText.includes('Attachment 3')) throw new Error('Hidden attachment list was lost');
+    await page.keyboard.press('Escape');
+    await page.click('[data-wf-fold="n1"]');
+    await page.click('[data-wf-fold="n0"]');
+    if (await page.$$eval('[data-wf-details]:not([hidden])', (els) => els.length) !== 1) throw new Error('More than one fold is open');
+    await page.click('[data-wf-fold="n0"]');
+    if (await page.$$eval('[data-wf-details]:not([hidden])', (els) => els.length)) throw new Error('Second click did not fold');
+    await page.click('[data-wf-fold="n0"]');
+    await page.click('.wf-tools button');
+    if (await page.$$eval('[data-wf-details]:not([hidden])', (els) => els.length)) throw new Error('Outside click did not fold');
+    await page.click('[data-wf-fold="n0"]');
+    await page.mouse.move(width - 40, 300);
+    await page.mouse.wheel({ deltaX: 1600, deltaY: 0 });
+    try {
+      await page.waitForFunction(() => {
+        const card = document.querySelector('[data-wf-card="n0"]').getBoundingClientRect();
+        const stage = document.querySelector('.wf-stage').getBoundingClientRect();
+        return card.right <= stage.left && !document.querySelector('[data-wf-details]:not([hidden])');
+      }, { timeout: 3000 });
+    } catch {
+      const state = await page.evaluate(() => ({
+        viewport: document.querySelector('.react-flow__viewport').style.transform,
+        card: document.querySelector('[data-wf-card="n0"]').getBoundingClientRect().toJSON(),
+        stage: document.querySelector('.wf-stage').getBoundingClientRect().toJSON(),
+      }));
+      throw new Error('Offscreen card stayed unfolded: ' + JSON.stringify(state));
+    }
     await page.click('#products .pp__handle');
     await page.waitForSelector('#products[data-open]');
     await page.keyboard.press('Escape');
