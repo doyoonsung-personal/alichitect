@@ -5,7 +5,7 @@
   "lang": "ko",
   "of": "wf-video-ad",
   "title": "제품 설명을 승인 후 게시할 동영상 광고로 만들기",
-  "reference": "Video regression (NOTES Video models, checked 2026-11-03). Require a create step whose ai is one of: wan3.0-video, wan3.0-video-prime, happyhorse-1.1-t2v, happyhorse-1.1-i2v, happyhorse-1.1-r2v, wan2.7-t2v, wan2.7-i2v. No gap op about video. Generate a 15-second vertical ad with voice-over, then human approval of the final clip before publish on every path; rejection must not publish. Default to wan3.0-video, or HappyHorse for text/image-to-video with audio. On follow-up, name an available video model and explain there is no Alibaba video capability gap; retain the approved workflow. Exact topology and runtime are not required.",
+  "reference": "Create a 15-second vertical video ad with voice-over, human approval before publish, no video gap, and an availability follow-up.",
   "turns": [
     {
       "ask": "제품 설명을 바탕으로 보이스오버가 포함된 15초 세로형 동영상 광고를 만들고, 게시하기 전에 사람이 승인하는 워크플로를 만들어 주세요.",
@@ -36,27 +36,27 @@
             "wf-ai-mismatch",
             "wf-approval",
             "wf-human-outcomes"
+          ],
+          "modelOutputs": {
+            "create": [
+              "video"
+            ]
+          },
+          "mentionModels": [
+            "video"
+          ],
+          "noGaps": [
+            "video|영상|비디오|视频|視頻|影片|影像|\\b(?:t2v|i2v|r2v)\\b"
+          ],
+          "notMention": [
+            "\\bno\\s+(?:alibaba\\s+)?(?:text[-\\s]+to[-\\s]+)?video",
+            "\\b(?:does\\s+not|doesn['’]t)\\s+(?:have|offer|support)\\b[^.!?\\n]{0,100}\\bvideo",
+            "\\blacks?\\b[^.!?\\n]{0,60}\\bvideo",
+            "\\bvideo[^.!?\\n]{0,80}\\b(?:unavailable|unsupported|not\\s+(?:available|supported|offered))\\b",
+            "(?:영상|비디오)[^.!?\\n]{0,60}(?:없(?:습니다|어요|다|음|는)|지원(?:을|이)?\\s*하지\\s*않|지원(?:이)?\\s*(?:불가|안))",
+            "지원(?:을)?\\s*하지\\s*않[^.!?\\n]{0,40}(?:영상|비디오)"
           ]
-        },
-        "mention": [
-          [
-            "wan3.0-video",
-            "wan3.0-video-prime",
-            "happyhorse-1.1-t2v",
-            "happyhorse-1.1-i2v",
-            "happyhorse-1.1-r2v",
-            "wan2.7-t2v",
-            "wan2.7-i2v"
-          ]
-        ],
-        "notMention": [
-          "no video models",
-          "no text-to-video models",
-          "no Alibaba video model",
-          "Alibaba has no video",
-          "알리바바에는 비디오 모델이 없",
-          "알리바바에는 동영상 생성 모델이 없"
-        ]
+        }
       }
     },
     {
@@ -88,27 +88,27 @@
             "wf-ai-mismatch",
             "wf-approval",
             "wf-human-outcomes"
+          ],
+          "modelOutputs": {
+            "create": [
+              "video"
+            ]
+          },
+          "mentionModels": [
+            "video"
+          ],
+          "noGaps": [
+            "video|영상|비디오|视频|視頻|影片|影像|\\b(?:t2v|i2v|r2v)\\b"
+          ],
+          "notMention": [
+            "\\bno\\s+(?:alibaba\\s+)?(?:text[-\\s]+to[-\\s]+)?video",
+            "\\b(?:does\\s+not|doesn['’]t)\\s+(?:have|offer|support)\\b[^.!?\\n]{0,100}\\bvideo",
+            "\\blacks?\\b[^.!?\\n]{0,60}\\bvideo",
+            "\\bvideo[^.!?\\n]{0,80}\\b(?:unavailable|unsupported|not\\s+(?:available|supported|offered))\\b",
+            "(?:영상|비디오)[^.!?\\n]{0,60}(?:없(?:습니다|어요|다|음|는)|지원(?:을|이)?\\s*하지\\s*않|지원(?:이)?\\s*(?:불가|안))",
+            "지원(?:을)?\\s*하지\\s*않[^.!?\\n]{0,40}(?:영상|비디오)"
           ]
-        },
-        "mention": [
-          [
-            "wan3.0-video",
-            "wan3.0-video-prime",
-            "happyhorse-1.1-t2v",
-            "happyhorse-1.1-i2v",
-            "happyhorse-1.1-r2v",
-            "wan2.7-t2v",
-            "wan2.7-i2v"
-          ]
-        ],
-        "notMention": [
-          "no video models",
-          "no text-to-video models",
-          "no Alibaba video model",
-          "Alibaba has no video",
-          "알리바바에는 비디오 모델이 없",
-          "알리바바에는 동영상 생성 모델이 없"
-        ]
+        }
       }
     }
   ]

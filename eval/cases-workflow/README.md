@@ -8,15 +8,22 @@
 
 Both require `create`, audio output (`speak` also accepts native audio), human approval
 before `publish`, a named video model, and no missing/mismatched model or approval findings.
-References require the create step's `ai` to be one of the seven new video IDs, no video
-gap op, a 15-second vertical clip with voice-over, and a follow-up affirming availability.
+Every turn uses `modelOutputs: { "create": ["video"] }` to require a create step whose
+`ai` has video in the model table's output modalities. No model IDs are hard-coded:
+new video-output models qualify automatically, while image-only or video-input models do not.
+`noGaps` rejects video-related gap needs or notes in English, Korean and Chinese,
+including raw gap ops and the recorded gaps array.
 
-The current expectation schema cannot assert an exact `ai` allowlist or absence of gap
-ops. Those requirements are judge references; mention and forbidden-claim assertions
-cover narration. Offline tests exercise every video ID and the two-turn fake runner,
-including explicit assertions on the retained create model and zero gap ops. They are
-not evidence of live model behavior. Adding generic machine checks for exact model IDs
-and gap ops would require changes to `eval/workflow.ts`/`eval/lib.ts`, outside this job's ownership.
+`mentionModels: ["video"]` requires the reply to name a video model's ID or display
+name from the table. The Korean follow-up retains all structural checks and uses
+`expect.workflow.notMention` regexes to reject claims such as "no text-to-video",
+"does not have a video model", "동영상 생성 모델이 없습니다" and "영상 생성을 지원하지 않습니다".
+These workflow regexes leave the shared literal `expect.notMention` matcher unchanged.
+The 15-second vertical format and final clip quality remain judge concerns.
+
+Offline tests cover table-driven models and names, image-only designs, multilingual
+video gaps, availability denials, malformed expectations and the two-turn fake runner.
+They are not evidence of live model behavior.
 
 The workflow prompt is 10,181 estimated tokens; the pinned band is 10,000-10,499,
 still below 15,000. Its video rows expose modes, native audio, resolution and duration
@@ -26,8 +33,8 @@ Run offline checks from the repository root:
 
 ```sh
 node eval/check-cases.ts
-node eval/run.ts --dry --cases-dir eval/cases-workflow
-node --test eval/test/workflow.test.ts
+node --test eval/test/*.test.ts
+npm test
 ```
 
 The 32 `wf-<fixture-id>` cases preserve each canonical fixture's English ask. The
@@ -58,6 +65,19 @@ hard constraint (the small-model ticket classifier); other tier choices are judg
   `extract` also accepts an explicit `tool` step using `pdf_parse`.
 - `tiers`: task to allowed tier array (`small`, `mid`, `large`). Every step of that
   task must name a model of an allowed tier, and the task must exist.
+- `modelOutputs`: task to non-empty output modality array (`text`, `image`, `video`,
+  `audio`). For each task, some ai, agent or knowledge step must name a table model
+  that outputs every listed modality. Input modalities, labels and narration do not count.
+- `mentionModels`: non-empty output modality array. For each modality, the current
+  reply (`say` text or `done` summary) must contain a matching table model's ID or
+  display name, case-insensitively. A graph field or gap alone does not count.
+- `noGaps`: non-empty array of regex source strings. No gap's `need` or `note` may
+  match any pattern; both emitted ops and recorded gaps are checked.
+- `notMention`: non-empty array of regex source strings checked against model text
+  (including replies, labels, why, requirements, questions, assumptions and gaps).
+  This is nested under `expect.workflow`; shared `expect.notMention` remains literal.
+  Both regex fields use Unicode, case-insensitive matching (`iu`), without slash
+  delimiters. `check-cases` rejects invalid regexes, unknown tasks/modalities and malformed fields.
 - `products`, `runtimes`: arrays of any-of groups, matched separately against
   `product` and `runs`. An ai, agent or knowledge step with an `ai` id also uses Model Studio, without
   requiring a redundant `product`. Runtime groups can include `customer`.

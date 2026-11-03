@@ -6,6 +6,7 @@ import { mkdtempSync, readFileSync, readdirSync, writeFileSync, unlinkSync } fro
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { loadCatalog, loadModels } from '../../packages/core/src/catalog-node.ts';
+import { createModelTable } from '../../packages/core/src/models.ts';
 import { buildSystemPrompt, createMemory } from '../../packages/core/src/prompt.ts';
 import { applyWorkflowOp, createWorkflowCtx, emptyWorkflow } from '../../packages/core/src/workflow.ts';
 import { checkWorkflow, validateWorkflowOp } from '../../packages/core/src/workflow-validate.ts';
@@ -287,7 +288,88 @@ test('workflow bases retain settings and estimate beside an empty cloud diagram'
   } finally { unlinkSync(file); }
 });
 
-test('video cases accept all seven models with native audio and reject missing approval or availability claims', () => {
+test('video model output requires a create step using a video-output model, not an image or video-input model', () => {
+  const e: WorkflowExpect = { modelOutputs: { create: ['video'] } };
+  const g = approved(); g.nodes.draft.task = 'create'; g.nodes.draft.ai = 'wan3.0-video';
+  assert.deepEqual(failures(g, e), []);
+  for (const ai of ['qwen-image-2.0', 'qwen3.8-omni-flash', 'unknown']) {
+    g.nodes.draft.ai = ai;
+    assert.equal(score(g, e).find((a) => a.name === 'workflow model output create: video')?.pass, false, ai);
+  }
+  g.nodes.in.ai = 'wan3.0-video'; g.nodes.in.task = 'create';
+  assert.equal(score(g, e).find((a) => a.name === 'workflow model output create: video')?.pass, false);
+  g.nodes.draft.ai = 'wan3.0-video'; g.nodes.draft.task = 'see';
+  assert.equal(score(g, e).find((a) => a.name === 'workflow model output create: video')?.pass, false);
+  delete g.nodes.draft.ai; g.nodes.draft.task = 'create';
+  assert.equal(score(g, e).find((a) => a.name === 'workflow model output create: video')?.pass, false);
+});
+
+test('new table models automatically satisfy output and reply model checks', () => {
+  const entry = { ...models.model('wan3.0-video')!, id: 'future-clip', name: 'Future Clip' };
+  const extended = createModelTable({ version: models.version, scope: 'international',
+    models: [...models.models, entry], tools: [...models.tools.values()] });
+  const g = approved(); g.nodes.draft.task = 'create'; g.nodes.draft.ai = entry.id;
+  for (const name of [entry.id, entry.name]) {
+    const v = view(g); v.says = [`${name} can create the clip.`];
+    assert.deepEqual(workflowAssertions(v, { modelOutputs: { create: ['video'] }, mentionModels: ['video'] }, catalog, extended)
+      .filter((a) => !a.pass), []);
+  }
+});
+
+test('video gap checks reject either field in raw ops and recorded gaps in English, Korean and Chinese', () => {
+  const item = loadCases(path.join(EVAL_DIR, 'cases-workflow')).find((c) => c.id === 'wf-video-ad')!;
+  const e: WorkflowExpect = { noGaps: item.turns[0].expect!.workflow!.noGaps! };
+  for (const text of ['VIDEO generation', 'text-to-video', 'T2V', '동영상 생성', '영상 제작', '비디오', '视频生成', '視頻生成', '影片生成']) {
+    for (const field of ['need', 'note'] as const) for (const source of ['ops', 'gaps'] as const) {
+      const gap = { need: 'Unavailable', note: 'Use an external service', [field]: text };
+      const v = view();
+      if (source === 'ops') v.ops = [{ t: 'gap', ...gap }];
+      else v.gaps = [gap];
+      assert.ok(workflowAssertions(v, e, catalog, models).some((a) => !a.pass && a.name.startsWith('workflow no gap')),
+        `${source}.${field}: ${text}`);
+    }
+  }
+  const v = view(); v.gaps = [{ need: 'Scent generation', note: 'Hardware is needed' }];
+  v.says = ['The video model is available.'];
+  assert.deepEqual(workflowAssertions(v, e, catalog, models).filter((a) => !a.pass), []);
+});
+
+test('video follow-up requires a table video id or display name in the reply, not just in the graph or a gap', () => {
+  const item = loadCases(path.join(EVAL_DIR, 'cases-workflow')).find((c) => c.id === 'wf-ko-video-ad')!;
+  const e: WorkflowExpect = { mentionModels: item.turns[1].expect!.workflow!.mentionModels! };
+  const v = view(); v.workflow!.nodes.draft.ai = 'wan3.0-video';
+  for (const model of models.models.filter((m) => m.out.includes('video'))) {
+    for (const name of [model.id, model.name]) {
+      v.says = [`알리바바의 ${name} 모델을 사용할 수 있습니다.`];
+      assert.equal(workflowAssertions(v, e, catalog, models).find((a) => a.name === 'workflow mentions video model')?.pass, true);
+    }
+  }
+  for (const text of ['', 'qwen-image-2.0', 'Qwen Image 2.0', '알리바바 모델을 사용할 수 있습니다.']) {
+    v.says = [text]; v.gaps = [{ need: 'wan3.0-video', note: '' }];
+    assert.equal(workflowAssertions(v, e, catalog, models).find((a) => a.name === 'workflow mentions video model')?.pass, false);
+  }
+  v.ops = [{ t: 'done', summary: 'Wan 3.0 Video 모델을 사용할 수 있습니다.' }];
+  assert.equal(workflowAssertions(v, e, catalog, models).find((a) => a.name === 'workflow mentions video model')?.pass, true);
+});
+
+test('video follow-up regexes reject English and Korean capability denials while accepting availability and unrelated limits', () => {
+  const item = loadCases(path.join(EVAL_DIR, 'cases-workflow')).find((c) => c.id === 'wf-ko-video-ad')!;
+  const turn = item.turns[1];
+  for (const text of ['Alibaba has no video models.', 'There is no text-to-video model.',
+    'Alibaba does not have a video model.', "Alibaba doesn't support text-to-video.", 'Alibaba lacks a video model.',
+    'Alibaba video generation is not available.', '알리바바에는 동영상 생성 모델이 없습니다.',
+    '알리바바에는 비디오 모델이 없어요.', '알리바바는 영상 생성을 지원하지 않습니다.',
+    '알리바바는 동영상 생성 지원이 불가합니다.']) {
+    const v = view(); v.says = [`wan3.0-video. ${text}`];
+    assert.ok(evaluateTurn(v, turn, 'ko', names, catalog)
+      .some((a) => !a.pass && a.name.startsWith('workflow never mentions')), text);
+  }
+  const v = view(); v.says = ['알리바바의 wan3.0-video 모델로 동영상을 생성할 수 있습니다. 향기 생성은 지원하지 않습니다.'];
+  assert.ok(evaluateTurn(v, turn, 'ko', names, catalog)
+    .filter((a) => a.name.startsWith('workflow never mentions')).every((a) => a.pass));
+});
+
+test('video cases accept table video models with native audio and reject missing approval or availability claims', () => {
   const cases = loadCases(path.join(EVAL_DIR, 'cases-workflow')).filter((c) => ['wf-video-ad', 'wf-ko-video-ad'].includes(c.id));
   assert.equal(cases.length, 2); assert.deepEqual(checkCases(cases, catalog), []);
   const videoIds = models.models.filter((m) => m.out.includes('video')).map((m) => m.id);
@@ -297,8 +379,8 @@ test('video cases accept all seven models with native audio and reject missing a
     v.says = [item.lang === 'ko' ? `${ai} 모델로 음성이 있는 세로형 광고를 만들고 사람이 승인한 후 게시합니다.`
       : `${ai} creates the video with voice-over, for a person to approve before publishing.`];
     for (const turn of item.turns) {
-      assert.ok(item.reference.includes(ai));
-      assert.deepEqual(turn.expect?.mention?.[0], videoIds);
+      assert.deepEqual(turn.expect?.workflow?.modelOutputs, { create: ['video'] });
+      assert.deepEqual(turn.expect?.workflow?.mentionModels, ['video']);
       const raw = { t: 'step', ...g.nodes.draft };
       assert.deepEqual(validateWorkflowOp(raw, catalog, models).warnings, []);
       assert.ok(evaluateTurn(v, turn, item.lang!, names, catalog).every((a) => a.pass));
@@ -306,8 +388,18 @@ test('video cases accept all seven models with native audio and reject missing a
       assert.ok(evaluateTurn(v, turn, item.lang!, names, catalog).some((a) => !a.pass && a.name.includes('every path')));
       delete g.edges.bypass;
       const bad = { ...v, says: ['Alibaba has no video models.'] };
-      assert.ok(evaluateTurn(bad, turn, item.lang!, names, catalog).some((a) => !a.pass && a.type === 'notMention'));
+      assert.ok(evaluateTurn(bad, turn, item.lang!, names, catalog).some((a) => !a.pass && a.name.startsWith('workflow never mentions')));
     }
+  }
+});
+
+test('video cases reject an image-only design even when the reply names a video model', () => {
+  const cases = loadCases(path.join(EVAL_DIR, 'cases-workflow')).filter((c) => ['wf-video-ad', 'wf-ko-video-ad'].includes(c.id));
+  const g = approved(); g.nodes.draft.task = 'create'; g.nodes.draft.ai = 'qwen-image-2.0'; g.nodes.send.effect = 'publish';
+  const v = view(g); v.says = ['wan3.0-video 모델을 사용할 수 있습니다.'];
+  for (const item of cases) for (const turn of item.turns) {
+    assert.equal(evaluateTurn(v, turn, item.lang!, names, catalog)
+      .find((a) => a.name === 'workflow model output create: video')?.pass, false);
   }
 });
 
@@ -363,7 +455,12 @@ test('case validation rejects workflow typos, unknown tasks, tiers, products and
   for (const workflow of [{ kind: ['trigger'] }, { tiers: { classify: ['huge'] } }, { tasks: ['draft'] },
     { products: [[]] }, { products: [['unknown']] }, { runtimes: ['fc'] }, { approvals: 'yes' }, { noWarnings: ['typo'] },
     { tasksAny: [] }, { tasksAny: [[]] }, { tasksAny: ['check'] }, { tasksAny: [['draft']] },
-    { effectsAny: [] }, { effectsAny: [[]] }, { effectsAny: ['write'] }, { effectsAny: [['draft']] }, null]) {
+    { effectsAny: [] }, { effectsAny: [[]] }, { effectsAny: ['write'] }, { effectsAny: [['draft']] },
+    { modelOutputs: null }, { modelOutputs: [] }, { modelOutputs: {} }, { modelOutputs: { draft: ['video'] } },
+    { modelOutputs: { create: [] } }, { modelOutputs: { create: 'video' } }, { modelOutputs: { create: ['movie'] } },
+    { mentionModels: [] }, { mentionModels: 'video' }, { mentionModels: ['movie'] },
+    { noGaps: true }, { noGaps: [] }, { noGaps: [' '] }, { noGaps: [1] }, { noGaps: ['['] },
+    { notMention: 'video' }, { notMention: [] }, { notMention: [''] }, { notMention: [null] }, { notMention: ['('] }, null]) {
     const bad = { ...c, turns: [{ ask: 'x', expect: { workflow } }] } as unknown as EvalCase;
     assert.ok(checkCases([bad], catalog).length, JSON.stringify(workflow));
   }

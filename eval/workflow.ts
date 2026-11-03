@@ -1,15 +1,20 @@
 // Workflow assertions use the production reachability checks on the final, repaired graph.
 import type { Catalog, Effect, WorkflowNodeKind, WorkflowNode, WorkflowTask } from '../packages/core/src/types.ts';
-import type { ModelEntry, ModelTable } from '../packages/core/src/models.ts';
+import type { Modality, ModelEntry, ModelTable } from '../packages/core/src/models.ts';
 import { WORKFLOW_TASKS } from '../packages/core/src/models.ts';
 import { checkWorkflow } from '../packages/core/src/workflow-validate.ts';
 import type { AssertionResult, TurnView } from './lib.ts';
+import { modelTexts } from './lib.ts';
 
 export interface WorkflowExpect {
   kinds?: WorkflowNodeKind[];
   tasks?: WorkflowTask[];
   tasksAny?: WorkflowTask[][]; // each group is any-of
   tiers?: Partial<Record<WorkflowTask, ModelEntry['tier'][]>>;
+  modelOutputs?: Partial<Record<WorkflowTask, Modality[]>>; // some model step per task outputs all listed modalities
+  mentionModels?: Modality[]; // reply names a table model with each output modality
+  noGaps?: string[]; // case-insensitive regexes over gap need/note
+  notMention?: string[]; // case-insensitive regexes over model text; shared expect.notMention stays literal
   products?: string[][]; // each group is any-of; ai also implies Model Studio
   runtimes?: string[][]; // each group is any-of, only runs counts; customer is allowed
   effects?: Effect[];
@@ -46,6 +51,30 @@ export function workflowAssertions(
   });
   for (const task of e.tasks ?? []) add(`workflow task ${task}`, hasTask(task));
   for (const group of e.tasksAny ?? []) add(`workflow task ${group.join('|')}`, group.some(hasTask));
+  for (const [task, outputs] of Object.entries(e.modelOutputs ?? {})) {
+    const matching = nodes.filter((n) => n.task === task && modelStep(n));
+    add(`workflow model output ${task}: ${outputs!.join(',')}`,
+      matching.some((n) => outputs!.every((output) => models.model(n.ai!)?.out.includes(output))),
+      matching.length ? matching.map((n) => `${n.id}: ${n.ai}`).join(', ') : 'model step absent');
+  }
+  const reply = [...v.says, ...v.ops.flatMap((o) => o.t === 'say' ? [o.text] : o.t === 'done' ? [o.summary] : [])]
+    .join('\n').normalize('NFKC').toLowerCase();
+  for (const output of e.mentionModels ?? []) {
+    const candidates = models.models.filter((m) => m.out.includes(output));
+    add(`workflow mentions ${output} model`, candidates.some((m) => [m.id, m.name]
+      .some((name) => reply.includes(name.normalize('NFKC').toLowerCase()))));
+  }
+  const gaps = [...v.gaps, ...v.ops.filter((o) => o.t === 'gap')];
+  for (const pattern of e.noGaps ?? []) {
+    const re = new RegExp(pattern, 'iu');
+    const bad = gaps.filter((g) => re.test(g.need) || re.test(g.note));
+    add(`workflow no gap ${pattern}`, !bad.length, bad.map((g) => `${g.need}: ${g.note}`).join('; '));
+  }
+  for (const pattern of e.notMention ?? []) {
+    const re = new RegExp(pattern, 'iu');
+    const bad = [...modelTexts(v, true), reply, ...gaps.flatMap((g) => [g.need, g.note])].filter((text) => re.test(text));
+    add(`workflow never mentions ${pattern}`, !bad.length, bad.join('; '));
+  }
   for (const effect of e.effects ?? []) add(`workflow effect ${effect}`, nodes.some((n) => n.effect === effect));
   for (const group of e.effectsAny ?? []) {
     add(`workflow effect ${group.join('|')}`, nodes.some((n) => n.effect && group.includes(n.effect)));
@@ -97,6 +126,7 @@ export function workflowAssertions(
 
 const KINDS = ['trigger', 'ai', 'agent', 'decide', 'guard', 'human', 'act', 'tool', 'knowledge', 'memory', 'end'];
 const EFFECTS = ['read', 'write', 'reply', 'notify', 'send', 'publish', 'pay', 'delete', 'admin', 'decide'];
+const MODALITIES: readonly Modality[] = ['text', 'image', 'video', 'audio'];
 const CODES = ['wf-approval', 'wf-loop-exit', 'wf-cycle', 'wf-trifecta', 'wf-reply-guard', 'wf-gated-product',
   'wf-ai-missing', 'wf-ai-mismatch', 'wf-ai-region', 'wf-unreachable', 'wf-no-trigger', 'wf-dead-end',
   'wf-agent-turns', 'wf-act-effect', 'wf-human-outcomes', 'wf-mixed-out', 'wf-attach-form', 'wf-dangling-ref', 'wf-decision-review'];
@@ -106,7 +136,8 @@ export function checkWorkflowExpect(value: unknown, catalog: Catalog): string[] 
   const e = value as Record<string, unknown>;
   const problems: string[] = [];
   const keys = ['kinds', 'tasks', 'tasksAny', 'tiers', 'products', 'runtimes', 'effects', 'forbiddenProducts', 'forbiddenKinds',
-    'effectsAny', 'forbiddenTasks', 'approvals', 'boundedLoops', 'international', 'noWarnings'];
+    'effectsAny', 'forbiddenTasks', 'approvals', 'boundedLoops', 'international', 'noWarnings',
+    'modelOutputs', 'mentionModels', 'noGaps', 'notMention'];
   const list = (key: string, v: unknown, allowed: readonly string[]): void => {
     if (!Array.isArray(v) || !v.length || v.some((x) => typeof x !== 'string' || !allowed.includes(x))) {
       problems.push(`${key} must be a non-empty array of allowed values`);
@@ -117,7 +148,7 @@ export function checkWorkflowExpect(value: unknown, catalog: Catalog): string[] 
     if (key in e && typeof e[key] !== 'boolean') problems.push(`${key} must be boolean`);
   }
   for (const [key, allowed] of [['kinds', KINDS], ['forbiddenKinds', KINDS], ['tasks', WORKFLOW_TASKS],
-    ['forbiddenTasks', WORKFLOW_TASKS], ['effects', EFFECTS], ['noWarnings', CODES]] as const) {
+    ['forbiddenTasks', WORKFLOW_TASKS], ['effects', EFFECTS], ['noWarnings', CODES], ['mentionModels', MODALITIES]] as const) {
     if (key in e) list(key, e[key], allowed);
   }
   const products = [...catalog.byId.keys()];
@@ -141,6 +172,25 @@ export function checkWorkflowExpect(value: unknown, catalog: Catalog): string[] 
     else for (const [task, tiers] of Object.entries(e.tiers)) {
       if (!WORKFLOW_TASKS.includes(task as WorkflowTask)) problems.push(`unknown task '${task}'`);
       list(`tiers.${task}`, tiers, ['small', 'mid', 'large']);
+    }
+  }
+  if ('modelOutputs' in e) {
+    const outputs = e.modelOutputs;
+    if (!outputs || typeof outputs !== 'object' || Array.isArray(outputs) || !Object.keys(outputs).length) {
+      problems.push('modelOutputs must be a non-empty task-to-modalities object');
+    } else for (const [task, modalities] of Object.entries(outputs)) {
+      if (!WORKFLOW_TASKS.includes(task as WorkflowTask)) problems.push(`unknown task '${task}'`);
+      list(`modelOutputs.${task}`, modalities, MODALITIES);
+    }
+  }
+  for (const key of ['noGaps', 'notMention']) {
+    const patterns = e[key];
+    if (!(key in e)) continue;
+    if (!Array.isArray(patterns) || !patterns.length || patterns.some((p) => typeof p !== 'string' || !p.trim())) {
+      problems.push(`${key} must be a non-empty array of regex strings`);
+    } else for (const pattern of patterns) {
+      try { new RegExp(pattern, 'iu'); }
+      catch { problems.push(`${key} has invalid regex '${pattern}'`); }
     }
   }
   return problems;
