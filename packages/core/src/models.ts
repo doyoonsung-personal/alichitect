@@ -3,15 +3,18 @@
 import type { Lifecycle, WorkflowTask } from './types.ts';
 
 export type Modality = 'text' | 'image' | 'video' | 'audio';
+export type VideoResolution = 480 | 720 | 1080;
 export interface PriceTier {
   upTo?: number; in?: number; out?: number; thinkingOut?: number; cacheHit?: number;
   cacheRead?: number; cacheWrite?: number; audioIn?: number; audioOut?: number; perUnit?: number;
+  resolution?: VideoResolution;
 }
 export interface ModelEntry {
-  id: string; name: string; family: 'qwen'; tier: 'small' | 'mid' | 'large';
+  id: string; name: string; family: 'qwen' | 'wan' | 'happyhorse'; tier: 'small' | 'mid' | 'large';
   in: Modality[]; out: Modality[]; roles: WorkflowTask[]; functions: boolean | null;
   tools: string[] | null; batch: boolean | null; regions: string[]; status: Lifecycle;
-  price?: { unit: 'mtok' | 'image' | '10k-chars'; tiers: PriceTier[] };
+  price?: { unit: 'mtok' | 'image' | '10k-chars' | 'second'; tiers: PriceTier[] };
+  video?: { minSeconds?: number; maxSeconds: number };
   use: string; note?: string; verified: string; source: string;
 }
 export interface ToolEntry {
@@ -42,6 +45,19 @@ export function createModelTable(file: ModelFile): ModelTable {
     if ([...model.in, ...model.out].some((x) => !['text', 'image', 'video', 'audio'].includes(x))) throw new Error(`Unknown modality for ${model.id}`);
     if (model.roles.some((x) => !WORKFLOW_TASKS.includes(x))) throw new Error(`Unknown role for ${model.id}`);
     if (model.tools?.some((x) => !tools.has(x))) throw new Error(`Unknown tool for ${model.id}`);
+    if (model.video && (!model.out.includes('video') || !Number.isFinite(model.video.maxSeconds) || model.video.maxSeconds <= 0
+      || (model.video.minSeconds !== undefined && (!Number.isFinite(model.video.minSeconds)
+        || model.video.minSeconds <= 0 || model.video.minSeconds > model.video.maxSeconds)))) {
+      throw new Error(`Invalid video limits for ${model.id}`);
+    }
+    if (model.price?.unit === 'second') {
+      const tiers = model.price.tiers;
+      if (!model.video || !model.roles.includes('create') || !tiers.length
+        || tiers.some((t) => ![480, 720, 1080].includes(t.resolution ?? 0) || !Number.isFinite(t.perUnit) || t.perUnit! <= 0)
+        || new Set(tiers.map((t) => t.resolution)).size !== tiers.length) {
+        throw new Error(`Invalid video prices for ${model.id}`);
+      }
+    }
     byId.set(model.id, model);
   }
   return {

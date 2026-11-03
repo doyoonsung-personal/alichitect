@@ -8,4 +8,8 @@ export const ESTIMATE_LIMITS = {
   share: 1,
   /** guardTypes, an integer: how many guard checks a guard step runs. */
   guardTypes: 3,
+  /** Output clip seconds, additionally bounded by the selected model's maximum. */
+  clipSeconds: 30,
+  /** Output resolution (P); the selected model must have a matching price. */
+  resolutions: [480, 720, 1080],
 } as const;
