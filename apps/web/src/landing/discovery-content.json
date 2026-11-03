@@ -1,0 +1,163 @@
+{
+  "question": {
+    "en": "What work would you like to make easier?",
+    "ko": "어떤 업무를 더 수월하게 하고 싶으신가요?",
+    "zh": "您希望哪项工作能更轻松一些？"
+  },
+  "placeholder": {
+    "en": "For example, our team spends too much time on customer emails.",
+    "ko": "예: 고객 메일에 답하는 데 시간이 너무 오래 걸려요.",
+    "zh": "比如，我们团队每天要花很长时间回复客户邮件。"
+  },
+  "workLabel": { "en": "Work to improve", "ko": "개선하고 싶은 업무", "zh": "希望改进的工作" },
+  "focusLabel": { "en": "Where I need help", "ko": "도움이 필요한 부분", "zh": "需要帮助的环节" },
+  "customBrief": {
+    "en": "Design an AI workflow for the work below. Focus on the part I need help with and show what a person would do at that step.",
+    "ko": "아래 업무를 위한 AI 워크플로를 설계해 주세요. 도움이 필요한 부분을 중심으로, 그 단계에서 사람이 맡을 일도 보여 주세요.",
+    "zh": "请为以下工作设计一个 AI 工作流，重点解决我提到的难点，并说明这个环节由人负责哪些事情。"
+  },
+  "topics": [
+    {
+      "id": "support",
+      "label": { "en": "Customer emails and requests", "ko": "고객 메일과 문의", "zh": "客户邮件和咨询" },
+      "title": {
+        "en": "Where does your team spend the most time on a customer request?",
+        "ko": "고객 문의 한 건을 처리할 때 어느 부분에 시간이 가장 많이 드나요?",
+        "zh": "处理一条客户咨询时，团队在哪个环节花的时间最多？"
+      },
+      "placeholder": { "en": "Think of the last request that took too long.", "ko": "최근에 처리가 오래 걸렸던 문의를 떠올려 보세요.", "zh": "可以想一想最近处理得比较久的一条咨询。" },
+      "choices": [
+        {
+          "id": "find",
+          "label": { "en": "Finding the right policy or answer", "ko": "알맞은 정책이나 답변 찾기", "zh": "查找适用的政策或答案" },
+          "brief": {
+            "en": "Design a workflow that helps support agents find the right policy for a customer’s question. Show the relevant passage so the agent can check it before replying. If the guidance is unclear, flag the question for review.",
+            "ko": "고객 문의에 맞는 정책을 상담원이 찾을 수 있도록 워크플로를 설계해 주세요. 답변 전에 상담원이 확인할 수 있도록 관련 문구를 보여 주고, 지침이 불분명하면 별도 검토를 요청해 주세요.",
+            "zh": "请设计一个工作流，帮助客服找到适用于客户问题的政策。给出相关原文供客服在回复前核对，指引不明确时标出来，请人工复核。"
+          }
+        },
+        {
+          "id": "draft",
+          "label": { "en": "Drafting a reply", "ko": "답변 초안 작성하기", "zh": "起草回复" },
+          "brief": {
+            "en": "Design a workflow that drafts a reply to an incoming customer request. Show the original request beside the draft so a support agent can edit and approve the reply before it is sent.",
+            "ko": "고객 문의가 들어오면 답변 초안을 작성하는 워크플로를 설계해 주세요. 상담원이 보내기 전에 초안을 수정하고 승인할 수 있도록 원래 문의를 함께 보여 주세요.",
+            "zh": "请设计一个工作流，根据收到的客户咨询起草回复。让客服同时看到原始咨询和草稿，以便修改、确认后再发送。"
+          }
+        },
+        {
+          "id": "approve",
+          "label": { "en": "Waiting for someone to approve it", "ko": "승인 기다리기", "zh": "等待审批" },
+          "brief": {
+            "en": "Design a workflow that sends a customer reply to the right reviewer with the context they need to decide. Show how an approved reply proceeds and how a request for changes gets back to the agent.",
+            "ko": "고객에게 보낼 답변과 판단에 필요한 내용을 담당 검토자에게 전달하는 워크플로를 설계해 주세요. 승인된 답변을 보내는 과정과 수정 요청을 상담원에게 돌려보내는 과정을 보여 주세요.",
+            "zh": "请设计一个工作流，把待发送的客户回复和审批所需的信息交给合适的审核人。说明通过后如何发送，以及需要修改时如何退回给客服。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "documents",
+      "label": { "en": "Paperwork and incoming documents", "ko": "서류 접수와 문서 처리", "zh": "收件和单据处理" },
+      "title": { "en": "What takes the most effort when a document arrives?", "ko": "서류가 들어오면 어떤 일에 가장 손이 많이 가나요?", "zh": "收到一份材料后，哪个环节最费力？" },
+      "placeholder": { "en": "Think about the last document you had to process.", "ko": "최근에 처리한 서류를 떠올려 보세요.", "zh": "可以想一想最近处理的一份材料。" },
+      "choices": [
+        {
+          "id": "extract",
+          "label": { "en": "Copying details out of documents", "ko": "문서 내용을 옮겨 적기", "zh": "抄录文档里的信息" },
+          "brief": {
+            "en": "Design a workflow that reads an incoming document, extracts the details we need and shows each value next to its source for a person to check before recording it.",
+            "ko": "접수한 서류에서 필요한 항목을 추출하는 워크플로를 설계해 주세요. 기록하기 전에 담당자가 확인할 수 있도록 각 값과 원문의 해당 부분을 함께 보여 주세요.",
+            "zh": "请设计一个工作流，从收到的文档中提取所需字段。把每个字段的值和对应原文放在一起，供经办人在录入前核对。"
+          }
+        },
+        {
+          "id": "check",
+          "label": { "en": "Spotting missing information", "ko": "누락된 항목 찾기", "zh": "找出缺失的信息" },
+          "brief": {
+            "en": "Design a workflow that checks an incoming document for required information. Show a reviewer which details are missing so they can ask for a correction before the document moves on.",
+            "ko": "접수한 서류에 필수 정보가 있는지 확인하는 워크플로를 설계해 주세요. 다음 단계로 넘기기 전에 보완을 요청할 수 있도록 누락된 항목을 검토자에게 보여 주세요.",
+            "zh": "请设计一个工作流，检查收到的材料是否包含必填信息。将遗漏之处列给审核人，以便在流转到下一步前要求补充。"
+          }
+        },
+        {
+          "id": "route",
+          "label": { "en": "Getting it to the right person", "ko": "알맞은 담당자에게 전달하기", "zh": "分给合适的经办人" },
+          "brief": {
+            "en": "Design a workflow that identifies the type of each incoming document and suggests who should receive it. Let a person resolve unclear assignments and show the recipient what needs attention.",
+            "ko": "접수한 서류의 종류를 파악해 담당자를 제안하는 워크플로를 설계해 주세요. 담당자가 불분명하면 사람이 지정하도록 하고, 전달받는 사람에게 처리할 내용을 보여 주세요.",
+            "zh": "请设计一个工作流，识别收到的文档类型并建议交给谁处理。归属不明确时交由人工分派，并让收件人知道需要处理什么。"
+          }
+        }
+      ]
+    },
+    {
+      "id": "knowledge",
+      "label": { "en": "Questions from coworkers", "ko": "동료들의 업무 문의", "zh": "同事提出的业务问题" },
+      "title": { "en": "What makes those questions hard to answer?", "ko": "동료의 질문에 답할 때 어떤 점이 가장 어렵나요?", "zh": "回答同事的问题时，难点在哪里？" },
+      "placeholder": { "en": "Think about the last question you had to ask around about.", "ko": "답을 찾으려고 여러 사람에게 물어본 최근 사례를 떠올려 보세요.", "zh": "可以想一想最近需要四处打听才能解答的问题。" },
+      "choices": [
+        {
+          "id": "source",
+          "label": { "en": "Tracking down the current instructions", "ko": "최신 지침 찾기", "zh": "找到最新的操作说明" },
+          "brief": {
+            "en": "Design a workflow that finds relevant internal guidance for a coworker’s question and shows the source. Flag conflicting instructions so a person can confirm which guidance to use.",
+            "ko": "동료의 질문에 맞는 사내 지침을 찾고 출처를 보여 주는 워크플로를 설계해 주세요. 지침끼리 충돌하면 사람이 어떤 내용을 적용할지 확인하도록 표시해 주세요.",
+            "zh": "请设计一个工作流，为同事的问题查找相关的内部指引并给出出处。遇到彼此冲突的说明时提示人工确认适用版本。"
+          }
+        },
+        {
+          "id": "repeat",
+          "label": { "en": "Answering the same question again", "ko": "같은 질문에 반복해서 답하기", "zh": "反复解答相同的问题" },
+          "brief": {
+            "en": "Design a workflow that recognizes recurring questions from coworkers and suggests an answer based on previously reviewed guidance. Route new or unresolved questions to a person.",
+            "ko": "동료가 반복해서 묻는 질문을 파악하고 검토된 지침에 따라 답변을 제안하는 워크플로를 설계해 주세요. 처음 보는 질문이나 해결되지 않은 질문은 담당자에게 전달해 주세요.",
+            "zh": "请设计一个工作流，识别同事反复提出的问题，并根据已经过审核的指引提供建议答案。遇到新的或仍未解决的问题时转给人工。"
+          }
+        },
+        {
+          "id": "expert",
+          "label": { "en": "Figuring out who can help", "ko": "누구에게 물어봐야 할지 찾기", "zh": "弄清楚该请教谁" },
+          "brief": {
+            "en": "Design a workflow that identifies the subject of a coworker’s question, suggests who could answer it and passes along the original context. Show how to redirect a question that reaches the wrong person.",
+            "ko": "동료의 질문에서 주제를 파악하고 답변할 만한 담당자를 제안한 뒤 원래 질문의 맥락을 함께 전달하는 워크플로를 설계해 주세요. 담당자를 잘못 찾았을 때 다시 연결하는 과정도 보여 주세요.",
+            "zh": "请设计一个工作流，识别同事所提问题的主题，建议可解答的人选，并附上原始上下文。说明分错人时如何重新转交。"
+          }
+        }
+      ]
+    }
+  ],
+  "general": {
+    "title": { "en": "Which part of that work takes the most time or gets stuck?", "ko": "그 업무에서 시간이 가장 많이 들거나 자주 막히는 부분은 무엇인가요?", "zh": "这项工作中，哪个环节最耗时或最容易卡住？" },
+    "placeholder": { "en": "Describe a step you would like help with.", "ko": "도움이 필요한 단계 하나를 적어 주세요.", "zh": "请写下您希望获得帮助的一个具体环节。" },
+    "choices": [
+      {
+        "id": "gather",
+        "label": { "en": "Gathering information", "ko": "필요한 정보 모으기", "zh": "收集所需信息" },
+        "brief": {
+          "en": "Design a workflow that gathers the information needed for this work and shows where each detail came from. Let a person review what is missing before continuing.",
+          "ko": "이 업무에 필요한 정보를 모으고 각 정보의 출처를 보여 주는 워크플로를 설계해 주세요. 다음 단계로 넘어가기 전에 담당자가 누락된 내용을 확인하게 해 주세요.",
+          "zh": "请设计一个工作流，收集这项工作所需的信息并说明来源。在继续之前，让经办人检查还缺什么。"
+        }
+      },
+      {
+        "id": "prepare",
+        "label": { "en": "Preparing a first draft", "ko": "초안 만들기", "zh": "准备初稿" },
+        "brief": {
+          "en": "Design a workflow that uses the inputs for this task to prepare a first draft. Show how a person can compare it with the original material and revise it before use.",
+          "ko": "이 업무의 입력 자료를 활용해 초안을 만드는 워크플로를 설계해 주세요. 사용하기 전에 담당자가 원본과 비교하고 수정하는 과정도 보여 주세요.",
+          "zh": "请设计一个工作流，根据这项工作的输入材料准备初稿。说明使用前如何由人工对照原始资料检查和修改。"
+        }
+      },
+      {
+        "id": "handover",
+        "label": { "en": "Handing work over to someone else", "ko": "다음 담당자에게 업무 넘기기", "zh": "把工作交接给下一个人" },
+        "brief": {
+          "en": "Design a workflow that prepares a handover for the next person with the relevant context and outstanding questions. Show how they can accept the work or ask for more information.",
+          "ko": "다음 담당자에게 필요한 배경과 미해결 질문을 정리해 전달하는 워크플로를 설계해 주세요. 담당자가 업무를 인수하거나 추가 정보를 요청하는 과정도 보여 주세요.",
+          "zh": "请设计一个工作流，为接手人整理相关背景和待解决的问题。说明如何确认接手或向上一位经办人补充提问。"
+        }
+      }
+    ]
+  }
+}
