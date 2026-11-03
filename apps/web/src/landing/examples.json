@@ -1,5 +1,5 @@
 {
- "_note": "Landing briefs: real, catalog-grounded briefs taken from the eval cases. Each passed 3 of 3 runs in the final Phase 1 run, eval/results/2026-10-31T08-01-35-p1-full, and leadsTo records what that run drew (run 1). Show the variant that matches the UI language; clicking a brief fills the brief box and does not submit it. Tags use the strings.json keys example.tag.*. leadsTo is for builders and reviewers, never shown in the UI.",
+ "_note": "The cloud examples passed 3 of 3 runs in eval/results/2026-10-31T08-01-35-p1-full; leadsTo records what run 1 drew. Workflow examples are based on the corresponding eval/cases-workflow scenarios. Clicking an example fills the brief box in the UI language.",
  "examples": [
   {
    "id": "residency",
@@ -50,6 +50,43 @@
    "ko": "Java 마이크로서비스 20개를 Kubernetes로 옮기려고 합니다. 서비스 디스커버리와 구성 관리, 단일 API 진입점, 서비스 간 비동기 메시징, 캐시, 관계형 데이터베이스가 필요합니다.",
    "zh": "我们正在将 20 个 Java 微服务迁移到 Kubernetes。需要服务发现与配置、统一的 API 入口、服务间的异步消息传递、缓存以及关系型数据库。",
    "source": "eval pat-02-k8s; ko and zh drafted by Qwen and corrected by hand"
+  }
+ ],
+ "workflowExamples": [
+  {
+   "id": "wf-support-email-triage",
+   "tag": "example.tag.supportEmail",
+   "en": "Sort our support emails, draft replies from our help articles, and let a teammate review each reply before it goes out.",
+   "ko": "고객 문의 메일을 분류하고 도움말을 바탕으로 답변 초안을 작성해 주세요. 발송 전에는 담당자가 검토하게 해 주세요.",
+   "zh": "帮我们把客服邮件分类，根据帮助文档起草回复，发送前交给同事审核。"
+  },
+  {
+   "id": "wf-video-ad",
+   "tag": "example.tag.videoAd",
+   "en": "Turn a product description into a 15-second vertical video ad with a voice-over. Let me approve it before posting.",
+   "ko": "제품 설명으로 내레이션이 들어간 15초짜리 세로 영상 광고를 만들고, 게시 전에 제가 승인할 수 있게 해 주세요.",
+   "zh": "根据产品介绍制作一条带配音的 15 秒竖屏视频广告，发布前先让我审核。"
+  },
+  {
+   "id": "wf-invoice-three-way-match",
+   "tag": "example.tag.invoices",
+   "en": "Match emailed invoices to purchase orders and delivery receipts. Send mismatches to finance for review.",
+   "ko": "메일로 받은 청구서를 발주서와 입고 내역에 대조하고, 일치하지 않는 건은 재무팀에 검토를 요청해 주세요.",
+   "zh": "把邮件里的发票与采购订单和收货单核对，有差异的交给财务复核。"
+  },
+  {
+   "id": "wf-meeting-notes-to-crm-update",
+   "tag": "example.tag.salesCalls",
+   "en": "Summarize each sales call and suggest changes to the deal in Salesforce. Let the rep approve the changes first.",
+   "ko": "영업 통화를 요약하고 Salesforce의 영업 기회에 반영할 변경 사항을 제안해 주세요. 적용 전에는 영업 담당자가 승인하게 해 주세요.",
+   "zh": "总结每次销售通话，列出 Salesforce 商机记录中需要更新的内容，等销售代表确认后再更新。"
+  },
+  {
+   "id": "wf-it-helpdesk-triage-and-remediation",
+   "tag": "example.tag.itHelpdesk",
+   "en": "Triage IT tickets, look up known fixes, and test them in a sandbox. Ask a manager before changing production.",
+   "ko": "IT 지원 요청을 분류하고 알려진 해결책을 찾아 테스트 환경에서 검증해 주세요. 운영 환경을 변경하기 전에는 관리자 승인을 받게 해 주세요.",
+   "zh": "给 IT 工单分类，查找已有的解决办法并在沙箱中测试，改动生产环境前请经理批准。"
   }
  ]
 }

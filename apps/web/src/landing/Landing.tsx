@@ -1,4 +1,4 @@
-// The landing: the lockup, a lead, the brief box (the primary action) and five real customer briefs. No header; the
+// The landing: the lockup, a lead, the brief box (the primary action) and examples for the selected focus. No header; the
 // language switch, the theme menu and Sessions sit at the top right. Enter or Draw architecture hands the box over to the console.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactElement } from 'react';
@@ -24,7 +24,6 @@ interface Example {
   ko: string;
   zh: string;
 }
-const EXAMPLES = examples.examples as Example[];
 
 const selConn = (s: AppState) => s.conn;
 const selHandoff = (s: AppState) => s.ui.handoff;
@@ -161,11 +160,12 @@ export function Landing(): ReactElement {
           {announce}
         </p>
         {notice === 'offline' ? <OfflineNotice t={t} checking={conn.mode === 'checking'} onRetry={() => void c.checkHealth()} onReplay={() => void c.startReplay(defaultFixtureFor(lang, exampleId))} className="notice--landing" /> : null}
-        <section hidden={mode === 'workflow'} className="examples"  aria-labelledby="examples-heading">
+        <section className="examples" aria-labelledby="examples-heading">
           <h2 id="examples-heading" className="examples__heading">
-            {t('landing.examplesHeading')}
+            {t(mode === 'workflow' ? 'landing.workflow.examplesHeading' : 'landing.examplesHeading')}
           </h2>
           <ExampleList
+            examples={mode === 'workflow' ? examples.workflowExamples : examples.examples}
             lang={lang}
             useLabel={t('landing.useExample')}
             tag={(key) => t(key as never)}
@@ -188,7 +188,7 @@ export function Landing(): ReactElement {
   );
 }
 
-function ExampleList(p: { lang: Lang; useLabel: string; tag(key: string): string; onPick(ex: Example, brief: string): void }): ReactElement {
+function ExampleList(p: { examples: Example[]; lang: Lang; useLabel: string; tag(key: string): string; onPick(ex: Example, brief: string): void }): ReactElement {
   const list = useRef<HTMLUListElement>(null);
   const onKey = (e: KeyboardEvent<HTMLUListElement>): void => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
@@ -200,7 +200,7 @@ function ExampleList(p: { lang: Lang; useLabel: string; tag(key: string): string
   };
   return (
     <ul className="examples__list" ref={list} onKeyDown={onKey}>
-      {EXAMPLES.map((ex) => {
+      {p.examples.map((ex) => {
         const brief = ex[p.lang];
         return (
           <li key={ex.id}>

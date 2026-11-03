@@ -6,6 +6,8 @@ import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer-core';
+import assert from 'node:assert/strict';
+import examples from '../src/landing/examples.json' with { type: 'json' };
 
 const WEB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -194,10 +196,20 @@ try {
     page.on('pageerror', (e) => errors.push(e.message));
     await page.goto(server.url);
     await page.waitForFunction(() => !!window.__ab);
+    const briefs = () => page.$$eval('.example__brief', (rows) => rows.map((row) => row.textContent));
+    const cloudBriefs = examples.examples.map((example) => example[lang]);
+    const workflowBriefs = examples.workflowExamples.map((example) => example[lang]);
+    assert.deepEqual(await briefs(), cloudBriefs);
     await page.click('input[name="focus"][value="workflow"]');
-    if (!await page.evaluate(() => window.__ab.store.getState().session.mode === 'workflow'
-      && document.querySelector('.examples').hidden)) throw new Error('Landing focus did not switch');
+    assert.deepEqual(await briefs(), workflowBriefs);
+    await page.focus('.example');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction((brief) => document.activeElement === document.querySelector('.brief__input')
+      && document.activeElement.value === brief, {}, workflowBriefs[1]);
     await page.click('input[name="focus"][value="cloud"]');
+    assert.deepEqual(await briefs(), cloudBriefs);
+    assert.equal(await page.$eval('.brief__input', (box) => box.value), '');
     await page.evaluate(({ count, focus, lang }) => {
       const { store, controller } = window.__ab;
       const s = store.getState(), nodes = {}, edges = {};
