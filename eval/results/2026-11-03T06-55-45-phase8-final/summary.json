@@ -1,0 +1,520 @@
+{
+  "meta": {
+    "startedAt": "2026-11-03T06:55:45.751Z",
+    "args": {
+      "cases-dir": "eval/cases-deployment",
+      "runs": "1",
+      "no-judge": true,
+      "budget": "93.65",
+      "label": "phase8-final",
+      "concurrency": "2"
+    },
+    "model": "qwen3.8-max",
+    "fallbackModel": "qwen3.7-max",
+    "runsPerCase": 1,
+    "concurrency": 2,
+    "cases": 2,
+    "units": 2,
+    "catalogVersion": "2026-10-31",
+    "catalogEntries": 232,
+    "systemPromptChars": 59906,
+    "systemPromptSha256": "998fab223daba0a4407930f0f6f61e90cf100d7783ca4b13008636526d049313",
+    "node": "v24.21.0",
+    "coreFiles": {
+      "approval.ts": "bdece30a0c71",
+      "asks.ts": "92203b64709a",
+      "catalog-node.ts": "f3d002667bb4",
+      "catalog.ts": "5bf2d46dc58f",
+      "claude.ts": "fe77c2eba10f",
+      "constraints.ts": "7a677252f475",
+      "diff.ts": "eaabf1ce1def",
+      "display.ts": "941ca6dec769",
+      "identity-matcher.ts": "717b1ed5d8f8",
+      "layout.ts": "5b76a21851a5",
+      "llm.ts": "aaa8aab56dbf",
+      "models.ts": "30c2d54b2cec",
+      "ndjson.ts": "3163a8232eaa",
+      "prefix-key.ts": "400148ca6bfb",
+      "pricing.ts": "a890cad88ca1",
+      "prompt.ts": "ed4bd67eea91",
+      "proposal-prompt.ts": "f090e3edd156",
+      "proposal.ts": "0666ba54d9b7",
+      "reducer.ts": "5afcf1cf50cd",
+      "regions.ts": "c34c43b79d8c",
+      "types.ts": "03bddf977279",
+      "validate.ts": "d8b6e6ded6b3",
+      "workflow-constraints.ts": "e08e305a5959",
+      "workflow-deployment.ts": "1a25727f750d",
+      "workflow-estimate-limits.ts": "6a990ae8d9fa",
+      "workflow-estimate.ts": "c3f7b65d2639",
+      "workflow-layout.ts": "35945582dd32",
+      "workflow-prompt.ts": "313b000b03d7",
+      "workflow-validate.ts": "043c165b0517",
+      "workflow.ts": "7a7e158a8f6e"
+    },
+    "judgeAllRunsOf": [],
+    "finishedAt": "2026-11-03T06:55:58.015Z",
+    "spentUsd": 0.019299999999999998
+  },
+  "totals": {
+    "cases": 2,
+    "conversations": 2,
+    "turns": 3,
+    "casePassRate": 0.5,
+    "passAtN": 0.5,
+    "majority": 0.5,
+    "allRuns": 0.5,
+    "runPassRate": 0.5,
+    "turnPassRate": 0.667,
+    "assertionPassRate": 0.97,
+    "assertions": 33,
+    "apiFailures": 0,
+    "costUsd": 0.019
+  },
+  "byCategory": {
+    "pattern": {
+      "cases": 1,
+      "runs": 1,
+      "runPassRate": 0,
+      "passAtN": 0,
+      "majority": 0,
+      "allRuns": 0
+    },
+    "i18n": {
+      "cases": 1,
+      "runs": 1,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    }
+  },
+  "byMode": {
+    "cloud": {
+      "cases": 2,
+      "runs": 2,
+      "runPassRate": 0.5,
+      "passAtN": 0.5,
+      "majority": 0.5,
+      "allRuns": 0.5
+    }
+  },
+  "byLang": {
+    "en": {
+      "cases": 1,
+      "runs": 1,
+      "runPassRate": 0,
+      "passAtN": 0,
+      "majority": 0,
+      "allRuns": 0
+    },
+    "ko": {
+      "cases": 1,
+      "runs": 1,
+      "runPassRate": 1,
+      "passAtN": 1,
+      "majority": 1,
+      "allRuns": 1
+    }
+  },
+  "byAssertionType": {
+    "pathOrder": {
+      "checks": 3,
+      "passed": 2,
+      "rate": 0.667,
+      "failingCases": [
+        "deploy-intake"
+      ]
+    },
+    "include": {
+      "checks": 9,
+      "passed": 9,
+      "rate": 1,
+      "failingCases": []
+    },
+    "size": {
+      "checks": 2,
+      "passed": 2,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noErrors": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "attachValid": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "format": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "escapes": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "noPrices": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "sayLang": {
+      "checks": 3,
+      "passed": 3,
+      "rate": 1,
+      "failingCases": []
+    },
+    "whyLang": {
+      "checks": 1,
+      "passed": 1,
+      "rate": 1,
+      "failingCases": []
+    }
+  },
+  "cases": [
+    {
+      "id": "deploy-intake",
+      "category": "pattern",
+      "lang": "en",
+      "title": "Draw cloud services from an invoice workflow",
+      "runs": 1,
+      "passes": 0,
+      "passRate": 0,
+      "passAtN": false,
+      "majority": false,
+      "failed": {
+        "clean path order after repair": 1
+      },
+      "failedTypes": [
+        "pathOrder"
+      ],
+      "meanCostUsd": 0.007,
+      "meanMs": 8752,
+      "runPass": [
+        false
+      ]
+    },
+    {
+      "id": "deploy-intake-ko",
+      "category": "i18n",
+      "lang": "ko",
+      "title": "Draw and redraw a Korean deployment",
+      "runs": 1,
+      "passes": 1,
+      "passRate": 1,
+      "passAtN": true,
+      "majority": true,
+      "failed": {},
+      "failedTypes": [],
+      "meanCostUsd": 0.013,
+      "meanMs": 12209,
+      "runPass": [
+        true
+      ]
+    }
+  ],
+  "warnings": {
+    "preRepairByCode": {
+      "path-order": {
+        "total": 1,
+        "perTurn": 0.333,
+        "turns": 1
+      }
+    },
+    "postRepairByCode": {
+      "path-order": {
+        "total": 1,
+        "perTurn": 0.333,
+        "turns": 1
+      }
+    },
+    "preRepairBySeverity": {
+      "warn": 1
+    },
+    "postRepairBySeverity": {
+      "warn": 1
+    },
+    "fixesByCode": {},
+    "unknownProducts": {
+      "count": 0,
+      "top": []
+    },
+    "nonIdProducts": {
+      "count": 0,
+      "top": []
+    }
+  },
+  "latency": {
+    "firstByteMs": {
+      "n": 3,
+      "p50": 1439,
+      "p95": 1440,
+      "mean": 1384,
+      "max": 1440
+    },
+    "perceivedFirstByteMs": {
+      "n": 3,
+      "p50": 1439,
+      "p95": 1440,
+      "mean": 1384,
+      "max": 1440
+    },
+    "firstSayMs": {
+      "n": 3,
+      "p50": 1630,
+      "p95": 1648,
+      "mean": 1632,
+      "max": 1650
+    },
+    "firstOpMs": {
+      "n": 3,
+      "p50": 2232,
+      "p95": 2255,
+      "mean": 2183,
+      "max": 2257
+    },
+    "firstNodeMs": {
+      "n": 2,
+      "p50": 3842,
+      "p95": 3855,
+      "mean": 3842,
+      "max": 3857
+    },
+    "streamMs": {
+      "n": 3,
+      "p50": 8730,
+      "p95": 9055,
+      "mean": 6976,
+      "max": 9091
+    },
+    "turnMs": {
+      "n": 3,
+      "p50": 8739,
+      "p95": 9059,
+      "mean": 6981,
+      "max": 9094
+    },
+    "diagramStreamMs": {
+      "n": 3,
+      "p50": 8730,
+      "p95": 9055,
+      "mean": 6976,
+      "max": 9091
+    },
+    "productStreamMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "editStreamMs": {
+      "n": 3,
+      "p50": 8730,
+      "p95": 9055,
+      "mean": 6976,
+      "max": 9091
+    }
+  },
+  "tokens": {
+    "prompt": 47096,
+    "cached": 45696,
+    "cacheHit": 0.97,
+    "completion": 846,
+    "completionPerTurn": {
+      "n": 3,
+      "p50": 375,
+      "p95": 399,
+      "mean": 282,
+      "max": 402
+    },
+    "costPerTurn": {
+      "n": 3,
+      "p50": 0.00677,
+      "p95": 0.00693,
+      "mean": 0.00643,
+      "max": 0.00695
+    },
+    "costPerConversation": {
+      "n": 2,
+      "p50": 0.00965,
+      "p95": 0.01224,
+      "mean": 0.00965,
+      "max": 0.01253
+    },
+    "costUsd": 0.019
+  },
+  "reliability": {
+    "turns": 3,
+    "truncatedMain": 0,
+    "continued": 0,
+    "repairTurns": 0,
+    "hedged": 0,
+    "hedgeWon": 0,
+    "fallbackUsed": 0,
+    "retriedAttempts": 0,
+    "apiFailures": 0,
+    "badLines": 0,
+    "escapes": 0
+  },
+  "failover": {
+    "turns": 0,
+    "rate": 0,
+    "byReason": {},
+    "stalledAttemptMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "fallbackFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "perceivedFirstByteMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "turnMs": {
+      "n": 0,
+      "p50": null,
+      "p95": null,
+      "mean": null,
+      "max": null
+    },
+    "followUpFallbacks": 0,
+    "examples": []
+  },
+  "cutoff": {
+    "truncated": 0,
+    "byCause": {},
+    "rescued": 0,
+    "notRescued": 0,
+    "rescuedPassing": 0,
+    "turnPassRateExcludingRescued": 0.667,
+    "list": []
+  },
+  "constraints": {
+    "residency": {
+      "checks": 0,
+      "passed": 0,
+      "rate": 0,
+      "failing": [],
+      "warnMentions": 0,
+      "correctedByRepair": 0,
+      "scan": {
+        "checks": 0,
+        "passed": 0,
+        "failing": []
+      }
+    },
+    "pins": {
+      "checks": 0,
+      "passed": 0,
+      "rate": 0,
+      "failing": []
+    },
+    "avoid": {
+      "checks": 0,
+      "passed": 0,
+      "rate": 0
+    },
+    "product": {
+      "turnsWithConstraints": 0,
+      "findingsBefore": {},
+      "findingsAfter": {}
+    }
+  },
+  "repairs": {
+    "fixesByCode": {},
+    "followUps": {
+      "turns": 0,
+      "byKind": {},
+      "byFindingCode": {},
+      "list": []
+    }
+  },
+  "i18n": {
+    "en": {
+      "turns": 1,
+      "completionPerTurn": 375,
+      "ratioVsEnglish": null,
+      "promptPerTurn": 15588,
+      "sayLangPass": 1,
+      "sayLangChecks": 1,
+      "whyLangPass": 0,
+      "whyLangChecks": 0,
+      "escapes": 0
+    },
+    "ko": {
+      "turns": 2,
+      "completionPerTurn": 236,
+      "ratioVsEnglish": 1.072,
+      "promptPerTurn": 15754,
+      "sayLangPass": 2,
+      "sayLangChecks": 2,
+      "whyLangPass": 1,
+      "whyLangChecks": 1,
+      "escapes": 0
+    }
+  },
+  "multiturn": [
+    {
+      "case": "deploy-intake-ko",
+      "turns": 2,
+      "perTurnRetention": [
+        {
+          "turn": 1,
+          "checks": 0,
+          "passed": 0
+        },
+        {
+          "turn": 2,
+          "checks": 0,
+          "passed": 0
+        }
+      ],
+      "finalPassRate": 1
+    }
+  ],
+  "judge": {
+    "model": null,
+    "judged": 0,
+    "runsJudged": 0,
+    "constraintRuns": null,
+    "errors": 0,
+    "means": null,
+    "signoffRate": null,
+    "byCategory": {},
+    "agreement": null,
+    "costUsd": 0
+  },
+  "failures": [
+    {
+      "case": "deploy-intake",
+      "category": "pattern",
+      "run": 1,
+      "turn": 1,
+      "type": "pathOrder",
+      "name": "clean path order after repair",
+      "detail": "edge 'e-extract-review' runs against the request path: extract (fc, rank 40) -> review (users, rank 0)"
+    }
+  ]
+}
