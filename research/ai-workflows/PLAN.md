@@ -880,6 +880,7 @@ The estimate takes the deployment scope from the session (International by defau
 | 6 | **Cost:** `estimateWorkflow`, estimate settings in memory and the panel, coverage list | M | unit tests on the formulas; samples priced against hand calculations |
 | 7 | **Proposal:** step sections, generated cost and mapping tables, open questions, model allowlist in lint, backup voice threading, both `designProducts`, export entry points | L | proposal eval sessions for workflows; leak tests by mode |
 | 8 | **Where it runs:** the deployment brief, the cloud turn, stale marking, cross-view check, PDF diagram list | M | eval cases for the deployment turn |
+| 9 | **Guided discovery** on the landing page, with two questions and an editable workflow brief | S | browser regression from discovery to the first workflow turn |
 
 **Phase 0a, done on 2026-11-02.** The changes:
 - **AgentBay** is `no-new-purchases`, with `agent-sandbox` as its successor. Its prompt row drops out, and it's removed from four entries' alternatives.
@@ -970,6 +971,8 @@ The estimate takes the deployment scope from the session (International by defau
     - `ai-07-training-residency` fell from 2/3 to 0/3, both times from the model's own choices.
 
 **Phase 8, implemented on 2026-11-03.** **Where it runs** sends one cloud turn with a deployment brief derived from the committed workflow. Both diagrams are saved in the session, and the header selects which one a follow-up edits. A changed workflow or placement setting marks the deployment as outdated and offers a redraw. The app lists missing services, and the proposal includes both vector diagrams plus any outstanding notices. Regression cases are in `eval/cases-deployment/`.
+
+**Phase 9, implemented on 2026-11-03.** A prospect can select **Help me find a use case** before opening a chat. Two questions identify the work and the part that needs help. The prospect reviews an editable starting brief in English, Korean or Chinese. Only **Start with this** sends a workflow turn. The solutions architect takes over for demos and proofs of concept. Run `node scripts/e2e-guided-discovery.mjs` from `apps/web` to check the browser handoff.
 
 **Order.** The contract comes before the layout spike: a layout that holds still but draws the wrong semantics proves nothing. The spike still comes before the pipeline work, because layout remains the largest single risk.
 

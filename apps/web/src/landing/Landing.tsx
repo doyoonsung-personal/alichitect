@@ -13,6 +13,7 @@ import { DEFAULT_MAX_ASK_CHARS } from '@ali/core/prompt.ts';
 import { captureHandoff } from '../shell/handoff.ts';
 import { enterAction } from '../console/logic.ts';
 import { defaultFixtureFor } from '../replay/registry.ts';
+import { GuidedDiscovery } from './GuidedDiscovery.tsx';
 import examples from './examples.json' with { type: 'json' };
 import type { AppState } from '../store/types.ts';
 import type { Lang } from '../i18n/t.ts';
@@ -37,12 +38,15 @@ export function Landing(): ReactElement {
   const handoff = useAppState(selHandoff);
   const draft = useAppState(selDraft);
   const [text, setText] = useState('');
+  const [discovering, setDiscovering] = useState(false);
   const [composing, setComposing] = useState(false);
   const [notice, setNotice] = useState<'offline' | null>(null);
   const [announce, setAnnounce] = useState('');
   const [exampleId, setExampleId] = useState<string | undefined>(undefined);
   const box = useRef<HTMLTextAreaElement>(null);
-  const frame = useRef<HTMLDivElement>(null);
+  const frame = useRef<HTMLFormElement>(null);
+  const discoveryFrame = useRef<HTMLDivElement>(null);
+  const discoveryEntry = useRef<HTMLButtonElement>(null);
   const limit = conn.health?.limits.askChars ?? DEFAULT_MAX_ASK_CHARS;
   const length = Array.from(text.trim()).length;
   const tooLong = length > limit;
@@ -66,36 +70,41 @@ export function Landing(): ReactElement {
     if (!ta) return;
     ta.style.height = 'auto';
     ta.style.height = `${Math.min(Math.max(ta.scrollHeight, 88), 232)}px`;
-  }, [text]);
+  }, [text, discovering]);
 
   // the offline notice goes away when the service answers
   useEffect(() => {
     if (conn.mode === 'live') setNotice(null);
   }, [conn.mode]);
 
-  const submit = useCallback(() => {
-    if (!text.trim()) {
+  const submit = useCallback((brief: string, fromDiscovery = false) => {
+    if (!brief.trim()) {
       box.current?.focus();
       setAnnounce(t('landing.empty'));
       return;
     }
-    const handoffRects = captureHandoff(frame.current, text.trim());
-    const r = c.submit(text);
+    const origin = fromDiscovery ? discoveryFrame.current : frame.current;
+    const handoffRects = captureHandoff(origin, brief.trim());
+    const r = c.submit(brief, fromDiscovery ? { mode: 'workflow' } : undefined);
     if (r === 'offline') {
       setNotice('offline');
       box.current?.focus();
     } else if (r === 'started') handoffRects.commit();
-  }, [c, text, t]);
+  }, [c, t]);
 
   const onKey = (e: KeyboardEvent<HTMLTextAreaElement>): void => {
     // one tested rule: Enter commits an IME composition and never submits it
     const action = enterAction({ key: e.key, shiftKey: e.shiftKey, isComposing: e.nativeEvent.isComposing, keyCode: e.keyCode }, { composing, busy: false, canSend: true });
     if (action !== 'send') return;
     e.preventDefault();
-    submit();
+    submit(text);
   };
 
   const hint = tooLong ? t('landing.tooLong', { max: limit }) : composing ? t('landing.imeHint') : t('landing.hint');
+  const offlineNotice = notice === 'offline' ? (
+    <OfflineNotice t={t} checking={conn.mode === 'checking'} onRetry={() => void c.checkHealth()}
+      onReplay={() => void c.startReplay(defaultFixtureFor(lang, discovering ? undefined : exampleId))} className="notice--landing" />
+  ) : null;
 
   return (
     <main className="landing" data-handoff={handoff || undefined}>
@@ -109,79 +118,104 @@ export function Landing(): ReactElement {
         <h1 className="landing__lockup">
           <BrandMark lang={lang} name={t('app.name')} size="landing" cursor />
         </h1>
-        <p id="landing-lead" className="landing__lead">
-          {t(mode === 'workflow' ? 'landing.workflow.lead' : 'landing.lead')}
-        </p>
-        <form
-          className="brief"
-          ref={frame as never}
-          data-flip="brief"
-          onSubmit={(e) => {
-            e.preventDefault();
-            submit();
-          }}
-        >
-          <fieldset className="brief__focus">
-            <legend>{t('focus.label')}</legend>
-            {(['cloud', 'workflow'] as const).map((value) => <label key={value}>
-              <input type="radio" name="focus" value={value} checked={mode === value}
-                onChange={() => { c.setMode(value); if (exampleId) { setText(''); setExampleId(undefined); } }} />
-              {t(value === 'cloud' ? 'focus.cloud' : 'focus.workflow')}
-            </label>)}
-          </fieldset>
-          <textarea
-            ref={box}
-            className="brief__input"
-            aria-labelledby="landing-lead"
-            placeholder={t(mode === 'workflow' ? 'landing.workflow.placeholder' : 'landing.placeholder')}
-            value={text}
-            rows={1}
-            spellCheck={false}
-            onChange={(e) => {
-              setText(e.target.value);
-              setExampleId(undefined);
-              if (notice) setNotice(null);
-            }}
-            onKeyDown={onKey}
-            onCompositionStart={() => setComposing(true)}
-            onCompositionEnd={() => setComposing(false)}
-          />
-          <div className="brief__row">
-            <p className={`brief__hint${tooLong ? ' brief__hint--error' : ''}`} id="brief-hint">
-              {hint}
-            </p>
-            <button type="submit" className="btn btn--primary" disabled={tooLong}>
-              <span>{t(mode === 'workflow' ? 'landing.workflow.submit' : 'landing.submit')}</span>
-              <Icon name="send" />
-            </button>
+        {discovering ? (
+          <div className="landing__discovery" ref={discoveryFrame}>
+            <GuidedDiscovery lang={lang} limit={limit} initialText={exampleId ? undefined : text}
+              onStart={(brief) => submit(brief, true)}
+              onExit={() => {
+                setNotice(null);
+                setDiscovering(false);
+                requestAnimationFrame(() => discoveryEntry.current?.focus());
+              }} />
+            {offlineNotice}
           </div>
-        </form>
-        <p className="visually-hidden" role="status" aria-live="polite">
-          {announce}
-        </p>
-        {notice === 'offline' ? <OfflineNotice t={t} checking={conn.mode === 'checking'} onRetry={() => void c.checkHealth()} onReplay={() => void c.startReplay(defaultFixtureFor(lang, exampleId))} className="notice--landing" /> : null}
-        <section className="examples" aria-labelledby="examples-heading">
-          <h2 id="examples-heading" className="examples__heading">
-            {t(mode === 'workflow' ? 'landing.workflow.examplesHeading' : 'landing.examplesHeading')}
-          </h2>
-          <ExampleList
-            examples={mode === 'workflow' ? examples.workflowExamples : examples.examples}
-            lang={lang}
-            useLabel={t('landing.useExample')}
-            tag={(key) => t(key as never)}
-            onPick={(ex, brief) => {
-              setText(brief);
-              setExampleId(ex.id);
-              setNotice(null);
-              requestAnimationFrame(() => {
-                const ta = box.current;
-                if (!ta) return;
-                ta.focus();
-                ta.setSelectionRange(brief.length, brief.length);
-              });
-            }}
-          />
-        </section>
+        ) : (
+          <>
+            <p id="landing-lead" className="landing__lead">
+              {t(mode === 'workflow' ? 'landing.workflow.lead' : 'landing.lead')}
+            </p>
+            <form
+              className="brief"
+              ref={frame}
+              data-flip="brief"
+              onSubmit={(e) => {
+                e.preventDefault();
+                submit(text);
+              }}
+            >
+              <fieldset className="brief__focus">
+                <legend>{t('focus.label')}</legend>
+                {(['cloud', 'workflow'] as const).map((value) => <label key={value}>
+                  <input type="radio" name="focus" value={value} checked={mode === value}
+                    onChange={() => { c.setMode(value); if (exampleId) { setText(''); setExampleId(undefined); } }} />
+                  {t(value === 'cloud' ? 'focus.cloud' : 'focus.workflow')}
+                </label>)}
+              </fieldset>
+              <textarea
+                ref={box}
+                className="brief__input"
+                aria-labelledby="landing-lead"
+                placeholder={t(mode === 'workflow' ? 'landing.workflow.placeholder' : 'landing.placeholder')}
+                value={text}
+                rows={1}
+                spellCheck={false}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  setExampleId(undefined);
+                  if (notice) setNotice(null);
+                }}
+                onKeyDown={onKey}
+                onCompositionStart={() => setComposing(true)}
+                onCompositionEnd={() => setComposing(false)}
+              />
+              <div className="brief__row">
+                <p className={`brief__hint${tooLong ? ' brief__hint--error' : ''}`} id="brief-hint">
+                  {hint}
+                </p>
+                <button type="submit" className="btn btn--primary" disabled={tooLong}>
+                  <span>{t(mode === 'workflow' ? 'landing.workflow.submit' : 'landing.submit')}</span>
+                  <Icon name="send" />
+                </button>
+              </div>
+            </form>
+            <div className="discovery-entry">
+              <button ref={discoveryEntry} type="button" className="btn btn--secondary" onClick={() => {
+                setNotice(null);
+                setDiscovering(true);
+              }}>
+                {t('landing.discovery.open')}
+                <Icon name="arrowRight" />
+              </button>
+              <span>{t('landing.discovery.hint')}</span>
+            </div>
+            <p className="visually-hidden" role="status" aria-live="polite">
+              {announce}
+            </p>
+            {offlineNotice}
+            <section className="examples" aria-labelledby="examples-heading">
+              <h2 id="examples-heading" className="examples__heading">
+                {t(mode === 'workflow' ? 'landing.workflow.examplesHeading' : 'landing.examplesHeading')}
+              </h2>
+              <ExampleList
+                examples={mode === 'workflow' ? examples.workflowExamples : examples.examples}
+                lang={lang}
+                useLabel={t('landing.useExample')}
+                tag={(key) => t(key as never)}
+                onPick={(ex, brief) => {
+                  setText(brief);
+                  setExampleId(ex.id);
+                  setNotice(null);
+                  requestAnimationFrame(() => {
+                    const ta = box.current;
+                    if (!ta) return;
+                    ta.focus();
+                    ta.setSelectionRange(brief.length, brief.length);
+                  });
+                }}
+              />
+            </section>
+          </>
+        )}
       </div>
       <p className="landing__footer">{t('landing.footer', { date })}</p>
     </main>

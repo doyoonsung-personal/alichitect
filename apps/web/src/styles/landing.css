@@ -162,6 +162,22 @@
 }
 
 /* Examples */
+.discovery-entry {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  margin-top: var(--s-4);
+  font-size: var(--t-13);
+  color: var(--ink-2);
+}
+
+.landing__discovery {
+  width: 100%;
+  margin-top: var(--s-6);
+}
+
 .examples {
   width: 100%;
 }

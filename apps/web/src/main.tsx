@@ -6,7 +6,7 @@ import './styles/base.css';
 import './styles/shell.css';
 import './styles/landing.css';
 import { App } from './app/App.tsx';
-import { createController } from './app/controller.ts';
+import { createController, type PendingAsk } from './app/controller.ts';
 import { catalog } from './catalog/catalog.ts';
 import { langFromTag, isLang } from './i18n/t.ts';
 import type { Lang } from './i18n/t.ts';
@@ -51,18 +51,23 @@ const resumeId = TOOLS && new URLSearchParams(location.search).has('replay') ? n
 
 // The ask of a turn that the end of the session cut off, kept in this tab across the trip to /login.
 const ASK_KEY = 'ab.pending.ask';
-function keepAsk(ask: string): void {
+const ASK_MODE_KEY = 'ab.pending.ask.mode';
+function keepAsk(ask: PendingAsk): void {
   try {
-    sessionStorage.setItem(ASK_KEY, ask.slice(0, 20000));
+    sessionStorage.setItem(ASK_KEY, Array.from(ask.text).slice(0, 20000).join(''));
+    if (ask.mode) sessionStorage.setItem(ASK_MODE_KEY, ask.mode);
+    else sessionStorage.removeItem(ASK_MODE_KEY);
   } catch {
     /* storage unavailable: the ask is lost, the diagram is not */
   }
 }
-function takeAsk(): string | null {
+function takeAsk(): PendingAsk | null {
   try {
-    const v = sessionStorage.getItem(ASK_KEY);
+    const text = sessionStorage.getItem(ASK_KEY);
+    const mode = sessionStorage.getItem(ASK_MODE_KEY);
     sessionStorage.removeItem(ASK_KEY);
-    return v;
+    sessionStorage.removeItem(ASK_MODE_KEY);
+    return text ? { text, mode: mode === 'workflow' || mode === 'cloud' ? mode : undefined } : null;
   } catch {
     return null;
   }

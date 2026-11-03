@@ -19,6 +19,11 @@ import { isLang, makeT } from '../i18n/t.ts';
 import type { Lang } from '../i18n/t.ts';
 import type { CanvasSize } from '../canvas/layout.ts';
 
+export interface PendingAsk {
+  text: string;
+  mode?: TurnMode;
+}
+
 export interface ControllerEnv {
   sessions: SessionStore;
   fetchImpl?: typeof fetch;
@@ -42,8 +47,8 @@ export interface ControllerEnv {
   /** The page's path and query, for /login?next=. */
   path?(): string;
   /** Keeps the ask of a turn that the session's end cut off, for this tab, and hands it back on the next boot. */
-  keepAsk?(ask: string): void;
-  takeAsk?(): string | null;
+  keepAsk?(ask: PendingAsk): void;
+  takeAsk?(): PendingAsk | null;
   /** POSTs to the Worker's sign-out address (a form post, so the browser follows its redirect to /login). */
   signOut?(url: string): void;
 }
@@ -59,7 +64,7 @@ export interface Controller {
   /** Ends the hosted session. */
   signOut(): void;
   /** The landing box and the composer both call this. */
-  submit(ask: string, o?: { exampleId?: string }): SubmitResult;
+  submit(ask: string, options?: { exampleId?: string; mode?: TurnMode }): SubmitResult;
   stop(): void;
   /** Sends the failed revision's ask again, replacing the failed revision. */
   retry(): void;
@@ -146,7 +151,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
   function leaveForAuth(to: 'login' | 'pending', ask: string): void {
     if (!env.leave) return;
     const target = to === 'login' ? loginUrl(env.path?.() ?? '/') : '/pending';
-    if (ask.trim()) env.keepAsk?.(ask);
+    if (ask.trim()) env.keepAsk?.({ text: ask, mode: st().session.revisions.at(-1)?.mode });
     env.leave(target);
   }
 
@@ -198,7 +203,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
 
   const askLimit = (): number => st().conn.health?.limits.askChars ?? DEFAULT_MAX_ASK_CHARS;
 
-  function submit(ask: string): SubmitResult {
+  function submit(ask: string, options?: { mode?: TurnMode }): SubmitResult {
     const s = st();
     const text = ask.trim();
     if (s.replay) return 'read-only';
@@ -209,7 +214,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     // request is tried anyway: a drop then becomes the recoverable W11 state with Try again.
     if (s.view === 'landing' && s.conn.mode === 'offline') return 'offline';
     if (s.view === 'landing') d({ type: 'ui/handoff', on: true });
-    start(text, false);
+    start(text, false, options?.mode);
     return 'started';
   }
 
@@ -273,7 +278,10 @@ export function createController(store: Store, env: ControllerEnv): Controller {
       }
       void loadAccount();
       const kept = env.takeAsk?.();
-      if (kept && !replay) d({ type: 'ui/draft', text: kept });
+      if (kept && !replay) {
+        if (kept.mode) d({ type: 'session/mode', mode: kept.mode });
+        d({ type: 'ui/draft', text: kept.text });
+      }
       const speed = q.get('speed');
       const sp = SPEEDS.find((x) => x === speed);
       if (replay) {

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createController } from './controller.ts';
-import type { ControllerEnv } from './controller.ts';
+import type { ControllerEnv, PendingAsk } from './controller.ts';
 import { createSessionStore } from '../store/sessions.ts';
 import type { KeyValueStorage } from '../store/sessions.ts';
 import { loadFixtureFile, newStore } from '../test/fixtures.ts';
@@ -86,15 +86,15 @@ function turnResponse(fx: Fixture, turn = 0, upTo = Infinity): Response {
 const ME = { email: 'mina@example.com', name: 'Mina Park', role: 'member', status: 'approved', lang: 'en', createdAt: 1, turnsToday: 3, turnsPerDay: 60, links: { account: '/account', admin: null, signOut: '/auth/logout' } };
 const json = (body: unknown, status = 200): Response => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-function setup(o: { health?: unknown; me?: unknown | (() => unknown); turn?: () => Response | Promise<Response>; sessions?: ReturnType<typeof createSessionStore>; resumeId?: string | null; hosted?: boolean; leaveOk?: boolean; keptAsk?: string } = {}) {
+function setup(o: { health?: unknown; me?: unknown | (() => unknown); turn?: () => Response | Promise<Response>; sessions?: ReturnType<typeof createSessionStore>; resumeId?: string | null; hosted?: boolean; leaveOk?: boolean; keptAsk?: PendingAsk } = {}) {
   const store = newStore();
   const timers = new Map<number, () => void>();
   let n = 0;
   const sessions = o.sessions ?? createSessionStore(memStorage());
   const requests: Array<{ url: string; body?: unknown }> = [];
   const left: string[] = [];
-  const kept: string[] = [];
-  let pendingAsk: string | null = o.keptAsk ?? null;
+  const kept: PendingAsk[] = [];
+  let pendingAsk: PendingAsk | null = o.keptAsk ?? null;
   let signedOutVia: string | null = null;
   const env: ControllerEnv = {
     ...(o.hosted
@@ -104,7 +104,7 @@ function setup(o: { health?: unknown; me?: unknown | (() => unknown); turn?: () 
             return o.leaveOk !== false;
           },
           path: () => '/?x=1',
-          keepAsk: (a: string) => {
+          keepAsk: (a: PendingAsk) => {
             kept.push(a);
             pendingAsk = a;
           },
@@ -337,16 +337,28 @@ test('a 401 signed-out fatal sends the person to /login?next=<this page> and kee
   t.c.submit('We run an online store');
   await until(() => t.left.length > 0);
   assert.deepEqual(t.left, ['/login?next=%2F%3Fx%3D1']);
-  assert.deepEqual(t.kept, ['We run an online store']);
+  assert.deepEqual(t.kept, [{ text: 'We run an online store', mode: 'cloud' }]);
 });
 
 test('after sign-in the kept ask comes back as the draft', async () => {
-  const t = setup({ hosted: true, me: ME, keptAsk: 'We run an online store' });
+  const t = setup({ hosted: true, me: ME, keptAsk: { text: 'We run an online store' } });
   await t.c.boot();
   assert.equal(t.store.getState().ui.composerDraft?.text, 'We run an online store');
   const next = setup({ hosted: true, me: ME });
   await next.c.boot();
   assert.equal(next.store.getState().ui.composerDraft, null, 'nothing is invented');
+});
+
+test('a discovery brief interrupted by sign-in returns to the workflow composer', async () => {
+  const first = setup({ hosted: true, turn: () => fatalResponse(401, 'signed-out', 'Session ended') });
+  await first.c.boot();
+  const text = 'Help our agents find the return policy.';
+  first.c.submit(text, { mode: 'workflow' });
+  await until(() => first.left.length > 0);
+  const returned = setup({ hosted: true, keptAsk: first.kept[0] });
+  await returned.c.boot();
+  assert.equal(returned.store.getState().ui.composerDraft?.text, text);
+  assert.equal(returned.store.getState().session.mode, 'workflow');
 });
 
 test('not-approved goes to /pending; quota, busy, rate-limited and unknown codes stay in the console with the server words', async () => {
