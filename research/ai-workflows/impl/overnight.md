@@ -284,3 +284,8 @@ All three turns committed: status 200, no fatal error, no vendor names or banned
     - `hasHiddenIdentity` is clean on both PDFs and on the wire, and there are no page errors.
 - **Cloud replay** (`?replay=ha`): 9 cards, 13 edge paths, the `~edges` layer with no pointer events, and hover popovers work.
 - **Gates:** root 1097/1097, web 658/658, Worker 276/276, typechecks clean, and the cloud hash unchanged.
+
+## Deployed (2026-11-03, the user's go-ahead)
+- **Pushed:** `phase-1` was pushed, and `main` was fast-forwarded to `c4d9b6a`.
+- **Deploy:** run 41550040669 on `main` with `confirm=deploy` succeeded in about 1 minute. Every step passed: preflight, the web build, the Worker tests, the D1 migrations and deploy (version `69e0430f-a85e-45f6-be9f-42dac120d9b4`), and the health check.
+- **Live:** `/api/health` answers `{"ok":true}`. The app and its assets sit behind the sign-in, so the UI was not inspected after the deploy; no password was entered.
