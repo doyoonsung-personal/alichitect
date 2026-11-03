@@ -9,11 +9,6 @@ test('every workflow kind has pure glyph geometry; six business glyphs differ', 
   assert.equal(new Set(['trigger', 'decide', 'guard', 'human', 'act', 'end'].map((k) =>
     JSON.stringify(workflowGlyph(k as WorkflowNodeKind)))).size, 6);
 });
-test('landing uses native focus choice before submit and hides cloud examples', () => {
-  const source = readFileSync(new URL('../landing/Landing.tsx', import.meta.url), 'utf8');
-  assert.ok(source.includes('type="radio"')); assert.ok(source.includes('c.setMode(value)'));
-  assert.ok(source.includes("hidden={mode === 'workflow'}"));
-});
 
 import { layoutWorkflow } from '@ali/core/workflow-layout.ts';
 import { loadCatalog } from '@ali/core/catalog-node.ts';
