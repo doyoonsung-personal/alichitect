@@ -3,8 +3,62 @@ import type { Catalog, WorkflowEdge, WorkflowGraph, WorkflowNode } from '@ali/co
 import { layoutWorkflow } from '@ali/core/workflow-layout.ts';
 import type { WorkflowLayoutState } from '@ali/core/workflow-layout.ts';
 import type { ModelTable } from '@ali/core/models.ts';
-import type { WorkflowEstimate } from '@ali/core/workflow-estimate.ts';
+import { workflowChoiceSets } from '@ali/core/workflow-estimate.ts';
+import type { VideoEstimateSettings, WorkflowEstimate } from '@ali/core/workflow-estimate.ts';
+import { videoStepOptions } from './settings.ts';
+import type { EstimateEdit } from './settings.ts';
 import type { TFn } from '../i18n/t.ts';
+
+export interface CostDriver {
+  label: string; edit: EstimateEdit; value?: number | boolean; options?: readonly number[];
+}
+
+export function workflowCostDrivers(workflow: WorkflowGraph, settings: VideoEstimateSettings, estimate: WorkflowEstimate, t: TFn): CostDriver[] {
+  const sets = workflowChoiceSets(workflow), drivers: CostDriver[] = [];
+  const add = (label: string, edit: EstimateEdit, value?: number | boolean, options?: readonly number[]) => {
+    drivers.push({ label, edit, ...(value === undefined ? {} : { value }), ...(options ? { options } : {}) });
+  };
+  add(t('workflow.cost.runs'), { map: 'runsPerMonth' }, settings.runsPerMonth);
+  const ranked = Object.values(workflow.nodes).sort((a, b) => {
+    const cost = (id: string) => estimate.lines.filter((l) => l.id.startsWith(id + ':')).reduce((n, l) => n + l.typical, 0);
+    return cost(b.id) - cost(a.id);
+  });
+  for (const n of ranked) {
+    const video = videoStepOptions(workflow, n.id);
+    if (video) {
+      for (const field of ['clipSeconds', 'resolution'] as const) add(
+        n.label + ' · ' + t('workflow.cost.' + field as 'workflow.cost.clipSeconds'),
+        { map: 'steps', id: n.id, field }, settings.steps?.[n.id]?.[field], field === 'resolution' ? video.resolutions : undefined,
+      );
+    } else if (n.ai || n.kind === 'ai' || n.kind === 'agent') {
+      for (const field of ['inTokens', 'outTokens', 'thinking', 'offline'] as const) add(
+        n.label + ' · ' + t('workflow.cost.' + field as 'workflow.cost.inTokens'),
+        { map: 'steps', id: n.id, field }, settings.steps?.[n.id]?.[field],
+      );
+    }
+    if (n.kind === 'agent') for (const field of ['typical', 'upper', 'resultTokens', 'searchesPerRequest'] as const) {
+      add(n.label + ' · ' + t(field === 'resultTokens' ? 'workflow.cost.resultTokens'
+        : field === 'searchesPerRequest' ? 'workflow.cost.searches' : 'workflow.cost.requests') +
+        (field === 'typical' || field === 'upper' ? ' · ' + t('workflow.cost.' + field as 'workflow.cost.typical') : ''),
+      { map: 'agents', id: n.id, field }, settings.agents?.[n.id]?.[field]);
+    }
+    if (n.kind === 'guard') add(n.label + ' · ' + t('workflow.cost.guardTypes'),
+      { map: 'guardTypes', id: n.id }, settings.guardTypes?.[n.id]);
+  }
+  for (const g of Object.values(workflow.groups)) for (const field of ['typical', 'upper'] as const) add(
+    g.over + ' · ' + t('workflow.cost.items') + ' · ' + t('workflow.cost.' + field as 'workflow.cost.typical'),
+    { map: 'items', id: g.id, field }, settings.items?.[g.id]?.[field],
+  );
+  for (const edge of Object.values(workflow.edges)) {
+    if (sets.shares[edge.id]) add(edgeName(edge, workflow, t) + ' · ' + t('workflow.cost.share'),
+      { map: 'shares', id: edge.id }, settings.shares?.[edge.id]);
+    if (sets.loops[edge.id]) for (const field of ['typical', 'upper'] as const) add(
+      edgeName(edge, workflow, t) + ' · ' + t('workflow.cost.loops') + ' · ' + t('workflow.cost.' + field as 'workflow.cost.typical'),
+      { map: 'loops', id: edge.id, field }, settings.loops?.[edge.id]?.[field],
+    );
+  }
+  return drivers;
+}
 
 // Repeat groups occupy their first member's position; attachments travel with their host.
 export function workflowPanelOrder(workflow: WorkflowGraph, layout = layoutWorkflow(workflow)): WorkflowNode[] {
@@ -70,9 +124,24 @@ export function assumptionText(a: { key: string; text: string }, workflow: Workf
   const id = parts.find((id) => workflow.nodes[id] || workflow.groups[id] || workflow.edges[id]) ?? parts[0];
   const step = workflow.nodes[id]?.label ?? workflow.groups[id]?.over
     ?? (workflow.edges[id] ? edgeName(workflow.edges[id], workflow, t) : t('workflow.cost.title'));
+  const detail = a.text.startsWith(step + ':') ? a.text.slice(step.length + 1) : a.text.slice(a.text.lastIndexOf(':') + 1);
+  if (parts[1] === 'video') {
+    if (suffix === 'list') return t('workflow.cost.assumption.videoList', { step });
+    if (suffix === 'input') return t('workflow.cost.assumption.videoInput', { step });
+    const values = /typical (\d+) s at (\d+)P; upper (\d+) s at 1080P/.exec(detail);
+    if (values) return t('workflow.cost.assumption.video', { step, seconds: values[1], resolution: values[2], upper: values[3] });
+  }
+  if (parts[1] === 'clipSeconds') {
+    if (suffix === 'bound') {
+      const values = /bounded to (\d+)-(\d+) s/.exec(detail);
+      if (values) return t('workflow.cost.assumption.clipBound', { step, min: values[1], max: values[2] });
+    } else if (suffix === 'clipSeconds') {
+      const value = /assumes a (\d+) s/.exec(detail)?.[1];
+      if (value) return t('workflow.cost.assumption.clipSeconds', { step, value });
+    }
+  }
   if (['input', 'output', 'prefix'].includes(suffix)) {
     // Core exposes only text. Strip the complete known label before reading its numeric detail.
-    const detail = a.text.startsWith(step + ':') ? a.text.slice(step.length + 1) : a.text.slice(a.text.lastIndexOf(':') + 1);
     const value = /\d[\d,]*/.exec(detail)?.[0];
     if (value) return t('workflow.assumption.' + suffix as 'workflow.assumption.input', { step, value });
   }
@@ -92,7 +161,7 @@ export function assumptionText(a: { key: string; text: string }, workflow: Workf
   if (suffix === 'limit') {
     const value = /capped at (\d[\d,]*(?:\.\d+)?)/.exec(a.text)?.[1];
     const fields = { input: 'inTokens', output: 'outTokens', results: 'resultTokens', searches: 'searches',
-      'guard-types': 'guardTypes', turns: 'requests', max: 'loops' } as const;
+      'guard-types': 'guardTypes', turns: 'requests', max: 'loops', clipSeconds: 'clipSeconds' } as const;
     const field = fields[parts.at(-2)! as keyof typeof fields];
     const label = parts[0] === 'runsPerMonth' ? t('workflow.cost.runs')
       : field ? step + ' · ' + t('workflow.cost.' + field as 'workflow.cost.inTokens') : step;
@@ -106,6 +175,7 @@ const REASONS = {
   'Model is missing from the price table.': 'model',
   'No confirmed model price.': 'price',
   'Image, video and voice quantities are not estimated in this release.': 'modality',
+  'Image, voice or unsupported media quantities are not estimated in this release.': 'modality',
   'No firm rate for the request tier or token direction.': 'tier',
   'No confirmed tool fee.': 'tool',
   'Compute quantity requires a measured duration and resource size.': 'compute',
@@ -113,6 +183,8 @@ const REASONS = {
   'Document count, size and re-indexing frequency are unknown; only query usage is priced.': 'indexing',
 } as const;
 export function unpricedReason(reason: string, t: TFn): string {
+  const resolution = /^No confirmed video rate for (\d+)P typical and 1080P upper\.$/.exec(reason)?.[1];
+  if (resolution) return t('workflow.cost.reason.videoResolution', { resolution });
   const key = REASONS[reason as keyof typeof REASONS];
   return key ? t('workflow.cost.reason.' + key as 'workflow.cost.reason.human') : t('workflow.cost.reason.unknown');
 }
@@ -122,7 +194,7 @@ const UNITS = {
   'detection call': 'detection', 'control-plane hour': 'control', 'instance-month': 'instance',
   'CU-second': 'cuSecond', 'compute CU': 'computeCu', 'compute second': 'computeSecond',
   'GB-month / capacity': 'capacity', 'document tokens': 'document', 'reviewer hour': 'reviewer',
-  'model usage': 'model', '10k-chars': 'characters', image: 'image',
+  'model usage': 'model', '10k-chars': 'characters', image: 'image', second: 'videoSecond',
 } as const;
 
 export function unitText(unit: string, t: TFn): string {

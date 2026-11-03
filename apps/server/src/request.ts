@@ -4,8 +4,9 @@
 // Pure: no I/O.
 import type { Constraint, Graph, GraphEdge, GraphGroup, GraphNode, ProposalRequest, Recommendation, SessionMemory, TurnRequest, Turn } from '../../../packages/core/src/types.ts';
 import type {
-  TurnMode, WorkflowGraph, WorkflowNode, WorkflowEdge, WorkflowGroup, WorkflowSettings, WorkflowEstimateSettings,
+  TurnMode, WorkflowGraph, WorkflowNode, WorkflowEdge, WorkflowGroup, WorkflowSettings,
 } from '../../../packages/core/src/types.ts';
+import type { VideoEstimateSettings } from '../../../packages/core/src/workflow-estimate.ts';
 import { DEFAULT_WORKFLOW_LIMITS } from '../../../packages/core/src/workflow.ts';
 import { ESTIMATE_LIMITS } from '../../../packages/core/src/workflow-estimate-limits.ts';
 import { createModelTable, WORKFLOW_TASKS } from '../../../packages/core/src/models.ts';
@@ -430,11 +431,11 @@ function workflowSettings(v: unknown, p: string): WorkflowSettings {
   return out;
 }
 
-function estimate(v: unknown, p: string, workflow?: WorkflowGraph): WorkflowEstimateSettings {
+function estimate(v: unknown, p: string, workflow?: WorkflowGraph): VideoEstimateSettings {
   const advisory = (v: unknown, max: number, integer = false): v is number =>
     typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= max && (!integer || Number.isInteger(v));
   const o = obj(v, p);
-  const out: WorkflowEstimateSettings = {};
+  const out: VideoEstimateSettings = {};
   if (advisory(o.runsPerMonth, ESTIMATE_LIMITS.runsPerMonth, true)) out.runsPerMonth = o.runsPerMonth;
   if (own(o, 'scope') !== undefined) out.scope = choice(o.scope, `${p}.scope`, ['international', 'global']);
   for (const k of ['steps', 'items', 'shares', 'loops', 'agents', 'guardTypes'] as const) {
@@ -456,12 +457,16 @@ function estimate(v: unknown, p: string, workflow?: WorkflowGraph): WorkflowEsti
       }
       const value = obj(map[key], path);
       const item: Record<string, unknown> = {};
-      const fields = k === 'steps' ? ['inTokens', 'outTokens', 'thinking', 'offline']
+      const fields = k === 'steps' ? ['inTokens', 'outTokens', 'thinking', 'offline', 'clipSeconds', 'resolution']
         : k === 'agents' ? ['typical', 'upper', 'resultTokens', 'searchesPerRequest'] : ['typical', 'upper'];
       for (const field of fields) {
         if (own(value, field) === undefined) continue;
+        if (field === 'resolution') {
+          if (ESTIMATE_LIMITS.resolutions.some((r) => r === value[field])) item[field] = value[field];
+          continue;
+        }
         item[field] = field === 'thinking' || field === 'offline' ? bool(value[field], `${path}.${field}`)
-          : advisory(value[field], ESTIMATE_LIMITS.amount) ? value[field] : undefined;
+          : advisory(value[field], field === 'clipSeconds' ? ESTIMATE_LIMITS.clipSeconds : ESTIMATE_LIMITS.amount) ? value[field] : undefined;
         if (item[field] === undefined) delete item[field];
       }
       parsed[key] = item;
