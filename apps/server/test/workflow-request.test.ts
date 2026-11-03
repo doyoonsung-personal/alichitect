@@ -4,6 +4,8 @@ import { createMemory } from '../../../packages/core/src/prompt.ts';
 import { checkTurnRequest, LIMITS } from '../src/request.ts';
 import { compactTurnMemory } from '../src/turn.ts';
 import type { SessionMemory } from '../../../packages/core/src/types.ts';
+import { ESTIMATE_LIMITS } from '../../../packages/core/src/workflow-estimate-limits.ts';
+import type { VideoEstimateSettings } from '../../../packages/core/src/workflow-estimate.ts';
 
 const request = (memory = createMemory(), mode?: unknown) => ({ sessionId: 's', ask: 'Design', memory, ...(mode === undefined ? {} : { mode }) });
 
@@ -45,6 +47,33 @@ test('workflow parser round trips all settings, independently parses tombstones 
   const clean = checkTurnRequest(request(raw));
   assert.ok(clean.ok);
   assert.deepEqual(clean.value.memory, memory);
+});
+
+test('admission retains video settings within global limits, including estimator-rounded seconds', () => {
+  for (const clipSeconds of [0, 1, 2.1, 15, ESTIMATE_LIMITS.clipSeconds]) for (const resolution of ESTIMATE_LIMITS.resolutions) {
+    const memory = dual();
+    memory.workflow!.nodes.start = { id: 'start', kind: 'ai', label: 'Video', task: 'create', ai: 'wan3.0-video' };
+    const settings: VideoEstimateSettings = { steps: { start: { clipSeconds, resolution, inTokens: 5, thinking: false } } };
+    memory.estimate = settings;
+    const before = structuredClone(memory), parsed = checkTurnRequest(request(memory, 'workflow'));
+    assert.ok(parsed.ok);
+    assert.deepEqual(parsed.value.memory.estimate, settings);
+    assert.deepEqual(memory, before);
+  }
+});
+
+test('admission drops invalid video values independently without rejecting the request', () => {
+  for (const [field, invalid] of [
+    ['clipSeconds', [-1, ESTIMATE_LIMITS.clipSeconds + 1, NaN, Infinity, '15', null, true, {}]],
+    ['resolution', [-1, 0, 481, 720.5, 2160, NaN, Infinity, '720', null, true, {}]],
+  ] as const) for (const value of invalid) {
+    const step = { clipSeconds: 15, resolution: 720, outTokens: 9, [field]: value };
+    const parsed = checkTurnRequest({ ...request(dual(), 'workflow'), memory: { ...dual(), estimate: { steps: { start: step } } } });
+    assert.ok(parsed.ok, `${field}: ${String(value)}`);
+    const expected = { ...step };
+    delete expected[field];
+    assert.deepEqual(parsed.value.memory.estimate, { steps: { start: expected } });
+  }
 });
 
 test('workflow parser rejects bad shapes, prototype keys and oversized documents', () => {

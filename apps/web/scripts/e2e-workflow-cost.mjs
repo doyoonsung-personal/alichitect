@@ -39,11 +39,13 @@ const chrome = [process.env.CHROME, 'C:/Program Files/Google/Chrome/Application/
   `${process.env.LOCALAPPDATA}/Google/Chrome/Application/chrome.exe`,
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find((p) => p && existsSync(p));
 const fixture = JSON.parse(readFileSync(path.join(WEB, '../../packages/core/test/fixtures/workflows/support-email-triage.json'), 'utf8'));
+const strings = JSON.parse(readFileSync(path.join(WEB, 'src/i18n/strings.json'), 'utf8'));
+const videoOps = [{ t: 'step', id: 'video', kind: 'ai', label: 'Video', task: 'create', ai: 'wan3.0-video' }];
 const server = await startServer();
 let browser;
 const results = [], errors = [];
 
-async function open(lang = 'en') {
+async function open(lang = 'en', ops = fixture.ops) {
   const width = 1150, theme = 'light';
   const page = await browser.newPage();
   page.on('pageerror', (e) => errors.push(e.message));
@@ -71,7 +73,7 @@ async function open(lang = 'en') {
     const s = store.getState();
     store.dispatch({ type: 'turn/event', event: { type: 'commit',
       memory: { ...s.session.memory, workflow: s.work.rawWorkflow }, changes: '', warnings: [] }, now: 4 });
-  }, fixture.ops);
+  }, ops);
   await page.waitForSelector('[data-wf-card]');
   await page.evaluate((theme) => document.documentElement.dataset.theme = theme, theme);
   assert.equal(await page.$eval('#products-body', (e) => e.inert), true);
@@ -83,15 +85,15 @@ async function open(lang = 'en') {
   await page.click('.wf-cost summary');
   return page;
 }
-async function run(name, fn) {
-  const page = await open();
+async function run(name, fn, lang = 'en', ops = fixture.ops) {
+  const page = await open(lang, ops);
   try { await fn(page); results.push({ name, ok: true }); console.log('PASS', name); }
   catch (e) { results.push({ name, ok: false }); console.error('FAIL', name, e.message); }
   finally { await page.close(); }
 }
 const runs = 'input[aria-label="Runs per month"]';
-async function type(page, value) {
-  await page.focus(runs);
+async function type(page, value, selector = runs) {
+  await page.focus(selector);
   await page.keyboard.down('Control'); await page.keyboard.press('a'); await page.keyboard.up('Control');
   await page.keyboard.type(value);
 }
@@ -153,6 +155,50 @@ try {
     assert.equal(await page.$eval(runs, e => e.getAttribute('aria-invalid')), 'true');
     assert.ok(await page.$('.wf-driver [role="alert"]'));
   });
+  for (const lang of ['en', 'ko', 'zh']) await run('Video drivers, pricing, drafts, reset and localization ' + lang, async page => {
+    const seconds = `input[aria-label="Video · ${strings[lang]['workflow.cost.clipSeconds']}"]`;
+    const resolution = `select[aria-label="Video · ${strings[lang]['workflow.cost.resolution']}"]`;
+    const saved = () => page.evaluate(() => window.__ab.store.getState().session.memory.estimate?.steps?.video ?? {});
+    const price = () => page.$eval('.wf-cost table tbody tr:first-child td:first-of-type', e => e.textContent);
+    assert.equal(await price(), '$1.50');
+    assert.deepEqual(await page.$$eval(resolution + ' option', es => es.map(e => e.value)), ['', '480', '720', '1080']);
+    assert.equal(await page.$eval(seconds, e => e.min), '1');
+    assert.equal(await page.$eval(seconds, e => e.max), '30');
+    const text = await page.$eval('.wf-cost', e => e.textContent);
+    assert.ok(text.includes(strings[lang]['workflow.cost.unitName.videoSecond']));
+    assert.ok(text.includes(strings[lang]['workflow.cost.coverageText']));
+    assert.ok(text.includes(strings[lang]['workflow.cost.assumption.video']
+      .replace('{step}', 'Video').replace('{seconds}', '15').replace('{resolution}', '720').replace('{upper}', '30')));
+    assert.ok(!text.includes(strings[lang]['workflow.cost.assumptionUnknown']));
+    await type(page, '10', seconds);
+    assert.deepEqual(await saved(), {});
+    await page.keyboard.press('Escape'); await page.keyboard.press('Tab');
+    assert.deepEqual(await saved(), {});
+    await type(page, '10', seconds); await page.keyboard.press('Enter');
+    assert.equal((await saved()).clipSeconds, 10);
+    assert.equal(await price(), '$1.00');
+    await type(page, '20', seconds); await page.keyboard.press('Escape'); await page.keyboard.press('Tab');
+    assert.equal((await saved()).clipSeconds, 10);
+    await page.focus(resolution); await page.select(resolution, '480');
+    assert.equal((await saved()).resolution, undefined);
+    await page.keyboard.press('Escape'); await page.keyboard.press('Tab');
+    assert.equal(await page.$eval(resolution, e => e.value), '');
+    assert.equal((await saved()).resolution, undefined);
+    await page.focus(resolution); await page.select(resolution, '480'); await page.keyboard.press('Enter');
+    assert.equal((await saved()).resolution, 480);
+    assert.equal(await price(), '$0.5');
+    await page.select(resolution, '1080'); await page.keyboard.press('Escape'); await page.keyboard.press('Tab');
+    assert.equal((await saved()).resolution, 480);
+    await page.focus(resolution); await page.select(resolution, '1080'); await page.keyboard.press('Tab');
+    assert.equal((await saved()).resolution, 1080);
+    await type(page, '15', seconds); await page.keyboard.press('Tab');
+    assert.equal((await saved()).clipSeconds, 15);
+    assert.equal(await price(), '$3.00');
+    for (const selector of [seconds, resolution]) await page.click('.wf-driver:has(' + selector + ') button:last-of-type');
+    assert.deepEqual(await saved(), {});
+    assert.equal(await price(), '$1.50');
+    assert.ok(await page.$('#products[data-open]'));
+  }, lang, videoOps);
   for (const lang of ['en', 'ko', 'zh']) {
     const page = await open(lang);
     for (const [name, fn] of [

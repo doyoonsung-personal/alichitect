@@ -1,8 +1,10 @@
 // Validated, immutable updates. Reset removes an override instead of freezing a default.
-import type { Effect, WorkflowSettings, WorkflowEstimateSettings, WorkflowGraph } from '@ali/core/types.ts';
+import type { Effect, WorkflowSettings, WorkflowGraph } from '@ali/core/types.ts';
+import type { VideoEstimateSettings } from '@ali/core/workflow-estimate.ts';
 import type { StringKey } from '../i18n/t.ts';
 import { ESTIMATE_LIMITS } from '@ali/core/workflow-estimate-limits.ts';
 import { workflowChoiceSets } from '@ali/core/workflow-estimate.ts';
+import { models } from './models.ts';
 export function approvalOverride(current: WorkflowSettings, effect: Effect, choice: 'default' | 'require' | 'waive'): WorkflowSettings {
   const next = { ...current, approvalOn: (current.approvalOn ?? []).filter((e) => e !== effect),
     approvalOff: (current.approvalOff ?? []).filter((e) => e !== effect) };
@@ -14,16 +16,33 @@ export type EstimateEdit =
   | { map: 'runsPerMonth'; value?: number }
   | { map: 'scope'; value?: 'international' | 'global' }
   | { map: 'shares' | 'guardTypes'; id: string; value?: number }
-  | { map: 'steps'; id: string; field: 'inTokens' | 'outTokens' | 'thinking' | 'offline'; value?: number | boolean }
+  | { map: 'steps'; id: string; field: 'inTokens' | 'outTokens' | 'thinking' | 'offline' | 'clipSeconds' | 'resolution'; value?: number | boolean }
   | { map: 'items' | 'loops'; id: string; field: 'typical' | 'upper'; value?: number }
   | { map: 'agents'; id: string; field: 'typical' | 'upper' | 'resultTokens' | 'searchesPerRequest'; value?: number };
 
-// Arithmetic caps are private to the estimator; keep these few values aligned with its LIMITS.
+export function videoStepOptions(workflow: WorkflowGraph, id: string) {
+  const node = workflow.nodes[id], model = node?.ai ? models.model(node.ai) : undefined;
+  if (node?.kind === 'human' || node?.task !== 'create' || !model?.out.includes('video')
+    || model.price?.unit !== 'second' || !model.video) return undefined;
+  return {
+    min: model.video.minSeconds ?? 1,
+    max: Math.min(ESTIMATE_LIMITS.clipSeconds, model.video.maxSeconds),
+    resolutions: ESTIMATE_LIMITS.resolutions.filter((r) => model.price!.tiers.some((tier) => tier.resolution === r)),
+  };
+}
+
 export function estimateEditRange(edit: EstimateEdit, workflow: WorkflowGraph): { min: number; max: number } {
   const range = { min: 0, max: ESTIMATE_LIMITS.amount as number };
   if (edit.map === 'runsPerMonth') range.max = ESTIMATE_LIMITS.runsPerMonth;
   if (edit.map === 'guardTypes') range.max = ESTIMATE_LIMITS.guardTypes;
   if (edit.map === 'steps') range.max = Math.min(range.max, 1_000_000);
+  if (edit.map === 'steps' && edit.field === 'clipSeconds') {
+    const video = videoStepOptions(workflow, edit.id);
+    return { min: video?.min ?? 1, max: video?.max ?? ESTIMATE_LIMITS.clipSeconds };
+  }
+  if (edit.map === 'steps' && edit.field === 'resolution') {
+    return { min: ESTIMATE_LIMITS.resolutions[0], max: ESTIMATE_LIMITS.resolutions.at(-1)! };
+  }
   if (edit.map === 'items') range.max = Math.min(range.max, 10_000);
   if (edit.map === 'shares') return workflowChoiceSets(workflow).shares[edit.id] ?? { min: 0, max: 0 };
   if (edit.map === 'loops') return workflowChoiceSets(workflow).loops[edit.id] ?? { min: 0, max: 0 };
@@ -39,8 +58,8 @@ export function estimateEditRange(edit: EstimateEdit, workflow: WorkflowGraph): 
   return range;
 }
 
-export function applyEstimateEdit(current: WorkflowEstimateSettings, edit: EstimateEdit, workflow: WorkflowGraph):
-  { ok: true; value: WorkflowEstimateSettings } | { ok: false; key: StringKey } {
+export function applyEstimateEdit(current: VideoEstimateSettings, edit: EstimateEdit, workflow: WorkflowGraph):
+  { ok: true; value: VideoEstimateSettings } | { ok: false; key: StringKey } {
   const invalid = { ok: false as const, key: 'workflow.cost.invalid' as const };
   const v = edit.value;
   const range = estimateEditRange(edit, workflow), sets = workflowChoiceSets(workflow);
@@ -59,6 +78,10 @@ export function applyEstimateEdit(current: WorkflowEstimateSettings, edit: Estim
   if (edit.map === 'steps' && v !== undefined) {
     const bool = edit.field === 'thinking' || edit.field === 'offline';
     if (typeof v !== (bool ? 'boolean' : 'number')) return invalid;
+    if (edit.field === 'clipSeconds' || edit.field === 'resolution') {
+      const video = videoStepOptions(workflow, edit.id);
+      if (!video || (edit.field === 'resolution' && !video.resolutions.some((r) => r === v))) return invalid;
+    }
   }
   const next = structuredClone(current);
   const target = next as Record<string, unknown>;

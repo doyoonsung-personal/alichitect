@@ -1,49 +1,15 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { workflowChoiceSets } from '@ali/core/workflow-estimate.ts';
+import type { KeyboardEvent } from 'react';
 import type { WorkflowCostProps } from '../workflow/contracts.ts';
 import { applyEstimateEdit, estimateEditRange } from '../workflow/settings.ts';
 import type { EstimateEdit } from '../workflow/settings.ts';
 import type { StringKey } from '../i18n/t.ts';
-import { usd, monthlyUsd, edgeName, unitText, costLineLabel, assumptionText, unpricedReason } from '../workflow/panel-model.ts';
+import { usd, monthlyUsd, workflowCostDrivers, unitText, costLineLabel, assumptionText, unpricedReason } from '../workflow/panel-model.ts';
+import type { CostDriver } from '../workflow/panel-model.ts';
 export function WorkflowCost(p: WorkflowCostProps) {
   const { t, estimate: e } = p;
-  const sets = workflowChoiceSets(p.workflow);
+  const drivers = workflowCostDrivers(p.workflow, p.estimateSettings, e, t);
   const source = (value: string) => /^https:\/\//.test(value) ? <small><a href={value}>{t('workflow.cost.source')}</a></small> : null;
-  const drivers: Array<{ label: string; edit: EstimateEdit; value?: number | boolean }> = [
-    { label: t('workflow.cost.runs'), edit: { map: 'runsPerMonth' }, value: p.estimateSettings.runsPerMonth },
-  ];
-  const ranked = Object.values(p.workflow.nodes).sort((a, b) => {
-    const cost = (id: string) => e.lines.filter((l) => l.id.startsWith(id + ':')).reduce((n, l) => n + l.typical, 0);
-    return cost(b.id) - cost(a.id);
-  });
-  for (const n of ranked) {
-    if (n.ai || n.kind === 'ai' || n.kind === 'agent') {
-      for (const field of ['inTokens', 'outTokens', 'thinking', 'offline'] as const) drivers.push({
-        label: n.label + ' · ' + t('workflow.cost.' + field as 'workflow.cost.inTokens'),
-        edit: { map: 'steps', id: n.id, field }, value: p.estimateSettings.steps?.[n.id]?.[field],
-      });
-    }
-    if (n.kind === 'agent') for (const field of ['typical', 'upper', 'resultTokens', 'searchesPerRequest'] as const) {
-      drivers.push({ label: n.label + ' · ' + t(field === 'resultTokens' ? 'workflow.cost.resultTokens'
-        : field === 'searchesPerRequest' ? 'workflow.cost.searches' : 'workflow.cost.requests') +
-        (field === 'typical' || field === 'upper' ? ' · ' + t('workflow.cost.' + field as 'workflow.cost.typical') : ''),
-      edit: { map: 'agents', id: n.id, field }, value: p.estimateSettings.agents?.[n.id]?.[field] });
-    }
-    if (n.kind === 'guard') drivers.push({ label: n.label + ' · ' + t('workflow.cost.guardTypes'),
-      edit: { map: 'guardTypes', id: n.id }, value: p.estimateSettings.guardTypes?.[n.id] });
-  }
-  for (const g of Object.values(p.workflow.groups)) for (const field of ['typical', 'upper'] as const) drivers.push({
-    label: g.over + ' · ' + t('workflow.cost.items') + ' · ' + t('workflow.cost.' + field as 'workflow.cost.typical'),
-    edit: { map: 'items', id: g.id, field }, value: p.estimateSettings.items?.[g.id]?.[field],
-  });
-  for (const edge of Object.values(p.workflow.edges)) {
-    if (sets.shares[edge.id]) drivers.push({ label: edgeName(edge, p.workflow, t) + ' · ' + t('workflow.cost.share'),
-      edit: { map: 'shares', id: edge.id }, value: p.estimateSettings.shares?.[edge.id] });
-    if (sets.loops[edge.id]) for (const field of ['typical', 'upper'] as const) drivers.push({
-      label: edgeName(edge, p.workflow, t) + ' · ' + t('workflow.cost.loops') + ' · ' + t('workflow.cost.' + field as 'workflow.cost.typical'),
-      edit: { map: 'loops', id: edge.id, field }, value: p.estimateSettings.loops?.[edge.id]?.[field],
-    });
-  }
   return <section className="wf-cost"><h3>{t('workflow.cost.title')}</h3>
     {p.streaming && <p>{t('workflow.cost.provisional')}</p>}
     <p>{t('workflow.cost.oneRun', { trigger: e.oneRun.map((id) => p.workflow.nodes[id])
@@ -74,9 +40,7 @@ export function WorkflowCost(p: WorkflowCostProps) {
     <h4>{t('workflow.cost.waits')}</h4><ul>{e.latency.humanWaits.map((w) => <li key={w}>{p.workflow.nodes[w]?.label ?? w}</li>)}</ul>
   </section>;
 }
-function Driver({ p, label, edit, value }: {
-  p: WorkflowCostProps; label: string; edit: EstimateEdit; value?: number | boolean;
-}) {
+function Driver({ p, label, edit, value, options }: CostDriver & { p: WorkflowCostProps }) {
   const id = useId(), [draft, setDraft] = useState(value === undefined ? '' : String(value));
   const [error, setError] = useState<StringKey | null>(null);
   const inputRef = useRef<HTMLInputElement>(null), skipBlur = useRef(false);
@@ -100,20 +64,27 @@ function Driver({ p, label, edit, value }: {
     if (input === undefined) restore('');
     p.actions.setWorkflowEstimate(result.value);
   };
+  const commitOnBlur = () => {
+    if (skipBlur.current) { skipBlur.current = false; return; }
+    if (inputRef.current?.validity.badInput || draft !== stored) apply();
+  };
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (e.key === 'Enter') { e.preventDefault(); apply(); }
+    if (e.key === 'Escape' && (draft !== stored || error || inputRef.current?.validity.badInput)) {
+      e.preventDefault(); e.stopPropagation(); skipBlur.current = true; restore(stored);
+    }
+  };
   return <fieldset disabled={p.disabled} className="wf-driver"><legend>{label}</legend>
     {bool ? <select aria-label={label} value={draft} onChange={(e) => { setDraft(e.target.value); apply(false, e.target.value); }}>
       <option value="">{p.t('workflow.cost.reset')}</option><option value="true">{p.t('workflow.cost.enabled')}</option>
       <option value="false">{p.t('workflow.cost.disabled')}</option></select>
+      : options ? <select aria-label={label} aria-describedby={error ? id : undefined} aria-invalid={!!error} value={draft}
+        onChange={(e) => { skipBlur.current = false; setDraft(e.target.value); }} onBlur={commitOnBlur} onKeyDown={onKeyDown}>
+        <option value="">{p.t('workflow.cost.reset')}</option>
+        {options.map((r) => <option key={r} value={r}>{r}P</option>)}</select>
       : <input ref={inputRef} aria-label={label} aria-describedby={error ? id : undefined} aria-invalid={!!error} type="number"
         min={range.min} max={range.max} step={edit.map === 'shares' ? 'any' : '1'} value={draft} placeholder={p.t('workflow.cost.reset')}
-        onChange={(e) => { skipBlur.current = false; setDraft(e.target.value); }} onBlur={() => {
-          if (skipBlur.current) { skipBlur.current = false; return; }
-          if (inputRef.current?.validity.badInput || draft !== stored) apply();
-        }}
-        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); apply(); }
-          if (e.key === 'Escape' && (draft !== stored || error || e.currentTarget.validity.badInput)) {
-            e.preventDefault(); e.stopPropagation(); skipBlur.current = true; restore(stored);
-          } }} />}
+        onChange={(e) => { skipBlur.current = false; setDraft(e.target.value); }} onBlur={commitOnBlur} onKeyDown={onKeyDown} />}
     <button onClick={() => apply()}>{p.t('workflow.cost.apply')}</button>
     <button onMouseDown={(e) => e.preventDefault()} onClick={() => apply(true)}>{p.t('workflow.cost.reset')}</button>
     {error && <p id={id} role="alert">{p.t(error)}</p>}
