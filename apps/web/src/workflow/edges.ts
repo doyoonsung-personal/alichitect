@@ -12,6 +12,11 @@ export interface WorkflowRoutePlan {
   bounds: Rect;
   labels: Record<string, string>;
 }
+// Keep row constraints private so the shared canvas/PDF plan shape stays unchanged.
+const labelRows = new WeakMap<WorkflowRoutePlan, {
+  branchBands: Array<Pick<Rect, 'y' | 'h'>>;
+  mainRowEdges: Set<string>;
+}>();
 export function planWorkflowEdges(input: {
   workflow: WorkflowGraph; scene: WorkflowScene; layout: WorkflowRenderLayout;
 }): WorkflowRoutePlan {
@@ -58,7 +63,15 @@ export function planWorkflowEdges(input: {
         fromFrame: false, toFrame: false, kind: 'data', path: false });
     }
   }
-  return { request, semantics, explicit, bounds, labels: scene.edgeLabels };
+  const plan = { request, semantics, explicit, bounds, labels: scene.edgeLabels };
+  const cells = layout.source.workflow.cells;
+  labelRows.set(plan, {
+    branchBands: scene.cards.filter((c) => !c.node.on && cells[c.id]?.row > 0)
+      .map((c) => ({ y: c.y, h: c.h })),
+    mainRowEdges: new Set(Object.values(semantics).filter((e) => !e.attached && !e.loop
+      && cells[e.from]?.row === 0 && cells[e.to]?.row === 0).map((e) => e.id)),
+  });
+  return plan;
 }
 export interface WorkflowEdgeDrawing {
   id: string; points: Pt[]; path: string; label: string; labelBox: Rect;
@@ -68,6 +81,7 @@ export function drawWorkflowEdges(input: {
   plan: WorkflowRoutePlan; routes: Record<string, Pt[]>; measure: (text: string) => number;
 }): WorkflowEdgeDrawing[] {
   const occupied: Rect[] = [...input.plan.request.obstacles];
+  const rows = labelRows.get(input.plan);
   const overlaps = (a: Rect, b: Rect) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
   return Object.values(input.plan.semantics).flatMap((edge) => {
     const points = input.plan.explicit[edge.id] ?? input.routes[edge.id];
@@ -80,7 +94,16 @@ export function drawWorkflowEdges(input: {
     const w = input.measure(label) + 12;
     const labelBox = { x: (a.x + b.x - w) / 2, y: (a.y + b.y) / 2 - 24, w, h: 20 };
     if (label) {
-      while (occupied.some((r) => overlaps(labelBox, r))) labelBox.y += 24;
+      const branchBands = rows?.mainRowEdges.has(edge.id) ? rows.branchBands : [];
+      const top = input.plan.bounds.y;
+      const base = Math.max(top, labelBox.y);
+      labelBox.y = base;
+      let attempt = 0;
+      while (labelBox.y < top || occupied.some((r) => overlaps(labelBox, r))
+        || branchBands.some((r) => labelBox.y < r.y + r.h && r.y < labelBox.y + labelBox.h)) {
+        attempt++;
+        labelBox.y = base + (attempt % 2 ? -1 : 1) * Math.ceil(attempt / 2) * 24;
+      }
       occupied.push(labelBox);
     }
     return [{ id: edge.id, points, path: points.map((p, i) => (i ? 'L' : 'M') + p.x + ' ' + p.y).join(' '),

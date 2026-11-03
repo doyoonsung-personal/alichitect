@@ -101,3 +101,32 @@ test('the list keeps at most 20 sessions', () => {
   assert.equal(s.list().length, 20);
   assert.equal(s.list()[0].id, 's24');
 });
+
+
+import { layoutWorkflow } from '@ali/core/workflow-layout.ts';
+import { applyWorkflowOp, emptyWorkflow } from '@ali/core/workflow.ts';
+test('legacy workflow layouts are discarded once; committed memory lays out fresh and new saves stay sticky', () => {
+  let wf = emptyWorkflow();
+  for (const op of [
+    { t: 'step', id: 'a', kind: 'trigger', label: 'A' },
+    { t: 'step', id: 'b', kind: 'human', label: 'B', after: 'a' },
+    { t: 'link', id: 'ab', from: 'a', to: 'b' },
+  ] as const) wf = applyWorkflowOp(wf, op).workflow;
+  const saved = record('legacy-workflow', 1);
+  saved.mode = 'workflow'; saved.memory.workflow = wf;
+  saved.workflowLayout = layoutWorkflow(wf);
+  saved.workflowLayout.workflow.rowHeights[0] = 360;
+  Reflect.deleteProperty(saved.workflowLayout.workflow, 'hostHeights');
+  const revived = reviveSession(JSON.parse(JSON.stringify(saved)))!;
+  assert.equal(revived.workflowLayout, undefined);
+  assert.deepEqual(revived.memory.workflow, wf);
+  const store = newStore();
+  store.dispatch({ type: 'session/open', record: revived, now: 2 });
+  const fresh = store.getState().workflowDisplay.layout!;
+  assert.deepEqual(fresh, layoutWorkflow(wf));
+  const op = { t: 'step', id: 'branch', kind: 'end', label: 'Done', after: 'a' } as const;
+  const next = layoutWorkflow(applyWorkflowOp(wf, op).workflow, fresh, { op });
+  assert.equal(next.cards.branch.y, 108, 'new branches do not inherit the old 360-unit spread');
+  const modern = { ...revived, workflowLayout: fresh };
+  assert.deepEqual(reviveSession(JSON.parse(JSON.stringify(modern)))!.workflowLayout, fresh);
+});

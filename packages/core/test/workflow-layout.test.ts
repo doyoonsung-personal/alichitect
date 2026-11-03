@@ -31,7 +31,7 @@ function validate(raw: unknown): WorkflowOp {
   return op;
 }
 function noOverlap(s: WorkflowLayoutState): void {
-  const cards = Object.values(s.cards);
+  const cards = [...Object.values(s.cards), ...Object.values(s.frames)];
   for (let i = 0; i < cards.length; i++) for (const b of cards.slice(i + 1)) {
     const a = cards[i];
     assert.ok(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y, `${a.id} overlaps ${b.id}`);
@@ -64,27 +64,60 @@ function budget(
       }
     }
   }
-  // Derive band overflow from occupied geometry and prior reservations, never the declared move list.
+  for (const id of Object.keys(prev.cards).filter((id) => next.cards[id] && !touched.has(id))) {
+    assert.equal(next.cards[id].x - prev.cards[id].x, shifted.has(id) ? W.columnPitch : 0, `Foreign x move: ${id}`);
+  }
+  // Derive column clearance independently of the declared moves. Only a new host or
+  // stack beyond its reservation may push an existing row (and rows below that row).
   const tops: number[] = [];
-  const heights: number[] = [];
+  const heights: Record<string, number> = {};
   const spare = opts.spareRows ?? W.spareRows;
+  const roots = Object.values(after.nodes).filter((n) => !n.on);
+  for (const n of roots) {
+    const cell = next.workflow.cells[n.id];
+    const hosts = Object.values(after.nodes).filter((node) => next.cards[node.id]
+      && next.workflow.cells[node.id].row === cell.row && next.workflow.cells[node.id].column === cell.column
+      && (node.kind === 'ai' || node.kind === 'agent' || Object.values(after.nodes).some((child) => child.on === node.id)));
+    const reserved = Math.max(0, ...hosts.map((host) =>
+      (next.cards[host.id].y - next.workflow.rowTops[cell.row]) / W.rowPitch + spare));
+    const used = Math.max(0, ...Object.values(next.workflow.attachmentOffsets[n.id] ?? {}));
+    heights[n.id] = Math.max(prev.workflow.hostHeights[n.id] ?? 0, (1 + Math.max(reserved, used)) * W.rowPitch + GEOMETRY.head);
+    assert.equal(next.workflow.hostHeights[n.id], heights[n.id]);
+  }
+  for (const runs of Object.values(next.workflow.spans)) for (const run of runs) {
+    const prior = Math.max(0, ...Object.values(prev.frames).filter((f) => f.group === after.nodes[run.nodes[0]].repeat
+      && f.id.startsWith(`repeat:${f.group}:${run.row}:`) && f.nodes.some((id) => run.nodes.includes(id)))
+      .map((f) => f.y - prev.workflow.rowTops[run.row] + GEOMETRY.head));
+    const height = Math.max(prior, ...run.nodes.map((id) => heights[id]));
+    for (const id of run.nodes) heights[id] = height;
+  }
   for (const row of next.workflow.branchRows) {
-    const used = Math.max(0, ...Object.keys(next.cards).filter((id) => next.workflow.cells[id].row === row)
-      .map((id) => (next.cards[id].y - next.workflow.rowTops[row]) / W.rowPitch));
-    heights[row] = Math.max(prev.workflow.rowHeights[row] ?? 0, (1 + Math.max(spare, used)) * W.rowPitch + GEOMETRY.head);
-    tops[row] = Math.max(prev.workflow.rowTops[row] ?? 0, row ? tops[row - 1] + heights[row - 1] : 0);
+    const columns = roots.filter((n) => next.workflow.cells[n.id].row === row).map((n) => next.workflow.cells[n.id].column);
+    const above = roots.filter((n) => next.workflow.cells[n.id].row < row && columns.includes(next.workflow.cells[n.id].column));
+    tops[row] = Math.max(prev.workflow.rowTops[row] ?? 0,
+      ...above.map((n) => tops[next.workflow.cells[n.id].row] + heights[n.id] + (n.repeat ? GEOMETRY.gapY : 0)));
     assert.equal(next.workflow.rowTops[row], tops[row]);
-    assert.equal(next.workflow.rowHeights[row], heights[row]);
+    assert.equal(next.workflow.rowHeights[row], Math.max(prev.workflow.rowHeights[row] ?? 0,
+      ...roots.filter((n) => next.workflow.cells[n.id].row === row).map((n) => heights[n.id])));
   }
   for (const id of Object.keys(prev.cards).filter((id) => next.cards[id] && !touched.has(id))) {
     const row = prev.workflow.cells[id].row;
     const dy = tops[row] - prev.workflow.rowTops[row];
-    assert.ok(dy >= 0 && dy <= W.rowPitch, `Overflow budget: ${id}`);
+    assert.ok(dy >= 0, `Host reserve budget: ${id}`);
     if (op.t === 'link' || op.t === 'each') assert.equal(dy, 0);
     assert.equal(next.cards[id].x - prev.cards[id].x, shifted.has(id) ? W.columnPitch : 0, `Foreign x move: ${id}`);
     assert.equal(next.cards[id].y - prev.cards[id].y, dy, `Foreign y move: ${id}`);
   }
   for (const move of next.workflow.moves) {
+    if (move.ids.every((id) => next.frames[id])) {
+      for (const id of move.ids) {
+        assert.equal(move.dx, next.frames[id].x - prev.frames[id].x);
+        assert.equal(move.dy, next.frames[id].y - prev.frames[id].y);
+        assert.ok(move.dy >= 0);
+        assert.equal(move.reason, move.dx && op.t === 'splice' ? 'splice' : 'host-reserve');
+      }
+      continue;
+    }
     if (move.reason === 'splice') {
       assert.equal(op.t, 'splice');
       assert.deepEqual(move.ids, [...shifted].sort());
@@ -92,7 +125,8 @@ function budget(
       assert.equal(move.dy, 0);
     } else {
       assert.equal(move.dx, 0);
-      assert.ok(move.dy > 0 && move.dy <= W.rowPitch);
+      assert.equal(move.reason, 'host-reserve');
+      assert.ok(move.dy > 0);
       for (const id of move.ids) {
         const row = next.workflow.cells[id].row;
         assert.equal(move.dy, tops[row] - prev.workflow.rowTops[row]);
@@ -451,4 +485,95 @@ test('regression: cycle search starts at the trigger, so forward links are never
   assert.deepEqual(flow.map((id) => cells[id]), flow.map((_, column) => ({ column, row: 0 })));
   assert.deepEqual(workflowLoopIds(build('sre-incident-triage-and-rca')), ['l20']);
   assert.deepEqual(workflowLoopIds(build('ai-tutor-socratic-hint')), ['l1', 'l15']);
+});
+
+for (const kind of ['human', 'act', 'end', 'guard', 'decide'] as const) {
+  test(`a branch under ${kind} clears only its column, not a host elsewhere`, () => {
+    const { state } = replay([step('a'), { ...step('top', 'a'), kind }, step('host', 'top'), step('branch', 'a')]);
+    assert.equal(state.cards.branch.y, W.rowPitch + GEOMETRY.head);
+    assert.equal(state.cards.host.y, 0);
+  });
+}
+
+test('a new host above an existing branch moves only that row with host-reserve provenance', () => {
+  const { wf, state } = replay([
+    step('a'), { ...step('top', 'a'), kind: 'human' }, step('branch', 'a'), step('tail', 'branch'),
+  ]);
+  const op = step('top', 'a');
+  const nextWf = applyWorkflowOp(wf, op).workflow;
+  const next = layoutWorkflow(nextWf, state, { op });
+  budget(state, next, wf, nextWf, op);
+  assert.deepEqual(next.workflow.moves, [{ reason: 'host-reserve', ids: ['branch', 'tail'], dx: 0, dy: 3 * W.rowPitch }]);
+  assert.deepEqual(workflowLayoutDiff(state, next).moved, ['branch', 'tail']);
+  const restored = layoutWorkflow(wf, next);
+  assert.equal(restored.cards.branch.y, next.cards.branch.y, 'host removal never pulls a row up');
+  noOverlap(next);
+});
+
+test('late attachments inside root and sub-agent reserves make zero foreign moves', () => {
+  const { wf, state } = replay([
+    step('a'), step('host', 'a'), step('branch', 'a'), { ...step('sub'), on: 'host' },
+  ]);
+  for (const host of ['host', 'sub']) {
+    const op: WorkflowOp = { t: 'step', id: 'late', kind: 'tool', label: 'Late tool', on: host };
+    const nextWf = applyWorkflowOp(wf, op).workflow;
+    const next = layoutWorkflow(nextWf, state, { op });
+    budget(state, next, wf, nextWf, op);
+    assert.deepEqual(next.workflow.moves, []);
+    assert.deepEqual(workflowLayoutDiff(state, next).moved, []);
+    noOverlap(next);
+  }
+});
+
+test('the movement gate rejects a forged host-reserve move on an ordinary non-host step', () => {
+  const { wf, state } = replay([step('a'), { ...step('top', 'a'), kind: 'human' }, step('branch', 'a')]);
+  const op: WorkflowOp = { t: 'step', id: 'tail', kind: 'end', label: 'Done', after: 'top' };
+  const nextWf = applyWorkflowOp(wf, op).workflow;
+  const forged = clone(layoutWorkflow(nextWf, state, { op }));
+  forged.cards.branch.y += W.rowPitch;
+  forged.workflow.rowTops[1] += W.rowPitch;
+  forged.workflow.moves = [{ reason: 'host-reserve', ids: ['branch'], dx: 0, dy: W.rowPitch }];
+  assert.throws(() => budget(state, forged, wf, nextWf, op));
+});
+
+
+test('extending a branch into a reserved column allocates a row without foreign moves', () => {
+  const { wf, state } = replay([
+    step('a'), { ...step('human', 'a'), kind: 'human' }, step('host', 'human'), step('branch', 'a'),
+  ]);
+  const op: WorkflowOp = { t: 'step', id: 'tail', kind: 'end', label: 'Done', after: 'branch' };
+  const nextWf = applyWorkflowOp(wf, op).workflow;
+  const next = layoutWorkflow(nextWf, state, { op });
+  assert.deepEqual(workflowLayoutDiff(state, next).moved, []);
+  assert.deepEqual(next.workflow.moves, []);
+  assert.equal(next.workflow.cells.tail.row, 2);
+  noOverlap(next);
+});
+
+
+test('repeat brackets leave a routing gap before a lower row in their columns', () => {
+  const { wf } = replay([
+    { t: 'each', id: 'r', over: 'Items' },
+    { t: 'step', id: 'a', kind: 'trigger', label: 'A' },
+    { t: 'step', id: 'b', kind: 'decide', label: 'B', repeat: 'r' },
+    { t: 'step', id: 'c', kind: 'act', label: 'C', repeat: 'r' },
+    { t: 'step', id: 'd', kind: 'act', label: 'D' },
+    link('ab', 'a', 'b'), link('bc', 'b', 'c'), link('bd', 'b', 'd'),
+  ]);
+  const state = layoutWorkflow(wf);
+  const frame = Object.values(state.frames)[0];
+  assert.ok(state.cards.d.y - frame.y - frame.h >= GEOMETRY.gapY);
+  noOverlap(state);
+});
+
+test('regression: a late each moves nothing (round-3 verification)', () => {
+  // The members' repeat names g before the each arrives; clearance runs must already group them.
+  const { state } = replay([
+    { t: 'step', id: 'a', kind: 'trigger', label: 'a' },
+    { t: 'step', id: 'h', kind: 'ai', label: 'h', after: 'a', repeat: 'g' },
+    { t: 'step', id: 'p', kind: 'act', label: 'p', after: 'h', repeat: 'g' },
+    { t: 'step', id: 'x', kind: 'end', label: 'x', after: 'h' },
+    { t: 'each', id: 'g', over: 'items' },
+  ] as WorkflowOp[]);
+  assert.deepEqual(state.workflow.moves, []);
 });

@@ -32,6 +32,8 @@ export interface WorkflowLayoutState extends Omit<LayoutState, 'mode' | 'cards' 
     branchRows: number[];
     rowTops: number[];
     rowHeights: number[];
+    /** Sticky clearance below each inline root, including attachment holes. */
+    hostHeights: Record<string, number>;
     /** Id-sorted membership; physical slots preserve arrivals and holes until tidy. */
     stacks: Record<string, string[]>;
     attachmentSlots: Record<string, string[]>;
@@ -40,15 +42,15 @@ export interface WorkflowLayoutState extends Omit<LayoutState, 'mode' | 'cards' 
     spans: Record<string, WorkflowSpan[]>;
     edges: Record<string, { from: string; to: string }>;
     routes: Record<string, { loop: boolean; backwards: boolean }>;
-    /** Exact allowed translations for this transition, in pixels. */
-    moves: Array<{ reason: 'splice' | 'overflow'; ids: string[]; dx: number; dy: number }>;
+    /** Host reserves also apply when a splice shifts a host over an existing lower-row card. */
+    moves: Array<{ reason: 'splice' | 'host-reserve'; ids: string[]; dx: number; dy: number }>;
   };
 }
 export interface WorkflowLayoutOptions {
   tidy?: boolean;
   /** The applied operation. Only explicit splice provenance permits horizontal translations. */
   op?: WorkflowOp;
-  /** Spare attachment rows per band. Three prevents overflow for a flat, collapsed stack. */
+  /** Spare attachment slots per host. Three prevents overflow for a flat, collapsed stack. */
   spareRows?: number;
   measureText?: MeasureText;
 }
@@ -150,7 +152,20 @@ export function layoutWorkflow(
       ? node.kind === 'trigger' ? 0 : p ? p.column + 1 : 0
       : Math.max(0, ...incoming.map((e) => cells[e.from].column + 1));
     let row = p?.row ?? 0;
-    while (Object.values(cells).some((c) => c.column === column && c.row === row)) row++;
+    const blocked = (candidate: number): boolean => {
+      if (Object.values(cells).some((c) => c.column === column && c.row === candidate)) return true;
+      if (old?.rowTops[candidate] === undefined) return false;
+      // A new card can use an existing row only if its column already fits that row.
+      // Otherwise give it a new row rather than moving existing cards for an ordinary step.
+      const bracketBlocks = Object.values(prev?.frames ?? {}).some((f) => cells[f.nodes[0]]?.row < candidate
+        && f.x <= column * W.columnPitch && f.x + f.w > column * W.columnPitch
+        && f.y + f.h + G.gapY > old.rowTops[candidate]);
+      return bracketBlocks || inline.some((n) => cells[n.id]?.column === column && cells[n.id].row < candidate
+        && (old.rowTops[cells[n.id].row] ?? 0) + (old.hostHeights?.[n.id]
+          ?? W.rowPitch + G.head)
+          + (n.repeat ? G.gapY : 0) > old.rowTops[candidate]);
+    };
+    while (blocked(row)) row++;
     cells[id] = { column, row };
     while (branchRows.length <= row) branchRows.push(branchRows.length);
     arrival.push(id);
@@ -216,21 +231,10 @@ export function layoutWorkflow(
   };
   for (const n of inline) makeCard(n.id, n.id, 0, `workflow:${n.id}`, 0);
 
-  const spare = Number.isFinite(opts.spareRows) ? Math.max(0, Math.floor(opts.spareRows!)) : W.spareRows;
-  const rowTops = [...(old?.rowTops ?? [])];
-  const rowHeights = [...(old?.rowHeights ?? [])];
-  for (const row of branchRows) {
-    const used = Math.max(0, ...Object.keys(cards).filter((id) => cells[id].row === row).map((id) => offsets[id]));
-    rowHeights[row] = Math.max(rowHeights[row] ?? 0, (1 + Math.max(spare, used)) * W.rowPitch + G.head);
-    rowTops[row] = Math.max(rowTops[row] ?? 0, row === 0 ? 0 : rowTops[row - 1] + rowHeights[row - 1]);
-    const dy = old && row < old.rowTops.length ? rowTops[row] - old.rowTops[row] : 0;
-    if (dy > 0) moves.push({ reason: 'overflow', ids: Object.keys(cards).filter((id) => cells[id].row === row).sort(compare), dx: 0, dy });
-  }
-  for (const id of Object.keys(cards)) cards[id].y = rowTops[cells[id].row] + offsets[id] * W.rowPitch;
-
   const spans: Record<string, WorkflowSpan[]> = {};
-  const frames: Record<string, WorkflowBracket> = {};
-  for (const group of sorted(wf.groups)) {
+  // Clearance runs include repeat ids whose each has not been declared yet, so a late each moves nothing.
+  const groupIds = [...new Set([...Object.keys(wf.groups), ...inline.map((n) => n.repeat).filter((g): g is string => !!g)])].sort(compare);
+  for (const group of groupIds.map((id) => ({ id }))) {
     const members = inline.filter((n) => n.repeat === group.id).sort((a, b) =>
       cells[a.id].row - cells[b.id].row || cells[a.id].column - cells[b.id].column || compare(a.id, b.id));
     const runs: WorkflowSpan[] = [];
@@ -241,14 +245,70 @@ export function layoutWorkflow(
       else runs.push({ row: c.row, from: c.column, to: c.column, nodes: [n.id] });
     }
     spans[group.id] = runs;
-    for (const run of runs) {
-      const id = `repeat:${group.id}:${run.row}:${run.nodes[0]}`;
+  }
+  const spare = Number.isFinite(opts.spareRows) ? Math.max(0, Math.floor(opts.spareRows!)) : W.spareRows;
+  const hostHeights: Record<string, number> = { ...old?.hostHeights };
+  for (const n of inline) {
+    const used = Math.max(0, ...Object.values(attachmentOffsets[n.id] ?? {}));
+    const cell = cells[n.id];
+    const hosts = Object.keys(cards).filter((id) => cells[id].row === cell.row && cells[id].column === cell.column
+      && (wf.nodes[id].kind === 'agent' || wf.nodes[id].kind === 'ai' || !!stacks[id]?.length));
+    const reserved = Math.max(used, ...hosts.map((id) => offsets[id] + spare));
+    hostHeights[n.id] = Math.max(hostHeights[n.id] ?? 0, (1 + reserved) * W.rowPitch + G.head);
+  }
+  // A bracket spans only its own run, not the tallest stack elsewhere in the row.
+  const clearance = { ...hostHeights };
+  const bracketIds = new Map<WorkflowSpan, string>();
+  const claimed = new Set<string>();
+  for (const [group, runs] of Object.entries(spans)) for (const run of runs) {
+    const matches = Object.values(prev?.frames ?? {}).filter((f) => f.group === group
+      && f.id.startsWith(`repeat:${group}:${run.row}:`) && f.nodes.some((id) => run.nodes.includes(id))).sort((a, b) => compare(a.id, b.id));
+    const prior = Math.max(0, ...matches.map((f) => f.y - old!.rowTops[run.row] + G.head));
+    const retained = matches.find((f) => !claimed.has(f.id));
+    let id = retained?.id ?? `repeat:${group}:${run.row}:${run.nodes[0]}`;
+    while (claimed.has(id)) id += ':split';
+    claimed.add(id);
+    bracketIds.set(run, id);
+    const height = Math.max(prior, ...run.nodes.map((id) => hostHeights[id]));
+    for (const id of run.nodes) clearance[id] = height;
+  }
+  const rowTops = [...(old?.rowTops ?? [])];
+  const rowHeights = [...(old?.rowHeights ?? [])];
+  for (const row of branchRows) {
+    const members = inline.filter((n) => cells[n.id].row === row);
+    const columns = new Set(members.map((n) => cells[n.id].column));
+    const above = inline.filter((n) => cells[n.id].row < row && columns.has(cells[n.id].column));
+    rowTops[row] = Math.max(rowTops[row] ?? 0, ...above.map((n) => rowTops[cells[n.id].row] + clearance[n.id] + (n.repeat ? G.gapY : 0)));
+    rowHeights[row] = Math.max(rowHeights[row] ?? 0, ...members.map((n) => clearance[n.id]));
+    const dy = old && row < old.rowTops.length ? rowTops[row] - old.rowTops[row] : 0;
+    if (dy > 0) {
+      const ids = Object.keys(cards).filter((id) => prev?.cards[id] && cells[id].row === row).sort(compare);
+      if (ids.length) moves.push({ reason: 'host-reserve', ids, dx: 0, dy });
+    }
+  }
+  for (const id of Object.keys(cards)) cards[id].y = rowTops[cells[id].row] + offsets[id] * W.rowPitch;
+
+  const frames: Record<string, WorkflowBracket> = {};
+  for (const group of sorted(wf.groups)) {
+    for (const run of spans[group.id]) {
+      const id = bracketIds.get(run)!;
+      const before = prev?.frames[id];
+      const shared = before?.nodes.filter((key) => run.nodes.includes(key)) ?? [];
+      const shift = shared.length ? Math.min(...shared.map((key) => cards[key].x - prev!.cards[key].x)) : 0;
+      const split = before?.nodes.some((key) => wf.nodes[key]?.repeat === group.id
+        && cells[key]?.row === run.row && !run.nodes.includes(key));
+      const x = Math.min(run.from * W.columnPitch, before && !split ? before.x + shift : Infinity);
+      const right = Math.max(run.to * W.columnPitch + G.cardW, before && !split ? before.x + before.w + shift : 0);
       frames[id] = {
         id, kind: 'lane', label: group.over, parent: null, depth: 0, implicit: false, empty: false,
-        x: run.from * W.columnPitch, y: rowTops[run.row] + rowHeights[run.row] - G.head,
-        w: (run.to - run.from) * W.columnPitch + G.cardW, h: G.head,
+        x, y: rowTops[run.row] + Math.max(...run.nodes.map((id) => clearance[id])) - G.head,
+        w: right - x, h: G.head,
         group: group.id, nodes: [...run.nodes], bracket: true,
       };
+      if (before) {
+        const dx = frames[id].x - before.x, dy = frames[id].y - before.y;
+        if (dx || dy) moves.push({ reason: dx && opts.op?.t === 'splice' ? 'splice' : 'host-reserve', ids: [id], dx, dy });
+      }
     }
   }
   const routes: WorkflowLayoutState['workflow']['routes'] = {};
@@ -264,7 +324,7 @@ export function layoutWorkflow(
     version: 2, mode: 'workflow', width: bounds.w, height: bounds.h, pathY: 0,
     cards: orderedCards, frames, badges: {}, slots: attachmentSlots, shelves: {}, shelfKinds: {}, order: {}, bounds,
     workflow: {
-      cells, arrival, roles, branchRows, rowTops, rowHeights, stacks, attachmentSlots, attachmentOffsets,
+      cells, arrival, roles, branchRows, rowTops, rowHeights, hostHeights, stacks, attachmentSlots, attachmentOffsets,
       spans, edges: savedEdges, routes, moves,
     },
   };
