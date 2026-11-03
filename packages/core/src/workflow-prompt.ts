@@ -153,6 +153,8 @@ function rules(): string[] {
     '7. Use the tier the task needs: small for classify, route, extract, summarise, translate; mid for drafts, RAG, vision with tools and agents;',
     'large for planners, orchestrators and hard reasoning. Use only model-table ids and match input/output kinds and tool support.',
     'Speech needs an audio-input model before text classification: ASR, omni or realtime. Use an audio-output model for spoken answers.',
+    'Video and image generation: kind ai, task create, ai set to a model-table id with video or image output respectively; never kind tool.',
+    '{"t":"step","id":"create-video","kind":"ai","label":"Create video ad","task":"create","ai":"happyhorse-1.1-t2v"}',
     'For video ads and clips, use task create with a video model: wan3.0-video by default, or HappyHorse text/image-to-video with audio.',
     'Never say Alibaba has no video model.',
     'Scans need OCR or vision input. Image understanding is not image search. Use only established model/tool combinations.',

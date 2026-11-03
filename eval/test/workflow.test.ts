@@ -9,7 +9,7 @@ import { loadCatalog, loadModels } from '../../packages/core/src/catalog-node.ts
 import { createModelTable } from '../../packages/core/src/models.ts';
 import { buildSystemPrompt, createMemory } from '../../packages/core/src/prompt.ts';
 import { applyWorkflowOp, createWorkflowCtx, emptyWorkflow } from '../../packages/core/src/workflow.ts';
-import { checkWorkflow, validateWorkflowOp } from '../../packages/core/src/workflow-validate.ts';
+import { checkWorkflow, repairWorkflow, validateWorkflowOp } from '../../packages/core/src/workflow-validate.ts';
 import type { WorkflowGraph, WorkflowNode, WorkflowEdge, WorkflowOp } from '../../packages/core/src/types.ts';
 import type { RunTurnResult } from '../../packages/core/src/llm.ts';
 import { checkCases, EVAL_DIR, evaluateTurn, loadBase, loadCases, productNamePattern } from '../lib.ts';
@@ -334,21 +334,23 @@ test('video gap checks reject either field in raw ops and recorded gaps in Engli
   assert.deepEqual(workflowAssertions(v, e, catalog, models).filter((a) => !a.pass), []);
 });
 
-test('video follow-up requires a table video id or display name in the reply, not just in the graph or a gap', () => {
+test('video follow-up accepts a table video id, display name or family in the reply, not just in the graph or a gap', () => {
   const item = loadCases(path.join(EVAL_DIR, 'cases-workflow')).find((c) => c.id === 'wf-ko-video-ad')!;
   const e: WorkflowExpect = { mentionModels: item.turns[1].expect!.workflow!.mentionModels! };
   const v = view(); v.workflow!.nodes.draft.ai = 'wan3.0-video';
   for (const model of models.models.filter((m) => m.out.includes('video'))) {
-    for (const name of [model.id, model.name]) {
+    for (const name of [model.id, model.name, model.family.toUpperCase()]) {
       v.says = [`알리바바의 ${name} 모델을 사용할 수 있습니다.`];
       assert.equal(workflowAssertions(v, e, catalog, models).find((a) => a.name === 'workflow mentions video model')?.pass, true);
     }
   }
-  for (const text of ['', 'qwen-image-2.0', 'Qwen Image 2.0', '알리바바 모델을 사용할 수 있습니다.']) {
+  for (const text of ['', 'qwen-image-2.0', 'Qwen Image 2.0', '알리바바 모델을 사용할 수 있습니다.', 'I want a video.', 'HappyHorsepower']) {
     v.says = [text]; v.gaps = [{ need: 'wan3.0-video', note: '' }];
     assert.equal(workflowAssertions(v, e, catalog, models).find((a) => a.name === 'workflow mentions video model')?.pass, false);
   }
   v.ops = [{ t: 'done', summary: 'Wan 3.0 Video 모델을 사용할 수 있습니다.' }];
+  assert.equal(workflowAssertions(v, e, catalog, models).find((a) => a.name === 'workflow mentions video model')?.pass, true);
+  v.ops = [{ t: 'say', text: 'Native audio via ＨａｐｐｙＨｏｒｓｅ.' }];
   assert.equal(workflowAssertions(v, e, catalog, models).find((a) => a.name === 'workflow mentions video model')?.pass, true);
 });
 
@@ -378,9 +380,9 @@ test('video cases accept table video models with native audio and reject missing
     const v = view(g);
     v.says = [item.lang === 'ko' ? `${ai} 모델로 음성이 있는 세로형 광고를 만들고 사람이 승인한 후 게시합니다.`
       : `${ai} creates the video with voice-over, for a person to approve before publishing.`];
-    for (const turn of item.turns) {
+    for (const [index, turn] of item.turns.entries()) {
       assert.deepEqual(turn.expect?.workflow?.modelOutputs, { create: ['video'] });
-      assert.deepEqual(turn.expect?.workflow?.mentionModels, ['video']);
+      assert.deepEqual(turn.expect?.workflow?.mentionModels, index === 0 ? undefined : ['video']);
       const raw = { t: 'step', ...g.nodes.draft };
       assert.deepEqual(validateWorkflowOp(raw, catalog, models).warnings, []);
       assert.ok(evaluateTurn(v, turn, item.lang!, names, catalog).every((a) => a.pass));
@@ -401,6 +403,68 @@ test('video cases reject an image-only design even when the reply names a video 
     assert.equal(evaluateTurn(v, turn, item.lang!, names, catalog)
       .find((a) => a.name === 'workflow model output create: video')?.pass, false);
   }
+});
+
+test('video voice-over accepts native audio or separate TTS and still rejects absent audio or tool-only models', () => {
+  const e: WorkflowExpect = { tasks: ['speak'], tasksAny: [['speak']] };
+  const g = approved(); g.nodes.draft.task = 'create';
+  for (const model of models.models.filter((m) => m.out.includes('video') && m.out.includes('audio'))) {
+    g.nodes.draft.ai = model.id;
+    assert.deepEqual(failures(g, e), []);
+    g.nodes.draft.kind = 'tool';
+    assert.equal(score(g, e).find((a) => a.name === 'workflow task speak')?.pass, false);
+    g.nodes.draft.kind = 'ai';
+    const silent = createModelTable({ version: models.version, scope: 'international',
+      models: [{ ...model, out: ['video'] }], tools: [...models.tools.values()] });
+    assert.equal(workflowAssertions(view(g), e, catalog, silent)
+      .find((a) => a.name === 'workflow task speak')?.pass, false);
+  }
+  g.nodes.draft.ai = 'qwen-image-2.0';
+  assert.equal(score(g, e).find((a) => a.name === 'workflow task speak')?.pass, false);
+  const tts = models.models.find((m) => m.roles.includes('speak') && !m.out.includes('video'))!;
+  g.nodes.voice = n('voice', 'ai', { task: 'speak', ai: tts.id });
+  g.edges['draft-approve'].to = 'voice'; g.edges['voice-approve'] = edge('voice', 'approve');
+  assert.deepEqual(failures(g, e), []);
+});
+
+test('video first turns require the model on the graph; only the availability follow-up requires it in the reply', () => {
+  const cases = loadCases(path.join(EVAL_DIR, 'cases-workflow')).filter((c) => ['wf-video-ad', 'wf-ko-video-ad'].includes(c.id));
+  const g = approved(); g.nodes.draft.task = 'create'; g.nodes.draft.ai = 'happyhorse-1.1-t2v'; g.nodes.send.effect = 'publish';
+  for (const item of cases) {
+    const v = view(g);
+    v.says = [item.lang === 'ko' ? '음성이 포함된 광고를 만들고 사람이 승인한 후 게시합니다.'
+      : 'Create the ad with voice-over, then approve and publish it.'];
+    assert.ok(evaluateTurn(v, item.turns[0], item.lang!, names, catalog).every((a) => a.pass));
+    if (item.turns[1]) {
+      const result = evaluateTurn(v, item.turns[1], item.lang!, names, catalog);
+      assert.deepEqual(result.filter((a) => !a.pass).map((a) => a.name), ['workflow mentions video model']);
+      v.says = ['HappyHorse 모델을 사용할 수 있습니다.'];
+      assert.ok(evaluateTurn(v, item.turns[1], item.lang!, names, catalog).every((a) => a.pass));
+    }
+  }
+});
+
+test('offline video rescore preserves tool-kind failures until repair is explicitly applied', () => {
+  const g = approved(); g.nodes.draft.kind = 'tool'; g.nodes.draft.task = 'create'; g.nodes.draft.ai = 'happyhorse-1.1-t2v';
+  const item: EvalCase = { ...c, turns: [{ ask: 'Design it', expect: {
+    workflow: { tasks: ['speak'], modelOutputs: { create: ['video'] }, mentionModels: ['video'] },
+  } }] };
+  const r = record(g); r.turns[0].says = ['Create the clip via HappyHorse.'];
+  const dir = mkdtempSync(path.join(tmpdir(), 'video-rescore-test-'));
+  writeFileSync(path.join(dir, 'runs.jsonl'), JSON.stringify(r) + '\n');
+  rescore(dir, [item], catalog);
+  const [scored] = readJsonl<RunRecord>(path.join(dir, 'runs.jsonl'));
+  assert.equal(scored.pass, false);
+  assert.deepEqual(scored.turns[0].workflow, g);
+  assert.deepEqual(scored.turns[0].assertions.filter((a) => !a.pass).map((a) => a.name), [
+    'workflow task speak', 'workflow model output create: video',
+  ]);
+  const repaired = repairWorkflow(g, catalog, models);
+  assert.ok(repaired.warnings.some((w) => w.repaired));
+  r.turns[0].workflow = repaired.workflow;
+  writeFileSync(path.join(dir, 'runs.orig.jsonl'), JSON.stringify(r) + '\n');
+  rescore(dir, [item], catalog);
+  assert.equal(readJsonl<RunRecord>(path.join(dir, 'runs.jsonl'))[0].pass, true);
 });
 
 test('Korean video follow-up keeps the clip and approval and names an available model without a gap, offline', async () => {

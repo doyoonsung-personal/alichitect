@@ -436,6 +436,8 @@ function checkNodeStructure(s: CheckState, n: WorkflowNode, outs: WorkflowEdge[]
   if (((n.kind === 'ai' || n.kind === 'agent') && (!n.ai || !s.models.model(n.ai)))
     || (n.kind === 'knowledge' && n.ai && !s.models.model(n.ai))) {
     add(s, 'wf-ai-missing', n, 'Choose a model from the model table.', 'error');
+  } else if (n.task === 'create' && !n.ai && /\bvideos?\b|영상|비디오|视频|視頻|影片|影像/iu.test(n.label)) {
+    add(s, 'wf-ai-missing', n, 'Choose a video-output model from the model table and use an ai create step.');
   }
   // Unsupported hosts and attachment cycles cannot be drawn as valid agent capabilities.
   if (invalidAttachment(s.wf, n)) {
@@ -602,6 +604,16 @@ export function repairWorkflow(
     }
     g.nodes[n.id] = makeStep(value);
     repair('wf-attach-form', n.id, `'${n.label}' (${n.id}) was moved inline because its attachment was invalid.`, 'warn');
+  }
+  // Convert all producers before checking approval subjects, regardless of their id order.
+  for (const n of sorted(g.nodes)) {
+    const model = n.ai ? models.model(n.ai) : undefined;
+    if (n.kind !== 'tool' || n.on || !model?.out.some((m) => m === 'video' || m === 'image')) continue;
+    const value: WorkflowNode = { ...n, kind: 'ai' };
+    delete value.tool;
+    g.nodes[n.id] = makeStep(value);
+    repair('wf-bad-op', n.id,
+      `'${n.label}' (${n.id}) now uses an ai step for ${model.id}; image/video generation is a model call, not a built-in tool.`, 'warn');
   }
   for (const n of sorted(g.nodes)) {
     const value = { ...n };
