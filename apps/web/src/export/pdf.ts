@@ -386,7 +386,12 @@ export function buildDocument(i: PdfInput): PdfReport {
     });
   }
 
-  function start(title: string): void { newPage(A4); outline(title); heading(title); }
+  function start(title: string, sectionHeight = Infinity): void {
+    if (kind === A4 && y && bottomLimit() - y >= sectionHeight + 20) y += 20;
+    else newPage(A4);
+    outline(title);
+    heading(title);
+  }
   function paragraph(text: string, weight: 400 | 700 = 400): void {
     if (weight === 700) ensure(body.lh * 4);
     const p = ts.paragraph(text, contentW(), body.px, weight, body.lh);
@@ -482,11 +487,18 @@ export function buildDocument(i: PdfInput): PdfReport {
       if (step.text) paragraph(step.text);
     }
     const mapping = data.mapping.filter(row => row.runtime !== xt('workflow.unspecified') || row.service !== xt('workflow.unspecified'));
-    if (mapping.length) start(data.mappingTitle);
-    table([w('mapping.step'), w('mapping.runtime'), w('mapping.services')], mapping.map((row) => [
+    const runtimeHeaders = [w('mapping.step'), w('mapping.runtime'), w('mapping.services')];
+    const runtimeWidths = [.34, .26, .40];
+    const runtimeRows = mapping.map((row) => [
       `${row.id} - ${row.label}` + (row.on ? ` (${t('workflow.pop.attachedTo', { step: row.on })})` : ''),
       row.runtime, row.service,
-    ]), [.34, .26, .40]);
+    ]);
+    if (runtimeRows.length) {
+      const tableHeight = [runtimeHeaders, ...runtimeRows].reduce((height, row) => height + 12 + body.lh *
+        Math.max(...row.map((cell, k) => ts.wrap(cell, runtimeWidths[k] * (A4[0] - 2 * margin) - 12, body.px, 400).length)), 100);
+      start(data.mappingTitle, n && steps.length ? tableHeight : Infinity);
+      table(runtimeHeaders, runtimeRows, runtimeWidths);
+    }
     const cost = data.cost;
     // The sized solution is the client estimate. A separate default-usage scenario would look like a second quote.
     if (!(n && model.pricing) && (cost.lines.length || cost.fixed.length || cost.unpriced.length)) {
@@ -544,10 +556,13 @@ export function buildDocument(i: PdfInput): PdfReport {
   // ---------- components ----------
   function componentsSection(): void {
     if (!model.components.length) return;
-    newPage(A4);
+    const specs = model.components.map(c => componentSpec(c, xt));
+    const keep = 100 + specs.slice(0, 2).reduce((h, spec) => h + measureEntry(spec).h, 0);
+    if (n && model.workflow && kind === A4 && y && bottomLimit() - y >= keep) y += 20;
+    else newPage(A4);
     outline(xt('components.heading'));
     heading(xt('components.heading'), xt('components.intro'));
-    for (const c of model.components) entry(componentSpec(c, xt));
+    for (const spec of specs) entry(spec);
   }
 
   // ---------- recommendations ----------
@@ -698,13 +713,16 @@ export function buildDocument(i: PdfInput): PdfReport {
   /** The honest part: trade-offs with how each is handled, then numbered next steps. */
   function considerationsSection(nv: NarrativeModel): void {
     if (!nv.tradeoffs.length && !nv.next.length) return;
-    if (!y || kind !== A4 || bottomLimit() - y < 230) newPage(A4);
-    else y += 20;
-    outline(xt('next.heading'));
-    heading(xt('next.heading'));
+    const blocks = nv.tradeoffs.map((t) => ({ p: ts.paragraph(t.text, MEASURE, body.px, 400, body.lh), m: t.mitigation ? ts.paragraph(t.mitigation, MEASURE, body.px, 400, body.lh) : null }));
+    const heightOf = (b: (typeof blocks)[number]): number => 7 + b.p.height + (b.m ? 4 + 11 + b.m.height : 0) + 9;
+    const numW = 22;
+    const steps = nv.next.map((t) => ts.paragraph(t, MEASURE - numW, body.px, 400, body.lh));
+    const stepsHeight = steps.reduce((h, p) => h + p.height + 14, 0);
+    const priceNote = nv.pricingNote ? ts.paragraph(nv.pricingNote, MEASURE, body.px, 400, body.lh) : null;
+    const height = 60 + (blocks.length ? 38 : 0) + blocks.reduce((h, b) => h + heightOf(b), 0)
+      + (steps.length ? 32 + stepsHeight : 0) + (priceNote ? priceNote.height + 12 : 0);
+    start(xt('next.heading'), height);
     if (nv.tradeoffs.length) {
-      const blocks = nv.tradeoffs.map((t) => ({ p: ts.paragraph(t.text, MEASURE, body.px, 400, body.lh), m: t.mitigation ? ts.paragraph(t.mitigation, MEASURE, body.px, 400, body.lh) : null }));
-      const heightOf = (b: (typeof blocks)[number]): number => 7 + b.p.height + (b.m ? 4 + 11 + b.m.height : 0) + 9;
       sub(xt('next.tradeoffs'), heightOf(blocks[0]));
       for (const b of blocks) {
         ensure(heightOf(b));
@@ -717,9 +735,7 @@ export function buildDocument(i: PdfInput): PdfReport {
       y += 6;
     }
     if (nv.next.length) {
-      const numW = 22;
-      const steps = nv.next.map((t) => ts.paragraph(t, MEASURE - numW, body.px, 400, body.lh));
-      sub(xt('next.steps'), steps[0].height + 14);
+      sub(xt('next.steps'), stepsHeight < bottomLimit() - CONTENT_TOP - 40 ? stepsHeight : steps[0].height + 14);
       steps.forEach((p, k) => {
         ensure(p.height + 14);
         rule();
@@ -729,10 +745,9 @@ export function buildDocument(i: PdfInput): PdfReport {
       rule();
     }
     // no product of the design has a catalog price: say who prepares the estimate rather than leave cost unanswered
-    if (nv.pricingNote) {
-      const p = ts.paragraph(nv.pricingNote, MEASURE, body.px, 400, body.lh);
-      ensure(p.height + 12);
-      y = ts.draw(p, margin, y + 10, ink(body.px, 400, COLOR.ink2)) + 2;
+    if (priceNote) {
+      ensure(priceNote.height + 12);
+      y = ts.draw(priceNote, margin, y + 10, ink(body.px, 400, COLOR.ink2)) + 2;
     }
   }
 
@@ -763,9 +778,9 @@ export function buildDocument(i: PdfInput): PdfReport {
     const sections: EntrySpec['sections'] = n
       ? [{ label: t('components.why'), paragraphs: c.draftWhy ? [{ text: c.draftWhy, color: COLOR.ink }] : roleParas }]
       : [{ label: t('components.role'), paragraphs: roleParas }];
-    if (c.what) sections.push({ label: t('components.what'), paragraphs: [{ text: c.what, color: COLOR.ink2 }] });
+    if (c.what && (!n || !c.draftWhy)) sections.push({ label: t('components.what'), paragraphs: [{ text: c.what, color: COLOR.ink2 }] });
     if (c.notes) sections.push({ label: t('components.notes'), paragraphs: [{ text: c.notes, color: COLOR.warn }] });
-    if (c.price) sections.push({ label: t('components.price'), paragraphs: [{ text: c.price, color: COLOR.ink2 }] });
+    if (c.price && !(n && model.pricing)) sections.push({ label: t('components.price'), paragraphs: [{ text: c.price, color: COLOR.ink2 }] });
     // a construct (users, a mobile app) has no documentation; with a draft its entry leaves the row out
     if (!(n && c.construct)) sections.push({ label: t('components.docs'), paragraphs: [], link: c.docs ? { text: c.docs.replace(/^https:\/\//, ''), url: c.docs } : { missing: t('components.noDocs') } });
     return { product: c.product, name: c.name, meta, sections };

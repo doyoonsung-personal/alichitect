@@ -78,11 +78,13 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
     ? [firstPageWith(wt(state.lang, 'diagram.overview')) > 0 ? wt(state.lang, 'diagram.overview') : wt(state.lang, 'diagram.heading'),
       ...(wf?.steps.some(s => s.text) ? [wt(state.lang, 'steps.heading')] : []), ...(mapping.length ? [model.workflow.mappingTitle] : []),
       ...(showCost ? [model.workflow.costTitle] : []), ...(questions.length ? [model.workflow.questionsTitle] : [])] : [xt(k)]);
-  const at = titles.map(title => title === xt('next.heading')
+  const canSharePage = (title: string) => title === xt('next.heading') || title === wf?.mappingTitle
+    || (!!wf && !!n && title === xt('components.heading'));
+  const at = titles.map(title => canSharePage(title)
     ? info.pages.find(p => p.n > 1 && squash(p.text).includes(squash(title)))?.n ?? -1 : firstPageWith(title));
   titles.forEach((title, idx) => {
     if (at[idx] < 0) problems.push(`heading missing: ${title}`);
-    else if (idx > 0 && (at[idx] < at[idx - 1] || (at[idx] === at[idx - 1] && title !== xt('next.heading')))) problems.push(`"${title}" (page ${at[idx]}) must come after "${titles[idx - 1]}" (page ${at[idx - 1]})`);
+    else if (idx > 0 && (at[idx] < at[idx - 1] || (at[idx] === at[idx - 1] && !canSharePage(title)))) problems.push(`"${title}" (page ${at[idx]}) must come after "${titles[idx - 1]}" (page ${at[idx - 1]})`);
   });
 
   if (model.workflow) {
@@ -119,7 +121,7 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
   for (const c of model.components) if (!all.includes(squash(c.name))) problems.push(`product name missing from the text: ${c.name}`);
   if (!n) for (const r of model.revisions) if (!all.includes(squash(r.ask.slice(0, 40)))) problems.push(`revision ${r.n}'s ask is missing`);
   if (model.components.length && !all.includes(squash(xt(n ? 'components.why' : 'components.role')))) problems.push(`"${xt(n ? 'components.why' : 'components.role')}" label is missing`);
-  if (model.components.length && !all.includes(squash(xt('components.what')))) problems.push('"What it does" label is missing');
+  if (model.components.some(c => c.what && (!n || !c.draftWhy)) && !all.includes(squash(xt('components.what')))) problems.push('"What it does" label is missing');
 
   // the drafted narrative: what the business reader is there for must all be in the text
   if (n) {
