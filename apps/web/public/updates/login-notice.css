@@ -1,0 +1,22 @@
+dialog.ab-release {
+  box-sizing: border-box; width: min(36rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem);
+  margin: auto; padding: 0; overflow: auto; overscroll-behavior: contain; border: 1px solid var(--line-1);
+  border-radius: var(--r-control); background: var(--sheet); color: var(--ink); font: inherit;
+}
+.ab-release::backdrop { background: rgb(0 0 0 / 55%); }
+.ab-release header, .ab-release footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.5rem; }
+.ab-release header { border-bottom: 1px solid var(--line-1); }
+.ab-release h2, .ab-release h3, .ab-release p { margin: 0; }
+.ab-release h2 { font-size: 1.3rem; line-height: 1.4; }
+.ab-release section { padding: 1rem 1.5rem 0; }
+.ab-release h3 { font-size: 1rem; line-height: 1.4; margin-bottom: .35rem; }
+.ab-release p, .ab-release summary { font-size: .9rem; line-height: 1.55; }
+.ab-release details { margin: .55rem 0 0; }
+.ab-release summary, .ab-release a { cursor: pointer; color: var(--action); }
+.ab-release img { display: block; width: 100%; height: auto; margin-top: .5rem; border: 1px solid var(--line-1); }
+.ab-release footer { margin-top: 1rem; border-top: 1px solid var(--line-1); }
+.ab-release footer form { margin-inline-start: auto; }
+.ab-release form { margin-block: 0; }
+.ab-release button { padding: .5rem .8rem; border: 0; border-radius: var(--r-control); background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.ab-release .ab-release-done { background: var(--action-fill); color: var(--on-action); }
+.ab-release :focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }

@@ -25,6 +25,7 @@ import { handlePricing } from './pricing.ts';
 import { handleMcp } from './mcp.ts';
 import { keyMenu } from './key-menu.ts';
 import { latestDesign, openedDesign } from './mcp-designs.ts';
+import { attachLoginNotice, claimLoginNotice } from './release-notice.ts';
 import { authAsset } from './pages/assets.ts';
 import { LANG_COOKIE, isLang, langOfRequest } from './pages/i18n.ts';
 import { accountPage, adminPage, loginPage, pendingPage } from './pages/views.ts';
@@ -54,6 +55,7 @@ export default {
     let res: Response;
     try {
       res = await route(request, env, ctx, url);
+      res = await attachLoginNotice(request, res);
     } catch (e) {
       console.error(JSON.stringify({ evt: 'unhandled', path: url.pathname.slice(0, 100), error: (e as Error)?.name ?? 'error' }));
       res = isApi(url.pathname) ? json(500, { type: 'fatal', code: 'internal', message: 'Something went wrong on the server. Please try again.', retryable: true }) : html(500, '<!doctype html><title>Error</title><p>Something went wrong. Please try again.</p>');
@@ -180,6 +182,10 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
   }
 
   // ---------- approved ----------
+  if (path === '/api/release-notice') {
+    if (method !== 'POST') return json(405, { error: 'method-not-allowed' }, { Allow: 'POST' });
+    return claimLoginNotice(request, env, me, langOfRequest(request, url).lang);
+  }
   if (path === '/account/keys' || path === '/account/keys/revoke') {
     if (isSharedAccount(env, me.email)) return json(403, { error: 'personal-account-required' });
     return keyMenu(request, env, me, pageCtx(request, url));
