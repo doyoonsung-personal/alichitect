@@ -20,6 +20,8 @@ This connection uses a manually provisioned bearer credential. Clients that requ
 
 ## Try it
 
+After connecting, the client can discover the available tools and their schemas. The MCP initialization response also supplies a short guide for the key's access level. A separate IDE skill is optional and can describe your team's preferred discovery questions or handoff process.
+
 Ask the agent: “Design an Alibaba Cloud deployment for our two Linux web servers in Singapore. Our database stays with its current provider. Then ask for the inputs you need to price it.”
 
 - `design_solution` creates a cloud design or AI workflow. To revise one, supply its `designId` and current `revision`.
