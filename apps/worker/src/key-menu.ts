@@ -34,10 +34,10 @@ export async function keyMenu(req: Request, env: Env, user: UserRow, page: PageC
   const bearer = 'Bearer <YOUR_API_KEY>';
   const servers = { alichitect: { type: 'http', url: endpoint, headers: { Authorization: bearer } } };
   return html(invalid ? 400 : 200, shell(page, {
-    title: t(page.lang, 'mcp.keys'), bodyClass: 'page page--admin',
+    title: t(page.lang, 'mcp.keys'), bodyClass: 'page page--admin page--keys',
     body: `${appbar(page, user, 'mcp.keys')}<main class="account" id="main"><h1 class="title">${L('mcp.keys')}</h1>
     <p class="intro intro--left">${L('mcp.intro')}</p>
-    ${secret ? `<section class="section" role="status"><p>${L('mcp.once')}</p><input id="mcp-secret" class="input" aria-label="API key" readonly value="${e(secret)}"><button type="button" hidden data-copy-key data-copied="${L('mcp.copied')}" class="btn">${L('mcp.copy')}</button></section>` : ''}
+    ${secret ? `<section class="section" role="status"><p>${L('mcp.once')}</p><input id="mcp-secret" class="input" aria-label="API key" readonly value="${e(secret)}"><button type="button" hidden data-copy-from="mcp-secret" data-copied="${L('mcp.copied')}" class="btn">${L('mcp.copy')}</button></section>` : ''}
     ${invalid ? `<p role="alert">${L('mcp.invalid')}</p>` : ''}
     <form class="form form--auth form--narrow" method="post" action="${base}"><input type="hidden" name="issuance" value="${randomHex(16)}">
     <label>${L('mcp.name')}<input required maxlength="60" name="name" placeholder="Qoder" class="input"></label>
@@ -54,6 +54,10 @@ export async function keyMenu(req: Request, env: Env, user: UserRow, page: PageC
     <details><summary>Qoder · JSON</summary><pre class="mcp-config">${e(JSON.stringify({ mcpServers: servers }, null, 2))}</pre></details>
     <details><summary>VS Code · mcp.json</summary><pre class="mcp-config">${e(JSON.stringify({ servers }, null, 2))}</pre></details>
     <details><summary>${L('mcp.setupHelp')}</summary><p>${L('mcp.setupTrouble')}</p></details></section>
+    <section class="section" aria-labelledby="mcp-workflow"><h2 class="section__title" id="mcp-workflow">${L('mcp.workflowTitle')}</h2>
+    <p class="intro intro--left">${L('mcp.workflowIntro')}</p>
+    <textarea id="mcp-prompt" class="textarea" rows="8" readonly aria-labelledby="mcp-workflow">${L('mcp.workflowPrompt')}</textarea>
+    <button type="button" hidden data-copy-from="mcp-prompt" data-copied="${L('mcp.copied')}" class="btn btn--secondary">${L('mcp.copyPrompt')}</button></section>
     ${keys.length ? keys.map(k => `<section class="section"><h2 class="section__title">${e(k.name)}</h2>
       <p><code>ali_mcp_${e(k.id)}_…</code> · ${L(k.scope === 'read' ? 'mcp.read' : 'mcp.write')}</p>
       <p>${L('mcp.expires')} · ${time(page, k.expires_at)}<br>${L('mcp.used')} · ${time(page, k.last_used_at, t(page.lang, 'mcp.never'))}</p>

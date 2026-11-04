@@ -24,7 +24,7 @@ This connection uses a manually provisioned bearer credential. Clients that requ
 
 After connecting, the client can discover the available tools and their schemas. The MCP initialization response also supplies a short guide for the key's access level. A separate IDE skill is optional and can describe your team's preferred discovery questions or handoff process.
 
-Ask the agent: “Design an Alibaba Cloud deployment for our two Linux web servers in Singapore. Our database stays with its current provider. Then ask for the inputs you need to price it.”
+Attach the customer’s brief or PDF in an IDE that can read it, or paste their pain point into the chat. The key page has a starter prompt you can copy. The IDE extracts the requirements and checks the source material before asking the customer for missing facts. It sends a concise brief to Alichitect, refines the design and estimate with the customer's answers, and writes the client report itself. The report should distinguish monthly and one-time costs and identify rate sources, assumptions, exclusions and open decisions.
 
 - `design_solution` creates a cloud design or AI workflow. To revise one, supply its `designId` and current `revision`.
 - `estimate_solution` accepts usage and corrections against that design revision. It returns monthly and one-time subtotals, assumptions and open questions.

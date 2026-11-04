@@ -12,6 +12,7 @@ const PAGE_CSS = `
 .mcp-guide li, .mcp-guide details { margin-block: var(--s-3); }
 .mcp-guide pre { margin-block: var(--s-2); }
 .mcp-guide summary { cursor: pointer; }
+.page--keys [data-copy-from][hidden] { display: none; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   margin: 0; min-height: 100vh;
@@ -225,6 +226,8 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
   .lockup--landing .lockup__name { font-size: var(--t-18); }
   .lockup--landing .lockup__rule { margin: 0 12px; height: 22px; }
   .appbar__section, .appbar__me span { display: none; }
+  .page--keys .appbar { height: auto; min-height: var(--header-h); flex-wrap: wrap; padding-block: var(--s-2); }
+  .page--keys .appbar__right { flex-wrap: wrap; }
   .admin, .account { padding: var(--s-6) var(--s-5) var(--s-10); }
   .facts { grid-template-columns: 1fr; row-gap: var(--s-1); }
   .facts dd { margin-bottom: var(--s-3); }
@@ -257,15 +260,17 @@ export const PAGES_JS = `// The pages' script (theme.js only puts the stored the
       return;
     }
   } catch { /* storage unavailable: the browser language stands */ }
-  const secret = document.getElementById('mcp-secret');
-  const copy = document.querySelector('[data-copy-key]');
-  if (secret && copy) {
+  for (const copy of document.querySelectorAll('[data-copy-from]')) {
+    const field = document.getElementById(copy.dataset.copyFrom);
+    if (!field) continue;
     copy.hidden = false;
     copy.addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(secret.value); copy.textContent = copy.dataset.copied; }
-      catch { secret.select(); }
+      try { await navigator.clipboard.writeText(field.value); copy.textContent = copy.dataset.copied; }
+      catch { field.select(); }
     });
-    window.addEventListener('pagehide', () => { secret.removeAttribute('value'); secret.value = ''; copy.hidden = true; });
+    if (field.id === 'mcp-secret') {
+      window.addEventListener('pagehide', () => { field.removeAttribute('value'); field.value = ''; copy.hidden = true; });
+    }
   }
   document.addEventListener('submit', (e) => {
     const f = e.target;

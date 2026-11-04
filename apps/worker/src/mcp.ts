@@ -25,10 +25,12 @@ export async function handleMcp(req: Request, env: Env, ctx: ExecutionContextLik
     { 'WWW-Authenticate': 'Bearer realm="Alichitect MCP"' });
   if (req.method !== 'POST') return json(405, { error: 'method-not-allowed' }, { Allow: 'POST' });
   const instructions = auth.scope === 'write'
-    ? 'Use design_solution with a brief to create an Alibaba Cloud architecture or AI workflow. Keep the returned designId and revision. ' +
+    ? 'Read the customer’s source material in your IDE and summarize confirmed requirements, constraints and assumptions in the brief. ' +
+      'Use design_solution to create an Alibaba Cloud architecture or AI workflow. Keep the returned designId and revision. ' +
       'For a follow-up, get_design reads the latest revision without spending a turn. Pass that ID and revision to design_solution to revise the design or estimate_solution to price it. ' +
-      'Ask the user for missing inputs, then submit their answers against the latest revision. Give each change a fresh requestId and reuse the exact ID and inputs after a timeout. ' +
-      'Return the private design URL to its owner.'
+      'Check the source material before asking the user for missing inputs that affect the recommendation or cost. Give each change a fresh requestId and reuse the exact ID and inputs after a timeout. ' +
+      'Use the current estimate to write the client report yourself. Separate monthly and one-time costs, cite rate sources, and identify assumptions, exclusions and outstanding questions. ' +
+      'If estimateOutdated is true, refresh the estimate before reporting. Include the private design URL for its owner.'
     : 'This key has read-only access. Ask the user for their design ID, then use get_design to read its current design, estimate and private web link without spending a turn.';
   const server = new McpServer({ name: 'alichitect', version: '1.0.0' }, { instructions });
   async function result(work: Promise<Awaited<ReturnType<typeof getDesign>>>) {
