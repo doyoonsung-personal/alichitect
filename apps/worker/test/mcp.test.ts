@@ -13,6 +13,20 @@ const rpc = (method: string, params = {}, token?: string, origin: string | null 
 const form = (path: string, cookie: string, values: Record<string, string>, origin?: string) =>
   req(path, { method: 'POST', cookie, body: new URLSearchParams(values).toString(), type: 'application/x-www-form-urlencoded', origin });
 
+test('the key page explains remote setup in each language and gives valid client-specific examples', async () => {
+  const env = makeEnv(), owner = await signIn(env, 'onboarding@example.org', { status: 'approved' });
+  for (const [lang, title] of [['en', 'Connect an agentic IDE'], ['ko', '에이전트 IDE 연결하기'], ['zh', '连接智能体 IDE']]) {
+    const page = await (await call(env, req('/account/keys', { cookie: owner.cookie, headers: { 'Accept-Language': lang } }))).text();
+    assert.ok(page.includes(title));
+    assert.ok(page.includes('<code>Authorization: Bearer &lt;YOUR_API_KEY&gt;</code>'));
+    for (const name of ['Streamable HTTP', 'get_design', 'design_solution', 'estimate_solution']) assert.ok(page.includes(name));
+    const examples = [...page.matchAll(/<details><summary>[^<]+<\/summary><pre class="mcp-config">([^<]+)<\/pre>/g)]
+      .map(([, html]) => JSON.parse(html.replaceAll('&quot;', '"').replaceAll('&lt;', '<').replaceAll('&gt;', '>')));
+    const servers = { alichitect: { type: 'http', url: ORIGIN + '/mcp', headers: { Authorization: 'Bearer <YOUR_API_KEY>' } } };
+    assert.deepEqual(examples, [{ mcpServers: servers }, { servers }]);
+  }
+});
+
 test('personal keys are shown once, scoped to MCP and rechecked for expiry, revocation and approval', async () => {
   const env = makeEnv();
   const owner = await signIn(env, 'dev@example.org', { status: 'approved' });
