@@ -36,10 +36,15 @@ test('personal keys are shown once, scoped to MCP and rechecked for expiry, revo
   assert.equal((await call(env, rpc('tools/list', {}, key, 'https://other.example'))).status, 403);
   const hello = await (await call(env, rpc('initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'test', version: '1' } }, key))).json();
   assert.equal(hello.result.serverInfo.name, 'alichitect');
+  assert.match(hello.result.instructions, /estimate_solution/);
+  assert.match(hello.result.instructions, /requestId/);
   const list = async (k: string) => (await (await call(env, rpc('tools/list', {}, k))).json()).result.tools.map((v: { name: string }) => v.name).sort();
   assert.deepEqual(await list(key), ['design_solution', 'estimate_solution', 'get_design']);
   const read = (await issueKey(env.DB, owner.user.id, 'reader', 'read', 30, Date.now()))!;
   assert.deepEqual(await list(read), ['get_design']);
+  const readHello = await (await call(env, rpc('initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'test', version: '1' } }, read))).json();
+  assert.match(readHello.result.instructions, /get_design/);
+  assert.doesNotMatch(readHello.result.instructions, /design_solution|estimate_solution/);
   const denied = await (await call(env, rpc('tools/call', { name: 'estimate_solution', arguments: {} }, read))).json();
   assert.ok(denied.error || denied.result?.isError);
   await call(env, form('/account/keys/revoke', other.cookie, { id: key.slice(8, 24) }));

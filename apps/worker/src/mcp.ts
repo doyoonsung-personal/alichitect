@@ -24,7 +24,13 @@ export async function handleMcp(req: Request, env: Env, ctx: ExecutionContextLik
   if (!auth) return json(401, { error: 'Provide an active MCP key from Account → MCP API keys.' },
     { 'WWW-Authenticate': 'Bearer realm="Alichitect MCP"' });
   if (req.method !== 'POST') return json(405, { error: 'method-not-allowed' }, { Allow: 'POST' });
-  const server = new McpServer({ name: 'alichitect', version: '1.0.0' });
+  const instructions = auth.scope === 'write'
+    ? 'Use design_solution with a brief to create an Alibaba Cloud architecture or AI workflow. Keep the returned designId and revision. ' +
+      'For a follow-up, get_design reads the latest revision without spending a turn. Pass that ID and revision to design_solution to revise the design or estimate_solution to price it. ' +
+      'Ask the user for missing inputs, then submit their answers against the latest revision. Give each change a fresh requestId and reuse the exact ID and inputs after a timeout. ' +
+      'Return the private design URL to its owner.'
+    : 'This key has read-only access. Ask the user for their design ID, then use get_design to read its current design, estimate and private web link without spending a turn.';
+  const server = new McpServer({ name: 'alichitect', version: '1.0.0' }, { instructions });
   async function result(work: Promise<Awaited<ReturnType<typeof getDesign>>>) {
     // A dropped IDE connection should not abandon a billed edit before its receipt is durable.
     ctx.waitUntil(work.then(() => undefined, () => undefined));
