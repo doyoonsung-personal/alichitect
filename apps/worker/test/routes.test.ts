@@ -74,11 +74,11 @@ describe('route gating', async () => {
     assert.deepEqual(Object.keys(me).sort(), ['createdAt', 'email', 'lang', 'links', 'name', 'role', 'status', 'turnsPerDay', 'turnsToday']);
     assert.equal(me.email, 'approved@example.com');
     assert.equal(me.turnsPerDay, 3);
-    assert.deepEqual(me.links, { account: '/account', admin: null, signOut: '/auth/logout' });
+    assert.deepEqual(me.links, { account: '/account', admin: null, signOut: '/auth/logout', keys: '/account/keys' });
     assert.doesNotMatch(text, /pw_|hash|salt/);
     const admin = (await (await call(env, req('/api/me', { cookie: cookies.admin }))).json()) as Record<string, unknown>;
     assert.equal(admin.turnsPerDay, null, 'admins are unlimited');
-    assert.deepEqual(admin.links, { account: '/account', admin: '/admin', signOut: '/auth/logout' });
+    assert.deepEqual(admin.links, { account: '/account', admin: '/admin', signOut: '/auth/logout', keys: '/account/keys' });
   });
 
   test('/api/health: the SPA shape and no secret for signed-in users', async () => {

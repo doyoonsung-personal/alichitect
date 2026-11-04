@@ -23,5 +23,9 @@
     "puppeteer-core": "25.16.0",
     "typescript": "6.0.3",
     "wrangler": "4.156.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.4.0",
+    "zod": "4.6.7"
   }
 }

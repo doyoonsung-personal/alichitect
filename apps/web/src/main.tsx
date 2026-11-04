@@ -8,7 +8,8 @@ import './styles/landing.css';
 import { App } from './app/App.tsx';
 import { createController, type PendingAsk } from './app/controller.ts';
 import { catalog } from './catalog/catalog.ts';
-import { langFromTag, isLang } from './i18n/t.ts';
+import { langFromTag, isLang, t } from './i18n/t.ts';
+import { importAgentDesign } from './app/agent-design.ts';
 import type { Lang } from './i18n/t.ts';
 import { loadFixture } from './replay/registry.ts';
 import { TOOLS } from './app/tools.ts';
@@ -47,7 +48,8 @@ function tabSession(): string | null {
     return null;
   }
 }
-const resumeId = TOOLS && new URLSearchParams(location.search).has('replay') ? null : tabSession();
+const designId = new URLSearchParams(location.search).get('design');
+const resumeId = designId !== null || (TOOLS && new URLSearchParams(location.search).has('replay')) ? null : tabSession();
 
 // The ask of a turn that the end of the session cut off, kept in this tab across the trip to /login.
 const ASK_KEY = 'ab.pending.ask';
@@ -135,12 +137,31 @@ store.subscribe(() => {
 // Not in the production build (src/app/tools.ts).
 if (TOOLS) (window as unknown as { __ab: unknown }).__ab = { store, controller };
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <AppProvider store={store} controller={controller} catalog={catalog}>
-      <App />
-    </AppProvider>
-  </StrictMode>,
-);
+async function start(): Promise<void> {
+  const root = createRoot(document.getElementById('root')!);
+  if (designId !== null) {
+    try {
+      const record = await importAgentDesign(designId, store.getState().session, lang);
+      // Continue in a fresh browser session. Opening the original link always fetches the owner's latest design.
+      store.dispatch({ type: 'session/open', record, now: Date.now() });
+      if (sessions.save(record)) {
+        const url = new URL(location.href);
+        url.searchParams.delete('design');
+        history.replaceState(null, '', url);
+      }
+    } catch {
+      root.render(<main role="alert"><p>{t(lang, 'account.agentDesignError')}</p><a href="/">Alichitect</a></main>);
+      return;
+    }
+  }
+  root.render(
+    <StrictMode>
+      <AppProvider store={store} controller={controller} catalog={catalog}>
+        <App />
+      </AppProvider>
+    </StrictMode>,
+  );
+  await controller.boot();
+}
 
-void controller.boot();
+void start();
