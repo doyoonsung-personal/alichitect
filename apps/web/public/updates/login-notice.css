@@ -4,6 +4,9 @@ dialog.ab-release {
   border-radius: var(--r-control); background: var(--sheet); color: var(--ink); font: inherit;
 }
 .ab-release::backdrop { background: rgb(0 0 0 / 55%); }
+.ab-release.is-minimizing { pointer-events: none; }
+.ab-release.is-minimizing::backdrop { opacity: 0; transition: opacity 400ms ease; }
+[data-changelog-highlight] { outline: 3px solid var(--action); outline-offset: 3px; border-radius: var(--r-control); }
 .ab-release header, .ab-release footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.5rem; }
 .ab-release header { border-bottom: 1px solid var(--line-1); }
 .ab-release h2, .ab-release h3, .ab-release p { margin: 0; }
@@ -15,8 +18,10 @@ dialog.ab-release {
 .ab-release summary, .ab-release a { cursor: pointer; color: var(--action); }
 .ab-release img { display: block; width: 100%; height: auto; margin-top: .5rem; border: 1px solid var(--line-1); }
 .ab-release footer { margin-top: 1rem; border-top: 1px solid var(--line-1); }
-.ab-release footer form { margin-inline-start: auto; }
-.ab-release form { margin-block: 0; }
+.ab-release footer button { margin-inline-start: auto; }
 .ab-release button { padding: .5rem .8rem; border: 0; border-radius: var(--r-control); background: transparent; color: inherit; font: inherit; cursor: pointer; }
 .ab-release .ab-release-done { background: var(--action-fill); color: var(--on-action); }
+.ab-release-language { display: flex; gap: .25rem; padding: .75rem 1.5rem 0; }
+.ab-release-language button { border: 1px solid var(--line-1); font-size: .85rem; }
+.ab-release-language [aria-pressed="true"] { border-color: var(--action); color: var(--action); }
 .ab-release :focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }

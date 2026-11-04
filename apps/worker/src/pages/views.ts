@@ -238,6 +238,7 @@ export function appbar(c: PageCtx, me: UserRow, section: StringKey): string {
   <span class="appbar__section">${L(section)}</span>
   <div class="appbar__right">
     ${langSwitch(c)}
+    ${approved ? `<a class="btn btn--ghost" data-changelog-link href="/changelog"${section === 'release.changelog' ? ' aria-current="page"' : ''}>${L('release.changelog')}</a>` : ''}
     ${approved ? `<a class="btn btn--ghost" href="/">${L('admin.openApp')}</a>` : ''}
     ${me.role === 'admin' && approved && section !== 'admin.label' ? `<a class="btn btn--ghost" href="/admin">${L('admin.label')}</a>` : ''}
     <a class="appbar__me" href="/account"${section === 'account.title' ? ' aria-current="page"' : ''}>${avatar(me.name, me.email)}<span>${e(me.email)}</span></a>

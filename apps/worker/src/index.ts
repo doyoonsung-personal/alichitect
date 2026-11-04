@@ -25,7 +25,7 @@ import { handlePricing } from './pricing.ts';
 import { handleMcp } from './mcp.ts';
 import { keyMenu } from './key-menu.ts';
 import { latestDesign, openedDesign } from './mcp-designs.ts';
-import { attachLoginNotice, claimLoginNotice } from './release-notice.ts';
+import { attachLoginNotice, changelogPage, claimLoginNotice } from './release-notice.ts';
 import { authAsset } from './pages/assets.ts';
 import { LANG_COOKIE, isLang, langOfRequest } from './pages/i18n.ts';
 import { accountPage, adminPage, loginPage, pendingPage } from './pages/views.ts';
@@ -182,6 +182,10 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
   }
 
   // ---------- approved ----------
+  if (path === '/changelog') {
+    if (!isGet(method)) return json(405, { error: 'method-not-allowed' }, { Allow: 'GET, HEAD' });
+    return changelogPage(request, env, me, pageCtx(request, url));
+  }
   if (path === '/api/release-notice') {
     if (method !== 'POST') return json(405, { error: 'method-not-allowed' }, { Allow: 'POST' });
     return claimLoginNotice(request, env, me, langOfRequest(request, url).lang);

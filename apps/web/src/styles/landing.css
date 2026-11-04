@@ -275,6 +275,8 @@
 
 /* Phones are not a target (spec 4), but nothing may break: the lockup stacks and the example rows lose their tag column */
 @media (max-width: 560px) {
+  .landing:has([data-changelog-link]) .landing__util { position: static; align-self: stretch; flex-wrap: wrap; justify-content: flex-end; padding: 12px 16px 0; }
+  .landing:has([data-changelog-link]) .landing__stack { margin-top: 28px; }
   .landing { --landing-box-w: calc(100vw - 32px); }
   .landing__stack { margin-top: 72px; }
   .brand--landing { flex-wrap: wrap; justify-content: center; row-gap: 12px; }

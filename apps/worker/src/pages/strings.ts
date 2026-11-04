@@ -7,6 +7,10 @@
 // One table per language with the same keys (test/pages.test.ts checks keys and placeholders).
 
 export const EN = {
+  "release.changelog": "Changelog",
+  "release.minimize": "Minimize to Changelog",
+  "release.language": "Update language",
+  "release.entry": "Cost estimates and IDE access",
   "release.title": "What’s new in Alichitect",
   "release.pricing": "Estimate the cost of your design",
   "release.pricingHow": "Open a saved design or create one, then select Estimate costs. Tell the chat about quantities such as instance hours or data to migrate. The breakdown separates monthly and one-time costs. Choose Review estimate to check assumptions and missing costs.",
@@ -17,8 +21,6 @@ export const EN = {
   "release.pricingAlt": "Example estimate with separate monthly compute and one-time migration costs.",
   "release.keysAlt": "MCP key page showing the remote server URL, bearer header and how to verify the tool list.",
   "release.openGuide": "Open MCP setup guide",
-  "release.done": "Got it",
-  "release.close": "Close notice",
   "release.preview": "Preview What’s new",
   "mcp.keys": "MCP API keys",
   "mcp.copy": "Copy key",
@@ -265,6 +267,10 @@ export const EN = {
 } as const;
 
 export const KO = {
+  "release.changelog": "업데이트 기록",
+  "release.minimize": "업데이트 기록으로 최소화",
+  "release.language": "업데이트 언어",
+  "release.entry": "비용 추산과 IDE 연결",
   "release.title": "Alichitect 업데이트",
   "release.pricing": "설계 비용 추산하기",
   "release.pricingHow": "기존 설계를 열거나 새 설계를 만든 뒤 ‘비용 추산’을 선택하세요. 채팅에 인스턴스 사용 시간이나 이전할 데이터 용량을 입력하면 월 비용과 일회성 비용이 나뉘어 표시됩니다. ‘견적 검토’에서 가정과 빠진 비용을 확인할 수 있습니다.",
@@ -275,8 +281,6 @@ export const KO = {
   "release.pricingAlt": "월별 컴퓨팅 비용과 일회성 마이그레이션 비용이 구분된 견적 예시.",
   "release.keysAlt": "원격 서버 URL, Bearer 헤더, 도구 목록 확인 방법이 표시된 MCP 키 페이지.",
   "release.openGuide": "MCP 연결 가이드 열기",
-  "release.done": "확인",
-  "release.close": "안내 닫기",
   "release.preview": "업데이트 안내 다시 보기",
   "mcp.keys": "MCP API 키",
   "mcp.copy": "키 복사",
@@ -523,6 +527,10 @@ export const KO = {
 } as const;
 
 export const ZH = {
+  "release.changelog": "更新日志",
+  "release.minimize": "最小化到更新日志",
+  "release.language": "更新语言",
+  "release.entry": "费用估算与 IDE 连接",
   "release.title": "Alichitect 新功能",
   "release.pricing": "估算设计费用",
   "release.pricingHow": "打开已有设计或新建设计，然后选择“估算费用”。在对话中提供实例运行小时数、迁移数据量等信息，即可分别查看每月和一次性费用。选择“复核估算”检查假设与遗漏费用。",
@@ -533,8 +541,6 @@ export const ZH = {
   "release.pricingAlt": "分别显示每月计算费用与一次性迁移费用的估算示例。",
   "release.keysAlt": "MCP 密钥页面展示远程服务器 URL、Bearer 请求头和工具列表验证方法。",
   "release.openGuide": "打开 MCP 连接指南",
-  "release.done": "知道了",
-  "release.close": "关闭通知",
   "release.preview": "预览新功能介绍",
   "mcp.keys": "MCP API 密钥",
   "mcp.copy": "复制密钥",

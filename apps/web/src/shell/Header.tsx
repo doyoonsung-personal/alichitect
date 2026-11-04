@@ -7,7 +7,7 @@ import type { ReactElement } from 'react';
 import { BrandMark } from '../brand/BrandMark.tsx';
 import { ExportButton } from '../export/ExportButton.tsx';
 import { Icon } from './Icon.tsx';
-import { LanguageMenu, ModeState, SessionsMenu, ThemeMenu } from './controls.tsx';
+import { ChangelogLink, LanguageMenu, ModeState, SessionsMenu, ThemeMenu } from './controls.tsx';
 import { AccountMenu } from './AccountMenu.tsx';
 import { useAppState, useController, useT } from '../store/react.tsx';
 import { isStreaming } from '../store/selectors.ts';
@@ -63,6 +63,7 @@ export function Header(): ReactElement {
           <span>{focus ? t('header.showConsole') : t('header.focusDiagram')}</span>
         </button>}
         <ExportButton />
+        <ChangelogLink />
         <SessionsMenu />
         <button type="button" className="btn btn--ghost" onClick={() => c.newSession()} disabled={streaming}>
           <Icon name="plus" />
