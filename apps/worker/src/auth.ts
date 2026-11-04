@@ -38,7 +38,6 @@ import { ADMIN_MAIL_FACTOR, LOCK, RATE, budgetAddress, clear, clearRate, fail, h
 import type { MailPool, RateCheck, RateName, RateOutcome } from './throttle.ts';
 import { deviceCookie, readDevice } from './device.ts';
 import { html, readForm, redirect, safeNext } from './http.ts';
-import { loginNoticeCookie } from './release-notice.ts';
 import { clearSessionCookie, endSession, forgetUser, issueSession, sessionHashOf } from './session.ts';
 import { asLang, mailAlreadyRegistered, mailPasswordChanged, mailResetCode, mailVerifyCode } from './mail.ts';
 import { cleanNote, notifyNewRequest } from './admin.ts';
@@ -227,10 +226,6 @@ export async function postLogin(a: AuthCtx): Promise<Response> {
 async function startSession(a: AuthCtx, user: UserRow, to: string, evt: string, extra: Array<[string, string]> = []): Promise<Response> {
   if (await sessionHashOf(a.request, a.env, a.now)) background(a, endSession(a.request, a.env, a.now));
   const set = await issueSession(a.env, user.id, a.now);
-  if (evt === 'sign-in') {
-    try { extra.push(['Set-Cookie', await loginNoticeCookie(a.env.DB, user)]); }
-    catch { console.warn(JSON.stringify({ evt: 'login-notice-unavailable' })); }
-  }
   console.log(JSON.stringify({ evt, user: user.id, status: user.status, role: user.role }));
   return redirect(to, 303, [...extra, ['Set-Cookie', set]]);
 }

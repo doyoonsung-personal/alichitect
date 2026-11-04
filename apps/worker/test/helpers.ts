@@ -103,7 +103,7 @@ export interface Mail {
   html: string;
 }
 
-export const INDEX_HTML = '<!doctype html><title>Architecture Builder</title><div id="root"></div>';
+export const INDEX_HTML = readFileSync(new URL('../../web/index.html', import.meta.url), 'utf8');
 
 export type TestEnv = Env & { DB: TestDB; mails: Mail[] };
 

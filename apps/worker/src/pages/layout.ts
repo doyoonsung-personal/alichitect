@@ -20,7 +20,7 @@ const LOGO: Record<Lang, { file: string; w: number }> = {
   zh: { file: '/brand/alibaba-cloud-logo-zh.svg', w: 135 },
 };
 
-export function shell(c: PageCtx, o: { title: string; bodyClass: string; body: string }): string {
+export function shell(c: PageCtx, o: { title: string; bodyClass: string; body: string; previewRelease?: boolean }): string {
   const title = o.title;
   return `<!doctype html>
 <html lang="${c.lang}"${c.chosen ? ' data-lang-chosen="1"' : ''}>
@@ -33,6 +33,7 @@ export function shell(c: PageCtx, o: { title: string; bodyClass: string; body: s
 <script src="/_auth/theme.js"></script>
 <link rel="stylesheet" href="/_auth/pages.css?v=changelog">
 <script src="/_auth/pages.js?v=changelog" defer></script>
+${o.previewRelease ? '<link rel="stylesheet" href="/updates/login-notice.css"><script defer src="/updates/login-notice.js"></script>' : ''}
 </head>
 <body class="${e(o.bodyClass)}">
 ${o.body}
