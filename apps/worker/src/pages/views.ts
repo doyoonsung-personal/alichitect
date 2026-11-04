@@ -4,8 +4,8 @@
 // password show/hide button, confirmations, local times, the note counter, the language sync and the account page's
 // theme choice (without script every page follows the device's light or dark setting).
 import { escapeHtml as e } from '../http.ts';
-import type { AdminUserView, AuditRow, UserRow } from '../db.ts';
-import { NAME_MAX, NOTE_MAX, STALE_REQUEST_MS } from '../db.ts';
+import type { AdminAction, AdminUserView, AuditRow, Role, UserRow } from '../db.ts';
+import { ADMIN_ACTIONS, NAME_MAX, NOTE_MAX, STALE_REQUEST_MS } from '../db.ts';
 import { PASSWORD_MAX, PASSWORD_MIN } from '../password.ts';
 import { t } from './i18n.ts';
 import type { StringKey } from './i18n.ts';
@@ -248,6 +248,11 @@ function appbar(c: PageCtx, me: UserRow, section: StringKey): string {
 
 /* ---------- account settings ---------- */
 
+const roleKeys = { user: 'admin.roleUser', verified: 'admin.roleVerified', admin: 'admin.roleAdmin' } as const;
+function roleTag(c: PageCtx, role: Role): string {
+  return `<span class="tag ${role === 'admin' ? 'tag--ink' : 'tag--line'}">${e(t(c.lang, roleKeys[role]))}</span>`;
+}
+
 export function accountPage(c: PageCtx, o: { me: UserRow; note?: Note | null; passwordError?: StringKey | null; currentError?: boolean; shared?: boolean }): string {
   const L = (k: StringKey, v?: Record<string, string | number>): string => e(t(c.lang, k, v));
   const me = o.me;
@@ -257,7 +262,6 @@ export function accountPage(c: PageCtx, o: { me: UserRow; note?: Note | null; pa
       : me.status === 'pending'
         ? `<span class="tag tag--warn">${L('pending.statusRequested')}</span>`
         : `<span class="tag tag--danger">${L(me.status === 'denied' ? 'pending.statusDenied' : 'pending.statusRevoked')}</span>`;
-  const roleTag = me.role === 'admin' ? `<span class="tag tag--ink">${L('admin.roleAdmin')}</span>` : `<span class="tag tag--line">${L('admin.roleUser')}</span>`;
   return shell(c, {
     title: t(c.lang, 'account.title'),
     bodyClass: 'page page--admin',
@@ -271,7 +275,7 @@ export function accountPage(c: PageCtx, o: { me: UserRow; note?: Note | null; pa
       <div><dt>${L('field.name')}</dt><dd>${e(me.name || '-')}</dd></div>
       <div><dt>${L('field.email')}</dt><dd>${e(me.email)}</dd></div>
       <div><dt>${L('account.status')}</dt><dd>${statusTag}</dd></div>
-      <div><dt>${L('account.role')}</dt><dd>${roleTag}</dd></div>
+      <div><dt>${L('account.role')}</dt><dd>${roleTag(c, me.role)}</dd></div>
       <div><dt>${L('account.since')}</dt><dd>${time(c, me.created_at)}</dd></div>
     </dl>
   </section>
@@ -317,7 +321,7 @@ export function adminPage(c: PageCtx, o: { me: UserRow; users: AdminUserView[]; 
   const closed = o.users.filter((u) => u.status === 'denied' || u.status === 'revoked');
   const admins = approved.filter((u) => u.role === 'admin').length;
 
-  const action = (u: UserRow, a: 'approve' | 'deny' | 'revoke' | 'promote' | 'demote', cls: string, confirmKey?: StringKey, disabled = false): string =>
+  const action = (u: UserRow, a: AdminAction, cls: string, confirmKey?: StringKey, disabled = false): string =>
     `<form class="inline" method="post" action="/admin/users/${e(u.id)}/${a}"${confirmKey ? ` data-confirm="${L(confirmKey, { email: u.email })}"` : ''}><button class="btn btn--sm ${cls}" type="submit"${disabled ? ` disabled title="${L('admin.lastAdminHint')}"` : ''}>${L(`admin.${a}` as StringKey)}</button></form>`;
 
   const person = (u: UserRow): string =>
@@ -338,13 +342,13 @@ export function adminPage(c: PageCtx, o: { me: UserRow; users: AdminUserView[]; 
     .map((u) => {
       const isAdmin = u.role === 'admin';
       const lastAdmin = isAdmin && admins <= 1;
-      const roleTag = isAdmin ? `<span class="tag tag--ink">${L('admin.roleAdmin')}</span>` : `<span class="tag tag--line">${L('admin.roleUser')}</span>`;
       const acts = [
+        isAdmin ? '' : action(u, u.role === 'verified' ? 'unverify' : 'verify', 'btn--secondary'),
         isAdmin ? action(u, 'demote', 'btn--secondary', 'admin.confirmDemote', lastAdmin) : action(u, 'promote', 'btn--secondary'),
         u.id === me.id ? '' : action(u, 'revoke', 'btn--danger', 'admin.confirmRevoke', lastAdmin),
       ].join('');
       const cost = u.cost_today > 0 ? `<div class="muted">${L('admin.costToday', { n: u.cost_today.toFixed(2) })}</div>` : '';
-      return `<tr>${person(u)}<td>${roleTag}</td><td class="num">${u.turns_today}${isAdmin ? '' : ` / ${o.turnsPerDay}`}${cost}</td><td>${time(c, u.last_seen_at, t(c.lang, 'admin.never'))}</td><td>${time(c, u.decided_at)}</td><td class="acts">${acts}</td></tr>`;
+      return `<tr>${person(u)}<td>${roleTag(c, u.role)}</td><td class="num">${u.turns_today}${u.role === 'user' ? ` / ${o.turnsPerDay}` : ''}${cost}</td><td>${time(c, u.last_seen_at, t(c.lang, 'admin.never'))}</td><td>${time(c, u.decided_at)}</td><td class="acts">${acts}</td></tr>`;
     })
     .join('');
 
@@ -405,5 +409,5 @@ export function adminPage(c: PageCtx, o: { me: UserRow; users: AdminUserView[]; 
 
 /** The audit actions that have a label (an unknown one shows as written). */
 const AUDIT_KEYS: Record<string, true> = Object.fromEntries(
-  ['sign-up', 'seed-admin', 'password-reset', 'password-change', 'approve', 'deny', 'revoke', 'promote', 'demote', 'bulk-deny'].map((w) => [`audit.${w}`, true]),
+  ['sign-up', 'seed-admin', 'password-reset', 'password-change', ...ADMIN_ACTIONS, 'bulk-deny'].map((w) => [`audit.${w}`, true]),
 );

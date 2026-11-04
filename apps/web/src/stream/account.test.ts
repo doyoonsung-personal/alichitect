@@ -10,6 +10,10 @@ test('parseAccount reads the Worker shape and refuses anything else', () => {
   const a = parseAccount(ME)!;
   assert.equal(a.email, 'mina@example.com');
   assert.equal(a.role, 'member');
+  const verified = parseAccount({ ...ME, role: 'verified', turnsPerDay: null })!;
+  assert.equal(verified.role, 'verified');
+  assert.equal(quotaOf(verified).kind, 'unlimited');
+  assert.equal(verified.links.admin, null);
   assert.deepEqual(a.links, { account: '/account', admin: null, signOut: '/auth/logout' });
   assert.equal(parseAccount({ ...ME, role: 'admin', turnsPerDay: null, links: { account: '/account', admin: '/admin', signOut: '/auth/logout' } })!.turnsPerDay, null);
   for (const bad of [null, [], 'x', {}, { ...ME, email: '' }, { ...ME, turnsToday: 'many' }, { ...ME, turnsPerDay: -1 }, { ...ME, links: null }, { ...ME, links: { ...ME.links, signOut: 'https://evil.example/out' } }, { ...ME, links: { ...ME.links, account: '//evil.example' } }, { ...ME, links: { ...ME.links, admin: 7 } }]) {
@@ -26,7 +30,7 @@ test('fetchAccount is null for a missing route, an HTML page, a 401, a network e
   assert.equal(await fetchAccount({ timeoutMs: 10, fetchImpl: ((_u: string, i?: RequestInit) => new Promise((_r, rej) => i?.signal?.addEventListener('abort', () => rej(new DOMException('x', 'AbortError'))))) as typeof fetch }), null);
 });
 
-test('quota: admins are unlimited, others count down to zero', () => {
+test('quota: unlimited accounts show usage, limited accounts count down to zero', () => {
   assert.deepEqual(quotaOf({ turnsToday: 5, turnsPerDay: null }), { kind: 'unlimited', used: 5 });
   assert.deepEqual(quotaOf({ turnsToday: 12, turnsPerDay: 60 }), { kind: 'limited', used: 12, limit: 60, left: 48 });
   assert.equal((quotaOf({ turnsToday: 61, turnsPerDay: 60 }) as { left: number }).left, 0);

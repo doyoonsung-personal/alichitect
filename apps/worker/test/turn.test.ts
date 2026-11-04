@@ -227,7 +227,7 @@ describe('POST /api/turn streaming', () => {
 });
 
 describe('POST /api/turn limits', () => {
-  test('the daily quota: the next turn is refused with 429 and a reset time; admins are unlimited', async () => {
+  test('the daily quota blocks standard users; admins and verified users can keep drawing', async () => {
     const env = makeEnv({ TURNS_PER_DAY: '2' });
     const user = await approved(env);
     const today = db.utcDay(Date.now());
@@ -241,14 +241,17 @@ describe('POST /api/turn limits', () => {
     const ra = Number(res.headers.get('Retry-After'));
     assert.ok(ra > 0 && ra <= 86_400);
 
-    const admin = (await signIn(env, ADMIN)).user;
-    for (let i = 0; i < 3; i++) await db.recordUsage(env.DB, admin.id, today, 0.01);
-    const up = upstream([(c) => streamed(c, sseText(DIAGRAM))]);
-    const ctx = makeCtx();
-    const ok = await handleTurn(turnReq(body('admin turn')), env, ctx, admin, { fetchImpl: up.fetchImpl, turnOptions: OPTS, log: () => undefined });
-    assert.equal(ok.status, 200);
-    await ok.text();
-    await ctx.flush();
+    const verified = await signIn(env, 'verified@example.com', { role: 'verified', status: 'approved' });
+    for (const { user: exempt } of [await signIn(env, ADMIN), verified]) {
+      await db.recordUsage(env.DB, exempt.id, today, 0.01, 3);
+      const up = upstream([(c) => streamed(c, sseText(DIAGRAM))]);
+      const ctx = makeCtx();
+      const ok = await handleTurn(turnReq(body('another turn')), env, ctx, exempt, { fetchImpl: up.fetchImpl, turnOptions: OPTS, log: () => undefined });
+      assert.equal(ok.status, 200);
+      await ok.text();
+      await ctx.flush();
+      assert.equal(await db.turnsToday(env.DB, exempt.id, Date.now()), 4);
+    }
   });
 
   test('yesterday does not count against today', async () => {

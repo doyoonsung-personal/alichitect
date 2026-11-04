@@ -8,6 +8,28 @@ import { fileURLToPath } from 'node:url';
 
 const sql = (name: string): string => readFileSync(fileURLToPath(new URL(`../migrations/${name}`, import.meta.url)), 'utf8');
 
+test('0004 preserves roles, sessions, usage and active requests while widening the role constraint', () => {
+  const d = new DatabaseSync(':memory:');
+  d.exec('PRAGMA foreign_keys = ON;');
+  for (const name of ['0001_init.sql', '0002_availability.sql', '0003_rescue_caps.sql']) d.exec(sql(name));
+  d.exec(`INSERT INTO users (id,email,pw_hash,pw_salt,pw_version,pw_changed_at,role,created_at) VALUES
+    ('a','a@example.com','h','s',1,1,'admin',1), ('b','b@example.com','h','s',1,1,'user',1);
+    INSERT INTO sessions VALUES ('token','b',1,3,NULL);
+    INSERT INTO inflight VALUES ('b','req',1);
+    INSERT INTO usage (user_id,day,turns) VALUES ('b','2026-11-04',7), ('*','2026-11-04',0);`);
+  d.exec(sql('0004_verified_role.sql'));
+  assert.deepEqual(d.prepare('SELECT role FROM users ORDER BY id').all().map(u => u.role), ['admin', 'user']);
+  d.exec("UPDATE users SET role = 'verified' WHERE id = 'b'");
+  assert.throws(() => d.exec("UPDATE users SET role = 'invalid' WHERE id = 'b'"), /CHECK/);
+  assert.equal(d.prepare('SELECT user_id FROM sessions WHERE id_hash = ?').get('token')?.user_id, 'b');
+  assert.equal(d.prepare('SELECT request_id FROM inflight WHERE user_id = ?').get('b')?.request_id, 'req');
+  assert.equal(d.prepare('SELECT turns FROM usage WHERE user_id = ?').get('b')?.turns, 7);
+  assert.deepEqual(d.prepare('PRAGMA foreign_key_check').all(), []);
+  d.exec("DELETE FROM users WHERE id = 'b'");
+  assert.deepEqual(d.prepare('SELECT user_id FROM usage').all().map(u => u.user_id), ['*'], 'the usage cleanup trigger still works');
+  d.close();
+});
+
 describe('migration 0002', () => {
   test('keeps accounts and sessions, drops sign-ups and codes in flight, and allows one row per browser flow', () => {
     const d = new DatabaseSync(':memory:');

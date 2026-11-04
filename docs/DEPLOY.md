@@ -248,7 +248,7 @@ npm run server
   ```
 
   That is `npx wrangler d1 execute alichitect --remote --env= --command "DELETE FROM lockouts; DELETE FROM rate; DELETE FROM codes; DELETE FROM signups"`. If the admin's password is lost as well, unlock, then reset it with an emailed code (`/forgot`), or make another account an admin with the SQL below.
-- **The admin page:** on `/admin`, an admin can approve or decline a request, remove a person's access, make an approved person an admin, or remove admin rights. The last admin can never be demoted or removed, and nobody can remove or decline their own account.
+- **The admin page:** on `/admin`, an admin can approve or decline a request, remove a person's access, grant or remove admin rights, or give an approved user unlimited turns with **Make verified**. **Restore turn limit** returns a verified account to the standard user role. The last admin can never be demoted or removed, and nobody can remove or decline their own account.
 - **Removing access** signs the person out at once. They can still sign in, and they see that their access was removed.
 - **Adding an admin.** Choose one of these:
   - **On the admin page:** approve the person, then press **Make admin**. This is the usual way.
@@ -258,7 +258,7 @@ npm run server
     ```powershell
     npx wrangler d1 execute alichitect --remote --env= --command "UPDATE users SET status = 'approved', role = 'admin' WHERE email = 'someone@gmail.com'"
     ```
-- **Daily limit:** `TURNS_PER_DAY` (60) turns per person per UTC day; a turn the Claude backup finished counts as 2. Admins have no limit. Change it in `wrangler.jsonc` and deploy. The usage so far (the `'*'` row of Claude totals has no user and is left out):
+- **Daily limit:** `TURNS_PER_DAY` (60) turns per standard user per UTC day; a turn the Claude backup finished counts as 2. Verified users and admins are exempt from the daily turn limit. Verified users have the ordinary user's permissions and backup allowance. Change the standard limit in `wrangler.jsonc` and deploy. The usage so far (the `'*'` row of Claude totals has no user and is left out):
 
   ```powershell
   npx wrangler d1 execute alichitect --remote --env= --command "SELECT u.email, s.day, s.turns, round(s.est_cost_usd, 4) AS usd FROM usage s JOIN users u ON u.id = s.user_id ORDER BY s.day DESC LIMIT 50"

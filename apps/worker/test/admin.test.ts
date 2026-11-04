@@ -17,6 +17,33 @@ const flashOf = (res: Response): string => {
 const api = (env: Env, cookie: string, id: string, action: string) =>
   call(env, req(`/admin/api/users/${id}`, { method: 'POST', cookie, type: 'application/json', body: JSON.stringify({ action }) }));
 
+test('an admin can grant and restore unlimited turns without granting account management rights', async () => {
+  const env = makeEnv({ TURNS_PER_DAY: '1' });
+  const admin = await signIn(env, ADMIN);
+  const member = await signIn(env, 'member@example.com', { status: 'approved' });
+  const pending = await signIn(env, 'pending@example.com', { status: 'pending' });
+  const profile = () => call(env, req('/api/me', { cookie: member.cookie })).then(r => r.json());
+  const grant = `/admin/users/${member.user.id}/verify`;
+  const panel = await (await call(env, req('/admin', { cookie: admin.cookie }))).text();
+  assert.ok(panel.includes(`action="${grant}"`));
+  assert.equal((await api(env, member.cookie, member.user.id, 'verify')).status, 403);
+  assert.equal((await api(env, admin.cookie, pending.user.id, 'verify')).status, 409);
+  assert.equal((await api(env, admin.cookie, admin.user.id, 'verify')).status, 409);
+  await db.recordUsage(env.DB, member.user.id, db.utcDay(Date.now()), 0.3, 5);
+  const granted = await call(env, req(grant, { method: 'POST', cookie: admin.cookie }));
+  assert.equal(granted.status, 303);
+  const verified = await profile();
+  assert.deepEqual([verified.role, verified.turnsPerDay, verified.turnsToday, verified.links.admin], ['verified', null, 5, null]);
+  assert.match(await (await call(env, req('/account', { cookie: member.cookie }))).text(), />Verified</);
+  assert.equal((await api(env, member.cookie, member.user.id, 'promote')).status, 403);
+  assert.equal((await call(env, req('/admin/api/audit', { cookie: member.cookie }))).status, 403);
+  assert.equal((await api(env, admin.cookie, member.user.id, 'unverify')).status, 200);
+  const standard = await profile();
+  assert.deepEqual([standard.role, standard.turnsPerDay, standard.turnsToday], ['user', 1, 5]);
+  const changes = (await db.recentAudit(env.DB)).filter(a => a.target === member.user.email);
+  assert.deepEqual(changes.slice(0, 2).map(a => a.what), ['unverify', 'verify']);
+});
+
 describe('the last-admin rule', () => {
   test('the only admin can neither be demoted nor removed', async () => {
     const env = makeEnv();

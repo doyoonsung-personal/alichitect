@@ -19,16 +19,21 @@ test('pricing is approved-user only and shares the daily drawing quota', async (
   const pending = await signIn(env, 'pending@example.com', { status: 'pending' });
   assert.equal((await call(env, pricingRequest(pending.cookie))).status, 403);
   const { user, cookie } = await signIn(env, 'approved@example.com', { status: 'approved' });
-  const first = await handlePricing(pricingRequest(cookie), env, makeCtx(), user, async () => ({
-    costUsd: 0.12, pricing: { designKey: pricingDesignKey(memory), messages: [{ role: 'assistant', text: 'Which region?' }],
-      estimate: { currency: 'USD', items: [], monthlyUsd: null, oneTimeUsd: null, assumptions: [], unknowns: ['Region'] } },
-  }));
+  const price = async () => ({
+    costUsd: 0.12, pricing: { designKey: pricingDesignKey(memory), messages: [{ role: 'assistant' as const, text: 'Which region?' }],
+      estimate: { currency: 'USD' as const, items: [], monthlyUsd: null, oneTimeUsd: null, assumptions: [], unknowns: ['Region'] } },
+  });
+  const first = await handlePricing(pricingRequest(cookie), env, makeCtx(), user, price);
   assert.equal(first.status, 200);
   assert.equal((await first.json()).pricing.estimate.monthlyUsd, null);
   assert.equal(await db.turnsToday(env.DB, user.id, Date.now()), 1);
   const denied = await call(env, pricingRequest(cookie));
   assert.equal(denied.status, 429);
   assert.equal((await denied.json()).code, 'quota-exceeded');
+  const verified = await signIn(env, 'verified@example.com', { status: 'approved', role: 'verified' });
+  await db.recordUsage(env.DB, verified.user.id, db.utcDay(Date.now()), 0.01, 5);
+  assert.equal((await handlePricing(pricingRequest(verified.cookie), env, makeCtx(), verified.user, price)).status, 200);
+  assert.equal(await db.turnsToday(env.DB, verified.user.id, Date.now()), 6);
 });
 
 test('a busy turn blocks pricing and a failed model call releases the slot', async () => {

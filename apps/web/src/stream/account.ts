@@ -6,10 +6,10 @@
 export interface Account {
   email: string;
   name: string;
-  role: 'admin' | 'member';
+  role: 'admin' | 'verified' | 'member';
   /** UTC-day turn count so far. */
   turnsToday: number;
-  /** The daily limit, or null for no limit (admins). */
+  /** The daily limit, or null for admins and verified users. */
   turnsPerDay: number | null;
   links: { account: string; admin: string | null; signOut: string };
 }
@@ -28,7 +28,7 @@ export function parseAccount(v: unknown): Account | null {
   return {
     email: v.email,
     name: typeof v.name === 'string' ? v.name.trim() : '',
-    role: v.role === 'admin' ? 'admin' : 'member',
+    role: v.role === 'admin' || v.role === 'verified' ? v.role : 'member',
     turnsToday: Math.max(0, Math.floor(v.turnsToday)),
     turnsPerDay: limit,
     links: { account: l.account, admin: l.admin, signOut: l.signOut },

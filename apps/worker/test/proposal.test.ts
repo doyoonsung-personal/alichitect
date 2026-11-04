@@ -404,7 +404,7 @@ describe('POST /api/proposal limits', () => {
     await ctx.flush();
   });
 
-  test('the daily quota: 429 quota-exceeded, not retryable, with a reset time and proposal copy; admins are unlimited', async () => {
+  test('the proposal quota blocks standard users and exempts admins and verified users', async () => {
     const env = makeEnv({ TURNS_PER_DAY: '2' });
     const user = await approved(env);
     const today = db.utcDay(Date.now());
@@ -424,13 +424,16 @@ describe('POST /api/proposal limits', () => {
     const zh = await handleProposal(propReq(line(proposal({ lang: 'zh' }))), env, makeCtx(), user, { draft: f.draft, log: () => undefined });
     assert.match(((await zh.json()) as { message: string }).message, /2 次请求/);
 
-    const admin = (await signIn(env, ADMIN)).user;
-    for (let i = 0; i < 3; i++) await db.recordUsage(env.DB, admin.id, today, 0.01);
-    const ctx = makeCtx();
-    const ok = await handleProposal(propReq(line(proposal())), env, ctx, admin, { draft: f.draft, log: () => undefined });
-    assert.equal(ok.status, 200);
-    await ok.text();
-    await ctx.flush();
+    const verified = await signIn(env, 'verified@example.com', { role: 'verified', status: 'approved' });
+    for (const { user: exempt } of [await signIn(env, ADMIN), verified]) {
+      await db.recordUsage(env.DB, exempt.id, today, 0.01, 3);
+      const ctx = makeCtx();
+      const ok = await handleProposal(propReq(line(proposal())), env, ctx, exempt, { draft: f.draft, log: () => undefined });
+      assert.equal(ok.status, 200);
+      await ok.text();
+      await ctx.flush();
+      assert.equal(await db.turnsToday(env.DB, exempt.id, Date.now()), 4);
+    }
   });
 
   test('one request in flight per user: a running turn refuses a draft (409 user-busy)', async () => {

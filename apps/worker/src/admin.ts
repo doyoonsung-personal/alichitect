@@ -101,7 +101,7 @@ export async function adminNotice(env: Env, request: Request, now = Date.now()):
   const secret = sessionSecret(env);
   const f = secret ? await verifyJson<Flash>(secret, FLASH_PURPOSE, raw) : null;
   if (!f || (f.k !== 'ok' && f.k !== 'err') || typeof f.a !== 'string' || typeof f.u !== 'string' || typeof f.t !== 'number' || now - f.t > FLASH_TTL_MS || f.t > now + 5_000) return { notice: null, present: true };
-  const DONE: Record<AdminAction, StringKey> = { approve: 'admin.doneApprove', deny: 'admin.doneDeny', revoke: 'admin.doneRevoke', promote: 'admin.donePromote', demote: 'admin.doneDemote' };
+  const DONE: Record<AdminAction, StringKey> = { approve: 'admin.doneApprove', deny: 'admin.doneDeny', revoke: 'admin.doneRevoke', verify: 'admin.doneVerify', unverify: 'admin.doneUnverify', promote: 'admin.donePromote', demote: 'admin.doneDemote' };
   const ERR: Record<ActionError, StringKey> = { 'not-found': 'admin.errorNotFound', state: 'admin.errorState', self: 'admin.errorSelf', 'last-admin': 'admin.errorLastAdmin', forbidden: 'admin.errorState' };
   if (f.k === 'ok' && f.a === 'purge' && typeof f.n === 'number' && Number.isInteger(f.n) && f.n >= 0 && f.n <= 1_000_000) return { notice: { kind: 'ok', key: 'admin.donePurge', email: '', n: f.n }, present: true };
   const u = await db.userById(env.DB, f.u);

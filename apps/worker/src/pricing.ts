@@ -3,7 +3,7 @@ import { fatalMessage } from '../../server/src/messages.ts';
 import { checkPricingRequest } from '../../server/src/request.ts';
 import { decodeDesignBody, PRICING_ATTACHMENT_BYTES } from '../../server/src/pricing-envelope.ts';
 import * as db from './db.ts';
-import { proposalDeadlineMs, turnsPerDay, type Env, type ExecutionContextLike } from './env.ts';
+import { dailyTurnLimit, proposalDeadlineMs, type Env, type ExecutionContextLike } from './env.ts';
 import { json, readBodyLimited } from './http.ts';
 import { MAX_BODY_BYTES, makeRedactor, reject, sharedTurnState, turnConfig, workerFatalMessage } from './turn.ts';
 
@@ -43,8 +43,8 @@ export async function handlePricing(request: Request, env: Env, ctx: ExecutionCo
     request.signal.addEventListener('abort', onDisconnect);
     if (request.signal.aborted) onDisconnect();
     try {
-      const limit = turnsPerDay(env);
-      if (user.role !== 'admin' && await db.turnsToday(env.DB, user.id, now) >= limit) {
+      const limit = dailyTurnLimit(env, user.role);
+      if (limit !== null && await db.turnsToday(env.DB, user.id, now) >= limit) {
         const message = workerFatalMessage('quota-exceeded', pricing.lang, { n: limit });
         return json(429, { type: 'fatal', code: 'quota-exceeded', message, retryable: false },
           { 'Retry-After': String(86400 - Math.floor(now / 1000) % 86400) });
