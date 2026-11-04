@@ -37,7 +37,8 @@ export interface DraftOptions {
 
 /** The request for the session on screen: the cover fields as typed, in the UI's language. */
 export function buildProposalRequest(s: Pick<AppState, 'session' | 'lang'>, title: string, customer: string): ProposalRequest {
-  return { sessionId: s.session.id, lang: s.lang, title: title.trim(), customer: customer.trim(), memory: s.session.memory };
+  return { sessionId: s.session.id, lang: s.lang, title: title.trim(), customer: customer.trim(), memory: s.session.memory,
+    ...(s.session.pricing ? { pricing: s.session.pricing } : {}) };
 }
 
 // ---------- reading the wire ----------
@@ -54,7 +55,8 @@ export function asSection(v: unknown): ProposalSection | null {
   if (!isObj(v)) return null;
   switch (v.k) {
     case 'exec':
-      return text(v.text) ? { k: 'exec', text: v.text } : null;
+    case 'cost':
+      return text(v.text) ? { k: v.k, text: v.text } : null;
     case 'need':
       if (!str(v.id) || !text(v.need) || !text(v.answer) || !str(v.source) || !SOURCES.has(v.source)) return null;
       return { k: 'need', id: v.id, need: v.need, source: v.source as NeedSource, ...(text(v.quote) ? { quote: v.quote } : {}), answer: v.answer, products: strings(v.products) };
@@ -90,6 +92,7 @@ export function asDraft(v: unknown): ProposalDraft | null {
   return {
     lang,
     exec: v.exec,
+    ...(text(v.cost) ? { cost: v.cost } : {}),
     needs,
     outcomes: (Array.isArray(v.outcomes) ? v.outcomes : []).filter((o): o is { title: string; text: string } => isObj(o) && text(o.title) && text(o.text)).map((o) => ({ title: o.title, text: o.text })),
     why,

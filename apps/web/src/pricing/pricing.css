@@ -1,0 +1,65 @@
+.app--working > [hidden] { display: none; }
+.app--working:has(.pricing-toggle) { grid-template-rows: auto minmax(0, 1fr); }
+.header:has(.pricing-toggle) { height: auto; min-height: var(--header-h); flex-wrap: wrap; }
+.header:has(.pricing-toggle) .header__right { flex-wrap: wrap; }
+
+.pricing-stage {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  background: var(--sheet);
+}
+.pricing-stage h1, .pricing-stage h2, .pricing-stage h3, .pricing-stage p { margin: 0; }
+.pricing-stage h1 { font-size: var(--t-24); line-height: var(--lh-24); }
+.pricing-stage h2 { font-size: var(--t-18); line-height: var(--lh-18); }
+.pricing-stage h3 { margin-top: var(--s-6); font-size: var(--t-14); }
+.pricing-stage h1, .pricing-stage h2, .pricing-stage h3 { font-weight: var(--w-medium); }
+.pricing-conversation {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border-right: 1px solid var(--line-1);
+}
+.pricing-intro, .pricing-log, .pricing-compose, .pricing-summary { padding: var(--s-5) var(--s-6); }
+.pricing-intro { border-bottom: 1px solid var(--line-1); }
+.pricing-intro > p, .pricing-summary > p { margin-top: var(--s-2); color: var(--ink-2); }
+.pricing-log { overflow: auto; min-height: 0; }
+.pricing-message { padding: var(--s-4) 0; border-bottom: 1px solid var(--line-1); }
+.pricing-message:first-child { padding-top: 0; }
+.pricing-message strong, .pricing-working { font-size: var(--t-13); color: var(--ink-2); font-weight: var(--w-medium); }
+.pricing-message p { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: var(--s-1); }
+.pricing-working { padding-top: var(--s-4); }
+.pricing-compose { border-top: 1px solid var(--line-1); }
+.pricing-compose label { display: block; margin-bottom: var(--s-2); font-weight: var(--w-medium); }
+.pricing-compose textarea {
+  width: 100%; padding: var(--s-3); resize: vertical; font: inherit; color: var(--ink);
+  border: 1px solid var(--line-control); border-radius: var(--r-control); background: var(--sheet);
+}
+.pricing-compose-actions, .pricing-item-title { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.pricing-compose-actions { margin-top: var(--s-2); }
+.pricing-compose-actions p { font-size: var(--t-12); color: var(--ink-3); }
+.pricing-compose > button { margin-bottom: var(--s-3); }
+.pricing-warning { padding: var(--s-3); border-left: 3px solid var(--warn); background: var(--warn-soft); }
+.pricing-compose .pricing-warning { margin-bottom: var(--s-3); }
+.pricing-summary { overflow: auto; overflow-wrap: anywhere; }
+.pricing-totals {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3);
+  padding: var(--s-4); margin: var(--s-5) 0; background: var(--surface-2);
+}
+.pricing-totals dt, .pricing-source, .pricing-items small { color: var(--ink-2); font-size: var(--t-13); }
+.pricing-totals dd { margin: var(--s-1) 0 0; font-size: var(--t-18); font-weight: var(--w-medium); }
+.pricing-items { list-style: none; margin: 0; padding: 0; }
+.pricing-items li { padding: var(--s-4) 0; border-bottom: 1px solid var(--line-1); }
+.pricing-item-title strong, .pricing-source strong { font-weight: var(--w-medium); }
+.pricing-item-title strong:last-child { text-align: right; }
+.pricing-items li p { margin-top: var(--s-1); }
+.pricing-summary ul:not(.pricing-items) { list-style: disc; margin: var(--s-2) 0; padding-inline-start: var(--s-5); }
+.pricing-summary ul:not(.pricing-items) li + li { margin-top: var(--s-2); }
+.pricing-source a { color: var(--action); }
+
+@media (max-width: 760px) {
+  .pricing-stage { display: block; overflow: auto; }
+  .pricing-conversation { border-right: 0; border-bottom: 1px solid var(--line-1); }
+  .pricing-log { max-height: 45vh; min-height: 7rem; }
+  .pricing-intro, .pricing-log, .pricing-compose, .pricing-summary { padding: var(--s-4); }
+}

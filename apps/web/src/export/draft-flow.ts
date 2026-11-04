@@ -77,7 +77,7 @@ export function startFlow(now: number, products: string[], workflow?: WorkflowGr
   };
 }
 
-const STEP_OF: Record<ProposalSection['k'], number> = { exec: 1, need: 2, outcome: 3, why: 4, step: 4, tradeoff: 5, next: 5 };
+const STEP_OF: Record<ProposalSection['k'], number> = { exec: 1, need: 2, outcome: 3, why: 4, step: 4, cost: 5, tradeoff: 5, next: 5 };
 
 /** The first sentence of a paragraph, cut to a readable length at a word boundary where there is one. */
 export function firstSentence(text: string): string {
@@ -127,7 +127,7 @@ export function reduceFlow(s: FlowState, ev: FlowEvent, productName: (id: string
       else if (sec.k === 'why') next.why = next.why.includes(sec.product) ? next.why : [...next.why, sec.product];
       else if (sec.k === 'step') next.steps = next.steps.includes(sec.id) ? next.steps : [...next.steps, sec.id];
       else if (sec.k === 'tradeoff') next.tradeoffs++;
-      else next.next++;
+      else if (sec.k === 'next') next.next++;
       next = showPreview(next, previewOf(sec, productName), ev.now);
       return next;
     }

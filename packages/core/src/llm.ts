@@ -854,6 +854,16 @@ export interface CompleteOptions {
   onDelta?: (text: string) => void;
 }
 
+/** Model Studio Chat Completions maps high to xhigh on Qwen3.8 Max. Do not combine effort with thinking_budget. */
+export const QWEN_HIGH_REASONING = {
+  model: 'qwen3.8-max',
+  extraBody: { enable_thinking: true, reasoning_effort: 'xhigh' },
+  maxTokens: 24_000,
+  firstByteTimeoutMs: 45_000,
+  idleTimeoutMs: 60_000,
+  totalTimeoutMs: 240_000,
+} as const;
+
 export interface CompleteResult {
   text: string;
   usage: Usage | null;

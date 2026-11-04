@@ -1,6 +1,6 @@
 // The proposal writer (proposal.ts, proposal-prompt.ts) with no network: the line validator and its caps, the draft
 // assembly, the prompt (the customer's corrections in, only the design's catalog facts in), and draftProposal over a fake
-// Model Studio stream: the happy path, a stall failing over to qwen3.7-max, a cut-off draft continued once, the content
+// Model Studio stream: the happy path, a stall retried once, a cut-off draft continued once, the content
 // filter handing the draft to the backup (gated, booked, never named), and the caller's abort. Also the Claude backup's
 // complete() over a stubbed SDK fetch.
 import { describe, test } from 'node:test';
@@ -10,6 +10,7 @@ import { loadCatalog } from '../src/catalog-node.ts';
 import { assembleDraft, buildProposalMessages, capText, draftProposal, leadWithEngagement, lintSection, parseProposalLine, proposalCtx, PROPOSAL_LIMITS, regionWords } from '../src/proposal.ts';
 import type { DraftProposalOptions } from '../src/proposal.ts';
 import { PROPOSAL_KEEP_LAST, estimateProposalTokens } from '../src/proposal-prompt.ts';
+import { calculateSolutionEstimate, pricingDesignKey } from '../src/solution-pricing.ts';
 import { BACKUP_MIN_MS_LEFT } from '../src/llm.ts';
 import type { BackupCall, BackupCompleteOptions, BackupCompleteResult, BackupProvider } from '../src/llm.ts';
 import { BACKUP_TEXT_VOICE_NOTE, createClaudeBackup } from '../src/claude.ts';
@@ -431,7 +432,32 @@ describe('buildProposalMessages', () => {
 // ---------- drafting ----------
 
 describe('draftProposal', () => {
-  test('happy path: one qwen3.8-max call, thinking off; sections stream out in order as their lines complete', async () => {
+  test('a current price review informs the authored cost analysis, while old figures and private reasoning stay out', async () => {
+    const req = request();
+    const estimate = calculateSolutionEstimate({ items: [{ label: 'Migration labour', period: 'one-time',
+      quantity: 8, unit: 'hour', unitUsd: 85, basis: 'user', source: 'Customer planning rate' }],
+      assumptions: ['One transition window'], unknowns: ['Provider egress charges'] });
+    req.pricing = { designKey: pricingDesignKey(req.memory), estimate, messages: [{ role: 'user', text: 'We need one transition window.' }] };
+    const cost = 'The transfer charge is still open. Confirm the provider fee before choosing the migration window.';
+    const body = chunk({ reasoning_content: 'Private reasoning must not appear on the wire.' }) +
+      sseOf([L.exec, line({ k: 'cost', text: 'The project costs $9943.' }), line({ k: 'cost', text: cost })].join('\n'));
+    const calls: Call[] = [];
+    const run = await draftProposal(req, CAT, opts(fakeFetch([c => streamResponse(c, body), ok(FULL.slice(1))], calls)));
+    assert.equal(run.draft?.cost, cost);
+    assert.equal(run.draft?.complete, true);
+    assert.deepEqual(calls.map(c => [c.body.model, c.body.enable_thinking]), [['qwen3.8-max', true], ['qwen3.8-max', false]]);
+    assert.ok(lastUser(calls[1]).includes(cost));
+    assert.equal(run.stats.lint.price, 1);
+    assert.doesNotMatch(JSON.stringify(run.draft), /Private reasoning|9943/);
+    assert.match(lastUser(calls[0]), /Migration labour/);
+    assert.match(lastUser(calls[0]), /Provider egress charges/);
+    req.memory.requirements.push('A second application server is required.');
+    const stale = String(buildProposalMessages(req, CAT)[1].content);
+    assert.match(stale, /earlier design/);
+    assert.doesNotMatch(stale, /Migration labour|Provider egress charges/);
+    assert.equal(parseProposalLine(line({ k: 'cost', text: cost }), proposalCtx(req, CAT)), null);
+  });
+  test('happy path: one high-reasoning qwen3.8-max call; sections stream out in order as their lines complete', async () => {
     const calls: Call[] = [];
     const got: ProposalSection[] = [];
     const statuses: string[] = [];
@@ -439,7 +465,9 @@ describe('draftProposal', () => {
     assert.equal(r.outcome, 'done');
     assert.equal(calls.length, 1);
     assert.equal(calls[0].body.model, 'qwen3.8-max');
-    assert.equal(calls[0].body.enable_thinking, false);
+    assert.equal(calls[0].body.enable_thinking, true);
+    assert.equal(calls[0].body.reasoning_effort, undefined);
+    assert.equal(calls[0].body.thinking_budget, 16_385);
     assert.equal(calls[0].body.temperature, PROPOSAL_LIMITS.temperature);
     assert.equal(calls[0].body.max_completion_tokens, PROPOSAL_LIMITS.maxTokens);
     assert.deepEqual(got.map((s) => s.k), ['exec', 'need', 'need', 'outcome', 'outcome', 'why', 'why', 'why', 'why', 'why', 'tradeoff', 'next', 'next']);
@@ -461,15 +489,15 @@ describe('draftProposal', () => {
     assert.ok(firstAt > 0 && firstAt < reads, `first section after read ${firstAt} of ${reads}`);
   });
 
-  test('a stall before any section: one retry on qwen3.7-max, status retry', async () => {
+  test('a stall before any section retries the same high-reasoning report model', async () => {
     const calls: Call[] = [];
     const statuses: string[] = [];
     const r = await draftProposal(request(), CAT, opts(fakeFetch([hang, ok(FULL)], calls), { onStatus: (c) => statuses.push(c), timeouts: { firstByteMs: 60 } }));
     assert.equal(r.outcome, 'done');
-    assert.deepEqual(calls.map((c) => c.body.model), ['qwen3.8-max', 'qwen3.7-max']);
+    assert.deepEqual(calls.map((c) => c.body.model), ['qwen3.8-max', 'qwen3.8-max']);
     assert.deepEqual(statuses, ['retry']);
-    assert.equal(r.stats.fallbackUsed, true);
-    assert.equal(r.stats.model, 'qwen3.7-max');
+    assert.equal(r.stats.fallbackUsed, false);
+    assert.equal(r.stats.model, 'qwen3.8-max');
   });
 
   test('two stalls: failed with timeout, never a third call', async () => {

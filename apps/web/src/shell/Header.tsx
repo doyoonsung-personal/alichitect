@@ -25,6 +25,10 @@ export function Header(): ReactElement {
   const mode = useAppState((s) => s.session.mode ?? 'cloud');
   const workflow = useWorkflowProps();
   const memory = useAppState((s) => s.session.memory);
+  const pricingOpen = useAppState((s) => !!s.session.pricingOpen);
+  const canPrice = useAppState((s) => !s.replay && (!!s.session.pricing || !!s.session.pricingPending ||
+    Object.keys(s.session.memory.graph.nodes).length > 0 || s.session.memory.graph.recs.length > 0 ||
+    Object.keys(s.session.memory.workflow?.nodes ?? {}).length > 0));
   const notices = useMemo(() => deploymentNotices(memory, workflow.catalog, t), [memory, workflow.catalog, t]);
   const canvasGraph = useAppState((s) => s.display.graph);
   const hasWorkflow = Object.keys(workflow.workflow.nodes).length > 0;
@@ -39,21 +43,25 @@ export function Header(): ReactElement {
       </p>
       <div className="header__right">
         <ModeState />
-        {showWorkflow && <label className="workflow-diagrams">
+        {!pricingOpen && showWorkflow && <label className="workflow-diagrams">
           <span className="visually-hidden">{t('focus.label')}</span>
           <select aria-label={t('focus.label')} disabled={streaming} value={mode} onChange={(e) => c.setMode(e.target.value as 'cloud' | 'workflow')}>
             <option value="workflow">{t('focus.workflow')}</option>
             {showCloud && <option value="cloud">{t(memory.deploymentSource ? 'deployment.title' : 'focus.cloud')}</option>}
           </select>
         </label>}
-        {hasWorkflow && (!memory.deploymentSource || notices.length > 0 || !hasCloud) &&
+        {!pricingOpen && hasWorkflow && (!memory.deploymentSource || notices.length > 0 || !hasCloud) &&
           <button className="btn btn--secondary" type="button" disabled={workflow.disabled} onClick={c.drawDeployment}>
             {t(memory.deploymentSource ? 'deployment.redraw' : 'deployment.draw')}
           </button>}
-        <button type="button" className="btn btn--ghost" aria-pressed={focus} onClick={() => c.setFocusDiagram(!focus)}>
+        {canPrice && <button type="button" className="btn btn--secondary pricing-toggle" disabled={streaming}
+          onClick={() => c.setPricingOpen(!pricingOpen)}>
+          {t(pricingOpen ? 'pricing.back' : 'pricing.open')}
+        </button>}
+        {!pricingOpen && <button type="button" className="btn btn--ghost" aria-pressed={focus} onClick={() => c.setFocusDiagram(!focus)}>
           <Icon name={focus ? 'showConsole' : 'focusDiagram'} />
           <span>{focus ? t('header.showConsole') : t('header.focusDiagram')}</span>
-        </button>
+        </button>}
         <ExportButton />
         <SessionsMenu />
         <button type="button" className="btn btn--ghost" onClick={() => c.newSession()} disabled={streaming}>
@@ -64,8 +72,8 @@ export function Header(): ReactElement {
         <ThemeMenu />
         <AccountMenu />
       </div>
-      {mode === 'workflow' && <WorkflowSettings {...workflow} />}
-      {notices.length > 0 && <div className="deployment-notices" role="status">{notices.map(text => <p key={text}>{text}</p>)}</div>}
+      {!pricingOpen && mode === 'workflow' && <WorkflowSettings {...workflow} />}
+      {!pricingOpen && notices.length > 0 && <div className="deployment-notices" role="status">{notices.map(text => <p key={text}>{text}</p>)}</div>}
     </header>
   );
 }

@@ -207,7 +207,7 @@ test('with fewer than half of the needs stated the needs page is headed as typic
   const thin = buildProposal({ session: s.session, graph: s.display.graph, layout: s.display.layout, catalog, lang: 'en', now: NOW, draft: { ...draft, needs: [{ id: 'r', need: 'A web app', source: 'stated', quote: 'customer data must stay', answer: 'a', products: [] }, ...draft.needs] } });
   assert.equal(thin.narrative!.mostlyTypical, true);
   const priced = m.components.some((c) => c.price) || m.recs.some((r) => r.price);
-  assert.equal(m.narrative!.pricingNote, priced ? null : 'Pricing: your Alibaba Cloud account team will prepare a cost estimate for this design.');
+  assert.equal(m.narrative!.pricingNote, priced ? null : 'A solution estimate has not been prepared. Open the price breakdown to review usage, migration scope and rates.');
   // an English quote in an English document carries no mark
   const en = buildProposal({ session: s.session, graph: s.display.graph, layout: s.display.layout, catalog, lang: 'en', now: NOW, draft: { ...draft, needs: [{ id: 'a', need: 'n', source: 'stated', quote: 'stay in Singapore', answer: 'a', products: [] }] } });
   assert.deepEqual(en.narrative!.needs.map((x) => x.sourceText), ['“stay in Singapore”']);

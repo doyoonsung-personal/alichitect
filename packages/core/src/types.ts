@@ -253,6 +253,8 @@ export interface ProposalRequest {
   /** Customer name as typed; may be empty. The writer uses it to address the reader and never adds facts about it. */
   customer: string;
   memory: SessionMemory;
+  /** Optional solution pricing conversation from the same session, separate from the diagram. */
+  pricing?: import('./solution-pricing.ts').PricingSession;
 }
 
 /**
@@ -274,6 +276,8 @@ export type ProposalSection =
   | { k: 'why'; product: string; text: string }
   /** Business explanation of an inline workflow step. */
   | { k: 'step'; id: string; text: string }
+  /** What drives the solution estimate and which decision could change it. Its figures come from the printed breakdown. */
+  | { k: 'cost'; text: string }
   /** An honest trade-off, risk or open point, and how it is handled. */
   | { k: 'tradeoff'; text: string; mitigation?: string }
   /** A concrete next step. */
@@ -299,6 +303,7 @@ export interface ProposalDraft {
   why: Record<string, string>;
   /** Workflow node id -> explanation; absent on legacy and cloud-only drafts. */
   steps?: Record<string, string>;
+  cost?: string;
   tradeoffs: Array<{ text: string; mitigation?: string }>;
   next: string[];
   /** Every section kind arrived and every product in the design got a why line. */

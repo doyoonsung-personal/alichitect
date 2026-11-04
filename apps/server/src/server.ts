@@ -14,23 +14,25 @@
 // It streams packages/core draftProposal's sections, 'retry' / 'finish' statuses and a final 'done' or 'fatal'; as on
 // /api/turn the wire never names who wrote a line, and the draft is aborted on disconnect or its deadline.
 import http from 'node:http';
+import { decodeDesignBody, PRICING_ATTACHMENT_BYTES } from './pricing-envelope.ts';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Catalog, ProposalEvent, ProposalRequest, ServerEvent } from '../../../packages/core/src/types.ts';
 import modelsFile from '../../../packages/core/catalog/models.json' with { type: 'json' };
 import { createModelTable } from '../../../packages/core/src/models.ts';
-import type { ModelFile, ModelTable } from '../../../packages/core/src/models.ts';
+import type { ModelFile } from '../../../packages/core/src/models.ts';
 import { buildSystemPrompt } from '../../../packages/core/src/prompt.ts';
-import { createCacheTracker } from '../../../packages/core/src/llm.ts';
+import { createCacheTracker, QWEN_HIGH_REASONING } from '../../../packages/core/src/llm.ts';
 import type { CacheTracker, ConstraintChecker, RunTurnOptions } from '../../../packages/core/src/llm.ts';
 import { createClaudeBackup } from '../../../packages/core/src/claude.ts';
 import { draftProposal } from '../../../packages/core/src/proposal.ts';
+import { PricingTurnError, runPricingTurn } from '../../../packages/core/src/solution-pricing-engine.ts';
 import type { DraftProposalResult } from '../../../packages/core/src/proposal.ts';
 import type { ClaudeBackupOptions } from '../../../packages/core/src/claude.ts';
 import type { ServerConfig } from './config.ts';
 import { createTurnLog, makeRedactor, sessionTag } from './log.ts';
 import type { TurnLog } from './log.ts';
 import { fatalMessage, langOf, proposalEndEvent, proposalFatalEvent, proposalStatusEvent } from './messages.ts';
-import { LIMITS, checkProposalRequest, checkTurnRequest } from './request.ts';
+import { LIMITS, checkPricingRequest, checkProposalRequest, checkTurnRequest } from './request.ts';
 import { executeTurn } from './turn.ts';
 import type { TurnOutcome, WireEvent } from './turn.ts';
 
@@ -55,7 +57,8 @@ export interface ServerDeps {
   onLine?: (line: string) => void;
   /** The proposal drafting engine (tests inject a fake); default draftProposal. */
   draft?: typeof draftProposal;
-  /** Hard stop for one proposal draft (default 200 s, as on the Worker). */
+  price?: typeof runPricingTurn;
+  /** Hard stop for one proposal draft (default 360 s, as on the Worker). */
   proposalDeadlineMs?: number;
 }
 
@@ -80,7 +83,7 @@ class HttpError extends Error {
 
 const BASE_HEADERS: Record<string, string> = { 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' };
 const JSON_RE = /^application\/json\s*(;.*)?$/i;
-const PROPOSAL_DEADLINE_MS = 200_000;
+const PROPOSAL_DEADLINE_MS = 360_000;
 
 /** An oversized body is read and discarded up to this many bytes, so the client finishes sending and can read the 413; beyond it the socket is destroyed. */
 const DRAIN_CAP = 8 * 1024 * 1024;
@@ -158,7 +161,7 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
     if (!config.allowedHosts.includes(host)) return reject(403, 'bad-host', 'Host header not allowed');
     if (origin !== undefined && !config.allowedOrigins.includes(origin)) return reject(403, 'bad-origin', 'Origin not allowed');
     const cors: Record<string, string> = origin ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {};
-    if (route !== '/api/turn' && route !== '/api/proposal' && route !== '/api/health') return reject(404, 'not-found', 'no such route', {}, cors);
+    if (route !== '/api/turn' && route !== '/api/proposal' && route !== '/api/pricing' && route !== '/api/health') return reject(404, 'not-found', 'no such route', {}, cors);
     if (req.method === 'OPTIONS') {
       res.writeHead(204, { ...BASE_HEADERS, ...cors, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '600' });
       res.end();
@@ -191,17 +194,50 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
     if (req.method !== 'POST') return reject(405, 'method-not-allowed', 'use POST', { Allow: 'POST, OPTIONS' }, cors);
     if (!JSON_RE.test(String(req.headers['content-type'] ?? ''))) return reject(415, 'unsupported-media-type', 'Content-Type must be application/json', {}, cors);
     let raw: Buffer;
+    const allowsPricing = route === '/api/pricing' || route === '/api/proposal';
     try {
-      raw = await readBody(req, config.maxBodyBytes);
+      raw = await readBody(req, config.maxBodyBytes + (allowsPricing ? PRICING_ATTACHMENT_BYTES : 0));
     } catch (e) {
       const h = e instanceof HttpError ? e : new HttpError(400, 'bad-request', 'request body could not be read');
       return reject(h.status, h.code, h.message, {}, cors);
     }
-    let body: unknown;
-    try {
-      body = JSON.parse(new TextDecoder().decode(raw));
-    } catch {
-      return reject(400, 'bad-json', 'body is not valid JSON', {}, cors);
+    const envelope = decodeDesignBody(raw, config.maxBodyBytes, allowsPricing);
+    if (!envelope.ok) return reject(envelope.status, envelope.code, envelope.message, {}, cors);
+    const body = envelope.body;
+    if (route === '/api/pricing') {
+      const checked = checkPricingRequest(body);
+      if (!checked.ok) return reject(400, checked.code, checked.message, {}, cors);
+      const pricing = checked.value;
+      if (!deps.apiKey) return reject(503, 'no-key', fatalMessage('no-key', pricing.lang), {}, cors);
+      if (sessions.has(pricing.sessionId)) return reject(409, 'session-busy', fatalMessage('session-busy', pricing.lang), {}, cors);
+      if (turns >= config.maxInFlight) return reject(429, 'server-busy', fatalMessage('server-busy', pricing.lang), { 'Retry-After': '2' }, cors);
+      sessions.add(pricing.sessionId);
+      turns++;
+      const disconnected = new AbortController();
+      const onClose = (): void => disconnected.abort();
+      res.on('close', onClose);
+      const deadline = AbortSignal.timeout(config.turnDeadlineMs);
+      let costUsd = 0;
+      let completed = false;
+      try {
+        const result = await (deps.price ?? runPricingTurn)(pricing, catalog, {
+          apiKey: deps.apiKey, baseUrl: config.baseUrl, fetchImpl: deps.fetchImpl,
+          signal: AbortSignal.any([deadline, disconnected.signal]),
+        });
+        costUsd = result.costUsd;
+        send(res, 200, { pricing: result.pricing }, cors);
+        completed = true;
+      } catch (error) {
+        if (error instanceof PricingTurnError) costUsd = error.costUsd;
+        const code = deadline.aborted ? 'pricing-timeout' : 'pricing-unavailable';
+        send(res, deadline.aborted ? 504 : 502, fatalBody(code, fatalMessage(code, pricing.lang), true), cors);
+      } finally {
+        res.off('close', onClose);
+        turns--;
+        sessions.delete(pricing.sessionId);
+        log.write({ route, completed, costUsd, serverMs: Date.now() - t0 });
+      }
+      return;
     }
     if (route === '/api/proposal') {
       const checkedP = checkProposalRequest(body);
@@ -314,8 +350,8 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
       result = await (deps.draft ?? draftProposal)(propReq, catalog, {
         apiKey,
         baseUrl: config.baseUrl,
-        model: config.model,
-        fallbackModel: config.fallbackModel,
+        model: QWEN_HIGH_REASONING.model,
+        fallbackModel: config.fallbackModel ? QWEN_HIGH_REASONING.model : null,
         backup,
         msLeft: () => deadlineMs - (Date.now() - t0),
         signal: ac.signal,

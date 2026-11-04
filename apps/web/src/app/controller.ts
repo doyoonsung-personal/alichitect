@@ -18,6 +18,8 @@ import type { Highlight, ReplaySpeed } from '../store/types.ts';
 import { isLang, makeT } from '../i18n/t.ts';
 import type { Lang } from '../i18n/t.ts';
 import type { CanvasSize } from '../canvas/layout.ts';
+import { pricingDesignKey, PRICING_ASK_LIMIT } from '@ali/core/solution-pricing.ts';
+import { PricingError, requestPricing } from '../pricing/client.ts';
 
 export interface PendingAsk {
   text: string;
@@ -74,6 +76,9 @@ export interface Controller {
   openSession(id: string): void;
   setMode(mode: TurnMode): void;
   drawDeployment(): void;
+  setPricingOpen(open: boolean): void;
+  sendPricing(ask: string): SubmitResult;
+  stopPricing(): void;
   setWorkflowSettings(next: WorkflowSettings): void;
   setWorkflowEstimate(next: WorkflowEstimateSettings): void;
   tidyWorkflowView(): void;
@@ -108,6 +113,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
   let player: Player | null = null;
   let healthAc: AbortController | null = null;
   let accountAc: AbortController | null = null;
+  let pricingAc: AbortController | null = null;
   let lastAsk = '';
   let disposed = false;
 
@@ -168,6 +174,50 @@ export function createController(store: Store, env: ControllerEnv): Controller {
   const refreshAccount = async (): Promise<void> => {
     if (st().account) await loadAccount();
   };
+
+  function stopPricing(): void {
+    if (!pricingAc) return;
+    pricingAc.abort();
+    pricingAc = null;
+    d({ type: 'pricing/stop' });
+  }
+
+  function sendPricing(ask: string): SubmitResult {
+    const s = st();
+    if (s.replay || !s.session.pricingOpen) return 'read-only';
+    if (s.work || pricingAc) return 'busy';
+    const text = ask.trim();
+    if (!text) return 'empty';
+    if (Array.from(text).length > PRICING_ASK_LIMIT) return 'too-long';
+    const { id, memory, pricing } = s.session;
+    const mine = new AbortController();
+    pricingAc = mine;
+    d({ type: 'pricing/start', ask: text, now: env.now() });
+    saveSession();
+    const current = () => !disposed && pricingAc === mine && st().session.id === id;
+    void requestPricing({ sessionId: id, memory, pricing, lang: s.lang, ask: text }, mine.signal, env.fetchImpl).then((result) => {
+      if (!current()) return;
+      if (result.designKey !== pricingDesignKey(st().session.memory)) {
+        throw new PricingError('design-changed', makeT(st().lang)('pricing.changedDuring'));
+      }
+      d({ type: 'pricing/commit', pricing: result, now: env.now() });
+      saveSession();
+    }).catch((e: unknown) => {
+      if (!current()) return;
+      const message = e instanceof PricingError && e.message ? e.message : makeT(st().lang)('pricing.failed');
+      d({ type: 'pricing/failure', error: message });
+      if (e instanceof PricingError) {
+        const to = authHandoff(e.code);
+        if (to) leaveForAuth(to, ''); // The pricing session already holds the interrupted answer.
+      }
+    }).finally(() => {
+      if (current()) {
+        pricingAc = null;
+        void refreshAccount();
+      }
+    });
+    return 'started';
+  }
 
   async function checkHealth(): Promise<void> {
     healthAc?.abort();
@@ -235,6 +285,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
   async function startReplay(id: string, o: { speed?: ReplaySpeed } = {}): Promise<boolean> {
     const fx = await env.loadFixture(id);
     if (!fx || disposed) return false;
+    stopPricing();
     ac?.abort();
     ac = null;
     clearFlush();
@@ -299,6 +350,18 @@ export function createController(store: Store, env: ControllerEnv): Controller {
       if (url) env.signOut?.(url);
     },
     submit,
+    sendPricing,
+    stopPricing,
+    setPricingOpen(open) {
+      const s = st();
+      if (s.session.pricingOpen === open || s.work || s.replay) return;
+      if (!open) stopPricing();
+      d({ type: 'pricing/open', open });
+      saveSession();
+      if (open && !s.session.pricing && !s.session.pricingPending) {
+        sendPricing(makeT(s.lang)('pricing.startAsk'));
+      }
+    },
     drawDeployment() {
       const s = st();
       if (s.work || s.replay || !Object.keys(s.session.memory.workflow?.nodes ?? {}).length) return;
@@ -318,6 +381,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
       d({ type: 'ui/draft', text: ask });
     },
     newSession() {
+      stopPricing();
       ac?.abort();
       ac = null;
       clearFlush();
@@ -332,6 +396,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     openSession(id) {
       const rec = env.sessions.get(id);
       if (!rec) return;
+      stopPricing();
       ac?.abort();
       ac = null;
       clearFlush();
@@ -398,6 +463,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     setReplaySpeed: (speed) => d({ type: 'replay/speed', speed }),
     dispose() {
       disposed = true;
+      stopPricing();
       ac?.abort();
       healthAc?.abort();
       accountAc?.abort();

@@ -1,5 +1,5 @@
 // The proposal writer: drafts the business narrative of the exported PDF (POST /api/proposal) from the session the
-// browser holds. qwen3.8-max (thinking off, as for turns) writes NDJSON section lines (types.ts ProposalSection); each
+// browser holds. Qwen3.8 Max reasons privately before writing NDJSON section lines (types.ts ProposalSection); each
 // complete line is validated (parseProposalLine), checked against what was already accepted (counts, duplicates, one
 // why per product) and handed to onSection at once, so the export overlay shows progress as the draft grows.
 //
@@ -8,7 +8,7 @@
 //
 // Recovery, in the order it can happen:
 //   no first token in 20 s, 20 s of silence, 150 s in all, or a retryable error before any section arrived: one retry
-//   on the fallback model (qwen3.7-max), onStatus('retry'). Once sections arrived nothing restarts: the draft continues;
+//   on the report model, onStatus('retry'). Once sections arrived nothing restarts: the draft continues;
 //   a stream cut off (finish_reason 'length', a watchdog), a draft missing required parts (exec, two needs, an outcome,
 //   a why for every product in the design, a tradeoff, a next step) or lines set aside by the rules gets ONE
 //   continuation call that lists the accepted lines, the set-aside ones with the reason and exactly what is missing,
@@ -21,13 +21,14 @@
 // 'finish'. Upstream failures never throw: the outcome is 'failed' with a neutral error code, and the PDF falls back to
 // the version without a narrative. Browser-safe like llm.ts; the API key only goes to complete().
 import type { Catalog, ProposalDraft, ProposalNeed, ProposalRequest, ProposalSection, Provider } from './types.ts';
-import { BACKUP_MIN_MS_LEFT, DEFAULT_MODEL, FALLBACK_MODEL, complete, isContentFilter } from './llm.ts';
+import { BACKUP_MIN_MS_LEFT, QWEN_HIGH_REASONING, complete, isContentFilter } from './llm.ts';
 import type { BackupCall, BackupGateResult, BackupProvider, BackupSkipped, CompleteResult, TurnError, Usage } from './llm.ts';
 import type { Price } from './pricing.ts';
 import { normalizeKey } from './catalog.ts';
 import type { ChatMessage } from './prompt.ts';
-import { RESIDENCY_ASK, continuationMessage, customerWords, designProducts, proposalMessages, regionWords } from './proposal-prompt.ts';
+import { RESIDENCY_ASK, continuationMessage, customerWords, designProducts, proposalEditorialMessages, proposalMessages, regionWords } from './proposal-prompt.ts';
 import { PROPOSAL_HIDDEN as HIDDEN, proposalWorkflowIds } from './proposal-prompt.ts';
+import { pricingDesignKey } from './solution-pricing.ts';
 
 export { PROPOSAL_SYSTEM, designProducts, regionWords } from './proposal-prompt.ts';
 
@@ -53,12 +54,15 @@ export const PROPOSAL_LIMITS = {
   quoteMin: 4,
   /** Needs a draft must have before it counts as complete enough to skip the continuation call. */
   needsWanted: 2,
-  maxTokens: 6000,
+  // Model Studio maps budgets above 16,384 to xhigh. Bound the private portion so a long
+  // architecture still has output tokens and time left for the narrative and cost analysis.
+  thinkingBudget: 16_385,
+  maxTokens: QWEN_HIGH_REASONING.maxTokens,
   temperature: 0.5,
   /** Watchdogs of one Qwen call. */
-  firstByteMs: 20_000,
-  idleMs: 20_000,
-  totalMs: 150_000,
+  firstByteMs: QWEN_HIGH_REASONING.firstByteTimeoutMs,
+  idleMs: QWEN_HIGH_REASONING.idleTimeoutMs,
+  totalMs: QWEN_HIGH_REASONING.totalTimeoutMs,
   /** Backup calls at most: the continuation, and one more when that was cut off at its token cap. */
   backupCalls: 2,
   /** The continuation call starts only with this much of the caller's deadline left (msLeft). */
@@ -78,6 +82,7 @@ export interface ProposalCtx {
   stepIds: ReadonlyMap<string, string>;
   workflow: boolean;
   workflowOnly: boolean;
+  pricing: 'none' | 'stale' | 'current';
   modelNames: string[];
   /** The customer's own messages (memory.turns role 'user', correction prefixes removed), normalised for the quote check. */
   customerText: string[];
@@ -97,7 +102,9 @@ export function proposalCtx(req: ProposalRequest, catalog: Catalog): ProposalCtx
   const memory = req.memory;
   const stepIds = proposalWorkflowIds(memory.workflow);
   const products = designProducts(memory.graph, catalog, memory.workflow);
+  const pricing = !req.pricing ? 'none' : req.pricing.designKey === pricingDesignKey(memory) ? 'current' : 'stale';
   const own = (memory.turns ?? []).filter((t) => t.role === 'user').map((t) => customerWords(t.text));
+  if (pricing === 'current') own.push(...req.pricing!.messages.filter(m => m.role === 'user').map(m => customerWords(m.text)));
   const words = own.join('\n').normalize('NFKC').toLowerCase();
   const modelNames = [...new Set(Object.values(memory.workflow?.nodes ?? {}).flatMap((n) => n.ai ? [n.ai.toLowerCase()] : []))];
   const entries = products.map((p) => catalog.byId.get(p)).filter((e): e is NonNullable<typeof e> => !!e);
@@ -106,6 +113,7 @@ export function proposalCtx(req: ProposalRequest, catalog: Catalog): ProposalCtx
   return {
     lang: req.lang === 'ko' || req.lang === 'zh' ? req.lang : 'en',
     products,
+    pricing,
     steps: Object.values(memory.workflow?.nodes ?? {})
       .filter((n) => !n.on && n.kind !== 'trigger' && n.kind !== 'end').map((n) => stepIds.get(n.id) ?? n.id),
     stepIds,
@@ -210,6 +218,11 @@ function sanitize(raw: unknown, ctx: ProposalCtx): ProposalSection | null {
   const L = PROPOSAL_LIMITS;
   let s: ProposalSection | null = null;
   switch (o.k) {
+    case 'cost': {
+      const t = text(o.text, L.exec);
+      if (ctx.pricing === 'current' && t) s = { k: 'cost', text: t };
+      break;
+    }
     case 'exec': {
       const t = text(o.text, L.exec, true);
       if (t) s = { k: 'exec', text: t };
@@ -389,6 +402,7 @@ function jargonIn(t: string, ctx: ProposalCtx, step = false): string | null {
 function fieldsOf(s: ProposalSection): string[] {
   switch (s.k) {
     case 'exec':
+    case 'cost':
     case 'why':
     case 'step':
     case 'next':
@@ -416,8 +430,8 @@ export function lintSection(s: ProposalSection, ctx: ProposalCtx): LintProblem |
   const all = fieldsOf(s).join('\n');
   if (ctx.workflow && WRITER.test(all))
     return { level: 'hard', rule: 'model', reason: 'never identify the writer or say who generated the text' };
-  if (ctx.workflow && workflowMoney(s))
-    return { level: 'hard', rule: 'price', reason: 'write no monetary figures in workflow narrative; the app generates the estimate table' };
+  if ((ctx.workflow || ctx.pricing !== 'none') && workflowMoney(s))
+    return { level: 'hard', rule: 'price', reason: 'write no monetary figures in this narrative; the app generates the estimate table' };
   // Promises live in exec, a need's answer, outcomes and whys. A need states the problem ("관리 부담 해소 필요"), and
   // trade-offs and next steps may say honestly what the design does not do ("confirmation is not instant").
   const claims = s.k === 'need' ? s.answer : s.k === 'tradeoff' || s.k === 'next' ? '' : all;
@@ -425,7 +439,7 @@ export function lintSection(s: ProposalSection, ctx: ProposalCtx): LintProblem |
     return { level: 'hard', rule: 'absolute', reason: 'it makes an absolute promise (never, instantly, eliminates, guarantees, no order is lost); say what the design reduces or makes less likely' };
   if (PRICE_LINE.test(all)) return { level: 'hard', rule: 'price', reason: "it copies a catalog Price line, which the PDF already prints next to the product; give the business reason only" };
   if ((ctx.workflow ? PRICE_ALWAYS_WORKFLOW : PRICE_ALWAYS).test(all)) return { level: 'hard', rule: 'price', reason: 'it refers to another part of the document; every line must stand on its own' };
-  if (!ctx.hasPrice && PRICE_WORDS.test(all))
+  if (!ctx.hasPrice && ctx.pricing === 'none' && PRICE_WORDS.test(all))
     return { level: 'hard', rule: 'price', reason: 'it mentions prices or a budget; this design has no catalog price, so describe the cost shape (fixed or pay-as-you-go) without numbers' };
   const typo = misspeltName(all, ctx);
   if (typo) return { level: 'hard', rule: 'name', reason: `it writes "${typo}" for the customer's name; write ${ctx.customer} exactly` };
@@ -499,7 +513,7 @@ function createGate(): { add(s: ProposalSection): ProposalSection | null; sectio
     sections,
     add(s) {
       let key: string;
-      if (s.k === 'exec') key = 'exec';
+      if (s.k === 'exec' || s.k === 'cost') key = s.k;
       else if (s.k === 'why') key = `why:${s.product}`;
       else if (s.k === 'step') key = `step:${s.id}`;
       else if (s.k === 'need') key = `need:${normalizeKey(s.need)}`;
@@ -523,6 +537,7 @@ function missingOf(sections: readonly ProposalSection[], ctx: ProposalCtx): stri
   const out: string[] = [];
   if (!n('exec')) out.push('exec');
   if (n('need') < PROPOSAL_LIMITS.needsWanted) out.push('needs');
+  if (ctx.pricing === 'current' && !n('cost')) out.push('cost');
   const steps = new Set(sections.flatMap((s) => s.k === 'step' ? [s.id] : []));
   for (const id of ctx.steps) if (!steps.has(id)) out.push(`step:${id}`);
   if (ctx.workflowOnly) return out;
@@ -539,6 +554,7 @@ function describeMissing(missing: readonly string[], sections: readonly Proposal
   const whys = missing.filter((m) => m.startsWith('why:')).map((m) => m.slice(4));
   const out: string[] = [];
   if (missing.includes('exec')) out.push('the exec line');
+  if (missing.includes('cost')) out.push('one cost line explaining the main driver, coverage and decision that could change the estimate, without monetary figures');
   if (missing.includes('needs')) out.push(`need lines: ${needs ? `${needs} written, add more to reach 2 to 5 in all, each a different need` : '2 to 5'}`);
   if (missing.includes('outcomes')) out.push('outcome lines: 3 or 4');
   if (whys.length) out.push(`why lines for these products, in this order: ${whys.join(', ')}`);
@@ -568,12 +584,13 @@ export function assembleDraft(sections: ProposalSection[], ctx: ProposalCtx): Pr
   const gate = createGate();
   for (const s of sections) {
     const clean = sanitize(s, ctx);
-    if (clean && !(ctx.workflow && workflowMoney(clean))) gate.add(clean);
+    if (clean && !((ctx.workflow || ctx.pricing !== 'none') && workflowMoney(clean))) gate.add(clean);
   }
   const d: ProposalDraft = { lang: ctx.lang, exec: '', needs: [], outcomes: [], why: {}, tradeoffs: [], next: [], complete: false };
   if (ctx.workflow) d.steps = {};
   for (const s of gate.sections) {
     if (s.k === 'exec') d.exec = s.text;
+    else if (s.k === 'cost') d.cost = s.text;
     else if (s.k === 'need') d.needs.push({ id: s.id, need: s.need, source: s.source, ...(s.quote ? { quote: s.quote } : {}), answer: s.answer, products: s.products });
     else if (s.k === 'outcome') d.outcomes.push({ title: s.title, text: s.text });
     else if (s.k === 'why') d.why[s.product] = s.text;
@@ -587,6 +604,7 @@ export function assembleDraft(sections: ProposalSection[], ctx: ProposalCtx): Pr
     const stepsComplete = ctx.steps.every((id) => Object.hasOwn(d.steps!, id));
     d.complete = (ctx.workflowOnly ? !!d.exec && d.needs.length >= PROPOSAL_LIMITS.needsWanted : d.complete) && stepsComplete;
   }
+  if (ctx.pricing === 'current' && !d.cost) d.complete = false;
   return d;
 }
 
@@ -597,7 +615,7 @@ export interface DraftProposalOptions {
   baseUrl?: string;
   /** Default DEFAULT_MODEL (qwen3.8-max). */
   model?: string;
-  /** Model of the one retry after a stall or a retryable error before any section. Default FALLBACK_MODEL (qwen3.7-max); null turns the retry off. */
+  /** Model of the one retry before any section. Defaults to the same report model. Null disables this retry. */
   fallbackModel?: string | null;
   /** Continues a draft Model Studio's content filter stopped (claude.ts createClaudeBackup; needs its complete()). */
   backup?: BackupProvider | null;
@@ -674,9 +692,9 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
   const t0 = now();
   const ctx = proposalCtx(req, catalog);
   const messages = proposalMessages(req, catalog, ctx.products);
-  const model = o.model ?? DEFAULT_MODEL;
-  const fb = o.fallbackModel === undefined ? FALLBACK_MODEL : o.fallbackModel;
-  const fallback = fb && fb !== model ? fb : undefined;
+  const editorial = proposalEditorialMessages(req, catalog, ctx.products);
+  const model = o.model ?? QWEN_HIGH_REASONING.model;
+  const fallback = o.fallbackModel === undefined ? model : o.fallbackModel;
   const dog = {
     firstByteMs: o.timeouts?.firstByteMs ?? PROPOSAL_LIMITS.firstByteMs,
     idleMs: o.timeouts?.idleMs ?? PROPOSAL_LIMITS.idleMs,
@@ -766,7 +784,7 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
     };
     return f;
   };
-  const qwen = async (m: string, msgs: ChatMessage[]): Promise<{ r: CompleteResult; accepted: number }> => {
+  const qwen = async (m: string, msgs: ChatMessage[], highReasoning: boolean): Promise<{ r: CompleteResult; accepted: number }> => {
     const f = feed();
     stats.calls++;
     stats.model = m;
@@ -775,7 +793,9 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
       baseUrl: o.baseUrl,
       model: m,
       messages: msgs,
-      maxTokens: PROPOSAL_LIMITS.maxTokens,
+      extraBody: { enable_thinking: highReasoning, ...(highReasoning && m === QWEN_HIGH_REASONING.model
+        ? { thinking_budget: PROPOSAL_LIMITS.thinkingBudget } : {}) },
+      maxTokens: highReasoning ? PROPOSAL_LIMITS.maxTokens : 10_000,
       temperature: PROPOSAL_LIMITS.temperature,
       signal: o.signal,
       firstByteTimeoutMs: dog.firstByteMs,
@@ -803,7 +823,8 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
    */
   const finish = (err: ErrorCode | null): DraftProposalResult => {
     for (const s of held) {
-      const slot = s.k === 'step' ? `step:${s.id}` : s.k === 'why' ? `why:${s.product}` : s.k === 'exec' ? 'exec' : s.k === 'next' ? 'next' : `${s.k}s`;
+      const slot = s.k === 'step' ? `step:${s.id}` : s.k === 'why' ? `why:${s.product}` :
+        s.k === 'exec' || s.k === 'next' || s.k === 'cost' ? s.k : `${s.k}s`;
       // a stated need is the customer's own point: kept when no accepted need carries its quote, even past the minimum
       const lostQuote = s.k === 'need' && !!s.quote && !gate.sections.some((x) => x.k === 'need' && x.quote === s.quote);
       if (!lostQuote && !missingOf(gate.sections, ctx).includes(slot)) continue;
@@ -826,13 +847,13 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
 
   // 1. The draft, with one retry on the fallback model when it failed before any section arrived.
   let useModel = model;
-  let call = await qwen(useModel, messages);
+  let call = await qwen(useModel, editorial, true);
   if (aborted()) return stop();
   if (call.r.error && !isFiltered(call.r.error) && call.r.error.retryable && gate.sections.length === 0 && fallback && !o.signal?.aborted) {
     status('retry');
-    stats.fallbackUsed = true;
+    stats.fallbackUsed = fallback !== model;
     useModel = fallback;
-    call = await qwen(useModel, messages);
+    call = await qwen(useModel, editorial, true);
     if (aborted()) return stop();
   }
   let lastError = call.r.error;
@@ -849,7 +870,8 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
       if (contModel !== model) stats.fallbackUsed = true;
       // "Taking a little longer" only when parts are missing; rewriting set-aside lines is part of the usual work
       if (missing.length) status('finish');
-      const cont = await qwen(contModel, [...messages, continueWith(missing)]);
+      // Use the same Qwen to expand its recommendation into the structured business and design sections.
+      const cont = await qwen(contModel, [...messages, continueWith(missing)], false);
       if (aborted()) return stop();
       // A failed continuation leaves the draft as it was; its error explains a draft that is still unusable.
       if (cont.r.error) lastError = cont.r.error;

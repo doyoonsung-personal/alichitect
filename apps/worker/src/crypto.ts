@@ -54,9 +54,10 @@ export function timingSafeEqual(a: string, b: string): boolean {
   return d === 0;
 }
 
-const keys = new Map<string, Promise<CryptoKey>>();
+type ImportedKey = ReturnType<typeof crypto.subtle.importKey>;
+const keys = new Map<string, ImportedKey>();
 
-function hmacKey(secret: string): Promise<CryptoKey> {
+function hmacKey(secret: string): ImportedKey {
   let k = keys.get(secret);
   if (!k) {
     k = crypto.subtle.importKey('raw', utf8(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);

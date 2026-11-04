@@ -203,6 +203,7 @@ export function buildDocument(i: PdfInput): PdfReport {
   // ---------- the sections, in the order of the document ----------
   if (n) {
     execSection(n);
+    solutionPricingSection();
     needsSection(n);
     diagramSection();
     workflowSections();
@@ -212,6 +213,7 @@ export function buildDocument(i: PdfInput): PdfReport {
     summarySection(true);
   } else {
     summarySection(false);
+    solutionPricingSection();
     diagramSection();
     workflowSections();
     componentsSection();
@@ -402,55 +404,87 @@ export function buildDocument(i: PdfInput): PdfReport {
     });
   }
 
+  function start(title: string): void { newPage(A4); outline(title); heading(title); }
+  function paragraph(text: string, weight: 400 | 700 = 400): void {
+    if (weight === 700) ensure(body.lh * 4);
+    const p = ts.paragraph(text, contentW(), body.px, weight, body.lh);
+    for (const line of p.lines) {
+      ensure(body.lh);
+      ts.line(margin, ts.baseline(y, body.lh, body.px), line, ink(body.px, weight));
+      y += body.lh;
+    }
+    y += 6;
+  }
+  function table(headers: string[], rows: string[][], widths: number[]): void {
+    const cols = widths.map((v) => v * contentW());
+    const headerLines = headers.map((h, k) => ts.wrap(h, cols[k] - 12, body.px, 500));
+    const headerHeight = Math.max(...headerLines.map((ls) => ls.length)) * body.lh + 30;
+    ensure(headerHeight + body.lh + 12);
+    const measured = rows.map((row) => row.map((cell, k) => ts.wrap(cell, cols[k] - 12, body.px, 400)));
+    const pages = planTablePages({ rows: measured, firstHeight: bottomLimit() - y,
+      pageHeight: A4[1] - 54 - CONTENT_TOP, headerHeight, lineHeight: body.lh });
+    pages.forEach((page, index) => {
+      if (index) newPage(A4);
+      if (index) {
+        const first = page.rows[0];
+        const note = wt(model.lang, 'table.continued') + (first?.continued ? ` (${first.index + 1})` : '');
+        ts.line(margin, ts.baseline(y, body.lh, body.px), note, ink(body.px, 500));
+      }
+      y += body.lh;
+      let x = margin;
+      headerLines.forEach((ls, k) => {
+        ls.forEach((line, n) => ts.line(x, ts.baseline(y + n * body.lh, body.lh, body.px), line, ink(body.px, 500)));
+        x += cols[k];
+      });
+      y += headerHeight - body.lh;
+      for (const row of page.rows) {
+        rule(); x = margin;
+        row.cells.forEach((ls, k) => {
+          ls.forEach((line, n) => ts.line(x, ts.baseline(y + 6 + n * body.lh, body.lh, body.px), line, ink(body.px)));
+          x += cols[k];
+        });
+        y += row.height;
+      }
+    });
+    rule(); y += 8;
+  }
+
+  function solutionPricingSection(): void {
+    const pricing = model.pricing;
+    if (!pricing) return;
+    if (pricing.stale) {
+      sub(xt('price.heading'), body.lh * 3);
+      paragraph(xt('price.stale'));
+      return;
+    }
+    start(xt('price.heading'));
+    const { estimate } = pricing;
+    paragraph(xt('price.caveat'));
+    if (pricing.interpretation) paragraph(pricing.interpretation);
+    const number = new Intl.NumberFormat(model.lang, { maximumSignificantDigits: 17 });
+    const total = new Intl.NumberFormat(model.lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const money = (amount: number) => `USD ${total.format(amount)}`;
+    for (const period of ['monthly', 'one-time'] as const) {
+      const subtotal = period === 'monthly' ? estimate.monthlyUsd : estimate.oneTimeUsd;
+      sub(xt(period === 'monthly' ? 'price.monthly' : 'price.once'));
+      paragraph(subtotal === null ? xt('price.noRows') : money(subtotal), 700);
+      const rows = estimate.items.filter(item => item.period === period);
+      if (rows.length) table([xt('price.item'), xt('price.calculation'), xt('price.amount'), xt('price.basis')], rows.map(row => [
+        row.label, [`${number.format(row.quantity)} ${row.unit} × USD ${number.format(row.unitUsd)}`, row.quantityNote].filter(Boolean).join('\n'),
+        money(row.amountUsd), `${xt(`price.${row.basis}`)}\n${row.source}`,
+      ]), [.22, .27, .15, .36]);
+    }
+    for (const [title, notes] of [[xt('price.assumptions'), estimate.assumptions], [xt('price.open'), estimate.unknowns]] as const) {
+      if (notes.length) { sub(title); for (const note of notes) paragraph(note); }
+    }
+    if (model.workflow) paragraph(xt('price.workflow'));
+  }
+
   function workflowSections(): void {
     const data = workflowPdfData(model);
     if (!data) return;
     const t = makeT(model.lang);
     const w = (key: Parameters<typeof wt>[1]) => wt(model.lang, key);
-    const start = (title: string) => { newPage(A4); outline(title); heading(title); };
-    const paragraph = (text: string, weight: 400 | 700 = 400) => {
-      if (weight === 700) ensure(body.lh * 4);
-      const p = ts.paragraph(text, contentW(), body.px, weight, body.lh);
-      for (const line of p.lines) {
-        ensure(body.lh);
-        ts.line(margin, ts.baseline(y, body.lh, body.px), line, ink(body.px, weight));
-        y += body.lh;
-      }
-      y += 6;
-    };
-    function table(headers: string[], rows: string[][], widths: number[]): void {
-      const cols = widths.map((v) => v * contentW());
-      const headerLines = headers.map((h, k) => ts.wrap(h, cols[k] - 12, body.px, 500));
-      const headerHeight = Math.max(...headerLines.map((ls) => ls.length)) * body.lh + 30;
-      ensure(headerHeight + body.lh + 12);
-      const measured = rows.map((row) => row.map((cell, k) => ts.wrap(cell, cols[k] - 12, body.px, 400)));
-      const pages = planTablePages({ rows: measured, firstHeight: bottomLimit() - y,
-        pageHeight: A4[1] - 54 - CONTENT_TOP, headerHeight, lineHeight: body.lh });
-      pages.forEach((page, index) => {
-        if (index) newPage(A4);
-        if (index) {
-          const first = page.rows[0];
-          const note = w('table.continued') + (first?.continued ? ` (${first.index + 1})` : '');
-          ts.line(margin, ts.baseline(y, body.lh, body.px), note, ink(body.px, 500));
-        }
-        y += body.lh;
-        let x = margin;
-        headerLines.forEach((ls, k) => {
-          ls.forEach((line, n) => ts.line(x, ts.baseline(y + n * body.lh, body.lh, body.px), line, ink(body.px, 500)));
-          x += cols[k];
-        });
-        y += headerHeight - body.lh;
-        for (const row of page.rows) {
-          rule(); x = margin;
-          row.cells.forEach((ls, k) => {
-            ls.forEach((line, n) => ts.line(x, ts.baseline(y + 6 + n * body.lh, body.lh, body.px), line, ink(body.px)));
-            x += cols[k];
-          });
-          y += row.height;
-        }
-      });
-      rule(); y += 8;
-    }
     start(w('steps.heading'));
     for (const step of data.steps) {
       ensure(body.lh * 3);
@@ -463,6 +497,7 @@ export function buildDocument(i: PdfInput): PdfReport {
       row.runtime, row.service,
     ]), [.34, .26, .40]);
     start(data.costTitle);
+    if (!model.pricing) paragraph(xt('next.pricing'));
     const cost = data.cost;
     const order = new Map(data.mapping.map((row, index) => [row.id, index]));
     const ordered = <T extends { id: string }>(rows: readonly T[]): T[] =>

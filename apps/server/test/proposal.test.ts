@@ -142,7 +142,7 @@ describe('POST /api/proposal on the local server', () => {
       assert.equal(o.apiKey, KEY);
       assert.equal(o.model, 'qwen3.8-max');
       assert.ok(o.signal instanceof AbortSignal);
-      assert.ok(o.msLeft!() > 190_000);
+      assert.ok(o.msLeft!() > 350_000);
       assert.equal(o.backup, undefined);
       assert.equal(srv.inFlight().turns, 0);
       await srv.close();
