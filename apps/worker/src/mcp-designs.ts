@@ -2,6 +2,7 @@ import { createMemory } from '../../../packages/core/src/prompt.ts';
 import type { ServerEvent, SessionMemory, TurnMode } from '../../../packages/core/src/types.ts';
 import type { PricingSession } from '../../../packages/core/src/solution-pricing.ts';
 import { pricingDesignKey } from '../../../packages/core/src/solution-pricing.ts';
+import { langOf } from '../../server/src/messages.ts';
 import { sha256Hex } from './crypto.ts';
 import type { UserRow } from './db.ts';
 import type { D1Database, Env, ExecutionContextLike } from './env.ts';
@@ -28,8 +29,31 @@ export async function latestDesign(db: D1Database, owner: string, id: string) {
 }
 export function openedDesign(row: Receipt) {
   const snapshot = JSON.parse(row.snapshot!) as Snapshot;
-  return { ...snapshot, designId: row.design_id, revision: row.revision, updatedAt: row.created_at };
+  // Older snapshots stored the graph diff as their summary even when the model narrated the design.
+  const last = snapshot.memory.turns.at(-1);
+  const summary = (last?.role === 'assistant' && last.text.trim()) || snapshot.summary;
+  return { ...snapshot, summary, designId: row.design_id, revision: row.revision, updatedAt: row.created_at };
 }
+
+/** Most clients choose a mode from the tool schema. Preserve the cloud default for ambiguous new briefs. */
+function initialMode(brief: string): TurnMode {
+  if (/\b(?:cloud architecture|network topology|infrastructure diagram)\b|클라우드\s*(?:아키텍처|구성도)|네트워크\s*구성도|云架构|网络拓扑/i.test(brief)) return 'cloud';
+  if (/\bworkflows?\b|워크플로|工作流/i.test(brief)) return 'workflow';
+  const approval = /\bapprov(?:al|e|ed)\b|승인|审批|批准/i.test(brief);
+  const businessStep = /\b(?:triage|classif\w*|tickets?|inventory|procurement|purchas\w*)\b|분류|티켓|재고|구매|分类|工单|库存|采购/i.test(brief);
+  return approval && businessStep ? 'workflow' : 'cloud';
+}
+
+function pricingLanguage(ask: string, snapshot: Snapshot, user: UserRow) {
+  const current = langOf(ask);
+  if (current !== 'en') return current;
+  // Keep a number-only answer in the language of the question that prompted it.
+  const previous = snapshot.pricing?.messages.at(-1)?.text || snapshot.memory.turns.at(-1)?.text || snapshot.title;
+  if (!/\p{L}/u.test(ask)) return langOf(previous);
+  if (user.lang === 'ko' || user.lang === 'zh' || user.lang === 'en') return user.lang;
+  return langOf(previous);
+}
+
 function answer(row: Receipt, origin: string) {
   if (row.status !== 'done') throw new DesignError(row.error ?? 'This request is still running. Retry with the same requestId.');
   const d = openedDesign(row);
@@ -51,10 +75,12 @@ async function applyTurn(response: Response, snapshot: Snapshot): Promise<Snapsh
   // Drain through the optional post-commit summary; only a validated commit can become a saved design.
   const lines = (await response.text()).trim().split('\n');
   let result: Snapshot | undefined;
+  let designSummary = '';
   for (const line of lines) {
-    const event = JSON.parse(line) as ServerEvent;
+    const event = JSON.parse(line) as ServerEvent | { type: 'done'; summary: string; phase: string };
     if (event.type === 'fatal') throw new DesignError(event.code + ': ' + event.message);
-    if (event.type === 'commit') result = { ...snapshot, memory: event.memory, summary: event.changes || event.memory.turns.at(-1)?.text || snapshot.title };
+    if (event.type === 'done' && event.phase === 'main' && event.summary?.trim()) designSummary = event.summary.trim();
+    if (event.type === 'commit') result = { ...snapshot, memory: event.memory, summary: designSummary || event.changes || snapshot.title };
     if (event.type === 'summary' && result) result.memory.summary = event.summary;
   }
   if (!result) throw new DesignError('No committed design was returned.');
@@ -92,7 +118,7 @@ export async function changeDesign(tool: Tool, args: Inputs, env: Env, ctx: Exec
   try {
     let snapshot: Snapshot = prior ? JSON.parse(prior.snapshot!) : {
       memory: createMemory(), title: Array.from(args.ask).slice(0, 120).join(''),
-      mode: args.mode ?? 'cloud', summary: ''
+      mode: args.mode ?? initialMode(args.ask), summary: ''
     };
     // The internal request has no user-supplied headers or credential. The normal handlers enforce admission,
     // account quota, concurrency, redaction and usage accounting for the already authenticated owner.
@@ -107,7 +133,7 @@ export async function changeDesign(tool: Tool, args: Inputs, env: Env, ctx: Exec
     } else {
       const resp = await runners.price(request('/api/pricing', {
         sessionId: designId, memory: snapshot.memory, ask: args.ask,
-        pricing: snapshot.pricing, lang: args.lang ?? (user.lang === 'ko' || user.lang === 'zh' ? user.lang : 'en')
+        pricing: snapshot.pricing, lang: args.lang ?? pricingLanguage(args.ask, snapshot, user)
       }), env, ctx, user);
       const result = await resp.json() as { pricing?: PricingSession; code?: string; message?: string };
       if (!resp.ok || !result.pricing) throw new DesignError((result.code ?? 'pricing-error') + ': ' + (result.message ?? 'Estimate unavailable.'));

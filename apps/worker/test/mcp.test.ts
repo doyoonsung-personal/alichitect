@@ -5,6 +5,7 @@ import { issueKey } from '../src/mcp-keys.ts';
 import { changeDesign, getDesign } from '../src/mcp-designs.ts';
 import { turnsToday } from '../src/db.ts';
 import { createMemory } from '../../../packages/core/src/prompt.ts';
+import { pricingDesignKey } from '../../../packages/core/src/solution-pricing.ts';
 
 const rpc = (method: string, params = {}, token?: string, origin: string | null = null) => req('/mcp', {
   method: 'POST', origin, type: 'application/json', headers: { Accept: 'application/json, text/event-stream', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
@@ -55,6 +56,11 @@ test('personal keys are shown once, scoped to MCP and rechecked for expiry, revo
   assert.match(hello.result.instructions, /estimate_solution/);
   assert.match(hello.result.instructions, /requestId/);
   assert.match(hello.result.instructions, /write the client report yourself/);
+  const discovery = (await (await call(env, rpc('tools/list', {}, key))).json()).result.tools;
+  const draft = discovery.find((tool: { name: string }) => tool.name === 'design_solution');
+  assert.match(draft.description, /first for a new solution brief/);
+  assert.match(draft.inputSchema.properties.mode.description, /human approvals/);
+  assert.equal(draft.annotations.destructiveHint, false);
   const list = async (k: string) => (await (await call(env, rpc('tools/list', {}, k))).json()).result.tools.map((v: { name: string }) => v.name).sort();
   assert.deepEqual(await list(key), ['design_solution', 'estimate_solution', 'get_design']);
   const read = (await issueKey(env.DB, owner.user.id, 'reader', 'read', 30, Date.now()))!;
@@ -106,6 +112,66 @@ test('a design revision is committed once, isolated by owner, and readable throu
   assert.equal(wire.result.structuredContent.revision, 2);
   assert.equal(wire.result.structuredContent.url, ORIGIN + '/?design=' + one.designId);
   assert.equal(await turnsToday(env.DB, owner.user.id, Date.now()), 0);
+});
+
+test('a Korean business brief produces a workflow explanation and questions, then keeps a sizing answer in Korean', async () => {
+  const env = makeEnv(), { user } = await signIn(env, 'discovery@example.org', { status: 'approved' });
+  const brief = 'IT 지원 요청을 분류하고 테스트한 뒤 관리자 승인을 받아 재고를 확인해 주세요.';
+  const explanation = '요청을 분류하고 테스트 환경에서 검증한 뒤 관리자 승인을 거쳐 재고를 조회합니다.';
+  const question = '월간 지원 요청은 몇 건인가요?';
+  const memory = createMemory();
+  memory.turns = [{ role: 'user', text: brief }, { role: 'assistant', text: explanation }];
+  memory.questions = [{ id: 'volume', text: question }];
+  const runners = {
+    turn: async (req: Request) => {
+      const input = await req.json();
+      assert.equal(input.mode, 'workflow');
+      assert.equal(input.ask, brief);
+      return Response.json({ type: 'commit', memory, changes: '+triage +approval' });
+    },
+    price: async (req: Request) => {
+      const input = await req.json();
+      assert.equal(input.lang, 'ko');
+      return Response.json({ pricing: {
+        designKey: pricingDesignKey(memory), messages: [{ role: 'assistant', text: '건당 처리 시간은 얼마나 되나요?' }],
+        estimate: { currency: 'USD', monthlyUsd: null, oneTimeUsd: null, items: [], assumptions: [], unknowns: ['건당 처리 시간'] },
+      } });
+    },
+  };
+  const design = await changeDesign('design_solution', { ask: brief, requestId: 'business_brief' }, env, makeCtx(), user, runners);
+  assert.equal(design.mode, 'workflow');
+  assert.equal(design.summary, explanation);
+  assert.equal(design.questions?.[0].text, question);
+  const estimate = await changeDesign('estimate_solution', { ask: '2000', requestId: 'business_volume',
+    designId: design.designId, revision: design.revision }, env, makeCtx(), { ...user, lang: 'en' }, runners);
+  assert.equal(estimate.designId, design.designId);
+  assert.equal(estimate.revision, 2);
+  assert.equal(estimate.pricingReply, '건당 처리 시간은 얼마나 되나요?');
+});
+
+test('explicit mode and existing design mode take precedence, and the model’s done summary survives an empty narration', async () => {
+  const env = makeEnv(), { user } = await signIn(env, 'topology@example.org', { status: 'approved' });
+  const modes: string[] = [];
+  const runners = {
+    turn: async (req: Request) => {
+      const input = await req.json();
+      modes.push(input.mode);
+      return new Response([
+        { type: 'done', phase: 'main', summary: 'The compute tier connects to an external database.' },
+        { type: 'commit', memory: createMemory(), changes: '+ecs' },
+      ].map(e => JSON.stringify(e)).join('\n'));
+    },
+    price: async () => { throw new Error('Unexpected pricing call'); },
+  };
+  const create = (ask: string, requestId: string, mode?: 'cloud' | 'workflow') =>
+    changeDesign('design_solution', { ask, requestId, mode }, env, makeCtx(), user, runners);
+  const first = await create('Design a cloud architecture for a ticket approval workflow.', 'cloud_topology');
+  assert.equal(first.summary, 'The compute tier connects to an external database.');
+  const chosen = await create('Classify tickets and require approval.', 'explicit_cloud', 'cloud');
+  await changeDesign('design_solution', { ask: 'Add a workflow.', requestId: 'retain_mode',
+    designId: chosen.designId, revision: chosen.revision }, env, makeCtx(), user, runners);
+  await create('Price an ECS instance.', 'ambiguous_default');
+  assert.deepEqual(modes, ['cloud', 'cloud', 'cloud', 'cloud']);
 });
 
 test('estimating through MCP persists the result, shares web usage and replays without another model call', async (t) => {
