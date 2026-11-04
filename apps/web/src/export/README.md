@@ -30,6 +30,7 @@ Every page has "Page n of N" and "Catalog checked <date>". File name: `<title>-a
 | `typeset.ts` | Line breaking for Latin, Korean (at spaces) and Chinese (between characters, with the punctuation rules), and drawing one text call per font face. |
 | `pdf.ts` | The pages. Runs twice: a dry pass on `stub.ts` lets the font set learn which glyphs are needed, then the real pass. |
 | `generate.ts` | The pipeline. `browser.ts` is the browser end (Vite font source, libavoid worker, logo fetch, download) and is loaded with `import()` on the first click, so none of this is in the app's first load. |
+| `worker.ts` | The MCP entry. The web build also bundles the renderer for Cloudflare Workers. It reads the same fonts and logo through the static assets binding, uses the channel router, and accepts the IDE's narrative for a pinned design revision. |
 | `ExportButton.tsx`, `export.css` | The header control and its small dialog; it runs the draft, the overlay and the layout. |
 | `draft-client.ts` | `POST /api/proposal`: builds the `ProposalRequest`, reads the NDJSON `ProposalEvent`s with the turn client's line reader, and ends in the `ProposalDraft` or a typed `DraftError` (fatal with the server's message, unavailable, network, incomplete, aborted). |
 | `draft-flow.ts` | Pure: the overlay's state machine (steps from the sections that arrived, the calm latest line, the quiet slow note, failure, the basic version). |

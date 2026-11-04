@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { readFile } from 'node:fs/promises';
 import { call, makeCtx, makeEnv, ORIGIN, req, signIn } from './helpers.ts';
 import { issueKey } from '../src/mcp-keys.ts';
 import { changeDesign, getDesign } from '../src/mcp-designs.ts';
@@ -14,6 +15,52 @@ const rpc = (method: string, params = {}, token?: string, origin: string | null 
 const form = (path: string, cookie: string, values: Record<string, string>, origin?: string) =>
   req(path, { method: 'POST', cookie, body: new URLSearchParams(values).toString(), type: 'application/x-www-form-urlencoded', origin });
 
+test('MCP exports an agent-authored PDF and its private link keeps the exported revision', async () => {
+  const assets = new URL('../../web/dist/', import.meta.url);
+  const env = makeEnv({ ASSETS: { fetch: async request => new Response(await readFile(new URL(new URL(request.url).pathname.slice(1), assets))) } });
+  const owner = await signIn(env, 'pdf@example.org', { status: 'approved' });
+  const peer = await signIn(env, 'other@example.org', { status: 'approved', role: 'admin' });
+  const writer = (await issueKey(env.DB, owner.user.id, 'writer', 'write', 30, Date.now()))!;
+  const reader = (await issueKey(env.DB, owner.user.id, 'reader', 'read', 30, Date.now()))!;
+  const peerKey = (await issueKey(env.DB, peer.user.id, 'peer', 'write', 30, Date.now()))!;
+  const memory = createMemory();
+  memory.graph.nodes.web = { id: 'web', product: 'ecs', label: 'Application', group: null };
+  const designId = crypto.randomUUID();
+  const snapshot = JSON.stringify({ title: 'Portal', mode: 'cloud', memory, summary: 'Application tier' });
+  const save = (revision: number) => env.DB.prepare("INSERT INTO mcp_revisions(user_id,request_id,fingerprint,design_id,revision,status,snapshot,created_at) VALUES (?,?,?,?,?,'done',?,?)")
+    .bind(owner.user.id, 'test-pdf-' + revision, '', designId, revision, snapshot, Date.now()).run();
+  await save(1);
+  const input = { designId, revision: 1, lang: 'ko', title: '포털 설계', narrative: { exec: '고객 전용 포털을 구축합니다.' } };
+  const invoke = async (key: string, args: object) => (await (await call(env, rpc('tools/call', { name: 'export_proposal_pdf', arguments: args }, key))).json());
+  const denied = await invoke(reader, input);
+  assert.ok(denied.error || denied.result?.isError);
+  assert.equal((await invoke(peerKey, input)).result.isError, true);
+  const result = (await invoke(writer, { ...input, includeFile: true })).result;
+  assert.ok(!result.isError, result.content[0].text);
+  const info = result.structuredContent;
+  assert.equal(info.revision, 1);
+  assert.match(info.fileName, /^포털-설계.*\.pdf$/u);
+  const attachment = result.content[1].resource;
+  assert.equal(attachment.mimeType, 'application/pdf');
+  assert.equal(attachment.uri, info.url);
+  assert.equal(Buffer.from(attachment.blob, 'base64').subarray(0,5).toString(), '%PDF-');
+  const again = (await invoke(writer, input)).result;
+  assert.equal(again.structuredContent.url, info.url);
+  assert.equal(again.content.length, 1);
+  await save(2);
+  assert.equal((await invoke(writer, input)).result.isError, true);
+  const path = new URL(info.url).pathname;
+  assert.equal((await call(env, req(path))).status, 302);
+  assert.equal((await call(env, req(path, { cookie: peer.cookie }))).status, 404);
+  const pdf = await call(env, req(path, { cookie: owner.cookie }));
+  assert.equal(pdf.status, 200);
+  assert.equal(pdf.headers.get('Content-Type'), 'application/pdf');
+  assert.match(pdf.headers.get('Content-Disposition')!, /filename\*=UTF-8''/);
+  assert.equal(Buffer.from(await pdf.arrayBuffer()).subarray(0,5).toString(), '%PDF-');
+  assert.equal((await env.DB.prepare('SELECT revision FROM mcp_pdf_exports').first<{revision:number}>())?.revision, 1);
+  assert.equal(await turnsToday(env.DB, owner.user.id, Date.now()), 0);
+});
+
 test('the key page explains remote setup in each language and gives valid client-specific examples', async () => {
   const env = makeEnv(), owner = await signIn(env, 'onboarding@example.org', { status: 'approved' });
   for (const [lang, title] of [['en', 'Connect an agentic IDE'], ['ko', '에이전트 IDE 연결하기'], ['zh', '连接智能体 IDE']]) {
@@ -22,7 +69,7 @@ test('the key page explains remote setup in each language and gives valid client
     assert.match(page, /<textarea id="mcp-prompt"[^>]+>[^<]*design_solution[^<]*estimate_solution/);
     assert.ok(page.includes('data-copy-from="mcp-prompt"'));
     assert.ok(page.includes('<code>Authorization: Bearer &lt;YOUR_API_KEY&gt;</code>'));
-    for (const name of ['Streamable HTTP', 'get_design', 'design_solution', 'estimate_solution']) assert.ok(page.includes(name));
+    for (const name of ['Streamable HTTP', 'get_design', 'design_solution', 'estimate_solution', 'export_proposal_pdf']) assert.ok(page.includes(name));
     const examples = [...page.matchAll(/<details><summary>[^<]+<\/summary><pre class="mcp-config">([^<]+)<\/pre>/g)]
       .map(([, html]) => JSON.parse(html.replaceAll('&quot;', '"').replaceAll('&lt;', '<').replaceAll('&gt;', '>')));
     const servers = { alichitect: { type: 'http', url: ORIGIN + '/mcp', headers: { Authorization: 'Bearer <YOUR_API_KEY>' } } };
@@ -62,7 +109,7 @@ test('personal keys are shown once, scoped to MCP and rechecked for expiry, revo
   assert.match(draft.inputSchema.properties.mode.description, /human approvals/);
   assert.equal(draft.annotations.destructiveHint, false);
   const list = async (k: string) => (await (await call(env, rpc('tools/list', {}, k))).json()).result.tools.map((v: { name: string }) => v.name).sort();
-  assert.deepEqual(await list(key), ['design_solution', 'estimate_solution', 'get_design']);
+  assert.deepEqual(await list(key), ['design_solution', 'estimate_solution', 'export_proposal_pdf', 'get_design']);
   const read = (await issueKey(env.DB, owner.user.id, 'reader', 'read', 30, Date.now()))!;
   assert.deepEqual(await list(read), ['get_design']);
   const readHello = await (await call(env, rpc('initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'test', version: '1' } }, read))).json();
@@ -71,7 +118,7 @@ test('personal keys are shown once, scoped to MCP and rechecked for expiry, revo
   const denied = await (await call(env, rpc('tools/call', { name: 'estimate_solution', arguments: {} }, read))).json();
   assert.ok(denied.error || denied.result?.isError);
   await call(env, form('/account/keys/revoke', other.cookie, { id: key.slice(8, 24) }));
-  assert.deepEqual(await list(key), ['design_solution', 'estimate_solution', 'get_design']);
+  assert.deepEqual(await list(key), ['design_solution', 'estimate_solution', 'export_proposal_pdf', 'get_design']);
   await call(env, form('/account/keys/revoke', owner.cookie, { id: key.slice(8, 24) }));
   assert.equal((await call(env, rpc('tools/list', {}, key))).status, 401);
   await env.DB.prepare('UPDATE users SET status=? WHERE id=?').bind('revoked', owner.user.id).run();

@@ -23,6 +23,7 @@ import { handleTurn, health, reject, sharedTurnState, workerFatalMessage } from 
 import { handleProposal } from './proposal.ts';
 import { handlePricing } from './pricing.ts';
 import { handleMcp } from './mcp.ts';
+import { downloadPdf } from './mcp-pdf.ts';
 import { keyMenu } from './key-menu.ts';
 import { latestDesign, openedDesign } from './mcp-designs.ts';
 import { changelogPage, claimReleaseNotice } from './release-notice.ts';
@@ -182,6 +183,8 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
   }
 
   // ---------- approved ----------
+  const pdf = /^\/account\/proposals\/([a-f0-9]{64})\.pdf$/.exec(path);
+  if (pdf) return method === 'GET' ? downloadPdf(env, me.id, pdf[1]) : json(405, { error: 'method-not-allowed' }, { Allow: 'GET' });
   if (path === '/changelog') {
     if (!isGet(method)) return json(405, { error: 'method-not-allowed' }, { Allow: 'GET, HEAD' });
     return changelogPage(request, env, me, pageCtx(request, url));

@@ -4,11 +4,24 @@ import type { Env, ExecutionContextLike } from './env.ts';
 import { json } from './http.ts';
 import { authenticateKey } from './mcp-keys.ts';
 import { changeDesign, DesignError, getDesign } from './mcp-designs.ts';
+import { exportPdf } from './mcp-pdf.ts';
 
 const id = z.uuid().describe('Design ID returned by Alichitect.');
 const revision = z.number().int().positive().describe('Current revision returned by get_design.');
 const requestId = z.string().regex(/^[A-Za-z0-9_-]{8,64}$/).describe('A new unique ID for this change. Reuse the exact ID and inputs when retrying.');
 const record = z.record(z.string(), z.unknown());
+const paragraph = z.string().trim().min(1).max(3000);
+const narrative = z.object({
+  exec: paragraph.describe('Executive summary written by the calling agent.'),
+  outcomes: z.array(z.object({ title: z.string().max(200), text: paragraph })).max(16).default([]),
+  needs: z.array(z.object({ id: z.string().max(100), need: paragraph, source: z.enum(['stated','inferred','general']),
+    quote: paragraph.optional(), answer: paragraph, products: z.array(z.string().max(100)).max(32).default([]) })).max(32).default([]),
+  why: z.record(z.string().max(100), paragraph).default({}).describe('Optional rationale keyed by catalog product ID.'),
+  steps: z.record(z.string().max(100), paragraph).optional().describe('Optional explanations keyed by workflow node ID.'),
+  cost: paragraph.optional().describe('Interpret the saved estimate, including unpriced items.'),
+  tradeoffs: z.array(z.object({ text: paragraph, mitigation: paragraph.optional() })).max(20).default([]),
+  next: z.array(paragraph).max(20).default([]),
+});
 const startDesign = 'Start an architecture proposal from the customer’s business goal, pain point or description of work they want automated. ' +
   'Use this first for a new solution brief, even when written as operational steps (e.g. triage tickets, validate a fix, require approval, check stock and request purchasing).';
 const outputSchema = z.object({
@@ -33,7 +46,8 @@ export async function handleMcp(req: Request, env: Env, ctx: ExecutionContextLik
       'Present the returned design in the customer’s language, include its private URL, and ask one or two concrete unanswered questions about fit or cost. ' +
       'Keep the designId and revision. Use design_solution for design changes and estimate_solution to start sizing or collect usage answers, even before every price is known. ' +
       'Use pricingReply and unknowns for the next question. Check the source material before asking. get_design reads the latest revision without spending a turn. ' +
-      'Use a fresh requestId per change and reuse the exact ID and inputs after a timeout. Refresh an outdated estimate, then write the client report yourself with monthly and one-time costs, sources, assumptions and exclusions.'
+      'Use a fresh requestId per change and reuse the exact ID and inputs after a timeout. Refresh an outdated estimate, then write the client report yourself with monthly and one-time costs, sources, assumptions and exclusions. ' +
+      'When the customer wants a PDF, call export_proposal_pdf with the saved revision and your narrative and give them the private download link.'
     : 'This key has read-only access. Ask the user for their design ID, then use get_design to read its current design, estimate and private web link without spending a turn.';
   const server = new McpServer({ name: 'alichitect', version: '1.0.0' }, { instructions });
   async function result(work: Promise<Awaited<ReturnType<typeof getDesign>>>) {
@@ -52,6 +66,21 @@ export async function handleMcp(req: Request, env: Env, ctx: ExecutionContextLik
   },
     ({ designId }) => result(getDesign(env, auth.user, designId)));
   if (auth.scope === 'write') {
+    server.registerTool('export_proposal_pdf', {
+      title: 'Export the proposal as a PDF',
+      description: 'Make a downloadable proposal from a saved design revision, including its diagrams and any saved pricing. Supply your own narrative for the client report, or omit it for the basic design record. Returns a private download link for the account owner. Set includeFile to receive the PDF bytes as an embedded MCP resource for saving locally. No model turn.',
+      inputSchema: z.object({
+        designId: id, revision, lang: z.enum(['en','ko','zh']), title: z.string().trim().max(180).optional(),
+        customer: z.string().trim().max(160).optional(), narrative: narrative.optional(), includeFile: z.boolean().default(false),
+      }), annotations: { destructiveHint: false, idempotentHint: true },
+    }, async ({ designId, revision, lang, title, customer, narrative, includeFile }) => {
+      try {
+        return await exportPdf(env, auth.user.id, designId, revision, { lang, title, customer,
+          draft: narrative && { ...narrative, lang, complete: true } }, includeFile);
+      } catch (err) {
+        return { isError: true, content: [{ type: 'text', text: err instanceof DesignError ? err.message : 'Could not generate the PDF. Retry this export.' }] };
+      }
+    });
     server.registerTool('design_solution', {
       title: 'Draft or revise a solution proposal',
       description: startDesign + ' Call with the customer’s brief, present the returned design and private link, then ask the most useful unanswered sizing question. Requires no live customer integrations and performs no external operations. Uses the account turn allowance.',
