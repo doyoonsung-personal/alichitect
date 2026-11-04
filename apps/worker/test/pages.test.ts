@@ -168,6 +168,11 @@ describe('rendered pages', () => {
     assert.match(p.account, /autocomplete="current-password"/);
   });
 
+  test('sign-in fields precede the recovery link in keyboard order', async () => {
+    const page = await call(makeEnv(), req('/login'));
+    assert.match(page, /name="email"[^>]*>[\s\S]*?name="password"[^>]*>[\s\S]*?href="\/forgot"[\s\S]*?type="submit"/);
+  });
+
   test('every page reads in Korean and Chinese too', async () => {
     const env = makeEnv();
     for (const [lang, word] of [['ko', /로그인|계정|비밀번호|이메일/], ['zh', /登录|账号|密码|邮箱/]] as const) {

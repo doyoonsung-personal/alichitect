@@ -103,7 +103,7 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .alt { margin-top: var(--s-6); font-size: var(--t-14); line-height: var(--lh-14); color: var(--ink-2); text-align: center; }
 .alt a, .link-sm { color: var(--action); text-decoration: none; }
 .alt a:hover, .link-sm:hover { text-decoration: underline; }
-.link-sm { font-size: var(--t-13); line-height: var(--lh-13); }
+.link-sm { align-self: flex-end; font-size: var(--t-13); line-height: var(--lh-13); }
 .hint--block { display: block; margin-top: var(--s-6); }
 .page--centre { display: flex; flex-direction: column; }
 .page--centre > main { flex: 1 0 auto; }
@@ -140,7 +140,6 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 .form--auth { gap: var(--s-5); margin-top: var(--s-2); }
 .form--narrow { max-width: 400px; }
 .field { display: flex; flex-direction: column; gap: var(--s-3); }
-.field__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-4); }
 .field__error { font-size: var(--t-13); line-height: var(--lh-13); color: var(--danger); }
 .input[aria-invalid="true"], .textarea[aria-invalid="true"] { border-color: var(--danger); }
 .input { min-height: 40px; }

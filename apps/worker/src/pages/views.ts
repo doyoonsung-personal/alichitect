@@ -33,8 +33,6 @@ interface FieldOpts {
   error?: StringKey | null;
   errorVars?: Record<string, string | number>;
   hint?: string;
-  /** Right-aligned beside the label (the "Forgot your password?" link). */
-  aside?: string;
   autofocus?: boolean;
   maxlength?: number;
 }
@@ -51,7 +49,7 @@ function field(c: PageCtx, o: FieldOpts): string {
   } else {
     input = `<input class="input" ${common} type="${o.type}"${o.maxlength ? ` maxlength="${o.maxlength}"` : ''}${o.type === 'email' ? ' spellcheck="false" autocapitalize="off"' : ''} value="${e(o.value ?? '')}">`;
   }
-  const head = o.aside ? `<div class="field__head"><label class="label" for="${o.id}">${L(o.label)}</label>${o.aside}</div>` : `<label class="label" for="${o.id}">${L(o.label)}</label>`;
+  const head = `<label class="label" for="${o.id}">${L(o.label)}</label>`;
   return `<div class="field">${head}${input}${o.hint ? `<p class="hint" id="${o.id}-hint">${e(o.hint)}</p>` : ''}${o.error ? `<p class="field__error" id="${o.id}-err">${L(o.error, o.errorVars)}</p>` : ''}</div>`;
 }
 
@@ -84,7 +82,8 @@ export function loginPage(c: PageCtx, o: { next: string; email?: string; note?: 
     <form class="form form--auth" method="post" action="/login">
       ${o.next && o.next !== '/' ? `<input type="hidden" name="next" value="${e(o.next)}">` : ''}
       ${field(c, { id: 'email', label: 'field.email', type: 'email', value: o.email, autocomplete: 'username', autofocus: !o.email })}
-      ${field(c, { id: 'password', label: 'field.password', type: 'password', autocomplete: 'current-password', autofocus: !!o.email, aside: `<a class="link-sm" href="/forgot">${L('login.forgot')}</a>` })}
+      ${field(c, { id: 'password', label: 'field.password', type: 'password', autocomplete: 'current-password', autofocus: !!o.email })}
+      <a class="link-sm" href="/forgot">${L('login.forgot')}</a>
       <button class="btn btn--primary btn--block" type="submit">${L('login.submit')}</button>
     </form>
     <p class="alt">${L('login.noAccount')} <a href="/signup">${L('login.createAccount')}</a></p>
