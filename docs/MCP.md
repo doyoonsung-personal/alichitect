@@ -33,6 +33,9 @@ Attach the customer’s brief or PDF in an IDE that can read it, or paste their 
 - `design_solution` creates a cloud design or AI workflow. To revise one, supply its `designId` and current `revision`.
 - `estimate_solution` accepts usage and corrections against that design revision. It returns monthly and one-time subtotals, assumptions and open questions.
 - `get_design` reads the latest design without spending a turn. Read-only keys can call this tool. Model calls share the owner's web quota and concurrency rules.
+- `export_proposal_pdf` takes a saved `designId`, its current `revision`, and `lang` (`en`, `ko`, or `zh`). Ask Qoder “Make this proposal a PDF.” It can pass its own executive summary, rationale, trade-offs, next steps and cost interpretation in `narrative`. Omitting the narrative exports the basic design record. The PDF includes the diagrams and any applicable saved pricing. A read/write key is required and the export uses no model turn.
+
+The PDF tool returns a private download link pinned to the exported revision. Open it while signed in as the design owner. If the IDE can save MCP files, it can pass `includeFile: true` and save the returned `application/pdf` embedded resource directly. Reconnect or refresh the tool list if the IDE already had Alichitect configured.
 
 For a change, choose a unique `requestId` of 8–64 letters, digits, hyphens or underscores. Retry with the same ID and the same inputs after a timeout. A completed request returns its original revision. For a new change, use a fresh ID and first read the current revision if needed.
 
