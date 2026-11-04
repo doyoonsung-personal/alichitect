@@ -18,6 +18,8 @@ test('the key page explains remote setup in each language and gives valid client
   for (const [lang, title] of [['en', 'Connect an agentic IDE'], ['ko', '에이전트 IDE 연결하기'], ['zh', '连接智能体 IDE']]) {
     const page = await (await call(env, req('/account/keys', { cookie: owner.cookie, headers: { 'Accept-Language': lang } }))).text();
     assert.ok(page.includes(title));
+    assert.match(page, /<textarea id="mcp-prompt"[^>]+>[^<]*design_solution[^<]*estimate_solution/);
+    assert.ok(page.includes('data-copy-from="mcp-prompt"'));
     assert.ok(page.includes('<code>Authorization: Bearer &lt;YOUR_API_KEY&gt;</code>'));
     for (const name of ['Streamable HTTP', 'get_design', 'design_solution', 'estimate_solution']) assert.ok(page.includes(name));
     const examples = [...page.matchAll(/<details><summary>[^<]+<\/summary><pre class="mcp-config">([^<]+)<\/pre>/g)]
@@ -52,6 +54,7 @@ test('personal keys are shown once, scoped to MCP and rechecked for expiry, revo
   assert.equal(hello.result.serverInfo.name, 'alichitect');
   assert.match(hello.result.instructions, /estimate_solution/);
   assert.match(hello.result.instructions, /requestId/);
+  assert.match(hello.result.instructions, /write the client report yourself/);
   const list = async (k: string) => (await (await call(env, rpc('tools/list', {}, k))).json()).result.tools.map((v: { name: string }) => v.name).sort();
   assert.deepEqual(await list(key), ['design_solution', 'estimate_solution', 'get_design']);
   const read = (await issueKey(env.DB, owner.user.id, 'reader', 'read', 30, Date.now()))!;
