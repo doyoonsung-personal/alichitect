@@ -15,9 +15,10 @@ test('workflow review browser regressions', async (t) => {
   await server.listen();
   const url = server.resolvedUrls!.local[0];
   const executablePath = [
+    process.env.CHROME_PATH,
     'C:/Program Files/Google/Chrome/Application/chrome.exe',
     `${process.env.LOCALAPPDATA}/Google/Chrome/Application/chrome.exe`,
-    process.env.CHROME_PATH,
+    '/usr/bin/google-chrome',
   ].find((p) => p && existsSync(p));
   const browser = await puppeteer.launch({ executablePath, headless: true, args: ['--no-sandbox'] }).catch(async (error) => {
     await server.close();
