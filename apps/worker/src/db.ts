@@ -5,7 +5,7 @@ import { randomHex } from './crypto.ts';
 import type { StoredPassword } from './password.ts';
 
 export type Status = 'pending' | 'approved' | 'denied' | 'revoked';
-export type Role = 'user' | 'admin';
+export type Role = 'user' | 'verified' | 'admin';
 
 /** An account as the rest of the Worker sees it. The password columns are never read into it (see credentialsByEmail). */
 export interface UserRow {
@@ -239,8 +239,8 @@ export async function adminRecipients(db: D1Database): Promise<Array<{ email: st
   return r.results;
 }
 
-export type AdminAction = 'approve' | 'deny' | 'revoke' | 'promote' | 'demote';
-export const ADMIN_ACTIONS: readonly AdminAction[] = ['approve', 'deny', 'revoke', 'promote', 'demote'];
+export const ADMIN_ACTIONS = ['approve', 'deny', 'revoke', 'verify', 'unverify', 'promote', 'demote'] as const;
+export type AdminAction = (typeof ADMIN_ACTIONS)[number];
 
 export type ActionError = 'not-found' | 'state' | 'self' | 'last-admin' | 'forbidden';
 
@@ -249,7 +249,8 @@ export type ActionError = 'not-found' | 'state' | 'self' | 'last-admin' | 'forbi
  * - approve: pending, denied or revoked -> approved
  * - deny: pending -> denied
  * - revoke: approved -> revoked (and the role drops to user); every session of the user is revoked
- * - promote: approved user -> admin
+ * - verify / unverify: approved user <-> verified (daily turn limit only)
+ * - promote: approved user or verified -> admin
  * - demote: admin -> user
  * Revoke and demote never leave zero approved admins, and an admin cannot revoke or deny themselves.
  * The acting admin is checked inside the UPDATE too (actorIsAdmin), not only on the row the request read earlier: an
@@ -274,8 +275,15 @@ export async function applyAdminAction(db: D1Database, actor: UserRow, targetId:
         .prepare(`UPDATE users SET status = 'revoked', role = 'user', decided_at = ?, decided_by = ? WHERE id = ? AND status = 'approved' AND (role != 'admin' OR ${otherAdmins}) AND ${actorIsAdmin}`)
         .bind(now, actor.email, target.id, target.id, actor.id);
       break;
+    case 'verify':
+    case 'unverify': {
+      const grant = action === 'verify';
+      stmt = db.prepare(`UPDATE users SET role = ? WHERE id = ? AND status = 'approved' AND role = ? AND ${actorIsAdmin}`)
+        .bind(grant ? 'verified' : 'user', target.id, grant ? 'user' : 'verified', actor.id);
+      break;
+    }
     case 'promote':
-      stmt = db.prepare(`UPDATE users SET role = 'admin' WHERE id = ? AND status = 'approved' AND role = 'user' AND ${actorIsAdmin}`).bind(target.id, actor.id);
+      stmt = db.prepare(`UPDATE users SET role = 'admin' WHERE id = ? AND status = 'approved' AND role IN ('user', 'verified') AND ${actorIsAdmin}`).bind(target.id, actor.id);
       break;
     case 'demote':
       stmt = db.prepare(`UPDATE users SET role = 'user' WHERE id = ? AND role = 'admin' AND ${otherAdmins} AND ${actorIsAdmin}`).bind(target.id, target.id, actor.id);

@@ -10,7 +10,7 @@
 // (PROPOSAL_DEADLINE_MS, default 360 s). Usage is recorded after every draft that started; the log holds metadata only,
 // never the session or any drafted text, and every outgoing line passes through the key redactor (both keys).
 import type { Env, ExecutionContextLike } from './env.ts';
-import { DEFAULT_PROPOSAL_DEADLINE_MS, claudeBudgetUsdPerDay, proposalDeadlineMs, rescuesPerDay, turnsPerDay } from './env.ts';
+import { DEFAULT_PROPOSAL_DEADLINE_MS, claudeBudgetUsdPerDay, dailyTurnLimit, proposalDeadlineMs, rescuesPerDay } from './env.ts';
 import type { ProposalEvent } from '../../../packages/core/src/types.ts';
 import type { BackupCall, BackupGateResult } from '../../../packages/core/src/llm.ts';
 import { QWEN_HIGH_REASONING } from '../../../packages/core/src/llm.ts';
@@ -81,8 +81,8 @@ export async function handleProposal(request: Request, env: Env, ctx: ExecutionC
     return reject(503, 'no-key', fatalMessage('no-key', lang));
   }
   const isAdmin = user.role === 'admin';
-  const limit = turnsPerDay(env);
-  if (!isAdmin) {
+  const limit = dailyTurnLimit(env, user.role);
+  if (limit !== null) {
     const used = await db.turnsToday(env.DB, user.id, t0);
     if (used >= limit) {
       logReject(429, 'quota-exceeded');

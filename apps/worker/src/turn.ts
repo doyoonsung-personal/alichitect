@@ -1,7 +1,7 @@
 // POST /api/turn on Workers: the port of apps/server's turn endpoint. The same checks in the same order (JSON content
 // type, 512 KB body, JSON parse, TurnRequest shape and limits from apps/server/src/request.ts, key configured), then
-// the per-user rules that replace the local server's per-session lock: the daily quota (TURNS_PER_DAY, admins
-// unlimited) and one turn in flight per user (a D1 row). The turn itself is apps/server/src/turn.ts executeTurn over
+// the per-user rules that replace the local server's per-session lock: the daily quota for standard users
+// and one turn in flight per user (a D1 row). The turn itself is apps/server/src/turn.ts executeTurn over
 // packages/core's runTurn, unchanged; its events go out as NDJSON through a TransformStream, one line per event.
 // The upstream request is aborted when the browser disconnects (request.signal, or a failed write) or the turn
 // deadline passes. Usage is recorded after every turn that started. The log holds metadata only, never the ask or the
@@ -13,7 +13,7 @@
 // db.rescueUsage). Each backup call is booked as it ends (db.bookRescue), and a rescued turn counts 2 against TURNS_PER_DAY.
 // A cap that blocks a rescue behaves as no backup configured, with its own message (fatal backup-limit).
 import type { Env, ExecutionContextLike } from './env.ts';
-import { claudeBudgetUsdPerDay, proposalDeadlineMs, rescuesPerDay, turnsPerDay } from './env.ts';
+import { claudeBudgetUsdPerDay, dailyTurnLimit, proposalDeadlineMs, rescuesPerDay } from './env.ts';
 import type { Catalog, ServerEvent } from '../../../packages/core/src/types.ts';
 import { DEFAULT_BASE_URL, DEFAULT_MODEL, FALLBACK_MODEL, createCacheTracker } from '../../../packages/core/src/llm.ts';
 import type { BackupCall, BackupGateResult, CacheTracker, RunTurnOptions } from '../../../packages/core/src/llm.ts';
@@ -193,8 +193,8 @@ export async function handleTurn(request: Request, env: Env, ctx: ExecutionConte
     return reject(503, 'no-key', fatalMessage('no-key', lang));
   }
   const isAdmin = user.role === 'admin';
-  const limit = turnsPerDay(env);
-  if (!isAdmin) {
+  const limit = dailyTurnLimit(env, user.role);
+  if (limit !== null) {
     const used = await db.turnsToday(env.DB, user.id, t0);
     if (used >= limit) {
       logReject(429, 'quota-exceeded');

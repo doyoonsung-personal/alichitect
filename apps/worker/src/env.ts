@@ -1,6 +1,8 @@
 // The Worker's bindings, vars and secrets, and the small binding interfaces it uses. The interfaces are written here
 // (not taken from @cloudflare/workers-types) so the same source type-checks and runs under node:test with fakes.
 
+import type { Role } from './db.ts';
+
 export interface D1Meta {
   changes?: number;
   last_row_id?: number;
@@ -43,7 +45,7 @@ export interface Env {
 
   /** Comma-separated addresses that become approved admins when they confirm their email (or sign in while pending). */
   ADMIN_EMAILS?: string;
-  /** Turns per UTC day for a non-admin user (default 60). */
+  /** Turns per UTC day for a standard user (default 60). */
   TURNS_PER_DAY?: string;
   /** The one origin the app is served from, e.g. https://architect.alikorea-demo.com. */
   ALLOWED_ORIGIN: string;
@@ -123,6 +125,11 @@ export function proposalDeadlineMs(env: Env): number {
 export function turnsPerDay(env: Env): number {
   const n = Number(env.TURNS_PER_DAY ?? '60');
   return Number.isInteger(n) && n >= 0 && n <= 100_000 ? n : 60;
+}
+
+/** Turn quota only. Permissions and backup allowances still distinguish admins from everyone else. */
+export function dailyTurnLimit(env: Env, role: Role): number | null {
+  return role === 'admin' || role === 'verified' ? null : turnsPerDay(env);
 }
 
 const intVar = (v: string | undefined, dflt: number, max = 100_000): number => {

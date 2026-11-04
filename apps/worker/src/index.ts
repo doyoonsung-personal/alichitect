@@ -12,7 +12,7 @@
 // /api/proposal are a fatal event, so the SPA shows it). GET /api/health is public but anonymous callers only learn { ok: true }. State-changing requests must come from this origin (Origin check; Sec-Fetch-Site
 // when sent) and the session cookie is SameSite=Lax. Every response carries the security headers (http.ts secure).
 import type { Env, ExecutionContextLike } from './env.ts';
-import { allowedOrigin, isSharedAccount, sessionSecret, turnsPerDay } from './env.ts';
+import { allowedOrigin, dailyTurnLimit, isSharedAccount, sessionSecret, turnsPerDay } from './env.ts';
 import { cookie, html, json, redirect, safeNext, secure } from './http.ts';
 import * as auth from './auth.ts';
 import { currentUser } from './session.ts';
@@ -186,7 +186,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
       lang: me.lang,
       createdAt: me.created_at,
       turnsToday: await db.turnsToday(env.DB, me.id, now),
-      turnsPerDay: isAdmin ? null : turnsPerDay(env),
+      turnsPerDay: dailyTurnLimit(env, me.role),
       // signOut takes a same-origin POST (a form, or fetch with method POST); the others are pages
       links: { account: '/account', admin: isAdmin ? '/admin' : null, signOut: '/auth/logout' },
     });
