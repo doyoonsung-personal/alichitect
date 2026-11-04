@@ -26,6 +26,7 @@ import type { CacheTracker, ConstraintChecker, RunTurnOptions } from '../../../p
 import { createClaudeBackup } from '../../../packages/core/src/claude.ts';
 import { draftProposal } from '../../../packages/core/src/proposal.ts';
 import { PricingTurnError, runPricingTurn } from '../../../packages/core/src/solution-pricing-engine.ts';
+import { cachedPricingReview } from '../../../packages/core/src/solution-pricing.ts';
 import type { DraftProposalResult } from '../../../packages/core/src/proposal.ts';
 import type { ClaudeBackupOptions } from '../../../packages/core/src/claude.ts';
 import type { ServerConfig } from './config.ts';
@@ -208,6 +209,8 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
       const checked = checkPricingRequest(body);
       if (!checked.ok) return reject(400, checked.code, checked.message, {}, cors);
       const pricing = checked.value;
+      const cached = cachedPricingReview(pricing);
+      if (cached) return send(res, 200, { pricing: cached }, cors);
       if (!deps.apiKey) return reject(503, 'no-key', fatalMessage('no-key', pricing.lang), {}, cors);
       if (sessions.has(pricing.sessionId)) return reject(409, 'session-busy', fatalMessage('session-busy', pricing.lang), {}, cors);
       if (turns >= config.maxInFlight) return reject(429, 'server-busy', fatalMessage('server-busy', pricing.lang), { 'Retry-After': '2' }, cors);

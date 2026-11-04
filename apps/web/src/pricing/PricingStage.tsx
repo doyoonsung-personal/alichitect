@@ -5,6 +5,7 @@ import { askLength, enterAction, preventsDefault } from '../console/logic.ts';
 import { useAppState, useController, useT } from '../store/react.tsx';
 import { monthlyUsd } from '../workflow/panel-model.ts';
 import { Icon } from '../shell/Icon.tsx';
+import { openingRates, regionalEcsExample } from './starter.ts';
 import './pricing.css';
 
 function Estimate({ estimate, stale }: { estimate?: SolutionEstimate; stale: boolean }): ReactElement {
@@ -48,7 +49,7 @@ function Estimate({ estimate, stale }: { estimate?: SolutionEstimate; stale: boo
 }
 
 export function PricingStage({ open }: { open: boolean }): ReactElement {
-  const { t } = useT();
+  const { t, lang } = useT();
   const c = useController();
   const session = useAppState((s) => s.session);
   const busy = useAppState((s) => s.pricingStatus === 'working');
@@ -58,6 +59,10 @@ export function PricingStage({ open }: { open: boolean }): ReactElement {
   const log = useRef<HTMLDivElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const pricing = session.pricing;
+  const refs = useMemo(() => open ? openingRates(session.memory) : [], [open, session.memory]);
+  const hasAnswers = pricing?.messages.some(m => m.role === 'user');
+  const example = useMemo(() => open && !hasAnswers ? regionalEcsExample(session.memory) : undefined, [open, hasAnswers, session.memory]);
+  const reviewed = pricing?.review?.lang === lang ? pricing.review.text : undefined;
   const stale = useMemo(() => !!pricing && pricing.designKey !== pricingDesignKey(session.memory), [pricing, session.memory]);
   // While waiting the submitted answer lives in the log. If interrupted, return it to the field for editing.
   const text = draft ?? (busy ? '' : session.pricingPending ?? '');
@@ -80,11 +85,11 @@ export function PricingStage({ open }: { open: boolean }): ReactElement {
         </div>
         <div className="pricing-log" role="log" aria-label={t('pricing.conversation')} ref={log}>
           {pricing?.messages.map((message, i) => <div className="pricing-message" key={i}>
-            <strong>{message.role === 'user' ? t('pricing.you') : 'Qwen'}</strong><p dir="auto">{message.text}</p>
+            <strong>{message.role === 'user' ? t('pricing.you') : i === 0 ? t('pricing.stage') : 'Qwen'}</strong><p dir="auto">{message.text}</p>
           </div>)}
           {busy && <>
-            <div className="pricing-message"><strong>{t('pricing.you')}</strong><p dir="auto">{session.pricingPending}</p></div>
-            <p className="pricing-working" role="status">{t('pricing.thinking')}</p>
+            {session.pricingPending && <div className="pricing-message"><strong>{t('pricing.you')}</strong><p dir="auto">{session.pricingPending}</p></div>}
+            <p className="pricing-working" role="status">{t(session.pricingPending ? 'pricing.thinking' : 'pricing.reviewing')}</p>
           </>}
           {!busy && !pricing && !error && <p>{t('pricing.begin')}</p>}
         </div>
@@ -112,7 +117,23 @@ export function PricingStage({ open }: { open: boolean }): ReactElement {
           </div>
         </form>
       </section>
-      <Estimate estimate={pricing?.estimate} stale={stale} />
+      <div className="pricing-details">
+        {(refs.length > 0 || example) && <section className="pricing-rates">
+          <h2>{t('pricing.rates')}</h2>
+          {!!refs.length && <p>{t('pricing.ratesHint')}</p>}
+          {!!refs.length && <ul>{refs.map(rate => <li key={rate.id}><a href={rate.source} target="_blank" rel="noreferrer">{rate.description}</a>
+            {' · '}{rate.region} · USD {rate.unitUsd} / {rate.unit}</li>)}</ul>}
+          {example && <p>{t('pricing.rateExample')} <a href={example.source} target="_blank" rel="noreferrer">{example.description}</a>
+            {' · USD '}{example.unitUsd} / {example.unit}</p>}
+        </section>}
+        <Estimate estimate={pricing?.estimate} stale={stale} />
+        {!stale && hasAnswers && <section className="pricing-review">
+          <h2>{t('pricing.review')}</h2>
+          {reviewed ? <p dir="auto">{reviewed}</p> :
+            <button type="button" className="btn btn--secondary" disabled={busy || !!text.trim()}
+              onClick={() => c.sendPricing(t('pricing.review'), 'review')}>{t('pricing.review')}</button>}
+        </section>}
+      </div>
     </main>
   );
 }

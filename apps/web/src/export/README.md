@@ -2,7 +2,7 @@
 
 **Export proposal** sends the committed design and its optional pricing interview to `POST /api/proposal`. Qwen3.8 Max uses private high-effort reasoning to write a recommendation, the design rationale, trade-offs, next steps and an interpretation of the estimate. The browser lays out the PDF from the same session snapshot. When the writer is unavailable, the user can download the basic PDF with the diagrams and pricing evidence. Stop cancels the export.
 
-The solution price breakdown separates monthly and one-time subtotals and prints quantities, rates, sources, assumptions and unpriced items. If the design has changed since pricing, the PDF asks the reader to refresh the estimate before relying on it.
+The solution price breakdown separates monthly and one-time subtotals and prints quantities, rates, sources, assumptions and unpriced items. If the user has reviewed the current estimate, the writer also receives the saved review observations. If the design has changed since pricing, the PDF asks the reader to refresh the estimate before relying on it.
 
 ## What is in the PDF
 

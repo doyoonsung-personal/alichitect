@@ -41,12 +41,13 @@ try {
   assert.equal(await page.$eval('.rev', n => n.dataset.status), 'done', await page.$eval('.rev', n => n.textContent));
   console.log('Cloud design committed.');
   const waitPricing = () => page.waitForResponse(r => new URL(r.url()).pathname === '/api/pricing' && r.request().method() === 'POST');
-  const first = waitPricing();
+  let pricingCalls = 0;
+  page.on('request', r => { if (new URL(r.url()).pathname === '/api/pricing') pricingCalls++; });
+  const openAt = Date.now();
   await page.locator('.pricing-toggle').click();
-  const opened = await first;
-  const opening = await opened.json();
-  assert.equal(opened.status(), 200, JSON.stringify(opening));
-  console.log('Pricing opening:', opening.pricing.messages.at(-1).text);
+  await page.waitForSelector('#pricing-reply');
+  assert.equal(pricingCalls, 0);
+  console.log('Local pricing opening in ms:', Date.now() - openAt);
   const second = waitPricing();
   const details = 'Both servers will use Singapore ecs.g7.large pay-as-you-go for 300 hours each per month. Migrate 400 GB once. Our current provider quotes USD 0.05 per GB outbound. Show compute and source egress only; keep disks, connectivity, tax and labor as unpriced. PostgreSQL stays with the current provider. Give this rough estimate now.';
   await page.type('#pricing-reply', details);
@@ -59,9 +60,22 @@ try {
   assert.equal(estimate.monthlyUsd, 64.8);
   assert.equal(estimate.oneTimeUsd, 20);
   await page.waitForFunction(() => !document.querySelector('#pricing-reply')?.readOnly);
+  const correction = waitPricing();
+  await page.type('#pricing-reply', 'Correction: only the second server changes to 100 hours per month. All other inputs stay the same.');
+  await page.locator('.pricing-compose button[type=submit]').click();
+  const corrected = (await (await correction).json()).pricing.estimate;
+  assert.equal(corrected.monthlyUsd, 43.2);
+  assert.deepEqual(corrected.items.filter(r => r.period === 'one-time'), estimate.items.filter(r => r.period === 'one-time'));
+  const reviewing = waitPricing();
+  await page.locator('.pricing-review button').click();
+  const reviewed = (await (await reviewing).json()).pricing;
+  assert.ok(reviewed.review.text);
+  await page.waitForSelector('.pricing-review p');
   await page.reload();
   await page.waitForSelector('#estimate');
-  assert.match(await page.$eval('#estimate', n => n.textContent), /64\.80/);
+  assert.match(await page.$eval('#estimate', n => n.textContent), /43\.20/);
+  assert.equal(await page.$eval('.pricing-review p', n => n.textContent), reviewed.review.text);
+  assert.equal(pricingCalls, 3);
   // A long streamed response can age out of Chrome's DevTools network buffer. Observe the page's
   // fetch stream instead, keeping the app's own branch untouched while it renders the report.
   await page.evaluate(() => {
@@ -88,7 +102,7 @@ try {
   assert.ok(filename, 'Expected a PDF download');
   const file = join(directory, filename);
   const pdf = await inspectPdf(new Uint8Array(readFileSync(file)));
-  assert.match(pdf.text, /64\.8/);
+  assert.match(pdf.text, /43\.20/);
   assert.match(pdf.text, /USD 20\b/);
   assert.ok(pdf.text.includes(last.draft.cost.slice(0, 22)), 'The PDF contains the model-authored interpretation');
   console.log(JSON.stringify({ file, pages: pdf.pages.length, complete: last.draft.complete, recommendation: last.draft.exec, interpretation: last.draft.cost }));

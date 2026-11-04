@@ -56,6 +56,13 @@
 .pricing-summary ul:not(.pricing-items) { list-style: disc; margin: var(--s-2) 0; padding-inline-start: var(--s-5); }
 .pricing-summary ul:not(.pricing-items) li + li { margin-top: var(--s-2); }
 .pricing-source a { color: var(--action); }
+.pricing-details { min-height: 0; overflow: auto; }
+.pricing-rates, .pricing-review { padding: var(--s-5) var(--s-6); }
+.pricing-rates { border-bottom: 1px solid var(--line-1); }
+.pricing-rates p, .pricing-review p, .pricing-review button { margin-top: var(--s-3); }
+.pricing-rates ul { padding-inline-start: var(--s-5); margin: var(--s-3) 0 0; }
+.pricing-rates li { margin-top: var(--s-2); overflow-wrap: anywhere; }
+.pricing-review p { white-space: pre-line; }
 
 @media (max-width: 760px) {
   .pricing-stage { display: block; overflow: auto; }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createMemory } from '../../../packages/core/src/prompt.ts';
-import { pricingDesignKey } from '../../../packages/core/src/solution-pricing.ts';
+import { pricingDesignKey, pricingReviewKey, validatePricingSession } from '../../../packages/core/src/solution-pricing.ts';
 import { handlePricing } from '../src/pricing.ts';
 import * as db from '../src/db.ts';
 import { call, makeCtx, makeEnv, req, signIn } from './helpers.ts';
@@ -34,6 +34,21 @@ test('pricing is approved-user only and shares the daily drawing quota', async (
   await db.recordUsage(env.DB, verified.user.id, db.utcDay(Date.now()), 0.01, 5);
   assert.equal((await handlePricing(pricingRequest(verified.cookie), env, makeCtx(), verified.user, price)).status, 200);
   assert.equal(await db.turnsToday(env.DB, verified.user.id, Date.now()), 6);
+});
+
+test('reopening a saved review works at the daily limit and never books an extra turn', async () => {
+  const env = makeEnv({ TURNS_PER_DAY: '1' });
+  const { user, cookie } = await signIn(env, 'review@example.com', { status: 'approved' });
+  await db.recordUsage(env.DB, user.id, db.utcDay(Date.now()), 0.01, 1);
+  const pricing = validatePricingSession({ designKey: pricingDesignKey(memory), messages: [{ role: 'user', text: ask }],
+    estimate: { items: [], assumptions: [], unknowns: ['Region'] } });
+  pricing.review = { lang: 'en', key: pricingReviewKey(pricing, 'en'), text: 'Confirm the deployment region.' };
+  const request = req('/api/pricing', { method: 'POST', type: 'application/json', cookie,
+    body: JSON.stringify({ sessionId: 'example', lang: 'en', ask, memory, pricing, intent: 'review' }) });
+  const response = await call(env, request);
+  assert.equal(response.status, 200);
+  assert.deepEqual((await response.json()).pricing.review, pricing.review);
+  assert.equal(await db.turnsToday(env.DB, user.id, Date.now()), 1);
 });
 
 test('a busy turn blocks pricing and a failed model call releases the slot', async () => {

@@ -66,7 +66,7 @@ export type Action =
   | { type: 'workflow/estimate'; next: WorkflowEstimateSettings; now: number }
   | { type: 'workflow/tidy' }
   | { type: 'pricing/open'; open: boolean }
-  | { type: 'pricing/start'; ask: string; now: number }
+  | { type: 'pricing/start'; ask?: string; now: number }
   | { type: 'pricing/stop' }
   | { type: 'pricing/failure'; error: string }
   | { type: 'pricing/commit'; pricing: PricingSession; now: number }
