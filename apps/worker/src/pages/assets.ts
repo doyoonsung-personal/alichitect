@@ -7,6 +7,7 @@ import { THEME_JS, TOKENS_CSS } from './tokens.ts';
 
 const PAGE_CSS = `
 *, *::before, *::after { box-sizing: border-box; }
+.mcp-config { white-space: pre-wrap; overflow-wrap: anywhere; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   margin: 0; min-height: 100vh;
@@ -252,6 +253,16 @@ export const PAGES_JS = `// The pages' script (theme.js only puts the stored the
       return;
     }
   } catch { /* storage unavailable: the browser language stands */ }
+  const secret = document.getElementById('mcp-secret');
+  const copy = document.querySelector('[data-copy-key]');
+  if (secret && copy) {
+    copy.hidden = false;
+    copy.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(secret.value); copy.textContent = copy.dataset.copied; }
+      catch { secret.select(); }
+    });
+    window.addEventListener('pagehide', () => { secret.removeAttribute('value'); secret.value = ''; copy.hidden = true; });
+  }
   document.addEventListener('submit', (e) => {
     const f = e.target;
     if (!(f instanceof HTMLFormElement)) return;

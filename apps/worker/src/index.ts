@@ -22,6 +22,9 @@ import { FLASH_COOKIE, adminApi, adminDenyOld, adminFormAction, adminNotice, upd
 import { handleTurn, health, reject, sharedTurnState, workerFatalMessage } from './turn.ts';
 import { handleProposal } from './proposal.ts';
 import { handlePricing } from './pricing.ts';
+import { handleMcp } from './mcp.ts';
+import { keyMenu } from './key-menu.ts';
+import { latestDesign, openedDesign } from './mcp-designs.ts';
 import { authAsset } from './pages/assets.ts';
 import { LANG_COOKIE, isLang, langOfRequest } from './pages/i18n.ts';
 import { accountPage, adminPage, loginPage, pendingPage } from './pages/views.ts';
@@ -29,7 +32,7 @@ import type { Note } from './pages/views.ts';
 import type { PageCtx } from './pages/layout.ts';
 
 const PUBLIC_ASSETS = new Set(['/brand/alibaba-cloud-logo-en.svg', '/brand/alibaba-cloud-logo-zh.svg']);
-const LANG_PAGES = new Set(['/login', '/signup', '/verify', '/forgot', '/reset', '/pending', '/account', '/admin']);
+const LANG_PAGES = new Set(['/login', '/signup', '/verify', '/forgot', '/reset', '/pending', '/account', '/account/keys', '/admin']);
 /** The public sign-in pages: each answers GET with its page and POST with its form. */
 const AUTH_PAGES = new Set(['/login', '/signup', '/verify', '/forgot', '/reset']);
 const AUTH_POSTS = new Set(['/verify/resend', '/reset/resend']);
@@ -38,7 +41,7 @@ const LAST_SEEN_EVERY_MS = 5 * 60_000;
 /** The SPA's module workers (Vite names them name.worker-hash.js): see csp() in http.ts. */
 const WORKER_SCRIPT_RE = /^\/assets\/[\w.-]+\.worker-[\w-]+\.js$/;
 
-const isApi = (p: string): boolean => p.startsWith('/api/') || p.startsWith('/admin/api/');
+const isApi = (p: string): boolean => p === '/mcp' || p.startsWith('/api/') || p.startsWith('/admin/api/');
 const isGet = (m: string): boolean => m === 'GET' || m === 'HEAD';
 /** The streaming endpoints: their error bodies are fatal events the SPA shows. */
 const isStreamApi = (p: string): boolean => p === '/api/turn' || p === '/api/proposal';
@@ -91,6 +94,8 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
     if (isGet(method) && !isApi(path)) return redirect(`${origin}${path}${url.search}`);
     return json(421, { error: 'wrong-origin', message: `use ${origin}` });
   }
+  // Only MCP accepts remote clients. Its handler checks Origin when present and never accepts a session cookie.
+  if (path === '/mcp') return handleMcp(request, env, ctx);
   if (!isGet(method) && !sameOriginWrite(request, origin)) return json(403, { error: 'cross-site', message: 'Cross-site request refused' });
 
   // ---------- public ----------
@@ -175,6 +180,15 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
   }
 
   // ---------- approved ----------
+  if (path === '/account/keys' || path === '/account/keys/revoke') {
+    if (isSharedAccount(env, me.email)) return json(403, { error: 'personal-account-required' });
+    return keyMenu(request, env, me, pageCtx(request, url));
+  }
+  if (path.startsWith('/api/agent-designs/')) {
+    if (method !== 'GET') return json(405, { error: 'method-not-allowed' }, { Allow: 'GET' });
+    const row = await latestDesign(env.DB, me.id, path.slice('/api/agent-designs/'.length));
+    return row ? json(200, openedDesign(row)) : json(404, { error: 'design-not-found' });
+  }
   if (path === '/api/me') {
     if (!isGet(method)) return json(405, { error: 'method-not-allowed' }, { Allow: 'GET' });
     const isAdmin = me.role === 'admin';
@@ -188,7 +202,8 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
       turnsToday: await db.turnsToday(env.DB, me.id, now),
       turnsPerDay: dailyTurnLimit(env, me.role),
       // signOut takes a same-origin POST (a form, or fetch with method POST); the others are pages
-      links: { account: '/account', admin: isAdmin ? '/admin' : null, signOut: '/auth/logout' },
+      links: { account: '/account', admin: isAdmin ? '/admin' : null, signOut: '/auth/logout',
+        ...(!isSharedAccount(env, me.email) ? { keys: '/account/keys' } : {}) },
     });
   }
   if (path === '/api/turn') return method === 'POST' ? handleTurn(request, env, ctx, me) : reject(405, 'method-not-allowed', 'use POST', { Allow: 'POST' });

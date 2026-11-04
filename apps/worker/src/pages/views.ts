@@ -230,7 +230,7 @@ ${footer(c)}`,
 
 /* ---------- the app's 48 px header, for /account and /admin ---------- */
 
-function appbar(c: PageCtx, me: UserRow, section: StringKey): string {
+export function appbar(c: PageCtx, me: UserRow, section: StringKey): string {
   const L = (k: StringKey): string => e(t(c.lang, k));
   const approved = me.status === 'approved';
   return `<header class="appbar">
@@ -279,6 +279,7 @@ export function accountPage(c: PageCtx, o: { me: UserRow; note?: Note | null; pa
       <div><dt>${L('account.since')}</dt><dd>${time(c, me.created_at)}</dd></div>
     </dl>
   </section>
+  ${me.status === 'approved' && !o.shared ? `<p><a href="/account/keys">${L('mcp.keys')}</a></p>` : ''}
   <section class="section" aria-labelledby="h-theme" data-theme-control hidden>
     <h2 class="section__title" id="h-theme">${L('theme.title')}</h2>
     <p class="intro intro--left">${L('theme.intro')}</p>

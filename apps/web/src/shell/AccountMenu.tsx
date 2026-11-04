@@ -56,6 +56,7 @@ function AccountMenuFor({ account }: { account: Account }): ReactElement {
       }
       items={[
         { key: 'account', label: t('account.settings'), meta: t('account.settingsMeta'), href: account.links.account, onSelect: () => undefined },
+        ...(account.links.keys ? [{ key: 'keys', label: t('account.keys'), href: account.links.keys, onSelect: () => undefined }] : []),
         ...(account.links.admin ? [{ key: 'admin', label: t('account.admin'), meta: t('account.adminMeta'), href: account.links.admin, onSelect: () => undefined }] : []),
       ]}
       footer={{ key: 'out', label: t('account.signOut'), onSelect: () => c.signOut() }}

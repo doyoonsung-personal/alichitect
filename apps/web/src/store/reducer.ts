@@ -141,7 +141,7 @@ export function createInitialState(init: { lang: Lang; sessions?: SessionSummary
   };
 }
 
-function emptyRevision(n: number, ask: string, now: number): Revision {
+export function emptyRevision(n: number, ask: string, now: number): Revision {
   return {
     n,
     ask,
