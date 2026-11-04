@@ -7,6 +7,19 @@
 // One table per language with the same keys (test/pages.test.ts checks keys and placeholders).
 
 export const EN = {
+  "release.title": "What’s new in Alichitect",
+  "release.pricing": "Estimate the cost of your design",
+  "release.pricingHow": "Open a saved design or create one, then select Estimate costs. Tell the chat about quantities such as instance hours or data to migrate. The breakdown separates monthly and one-time costs. Choose Review estimate to check assumptions and missing costs.",
+  "release.mcp": "Use Alichitect from your IDE",
+  "release.mcpHow": "In the account menu, open MCP API keys and create a read/write key. The key page shows the server URL and bearer header to enter in your IDE’s remote MCP settings. Copy its starter prompt to turn a client brief into a design, estimate and IDE-written report.",
+  "release.shared": "With an approved personal account, you can create an MCP API key and connect your IDE. Personal keys are issued from the account menu.",
+  "release.example": "Show screenshot",
+  "release.pricingAlt": "Example estimate with separate monthly compute and one-time migration costs.",
+  "release.keysAlt": "MCP key page showing the remote server URL, bearer header and how to verify the tool list.",
+  "release.openGuide": "Open MCP setup guide",
+  "release.done": "Got it",
+  "release.close": "Close notice",
+  "release.preview": "Preview What’s new",
   "mcp.keys": "MCP API keys",
   "mcp.copy": "Copy key",
   "mcp.copied": "Copied",
@@ -252,6 +265,19 @@ export const EN = {
 } as const;
 
 export const KO = {
+  "release.title": "Alichitect 업데이트",
+  "release.pricing": "설계 비용 추산하기",
+  "release.pricingHow": "기존 설계를 열거나 새 설계를 만든 뒤 ‘비용 추산’을 선택하세요. 채팅에 인스턴스 사용 시간이나 이전할 데이터 용량을 입력하면 월 비용과 일회성 비용이 나뉘어 표시됩니다. ‘견적 검토’에서 가정과 빠진 비용을 확인할 수 있습니다.",
+  "release.mcp": "IDE에서 Alichitect 사용하기",
+  "release.mcpHow": "계정 메뉴에서 ‘MCP API 키’를 열어 읽기·쓰기 키를 발급하세요. 키 페이지에 표시된 서버 URL과 Bearer 헤더를 IDE의 원격 MCP 설정에 입력하세요. 시작 프롬프트를 복사하면 IDE가 고객 자료를 바탕으로 설계와 비용 추산을 진행하고 보고서를 작성합니다.",
+  "release.shared": "승인된 개인 계정에서는 계정 메뉴에서 MCP API 키를 발급해 IDE에 연결할 수 있습니다.",
+  "release.example": "화면 예시 보기",
+  "release.pricingAlt": "월별 컴퓨팅 비용과 일회성 마이그레이션 비용이 구분된 견적 예시.",
+  "release.keysAlt": "원격 서버 URL, Bearer 헤더, 도구 목록 확인 방법이 표시된 MCP 키 페이지.",
+  "release.openGuide": "MCP 연결 가이드 열기",
+  "release.done": "확인",
+  "release.close": "안내 닫기",
+  "release.preview": "업데이트 안내 다시 보기",
   "mcp.keys": "MCP API 키",
   "mcp.copy": "키 복사",
   "mcp.copied": "복사됨",
@@ -497,6 +523,19 @@ export const KO = {
 } as const;
 
 export const ZH = {
+  "release.title": "Alichitect 新功能",
+  "release.pricing": "估算设计费用",
+  "release.pricingHow": "打开已有设计或新建设计，然后选择“估算费用”。在对话中提供实例运行小时数、迁移数据量等信息，即可分别查看每月和一次性费用。选择“复核估算”检查假设与遗漏费用。",
+  "release.mcp": "在 IDE 中使用 Alichitect",
+  "release.mcpHow": "在账号菜单打开“MCP API 密钥”，创建读写密钥。将密钥页面显示的服务器 URL 和 Bearer 请求头填入 IDE 的远程 MCP 设置。复制起始提示词，即可让 IDE 根据客户材料设计方案、估算费用并撰写报告。",
+  "release.shared": "使用已获批准的个人账号，即可从账号菜单创建 MCP API 密钥并连接 IDE。",
+  "release.example": "查看界面示例",
+  "release.pricingAlt": "分别显示每月计算费用与一次性迁移费用的估算示例。",
+  "release.keysAlt": "MCP 密钥页面展示远程服务器 URL、Bearer 请求头和工具列表验证方法。",
+  "release.openGuide": "打开 MCP 连接指南",
+  "release.done": "知道了",
+  "release.close": "关闭通知",
+  "release.preview": "预览新功能介绍",
   "mcp.keys": "MCP API 密钥",
   "mcp.copy": "复制密钥",
   "mcp.copied": "已复制",

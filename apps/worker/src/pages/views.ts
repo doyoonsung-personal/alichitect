@@ -280,6 +280,7 @@ export function accountPage(c: PageCtx, o: { me: UserRow; note?: Note | null; pa
     </dl>
   </section>
   ${me.status === 'approved' && !o.shared ? `<p><a href="/account/keys">${L('mcp.keys')}</a></p>` : ''}
+  ${me.status === 'approved' ? `<p><a href="/account?whats-new=1">${L('release.preview')}</a></p>` : ''}
   <section class="section" aria-labelledby="h-theme" data-theme-control hidden>
     <h2 class="section__title" id="h-theme">${L('theme.title')}</h2>
     <p class="intro intro--left">${L('theme.intro')}</p>
