@@ -26,6 +26,8 @@ The pricing and MCP walkthrough appears once after sign-in. Inside the notice yo
 
 After connecting, the client can discover the available tools and their schemas. The MCP initialization response also supplies a short guide for the key's access level. A separate IDE skill is optional and can describe your team's preferred discovery questions or handoff process.
 
+In the Qoder agent app, select Alichitect for a new task and describe the work you want to automate in your own language. For example, ask it to classify IT tickets, check proposed fixes in a test environment, require approval before a production change, and check inventory for shipping requests. The connector instructs the client to draft the workflow first, return the private design link, and ask about missing cost drivers such as monthly volume. Ticketing and purchasing systems can be modeled before you connect them. If the client only lists tools, ask it to call `design_solution` with your brief in workflow mode. [Qoder connector setup and tool permissions](https://docs.qoder.com/qoder/connectors)
+
 Attach the customer’s brief or PDF in an IDE that can read it, or paste their pain point into the chat. The key page has a starter prompt you can copy. The IDE extracts the requirements and checks the source material before asking the customer for missing facts. It sends a concise brief to Alichitect, refines the design and estimate with the customer's answers, and writes the client report itself. The report should distinguish monthly and one-time costs and identify rate sources, assumptions, exclusions and open decisions.
 
 - `design_solution` creates a cloud design or AI workflow. To revise one, supply its `designId` and current `revision`.
