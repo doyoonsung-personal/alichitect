@@ -2,7 +2,9 @@
 
 Open the account menu in Alichitect and choose **MCP API keys**. Give the key a name such as “Qoder laptop”, choose read-only or read/write access, and select its lifetime. Copy the secret when it appears. The list shows the identifier, permissions, expiry and last use. To rotate a key, issue a replacement, update the client, and revoke the old one. Personal keys are available to approved individual accounts.
 
-Add a remote Streamable HTTP server in the client using the URL on the key page. Send the secret in the `Authorization` header on every request. In Qoder, use the user-level configuration so it stays out of the project repository. A Qoder CLI configuration looks like this after substituting the key. [Qoder IDE setup](https://docs.qoder.com/user-guide/chat/model-context-protocol) · [Qoder CLI configuration](https://docs.qoder.com/cli/mcp-reference)
+In your IDE’s personal MCP settings, add a remote Streamable HTTP server using the URL on the key page. Send the secret in the `Authorization` header on every request. After connecting, refresh the tool list to verify your key’s scope without spending a turn. These keys work only on `/mcp`. The web app uses signed-in sessions for designs and estimates.
+
+The key page includes JSON examples for Qoder and the VS Code user-profile format. Use your IDE’s secret store or personal settings for the actual key. The Qoder CLI configuration looks like this after substituting the key. [Qoder IDE setup](https://docs.qoder.com/user-guide/chat/model-context-protocol) · [Qoder CLI configuration](https://docs.qoder.com/cli/mcp-reference) · [VS Code MCP configuration](https://code.visualstudio.com/docs/agents/reference/mcp-configuration)
 
 ```json
 {

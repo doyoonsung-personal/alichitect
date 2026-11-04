@@ -8,6 +8,10 @@ import { THEME_JS, TOKENS_CSS } from './tokens.ts';
 const PAGE_CSS = `
 *, *::before, *::after { box-sizing: border-box; }
 .mcp-config { white-space: pre-wrap; overflow-wrap: anywhere; }
+.mcp-guide ol { padding-inline-start: 1.5em; list-style: decimal; }
+.mcp-guide li, .mcp-guide details { margin-block: var(--s-3); }
+.mcp-guide pre { margin-block: var(--s-2); }
+.mcp-guide summary { cursor: pointer; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   margin: 0; min-height: 100vh;

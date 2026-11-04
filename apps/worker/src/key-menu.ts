@@ -31,27 +31,29 @@ export async function keyMenu(req: Request, env: Env, user: UserRow, page: PageC
   const keys = await listKeys(env.DB, user.id);
   const L = (k: StringKey) => e(t(page.lang, k));
   const endpoint = new URL('/mcp', req.url).href;
-  const config = JSON.stringify({
-    mcpServers: {
-      alichitect: {
-        type: 'http', url: endpoint,
-        headers: { Authorization: 'Bearer <YOUR_API_KEY>' }
-      }
-    }
-  }, null, 2);
+  const bearer = 'Bearer <YOUR_API_KEY>';
+  const servers = { alichitect: { type: 'http', url: endpoint, headers: { Authorization: bearer } } };
   return html(invalid ? 400 : 200, shell(page, {
     title: t(page.lang, 'mcp.keys'), bodyClass: 'page page--admin',
     body: `${appbar(page, user, 'mcp.keys')}<main class="account" id="main"><h1 class="title">${L('mcp.keys')}</h1>
     <p class="intro intro--left">${L('mcp.intro')}</p>
     ${secret ? `<section class="section" role="status"><p>${L('mcp.once')}</p><input id="mcp-secret" class="input" aria-label="API key" readonly value="${e(secret)}"><button type="button" hidden data-copy-key data-copied="${L('mcp.copied')}" class="btn">${L('mcp.copy')}</button></section>` : ''}
     ${invalid ? `<p role="alert">${L('mcp.invalid')}</p>` : ''}
-    <section class="section"><p>${L('mcp.connect')}</p><p><code>${e(endpoint)}</code></p><p><code>Authorization: Bearer &lt;YOUR_API_KEY&gt;</code></p>
-    <details><summary>Qoder · JSON</summary><pre class="mcp-config">${e(config)}</pre></details></section>
     <form class="form form--auth form--narrow" method="post" action="${base}"><input type="hidden" name="issuance" value="${randomHex(16)}">
     <label>${L('mcp.name')}<input required maxlength="60" name="name" placeholder="Qoder" class="input"></label>
     <label>${L('mcp.scope')}<select name="scope"><option value="write">${L('mcp.write')}</option><option value="read">${L('mcp.read')}</option></select></label>
     <label>${L('mcp.expires')}<select name="days">${[30, 90, 365].map(n => `<option value="${n}"${n === 90 ? ' selected' : ''}>${e(t(page.lang, 'mcp.days', { days: n }))}</option>`).join('')}</select></label>
     <button class="btn btn--primary" type="submit">${L('mcp.create')}</button></form>
+    <section class="section mcp-guide" aria-labelledby="mcp-setup"><h2 class="section__title" id="mcp-setup">${L('mcp.connect')}</h2>
+    <ol>
+      <li>${L('mcp.setupKey')}</li>
+      <li>${L('mcp.setupServer')}<pre class="mcp-config"><code>${e(endpoint)}</code></pre></li>
+      <li>${L('mcp.setupAuth')}<pre class="mcp-config"><code>Authorization: ${e(bearer)}</code></pre></li>
+      <li>${L('mcp.setupVerify')}</li>
+    </ol>
+    <details><summary>Qoder · JSON</summary><pre class="mcp-config">${e(JSON.stringify({ mcpServers: servers }, null, 2))}</pre></details>
+    <details><summary>VS Code · mcp.json</summary><pre class="mcp-config">${e(JSON.stringify({ servers }, null, 2))}</pre></details>
+    <details><summary>${L('mcp.setupHelp')}</summary><p>${L('mcp.setupTrouble')}</p></details></section>
     ${keys.length ? keys.map(k => `<section class="section"><h2 class="section__title">${e(k.name)}</h2>
       <p><code>ali_mcp_${e(k.id)}_…</code> · ${L(k.scope === 'read' ? 'mcp.read' : 'mcp.write')}</p>
       <p>${L('mcp.expires')} · ${time(page, k.expires_at)}<br>${L('mcp.used')} · ${time(page, k.last_used_at, t(page.lang, 'mcp.never'))}</p>
