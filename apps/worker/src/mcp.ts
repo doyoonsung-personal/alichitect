@@ -47,7 +47,7 @@ export async function handleMcp(req: Request, env: Env, ctx: ExecutionContextLik
       'Keep the designId and revision. Use design_solution for design changes and estimate_solution to start sizing or collect usage answers, even before every price is known. ' +
       'Use pricingReply and unknowns for the next question. Check the source material before asking. get_design reads the latest revision without spending a turn. ' +
       'Use a fresh requestId per change and reuse the exact ID and inputs after a timeout. Refresh an outdated estimate, then write the client report yourself with monthly and one-time costs, sources, assumptions and exclusions. ' +
-      'When the customer wants a PDF, call export_proposal_pdf with the saved revision and your narrative and give them the private download link.'
+      'When the customer wants a handoff PDF, call export_proposal_pdf with the latest revision. Pass any useful editorial notes; the proposal writer prepares the final report. Give the customer the private download link.'
     : 'This key has read-only access. Ask the user for their design ID, then use get_design to read its current design, estimate and private web link without spending a turn.';
   const server = new McpServer({ name: 'alichitect', version: '1.0.0' }, { instructions });
   async function result(work: Promise<Awaited<ReturnType<typeof getDesign>>>) {
@@ -68,15 +68,16 @@ export async function handleMcp(req: Request, env: Env, ctx: ExecutionContextLik
   if (auth.scope === 'write') {
     server.registerTool('export_proposal_pdf', {
       title: 'Export the proposal as a PDF',
-      description: 'Make a downloadable proposal from a saved design revision, including its diagrams and any saved pricing. Supply your own narrative for the client report, or omit it for the basic design record. Returns a private download link for the account owner. Set includeFile to receive the PDF bytes as an embedded MCP resource for saving locally. No model turn.',
+      description: 'Queue a client handoff from the saved revision, customer conversation and pricing. The proposal writer uses one account writing turn. Optional narrative supplies editorial notes. If status is preparing, give the owner the private link immediately. For local file requests, poll the same inputs after retryAfterSeconds until ready and save the embedded PDF. A completed export is reused.',
       inputSchema: z.object({
         designId: id, revision, lang: z.enum(['en','ko','zh']), title: z.string().trim().max(180).optional(),
         customer: z.string().trim().max(160).optional(), narrative: narrative.optional(), includeFile: z.boolean().default(false),
+        retryFailed: z.boolean().default(false).describe('Request another writing pass after a failed export.'),
       }), annotations: { destructiveHint: false, idempotentHint: true },
-    }, async ({ designId, revision, lang, title, customer, narrative, includeFile }) => {
+    }, async ({ designId, revision, lang, title, customer, narrative, includeFile, retryFailed }) => {
       try {
-        return await exportPdf(env, auth.user.id, designId, revision, { lang, title, customer,
-          draft: narrative && { ...narrative, lang, complete: true } }, includeFile);
+        return await exportPdf(env, auth.user, designId, revision, { lang, title, customer,
+          draft: narrative && { ...narrative, lang, complete: true } }, includeFile, retryFailed);
       } catch (err) {
         return { isError: true, content: [{ type: 'text', text: err instanceof DesignError ? err.message : 'Could not generate the PDF. Retry this export.' }] };
       }

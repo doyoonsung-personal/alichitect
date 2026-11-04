@@ -445,7 +445,8 @@ describe('draftProposal', () => {
     const run = await draftProposal(req, CAT, opts(fakeFetch([c => streamResponse(c, body), ok(FULL.slice(1))], calls)));
     assert.equal(run.draft?.cost, cost);
     assert.equal(run.draft?.complete, true);
-    assert.deepEqual(calls.map(c => [c.body.model, c.body.enable_thinking]), [['qwen3.8-max', true], ['qwen3.8-max', false]]);
+    assert.deepEqual(calls.map(c => [c.body.model, c.body.enable_thinking, c.body.thinking_budget]),
+      [['qwen3.8-max', true, 6_144], ['qwen3.8-max', true, 6_144]]);
     assert.ok(lastUser(calls[1]).includes(cost));
     assert.equal(run.stats.lint.price, 1);
     assert.doesNotMatch(JSON.stringify(run.draft), /Private reasoning|9943/);
@@ -467,7 +468,7 @@ describe('draftProposal', () => {
     assert.equal(calls[0].body.model, 'qwen3.8-max');
     assert.equal(calls[0].body.enable_thinking, true);
     assert.equal(calls[0].body.reasoning_effort, undefined);
-    assert.equal(calls[0].body.thinking_budget, 16_385);
+    assert.equal(calls[0].body.thinking_budget, 6_144);
     assert.equal(calls[0].body.temperature, PROPOSAL_LIMITS.temperature);
     assert.equal(calls[0].body.max_completion_tokens, PROPOSAL_LIMITS.maxTokens);
     assert.deepEqual(got.map((s) => s.k), ['exec', 'need', 'need', 'outcome', 'outcome', 'why', 'why', 'why', 'why', 'why', 'tradeoff', 'next', 'next']);

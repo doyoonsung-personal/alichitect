@@ -23,7 +23,7 @@ import { handleTurn, health, reject, sharedTurnState, workerFatalMessage } from 
 import { handleProposal } from './proposal.ts';
 import { handlePricing } from './pricing.ts';
 import { handleMcp } from './mcp.ts';
-import { downloadPdf } from './mcp-pdf.ts';
+import { downloadPdf, processPdfQueue } from './mcp-pdf.ts';
 import { keyMenu } from './key-menu.ts';
 import { latestDesign, openedDesign } from './mcp-designs.ts';
 import { changelogPage, claimReleaseNotice } from './release-notice.ts';
@@ -51,6 +51,9 @@ const isStreamApi = (p: string): boolean => p === '/api/turn' || p === '/api/pro
 const isStatic = (p: string, m: string): boolean => isGet(m) && !isApi(p) && !p.startsWith('/admin') && (p.startsWith('/assets/') || STATIC_RE.test(p));
 
 export default {
+  async scheduled(_event: unknown, env: Env, ctx: ExecutionContextLike) {
+    await processPdfQueue(env, ctx);
+  },
   async fetch(request: Request, env: Env, ctx: ExecutionContextLike): Promise<Response> {
     const url = new URL(request.url);
     let res: Response;

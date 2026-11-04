@@ -54,9 +54,8 @@ export const PROPOSAL_LIMITS = {
   quoteMin: 4,
   /** Needs a draft must have before it counts as complete enough to skip the continuation call. */
   needsWanted: 2,
-  // Model Studio maps budgets above 16,384 to xhigh. Bound the private portion so a long
-  // architecture still has output tokens and time left for the narrative and cost analysis.
-  thinkingBudget: 16_385,
+  // Qwen3.8 Max maps 4,097–16,384 thinking tokens to medium. Leave room for the visible report.
+  thinkingBudget: 6_144,
   maxTokens: QWEN_HIGH_REASONING.maxTokens,
   temperature: 0.5,
   /** Watchdogs of one Qwen call. */
@@ -784,7 +783,7 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
     };
     return f;
   };
-  const qwen = async (m: string, msgs: ChatMessage[], highReasoning: boolean): Promise<{ r: CompleteResult; accepted: number }> => {
+  const qwen = async (m: string, msgs: ChatMessage[]): Promise<{ r: CompleteResult; accepted: number }> => {
     const f = feed();
     stats.calls++;
     stats.model = m;
@@ -793,9 +792,9 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
       baseUrl: o.baseUrl,
       model: m,
       messages: msgs,
-      extraBody: { enable_thinking: highReasoning, ...(highReasoning && m === QWEN_HIGH_REASONING.model
+      extraBody: { enable_thinking: true, ...(m === QWEN_HIGH_REASONING.model
         ? { thinking_budget: PROPOSAL_LIMITS.thinkingBudget } : {}) },
-      maxTokens: highReasoning ? PROPOSAL_LIMITS.maxTokens : 10_000,
+      maxTokens: PROPOSAL_LIMITS.maxTokens,
       temperature: PROPOSAL_LIMITS.temperature,
       signal: o.signal,
       firstByteTimeoutMs: dog.firstByteMs,
@@ -847,13 +846,13 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
 
   // 1. The draft, with one retry on the fallback model when it failed before any section arrived.
   let useModel = model;
-  let call = await qwen(useModel, editorial, true);
+  let call = await qwen(useModel, editorial);
   if (aborted()) return stop();
   if (call.r.error && !isFiltered(call.r.error) && call.r.error.retryable && gate.sections.length === 0 && fallback && !o.signal?.aborted) {
     status('retry');
     stats.fallbackUsed = fallback !== model;
     useModel = fallback;
-    call = await qwen(useModel, editorial, true);
+    call = await qwen(useModel, editorial);
     if (aborted()) return stop();
   }
   let lastError = call.r.error;
@@ -871,7 +870,7 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
       // "Taking a little longer" only when parts are missing; rewriting set-aside lines is part of the usual work
       if (missing.length) status('finish');
       // Use the same Qwen to expand its recommendation into the structured business and design sections.
-      const cont = await qwen(contModel, [...messages, continueWith(missing)], false);
+      const cont = await qwen(contModel, [...messages, continueWith(missing)]);
       if (aborted()) return stop();
       // A failed continuation leaves the draft as it was; its error explains a draft that is still unusable.
       if (cont.r.error) lastError = cont.r.error;

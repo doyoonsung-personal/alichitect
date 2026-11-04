@@ -9,6 +9,8 @@ The app runs as one Cloudflare Worker, `alichitect`, at **https://architect.alik
 
 The code and its configuration are in `apps/worker` (`wrangler.jsonc`).
 
+MCP proposal exports are queued in D1. The Worker's one-minute Cron Trigger claims pending exports and runs the same quota-checked proposal writer as the web app. The private link shows progress and downloads the completed PDF. Apply the Worker migrations before deploying a release that changes the export queue.
+
 | Piece | Where |
 |---|---|
 | Cloudflare account | `cfd2a327acfb7d93dc045825f12dd38d` (Dysung.alicloud@gmail.com's Account, Workers Paid) |

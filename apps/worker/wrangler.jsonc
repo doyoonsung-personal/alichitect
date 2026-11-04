@@ -13,6 +13,7 @@
   "compatibility_date": "2026-10-20",
   // request.signal aborts when the browser disconnects, so the upstream Qwen request is cancelled with it
   "compatibility_flags": ["enable_request_signal"],
+  "triggers": { "crons": ["* * * * *"] },
   "assets": {
     "directory": "../web/dist", // built by `npm run build` in apps/web before every deploy (scripts/deploy.ps1)
     "binding": "ASSETS",

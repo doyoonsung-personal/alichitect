@@ -182,17 +182,17 @@ export function buildDocument(i: PdfInput): PdfReport {
     const W = A4[0] - 2 * margin;
     const by = A4[1] - 168;
     const cells = [
-      { label: xt('cover.date'), value: model.dateText, w: W * 0.34 },
-      { label: xt('cover.revisions'), value: String(model.revisionsDone), w: W * 0.2 },
-      { label: xt('cover.products'), value: String(model.productCount), w: W * 0.2 },
-      { label: xt('cover.catalog'), value: model.catalogDate, w: W * 0.26 },
+      { label: xt('cover.date'), value: model.dateText },
+      ...(!n ? [{ label: xt('cover.revisions'), value: String(model.revisionsDone) }] : []),
+      ...(model.productCount ? [{ label: xt('cover.products'), value: String(model.productCount) }] : []),
+      { label: xt('cover.catalog'), value: model.catalogDate },
     ];
     doc.lineWidth(0.75).strokeColor(COLOR.ink).moveTo(margin, by).lineTo(A4[0] - margin, by).stroke();
     let cx = margin;
     for (const c of cells) {
       ts.line(cx, ts.baseline(by + 10, 12, 8), c.label, ink(8, 500, COLOR.ink3));
       ts.line(cx, ts.baseline(by + 24, 18, 12), c.value, ink(12, 500));
-      cx += c.w;
+      cx += W / cells.length;
     }
     doc.lineWidth(0.5).strokeColor(COLOR.line2).moveTo(margin, by + 52).lineTo(A4[0] - margin, by + 52).stroke();
     ts.line(margin, ts.baseline(by + 68, 16, 10), xt('doc.preparedWith'), ink(10, 400, COLOR.ink2));
@@ -203,16 +203,15 @@ export function buildDocument(i: PdfInput): PdfReport {
   // ---------- the sections, in the order of the document ----------
   if (n) {
     execSection(n);
+    considerationsSection(n);
     solutionPricingSection();
     needsSection(n);
     diagramSection();
     workflowSections();
     componentsSection();
     recsSection();
-    considerationsSection(n);
-    summarySection(true);
   } else {
-    summarySection(false);
+    summarySection();
     solutionPricingSection();
     diagramSection();
     workflowSections();
@@ -220,7 +219,7 @@ export function buildDocument(i: PdfInput): PdfReport {
     recsSection();
   }
   connectionsSection();
-  revisionsSection();
+  if (!n && model.revisions.length) revisionsSection();
 
   // ---------- running header and footer ----------
   const count = doc.bufferedPageRange().count;
@@ -241,16 +240,16 @@ export function buildDocument(i: PdfInput): PdfReport {
   report.pages = count;
   return report;
 
-  // ---------- the summary; with a draft it follows the business sections, as the design record ----------
-  function summarySection(record: boolean): void {
-    newPage(A4);
-    outline(xt(record ? 'record.heading' : 'summary.heading'));
-    if (record) heading(xt('record.heading'), xt('record.intro'));
-    else heading(xt('summary.heading'));
+  // The technical fallback includes session details. The authored handoff presents its own recommendation.
+  function summarySection(): void {
     const s = model.summary;
+    if (!s.narration && !s.requirements.length && !s.constraints.length &&
+      (model.workflow || (!s.assumptions.length && !s.questions.length))) return;
+    newPage(A4);
+    outline(xt('summary.heading'));
+    heading(xt('summary.heading'));
     if (s.narration) {
-      // with a draft, the first chat reply is shown for what it is: the architect's first notes, not the proposal
-      sub(xt(record ? 'record.firstNotes' : 'summary.design'));
+      sub(xt('summary.design'));
       const p = ts.paragraph(s.narration, contentW(), 10.5, 400, cjk ? 17 : 15.5);
       for (const l of p.lines) {
         ensure(p.lh);
@@ -261,11 +260,7 @@ export function buildDocument(i: PdfInput): PdfReport {
       ts.line(margin, ts.baseline(y, 14, 8.5), s.facts, ink(8.5, 400, COLOR.ink3));
       y += 20;
     }
-    sub(xt('summary.requirements'));
-    if (!s.requirements.length) {
-      ts.line(margin, ts.baseline(y, body.lh, body.px), xt('summary.requirementsNone'), ink(body.px, 400, COLOR.ink3));
-      y += body.lh + 8;
-    }
+    if (s.requirements.length) sub(xt('summary.requirements'));
     for (const r of s.requirements) {
       const stateW = 150;
       const p = ts.paragraph(r.text, contentW() - stateW - 16, body.px, 400, body.lh);
@@ -286,11 +281,7 @@ export function buildDocument(i: PdfInput): PdfReport {
     }
     rule();
     y += 6;
-    sub(xt('summary.constraints'));
-    if (!s.constraints.length) {
-      ts.line(margin, ts.baseline(y, body.lh, body.px), xt('summary.constraintsNone'), ink(body.px, 400, COLOR.ink3));
-      y += body.lh + 8;
-    }
+    if (s.constraints.length) sub(xt('summary.constraints'));
     for (const c of s.constraints) {
       const p = ts.paragraph(c, contentW(), body.px, 400, body.lh);
       ensure(p.height + 12);
@@ -302,11 +293,7 @@ export function buildDocument(i: PdfInput): PdfReport {
       y += 6;
     }
     if (model.workflow) return;
-    sub(xt('summary.assumptions'));
-    if (!s.assumptions.length) {
-      ts.line(margin, ts.baseline(y, body.lh, body.px), xt('summary.assumptionsNone'), ink(body.px, 400, COLOR.ink3));
-      y += body.lh + 8;
-    }
+    if (s.assumptions.length) sub(xt('summary.assumptions'));
     for (const a of s.assumptions) {
       const p = ts.paragraph(a.text, contentW(), body.px, 400, body.lh);
       const alt = a.alt ? ts.paragraph(xt('summary.alternative', { alt: a.alt }), contentW(), small.px, 400, small.lh) : null;
@@ -335,46 +322,41 @@ export function buildDocument(i: PdfInput): PdfReport {
 
   // ---------- the diagram ----------
   function diagramSection(): void {
-    if (!i.diagrams.length) cloudDiagram();
     for (const diagram of i.diagrams) {
       if (diagram.view === 'workflow') workflowDiagram(diagram);
       else cloudDiagram(diagram);
     }
   }
 
-  function cloudDiagram(entry?: PdfDiagram): void {
-    const diagram = entry?.drawing;
+  function cloudDiagram(entry: PdfDiagram): void {
+    const diagram = entry.drawing;
     const fitOn = (size: PageSize): number =>
-      diagram ? Math.min((size[0] - 2 * margin) / diagram.width, (size[1] - CONTENT_TOP - 30 - 28 - FOOTER_RULE_FROM_BOTTOM - 8) / diagram.height, 1.3) : 1;
+      Math.min((size[0] - 2 * margin) / diagram.width, (size[1] - CONTENT_TOP - 30 - 28 - FOOTER_RULE_FROM_BOTTOM - 8) / diagram.height, 1.3);
     // a diagram that would have to shrink below the readable scale moves to a larger sheet
     const diagramSheet: PageSize = fitOn(A4_LANDSCAPE) < MIN_DIAGRAM_SCALE ? A3_LANDSCAPE : A4_LANDSCAPE;
     newPage(diagramSheet);
-    const title = entry?.title ?? xt('diagram.heading');
+    const title = entry.title;
     outline(title);
     heading(title);
-    if (!diagram) {
-      ts.line(margin, ts.baseline(y, body.lh, body.px), xt('diagram.empty'), ink(body.px, 400, COLOR.ink3));
-    } else {
-      const d = diagram;
-      const size = diagramSheet;
-      const scale = fitOn(size);
-      const w = d.width * scale;
-      const h = d.height * scale;
-      const x = margin + (size[0] - 2 * margin - w) / 2;
-      if (!i.dry) {
-        SVGtoPDF(doc, stripSize(d.svg), x, y, {
-          width: w,
-          height: h,
-          assumePt: true,
-          preserveAspectRatio: 'xMidYMin meet',
-          fontCallback: (family) => family,
-          warningCallback: () => {},
-        });
-      }
-      const value = { size: size === A3_LANDSCAPE ? 'A3' as const : 'A4' as const, scale: Math.round(scale * 1000) / 1000 };
-      report.diagramPage ??= value;
-      report.diagramPages.push({ id: 'cloud', page: doc.bufferedPageRange().count, ...value, overview: false });
+    const d = diagram;
+    const size = diagramSheet;
+    const scale = fitOn(size);
+    const w = d.width * scale;
+    const h = d.height * scale;
+    const x = margin + (size[0] - 2 * margin - w) / 2;
+    if (!i.dry) {
+      SVGtoPDF(doc, stripSize(d.svg), x, y, {
+        width: w,
+        height: h,
+        assumePt: true,
+        preserveAspectRatio: 'xMidYMin meet',
+        fontCallback: (family) => family,
+        warningCallback: () => {},
+      });
     }
+    const value = { size: size === A3_LANDSCAPE ? 'A3' as const : 'A4' as const, scale: Math.round(scale * 1000) / 1000 };
+    report.diagramPage ??= value;
+    report.diagramPages.push({ id: 'cloud', page: doc.bufferedPageRange().count, ...value, overview: false });
   }
 
   function workflowDiagram(diagram: PdfDiagram): void {
@@ -416,6 +398,7 @@ export function buildDocument(i: PdfInput): PdfReport {
     y += 6;
   }
   function table(headers: string[], rows: string[][], widths: number[]): void {
+    if (!rows.length) return;
     const cols = widths.map((v) => v * contentW());
     const headerLines = headers.map((h, k) => ts.wrap(h, cols[k] - 12, body.px, 500));
     const headerHeight = Math.max(...headerLines.map((ls) => ls.length)) * body.lh + 30;
@@ -453,6 +436,7 @@ export function buildDocument(i: PdfInput): PdfReport {
     const pricing = model.pricing;
     if (!pricing) return;
     if (pricing.stale) {
+      if (!y) newPage(A4);
       sub(xt('price.heading'), body.lh * 3);
       paragraph(xt('price.stale'));
       return;
@@ -474,10 +458,15 @@ export function buildDocument(i: PdfInput): PdfReport {
         money(row.amountUsd), `${xt(`price.${row.basis}`)}\n${row.source}`,
       ]), [.22, .27, .15, .36]);
     }
-    for (const [title, notes] of [[xt('price.assumptions'), estimate.assumptions], [xt('price.open'), estimate.unknowns]] as const) {
-      if (notes.length) { sub(title); for (const note of notes) paragraph(note); }
+    if (!pricing.interpretation && estimate.assumptions.length) {
+      sub(xt('price.assumptions'));
+      for (const note of estimate.assumptions) paragraph(note);
     }
-    if (model.workflow) paragraph(xt('price.workflow'));
+    if (estimate.unknowns.length) {
+      sub(xt('price.open'));
+      for (const note of new Set(estimate.unknowns)) paragraph(note);
+    }
+    if (!n && model.workflow) paragraph(xt('price.workflow'));
   }
 
   function workflowSections(): void {
@@ -485,59 +474,71 @@ export function buildDocument(i: PdfInput): PdfReport {
     if (!data) return;
     const t = makeT(model.lang);
     const w = (key: Parameters<typeof wt>[1]) => wt(model.lang, key);
-    start(w('steps.heading'));
-    for (const step of data.steps) {
+    const steps = data.steps.filter(step => step.text);
+    if (steps.length) start(w('steps.heading'));
+    for (const step of steps) {
       ensure(body.lh * 3);
-      paragraph(`${step.id} - ${step.label}`, 700);
+      paragraph(n ? step.label : `${step.id} - ${step.label}`, 700);
       if (step.text) paragraph(step.text);
     }
-    start(data.mappingTitle);
-    table([w('mapping.step'), w('mapping.runtime'), w('mapping.services')], data.mapping.map((row) => [
+    const mapping = data.mapping.filter(row => row.runtime !== xt('workflow.unspecified') || row.service !== xt('workflow.unspecified'));
+    if (mapping.length) start(data.mappingTitle);
+    table([w('mapping.step'), w('mapping.runtime'), w('mapping.services')], mapping.map((row) => [
       `${row.id} - ${row.label}` + (row.on ? ` (${t('workflow.pop.attachedTo', { step: row.on })})` : ''),
       row.runtime, row.service,
     ]), [.34, .26, .40]);
-    start(data.costTitle);
-    if (!model.pricing) paragraph(xt('next.pricing'));
     const cost = data.cost;
-    const order = new Map(data.mapping.map((row, index) => [row.id, index]));
-    const ordered = <T extends { id: string }>(rows: readonly T[]): T[] =>
-      [...rows].sort((a, b) => (order.get(a.id) ?? Infinity) - (order.get(b.id) ?? Infinity));
-    const triggers = cost.oneRun.filter((id) => i.workflow?.nodes[id]?.kind === 'trigger');
-    paragraph(t('workflow.cost.oneRun', { trigger: triggers.map((id) => i.workflow!.nodes[id].label).join(', ')
-      || t('workflow.unspecified') }));
-    paragraph(`${t('workflow.settings.scope')}: ${t(cost.scope === 'global' ? 'workflow.settings.global' : 'workflow.settings.international')}`);
-    paragraph(`${t('workflow.cost.runs')}: ${cost.runsPerMonth}`);
-    paragraph(t('workflow.cost.scenarios'));
-    table(['', w('cost.typical'), w('cost.upper')], [
-      [w('cost.perRun'), usd(cost.typical.perRunUsd), usd(cost.upper.perRunUsd)],
-      [w('cost.perMonth'), usd(cost.typical.monthlyUsd), `${usd(cost.upper.monthlyUsd)} - ${w('cost.upperMonthly')}`],
-    ], [.25, .30, .45]);
-    paragraph(w('cost.coverage'), 700);
-    paragraph(cost.coverage);
-    table([w('cost.item'), w('cost.unit'), w('cost.typical'), w('cost.upper')],
-      ordered(cost.lines).map((r) => [`${r.id} - ${r.label}`, r.unit, usd(r.typical), usd(r.upper)]), [.40, .20, .20, .20]);
-    paragraph(w('cost.fixed'), 700);
-    table([w('cost.item'), w('cost.unit'), w('cost.perMonth')],
-      cost.fixed.map((r) => [r.label, r.unit, r.monthlyUsd === null ? w('cost.unpriced') : usd(r.monthlyUsd)]), [.45, .30, .25]);
-    paragraph(w('cost.unpriced'), 700);
-    table([w('cost.item'), w('cost.unit'), w('cost.reason')],
-      ordered(cost.unpriced).map((r) => [`${r.id} - ${r.label}`, r.unit, unpricedReason(r.why, t)]), [.34, .22, .44]);
-    paragraph(w('cost.assumptions'), 700);
-    for (const a of cost.assumptions) paragraph(i.workflow ? assumptionText(a, i.workflow, t) : a.text);
-    const sources = [...new Set([...cost.lines, ...cost.fixed].map((r) => r.source).filter(Boolean))];
-    if (sources.length) paragraph(t('workflow.cost.source'), 700);
-    for (const source of sources) {
-      if (/^https:\/\//.test(source)) {
-        for (const line of ts.wrap(source, contentW(), body.px, 400)) {
-          ensure(body.lh);
-          ts.link(margin, ts.baseline(y, body.lh, body.px), line, source, ink(body.px, 400, COLOR.action));
-          y += body.lh;
-        }
-        report.links++;
-      } else paragraph(source);
+    // The sized solution is the client estimate. A separate default-usage scenario would look like a second quote.
+    if (!(n && model.pricing) && (cost.lines.length || cost.fixed.length || cost.unpriced.length)) {
+      workflowCost(data.costTitle, data.mapping.map(row => row.id));
     }
-    start(data.questionsTitle);
-    data.openQuestions.forEach((q, k) => paragraph(`${k + 1}. ${q.text}` + (q.options.length ? ` (${q.options.join(' / ')})` : '')));
+    const questions = n ? [] : data.openQuestions.filter(q => q.source !== 'boundary');
+    if (questions.length) start(data.questionsTitle);
+    questions.forEach((q, k) => paragraph(`${k + 1}. ${q.text}` + (q.options.length ? ` (${q.options.join(' / ')})` : '')));
+
+    function workflowCost(title: string, ids: string[]): void {
+      start(title);
+      if (!model.pricing) paragraph(xt('next.pricing'));
+      const order = new Map(ids.map((id, index) => [id, index]));
+      const ordered = <T extends { id: string }>(rows: readonly T[]): T[] =>
+        [...rows].sort((a, b) => (order.get(a.id) ?? Infinity) - (order.get(b.id) ?? Infinity));
+      const triggers = cost.oneRun.filter((id) => i.workflow?.nodes[id]?.kind === 'trigger');
+      paragraph(t('workflow.cost.oneRun', { trigger: triggers.map((id) => i.workflow!.nodes[id].label).join(', ')
+        || t('workflow.unspecified') }));
+      paragraph(`${t('workflow.settings.scope')}: ${t(cost.scope === 'global' ? 'workflow.settings.global' : 'workflow.settings.international')}`);
+      paragraph(`${t('workflow.cost.runs')}: ${cost.runsPerMonth}`);
+      paragraph(t('workflow.cost.scenarios'));
+      table(['', w('cost.typical'), w('cost.upper')], [
+        [w('cost.perRun'), usd(cost.typical.perRunUsd), usd(cost.upper.perRunUsd)],
+        [w('cost.perMonth'), usd(cost.typical.monthlyUsd), `${usd(cost.upper.monthlyUsd)} - ${w('cost.upperMonthly')}`],
+      ], [.25, .30, .45]);
+      paragraph(w('cost.coverage'), 700);
+      paragraph(cost.coverage);
+      table([w('cost.item'), w('cost.unit'), w('cost.typical'), w('cost.upper')],
+        ordered(cost.lines).map((r) => [`${r.id} - ${r.label}`, r.unit, usd(r.typical), usd(r.upper)]), [.40, .20, .20, .20]);
+      if (cost.fixed.length) paragraph(w('cost.fixed'), 700);
+      table([w('cost.item'), w('cost.unit'), w('cost.perMonth')],
+        cost.fixed.map((r) => [r.label, r.unit, r.monthlyUsd === null ? w('cost.unpriced') : usd(r.monthlyUsd)]), [.45, .30, .25]);
+      if (cost.unpriced.length) paragraph(w('cost.unpriced'), 700);
+      table([w('cost.item'), w('cost.unit'), w('cost.reason')],
+        ordered(cost.unpriced).map((r) => [`${r.id} - ${r.label}`, r.unit, unpricedReason(r.why, t)]), [.34, .22, .44]);
+      if (!n && cost.assumptions.length) {
+        paragraph(w('cost.assumptions'), 700);
+        for (const a of cost.assumptions) paragraph(i.workflow ? assumptionText(a, i.workflow, t) : a.text);
+      }
+      const sources = [...new Set([...cost.lines, ...cost.fixed].map((r) => r.source).filter(Boolean))];
+      if (sources.length) paragraph(t('workflow.cost.source'), 700);
+      for (const source of sources) {
+        if (/^https:\/\//.test(source)) {
+          for (const line of ts.wrap(source, contentW(), body.px, 400)) {
+            ensure(body.lh);
+            ts.link(margin, ts.baseline(y, body.lh, body.px), line, source, ink(body.px, 400, COLOR.action));
+            y += body.lh;
+          }
+          report.links++;
+        } else paragraph(source);
+      }
+    }
   }
 
   // ---------- components ----------
@@ -571,44 +572,42 @@ export function buildDocument(i: PdfInput): PdfReport {
 
   // ---------- connections ----------
   function connectionsSection(): void {
+    if (!model.connections.length) return;
     newPage(A4);
     outline(xt('conn.heading'));
     heading(xt('conn.heading'), xt('conn.intro'));
-    if (!model.connections.length) ts.line(margin, ts.baseline(y, body.lh, body.px), xt('conn.none'), ink(body.px, 400, COLOR.ink3));
-    else {
-      const cols = [
-        { title: xt('conn.from'), w: 132 },
-        { title: xt('conn.to'), w: 132 },
-        { title: xt('conn.label'), w: 118 },
-        { title: xt('conn.kind'), w: contentW() - 382 },
-      ];
-      const head = (): void => {
-        let x = margin;
-        for (const c of cols) {
-          label(c.title, x, y);
-          x += c.w;
-        }
-        y += 16;
-      };
-      head();
-      for (const r of model.connections) {
-        const cells = [r.from, r.to, r.label, r.kindText];
-        const paras = cells.map((t, k) => ts.paragraph(t, cols[k].w - 10, body.px, 400, body.lh));
-        const h = Math.max(...paras.map((p) => p.height), body.lh) + 12;
-        if (y + h > bottomLimit()) {
-          newPage();
-          head();
-        }
-        rule();
-        let x = margin;
-        paras.forEach((p, k) => {
-          ts.draw(p, x, y + 6, ink(body.px, 400, k === 3 ? COLOR.ink3 : COLOR.ink));
-          x += cols[k].w;
-        });
-        y += h;
+    const cols = [
+      { title: xt('conn.from'), w: 132 },
+      { title: xt('conn.to'), w: 132 },
+      { title: xt('conn.label'), w: 118 },
+      { title: xt('conn.kind'), w: contentW() - 382 },
+    ];
+    const head = (): void => {
+      let x = margin;
+      for (const c of cols) {
+        label(c.title, x, y);
+        x += c.w;
+      }
+      y += 16;
+    };
+    head();
+    for (const r of model.connections) {
+      const cells = [r.from, r.to, r.label, r.kindText];
+      const paras = cells.map((t, k) => ts.paragraph(t, cols[k].w - 10, body.px, 400, body.lh));
+      const h = Math.max(...paras.map((p) => p.height), body.lh) + 12;
+      if (y + h > bottomLimit()) {
+        newPage();
+        head();
       }
       rule();
+      let x = margin;
+      paras.forEach((p, k) => {
+        ts.draw(p, x, y + 6, ink(body.px, 400, k === 3 ? COLOR.ink3 : COLOR.ink));
+        x += cols[k].w;
+      });
+      y += h;
     }
+    rule();
   }
 
   // ---------- revision history ----------
@@ -679,20 +678,7 @@ export function buildDocument(i: PdfInput): PdfReport {
       sub(xt('exec.outcomes'), measureEntry(specs[0]).h);
       for (const sp of specs) entry(sp);
     }
-    // what is asked of the reader, on the page many of them read alone: the first two next steps
-    if (nv.next.length) {
-      const numW = 22;
-      const steps = nv.next.slice(0, 2).map((t) => ts.paragraph(t, MEASURE - numW, body.px, 400, body.lh));
-      y += 4;
-      sub(xt('exec.next'), steps[0].height + 14);
-      steps.forEach((p, k) => {
-        ensure(p.height + 14);
-        rule();
-        ts.line(margin, ts.baseline(y + 7, body.lh, body.px), `${k + 1}.`, ink(body.px, 700));
-        y = ts.draw(p, margin + numW, y + 7, ink(body.px)) + 7;
-      });
-      rule();
-    }
+
   }
 
   /** Each customer need: the need and where it came from on the left, how the design answers it on the right. */
@@ -712,7 +698,8 @@ export function buildDocument(i: PdfInput): PdfReport {
   /** The honest part: trade-offs with how each is handled, then numbered next steps. */
   function considerationsSection(nv: NarrativeModel): void {
     if (!nv.tradeoffs.length && !nv.next.length) return;
-    newPage(A4);
+    if (!y || kind !== A4 || bottomLimit() - y < 230) newPage(A4);
+    else y += 20;
     outline(xt('next.heading'));
     heading(xt('next.heading'));
     if (nv.tradeoffs.length) {

@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { call, makeCtx, makeEnv, ORIGIN, req, signIn } from './helpers.ts';
 import { issueKey } from '../src/mcp-keys.ts';
+import worker from '../src/index.ts';
 import { changeDesign, getDesign } from '../src/mcp-designs.ts';
 import { turnsToday } from '../src/db.ts';
 import { createMemory } from '../../../packages/core/src/prompt.ts';
@@ -15,7 +16,7 @@ const rpc = (method: string, params = {}, token?: string, origin: string | null 
 const form = (path: string, cookie: string, values: Record<string, string>, origin?: string) =>
   req(path, { method: 'POST', cookie, body: new URLSearchParams(values).toString(), type: 'application/x-www-form-urlencoded', origin });
 
-test('MCP exports an agent-authored PDF and its private link keeps the exported revision', async () => {
+test('MCP writes the handoff from the saved design, charges once, and pins the private download', async t => {
   const assets = new URL('../../web/dist/', import.meta.url);
   const env = makeEnv({ ASSETS: { fetch: async request => new Response(await readFile(new URL(new URL(request.url).pathname.slice(1), assets))) } });
   const owner = await signIn(env, 'pdf@example.org', { status: 'approved' });
@@ -31,13 +32,43 @@ test('MCP exports an agent-authored PDF and its private link keeps the exported 
     .bind(owner.user.id, 'test-pdf-' + revision, '', designId, revision, snapshot, Date.now()).run();
   await save(1);
   const input = { designId, revision: 1, lang: 'ko', title: '포털 설계', narrative: { exec: '고객 전용 포털을 구축합니다.' } };
+  const authored = '지원팀이 먼저 고객 전용 포털에서 접수 절차를 검증하도록 제안합니다.';
+  const sections = [
+    { k: 'exec', text: authored },
+    { k: 'need', id: 'a', source: 'general', need: '접수 경로', answer: '문의를 한 곳에서 확인합니다.', products: ['ecs'] },
+    { k: 'need', id: 'b', source: 'general', need: '담당자 확인', answer: '담당자가 요청을 확인합니다.', products: [] },
+    { k: 'why', product: 'ecs', text: '지원팀이 접수 창구를 독립적으로 운영할 수 있습니다.' },
+    { k: 'outcome', title: '접수 확인', text: '담당자가 요청을 추적할 수 있습니다.' },
+    { k: 'tradeoff', text: '연동 범위를 먼저 결정해야 합니다.', mitigation: '접수 흐름을 시험합니다.' },
+    { k: 'next', text: '접수부터 담당자 확인까지 시험합니다.' },
+  ];
+  const upstream = t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => {
+    const body = JSON.parse(String(init.body));
+    assert.equal(body.model, 'qwen3.8-max');
+    assert.equal(body.enable_thinking, true);
+    assert.equal(body.thinking_budget, 6_144);
+    assert.ok(JSON.stringify(body.messages).includes(input.narrative.exec));
+    const delta = { choices: [{ delta: { content: sections.map(s => JSON.stringify(s)).join('\n') + '\n' }, finish_reason: 'stop' }] };
+    return new Response('data: ' + JSON.stringify(delta) + '\n\ndata: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } });
+  });
   const invoke = async (key: string, args: object) => (await (await call(env, rpc('tools/call', { name: 'export_proposal_pdf', arguments: args }, key))).json());
   const denied = await invoke(reader, input);
   assert.ok(denied.error || denied.result?.isError);
   assert.equal((await invoke(peerKey, input)).result.isError, true);
+  const preparing = (await invoke(writer, { ...input, includeFile: true })).result.structuredContent;
+  assert.equal(preparing.status, 'preparing');
+  assert.equal((await invoke(writer, input)).result.structuredContent.url, preparing.url);
+  const pendingPage = await call(env, req(new URL(preparing.url).pathname, { cookie: owner.cookie }));
+  assert.equal(pendingPage.status, 202);
+  assert.equal(pendingPage.headers.get('Refresh'), '15');
+  assert.equal((await call(env, req(new URL(preparing.url).pathname, { cookie: peer.cookie }))).status, 404);
+  const ctx = makeCtx();
+  await Promise.all([worker.scheduled({}, env, ctx), worker.scheduled({}, env, ctx)]);
+  await ctx.flush();
   const result = (await invoke(writer, { ...input, includeFile: true })).result;
   assert.ok(!result.isError, result.content[0].text);
   const info = result.structuredContent;
+  assert.equal(info.status, 'ready');
   assert.equal(info.revision, 1);
   assert.match(info.fileName, /^포털-설계.*\.pdf$/u);
   const attachment = result.content[1].resource;
@@ -48,7 +79,8 @@ test('MCP exports an agent-authored PDF and its private link keeps the exported 
   assert.equal(again.structuredContent.url, info.url);
   assert.equal(again.content.length, 1);
   await save(2);
-  assert.equal((await invoke(writer, input)).result.isError, true);
+  assert.equal((await invoke(writer, input)).result.structuredContent.url, info.url);
+  assert.equal((await invoke(writer, { ...input, title: 'Different export' })).result.isError, true);
   const path = new URL(info.url).pathname;
   assert.equal((await call(env, req(path))).status, 302);
   assert.equal((await call(env, req(path, { cookie: peer.cookie }))).status, 404);
@@ -58,7 +90,24 @@ test('MCP exports an agent-authored PDF and its private link keeps the exported 
   assert.match(pdf.headers.get('Content-Disposition')!, /filename\*=UTF-8''/);
   assert.equal(Buffer.from(await pdf.arrayBuffer()).subarray(0,5).toString(), '%PDF-');
   assert.equal((await env.DB.prepare('SELECT revision FROM mcp_pdf_exports').first<{revision:number}>())?.revision, 1);
-  assert.equal(await turnsToday(env.DB, owner.user.id, Date.now()), 0);
+  assert.equal(upstream.mock.callCount(), 1);
+  const saved = await env.DB.prepare('SELECT options FROM mcp_pdf_exports').first<{options:string}>();
+  assert.equal(JSON.parse(saved!.options).draft.exec, authored);
+  assert.equal(await turnsToday(env.DB, owner.user.id, Date.now()), 1);
+  env.TURNS_PER_DAY = '1';
+  const second = { ...input, revision: 2 };
+  const pending = (await invoke(writer, second)).result.structuredContent;
+  await worker.scheduled({}, env, ctx);
+  await ctx.flush();
+  assert.equal((await invoke(writer, second)).result.isError, true);
+  assert.equal((await call(env, req(new URL(pending.url).pathname, { cookie: owner.cookie }))).status, 503);
+  assert.equal(upstream.mock.callCount(), 1);
+  env.TURNS_PER_DAY = '3';
+  assert.equal((await invoke(writer, { ...second, retryFailed: true })).result.structuredContent.status, 'preparing');
+  await worker.scheduled({}, env, ctx);
+  await ctx.flush();
+  assert.equal((await invoke(writer, second)).result.structuredContent.status, 'ready');
+  assert.equal(upstream.mock.callCount(), 2);
 });
 
 test('the key page explains remote setup in each language and gives valid client-specific examples', async () => {

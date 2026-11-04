@@ -245,6 +245,8 @@ export type ServerEvent =
  * drafts the proposal's narrative with Qwen (packages/core/src/proposal.ts draftProposal) and streams it back.
  */
 export interface ProposalRequest {
+  /** Unverified context from the calling IDE. It is not a customer quote or pricing evidence. */
+  editorialNotes?: string;
   sessionId: string;
   /** The language the PDF is written in (the app's UI language), whatever language the conversation used. */
   lang: 'en' | 'ko' | 'zh';
