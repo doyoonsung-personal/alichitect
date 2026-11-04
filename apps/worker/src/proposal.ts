@@ -7,17 +7,19 @@
 // booking are wired exactly as for turns. The wire never says who wrote a line: sections, 'retry' / 'finish' statuses
 // with neutral copy, the draft, or a neutral fatal; never a provider, model, upstream text or stack. The upstream calls
 // are aborted when the browser disconnects (request.signal, or a failed write) or the draft deadline passes
-// (PROPOSAL_DEADLINE_MS, default 200 s). Usage is recorded after every draft that started; the log holds metadata only,
+// (PROPOSAL_DEADLINE_MS, default 360 s). Usage is recorded after every draft that started; the log holds metadata only,
 // never the session or any drafted text, and every outgoing line passes through the key redactor (both keys).
 import type { Env, ExecutionContextLike } from './env.ts';
 import { DEFAULT_PROPOSAL_DEADLINE_MS, claudeBudgetUsdPerDay, proposalDeadlineMs, rescuesPerDay, turnsPerDay } from './env.ts';
 import type { ProposalEvent } from '../../../packages/core/src/types.ts';
 import type { BackupCall, BackupGateResult } from '../../../packages/core/src/llm.ts';
+import { QWEN_HIGH_REASONING } from '../../../packages/core/src/llm.ts';
 import { claudeBackupConfig, createClaudeBackup } from '../../../packages/core/src/claude.ts';
 import type { ClaudeBackupOptions } from '../../../packages/core/src/claude.ts';
 import { draftProposal } from '../../../packages/core/src/proposal.ts';
 import type { DraftProposalResult } from '../../../packages/core/src/proposal.ts';
 import { checkProposalRequest } from '../../server/src/request.ts';
+import { decodeDesignBody, PRICING_ATTACHMENT_BYTES } from '../../server/src/pricing-envelope.ts';
 import { fatalMessage, proposalEndEvent, proposalFatalEvent, proposalStatusEvent } from '../../server/src/messages.ts';
 import * as db from './db.ts';
 import type { UserRow } from './db.ts';
@@ -56,19 +58,17 @@ export async function handleProposal(request: Request, env: Env, ctx: ExecutionC
     logReject(415, 'unsupported-media-type');
     return reject(415, 'unsupported-media-type', 'Content-Type must be application/json');
   }
-  const raw = await readBodyLimited(request, MAX_BODY_BYTES);
+  const raw = await readBodyLimited(request, MAX_BODY_BYTES + PRICING_ATTACHMENT_BYTES);
   if (!raw) {
     logReject(413, 'body-too-large');
-    return reject(413, 'body-too-large', `body larger than ${MAX_BODY_BYTES} bytes`);
+    return reject(413, 'body-too-large', 'Request is too large');
   }
-  let body: unknown;
-  try {
-    body = JSON.parse(new TextDecoder().decode(raw));
-  } catch {
-    logReject(400, 'bad-json');
-    return reject(400, 'bad-json', 'body is not valid JSON');
+  const envelope = decodeDesignBody(raw, MAX_BODY_BYTES, true);
+  if (!envelope.ok) {
+    logReject(envelope.status, envelope.code);
+    return reject(envelope.status, envelope.code, envelope.message);
   }
-  const checked = checkProposalRequest(body);
+  const checked = checkProposalRequest(envelope.body);
   if (!checked.ok) {
     logReject(400, checked.code);
     return reject(400, checked.code, checked.message);
@@ -156,8 +156,8 @@ export async function handleProposal(request: Request, env: Env, ctx: ExecutionC
       result = await (deps.draft ?? draftProposal)(propReq, catalog, {
         apiKey,
         baseUrl: cfg.baseUrl,
-        model: cfg.model,
-        fallbackModel: cfg.fallbackModel,
+        model: QWEN_HIGH_REASONING.model,
+        fallbackModel: cfg.fallbackModel ? QWEN_HIGH_REASONING.model : null,
         backup,
         ...(backup ? { backupGate, onBackupCall } : {}),
         msLeft: () => deadlineMs - (now() - t0),

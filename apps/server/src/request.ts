@@ -8,7 +8,7 @@ import type {
 } from '../../../packages/core/src/types.ts';
 import type { VideoEstimateSettings } from '../../../packages/core/src/workflow-estimate.ts';
 import { DEFAULT_WORKFLOW_LIMITS } from '../../../packages/core/src/workflow.ts';
-import { ESTIMATE_LIMITS } from '../../../packages/core/src/workflow-estimate-limits.ts';
+import { normalizeWorkflowEstimateSettings } from '../../../packages/core/src/workflow-estimate-settings.ts';
 import { createModelTable, WORKFLOW_TASKS } from '../../../packages/core/src/models.ts';
 import type { ModelFile } from '../../../packages/core/src/models.ts';
 import { normalizeId, ID_PATTERN } from '../../../packages/core/src/reducer.ts';
@@ -19,6 +19,7 @@ import { createCatalog } from '../../../packages/core/src/catalog.ts';
 import type { CatalogFile } from '../../../packages/core/src/catalog.ts';
 import { resolveProduct } from '../../../packages/core/src/validate.ts';
 import { ASK_LIMITS } from '../../../packages/core/src/asks.ts';
+import { PRICING_ASK_LIMIT, validatePricingSession, type PricingRequest } from '../../../packages/core/src/solution-pricing.ts';
 
 export const LIMITS = {
   workflowNodes: DEFAULT_WORKFLOW_LIMITS.maxNodes,
@@ -64,6 +65,7 @@ const EDGE_KINDS = new Set(['data', 'async', 'control', 'resolve']);
 
 export type RequestCheck = { ok: true; value: TurnRequest } | { ok: false; code: 'bad-request'; message: string };
 export type ProposalCheck = { ok: true; value: ProposalRequest } | { ok: false; code: 'bad-request'; message: string };
+type PricingCheck = { ok: true; value: PricingRequest } | { ok: false; code: 'bad-request'; message: string };
 
 class Bad extends Error {}
 
@@ -323,10 +325,29 @@ export function checkProposalRequest(body: unknown): ProposalCheck {
     if (lang !== 'en' && lang !== 'ko' && lang !== 'zh') fail('lang', "expected 'en', 'ko' or 'zh'");
     const title = str(own(o, 'title') ?? '', 'title', LIMITS.proposalTitle)!;
     const customer = str(own(o, 'customer') ?? '', 'customer', LIMITS.proposalCustomer)!;
-    return { ok: true, value: { sessionId, lang, title, customer, memory: memory(own(o, 'memory'), 'memory') } };
+    const pricing = own(o, 'pricing');
+    return { ok: true, value: { sessionId, lang, title, customer, memory: memory(own(o, 'memory'), 'memory'),
+      ...(pricing !== undefined ? { pricing: validatePricingSession(pricing) } : {}) } };
   } catch (e) {
     if (e instanceof Bad) return { ok: false, code: 'bad-request', message: e.message };
     return { ok: false, code: 'bad-request', message: 'invalid request body' };
+  }
+}
+
+/** Pricing is its own chat. Admit the same design memory as a proposal, plus its reviewed estimate and new message. */
+export function checkPricingRequest(body: unknown): PricingCheck {
+  try {
+    const o = obj(body, 'body');
+    const sessionId = own(o, 'sessionId');
+    if (typeof sessionId !== 'string' || !SESSION_RE.test(sessionId)) fail('sessionId', 'invalid session id');
+    const lang = choice(own(o, 'lang'), 'lang', ['en', 'ko', 'zh']);
+    const ask = str(own(o, 'ask'), 'ask', PRICING_ASK_LIMIT, { nonEmpty: true })!.trim();
+    const memoryValue = memory(own(o, 'memory'), 'memory');
+    const previous = own(o, 'pricing');
+    const pricing = previous === undefined ? undefined : validatePricingSession(previous);
+    return { ok: true, value: { sessionId, lang, memory: memoryValue, ask, ...(pricing ? { pricing } : {}) } };
+  } catch (e) {
+    return { ok: false, code: 'bad-request', message: e instanceof Bad ? e.message : 'invalid pricing request' };
   }
 }
 
@@ -441,46 +462,9 @@ function workflowSettings(v: unknown, p: string): WorkflowSettings {
 }
 
 function estimate(v: unknown, p: string, workflow?: WorkflowGraph): VideoEstimateSettings {
-  const advisory = (v: unknown, max: number, integer = false): v is number =>
-    typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= max && (!integer || Number.isInteger(v));
-  const o = obj(v, p);
-  const out: VideoEstimateSettings = {};
-  if (advisory(o.runsPerMonth, ESTIMATE_LIMITS.runsPerMonth, true)) out.runsPerMonth = o.runsPerMonth;
-  if (own(o, 'scope') !== undefined) out.scope = choice(o.scope, `${p}.scope`, ['international', 'global']);
-  for (const k of ['steps', 'items', 'shares', 'loops', 'agents', 'guardTypes'] as const) {
-    if (own(o, k) === undefined) continue;
-    const map = obj(o[k], `${p}.${k}`);
-    for (const key of Object.keys(map)) workflowId(key, `${p}.${k}.${key}`);
-    const max = k === 'items' ? LIMITS.workflowGroups : k === 'shares' || k === 'loops' ? LIMITS.workflowEdges : LIMITS.workflowNodes;
-    const ids = k === 'items' ? workflow?.groups : k === 'shares' || k === 'loops' ? workflow?.edges : workflow?.nodes;
-    const keys = Object.keys(map).filter((key) => Object.hasOwn(ids ?? {}, key));
-    if (keys.length > max) fail(`${p}.${k}`, `more than ${max} entries`);
-    const parsed: Record<string, unknown> = {};
-    for (const key of keys) {
-      const path = `${p}.${k}.${key}`;
-      workflowId(key, path);
-      if (k === 'shares' || k === 'guardTypes') {
-        const value = map[key];
-        if (advisory(value, k === 'shares' ? ESTIMATE_LIMITS.share : ESTIMATE_LIMITS.guardTypes, k === 'guardTypes')) parsed[key] = value;
-        continue;
-      }
-      const value = obj(map[key], path);
-      const item: Record<string, unknown> = {};
-      const fields = k === 'steps' ? ['inTokens', 'outTokens', 'thinking', 'offline', 'clipSeconds', 'resolution']
-        : k === 'agents' ? ['typical', 'upper', 'resultTokens', 'searchesPerRequest'] : ['typical', 'upper'];
-      for (const field of fields) {
-        if (own(value, field) === undefined) continue;
-        if (field === 'resolution') {
-          if (ESTIMATE_LIMITS.resolutions.some((r) => r === value[field])) item[field] = value[field];
-          continue;
-        }
-        item[field] = field === 'thinking' || field === 'offline' ? bool(value[field], `${path}.${field}`)
-          : advisory(value[field], field === 'clipSeconds' ? ESTIMATE_LIMITS.clipSeconds : ESTIMATE_LIMITS.amount) ? value[field] : undefined;
-        if (item[field] === undefined) delete item[field];
-      }
-      parsed[key] = item;
-    }
-    Object.assign(out, { [k]: parsed });
+  try {
+    return normalizeWorkflowEstimateSettings(v, workflow);
+  } catch (e) {
+    return fail(p, e instanceof Error ? e.message : 'invalid estimate settings');
   }
-  return out;
 }

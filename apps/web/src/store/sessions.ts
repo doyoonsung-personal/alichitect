@@ -4,6 +4,7 @@
 import { failedRevision } from './reducer.ts';
 import type { SessionMemory } from '@ali/core/types.ts';
 import { layoutWorkflow } from '@ali/core/workflow-layout.ts';
+import { PRICING_ASK_LIMIT, validatePricingSession } from '@ali/core/solution-pricing.ts';
 import type { WorkflowLayoutState } from '@ali/core/workflow-layout.ts';
 import type { Revision, SessionRecord, SessionSummary } from './types.ts';
 
@@ -64,9 +65,19 @@ export function reviveSession(v: unknown): SessionRecord | null {
     revisions.push(r.status === 'waiting' || r.status === 'streaming' ? failedRevision(r, 'stopped', null) : r);
   }
   const workflowLayout = savedWorkflowLayout(v.workflowLayout, v.memory);
+  // An unreadable price breakdown must not make the design itself disappear from Sessions.
+  let pricing: SessionRecord['pricing'];
+  if (v.pricing) {
+    try { pricing = validatePricingSession(v.pricing); } catch { /* preserve the rest of the session */ }
+  }
+  const pricingPending = typeof v.pricingPending === 'string' && Array.from(v.pricingPending).length <= PRICING_ASK_LIMIT
+    ? v.pricingPending : '';
   return {
     id: v.id,
     mode: v.mode === 'workflow' ? 'workflow' : 'cloud',
+    ...(pricing ? { pricing } : {}),
+    ...(pricingPending ? { pricingPending } : {}),
+    ...(v.pricingOpen === true ? { pricingOpen: true } : {}),
     ...(workflowLayout ? { workflowLayout } : {}),
     ...(isObj(v.workflowProvenance) ? { workflowProvenance: v.workflowProvenance as SessionRecord['provenance'] } : {}),
     createdAt: typeof v.createdAt === 'number' ? v.createdAt : 0,

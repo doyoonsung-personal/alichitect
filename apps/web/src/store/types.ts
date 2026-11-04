@@ -1,4 +1,5 @@
 import type { WorkflowLayoutState } from '@ali/core/workflow-layout.ts';
+import type { PricingSession } from '@ali/core/solution-pricing.ts';
 // The session store's data model. One source of truth for the console, the canvas and the products panel.
 // Everything here is plain data (no classes, no functions), so it can be persisted, replayed and tested.
 import type { Constraint, Graph, SessionMemory, TurnMode, Warning, WorkflowGraph } from '@ali/core/types.ts';
@@ -180,6 +181,11 @@ export interface RequirementView {
 
 export interface SessionRecord {
   mode: TurnMode;
+  /** Pricing has its own conversation. Diagram generation never receives these messages. */
+  pricing?: PricingSession;
+  pricingOpen?: boolean;
+  /** A submitted answer kept until its estimate is committed, including across a tab reload. */
+  pricingPending?: string;
   workflowLayout?: WorkflowLayoutState;
   workflowProvenance?: SessionRecord['provenance'];
   id: string;
@@ -321,6 +327,9 @@ export interface UiState {
 }
 
 export interface AppState {
+  /** A pending request is never resumed automatically after a reload. */
+  pricingStatus?: 'working' | 'failed';
+  pricingError?: string;
   lang: Lang;
   view: 'landing' | 'working';
   conn: { mode: ConnMode; health: Health | null; checkedAt: number | null };

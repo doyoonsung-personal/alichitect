@@ -6,6 +6,7 @@ import { createSessionStore } from '../store/sessions.ts';
 import type { KeyValueStorage } from '../store/sessions.ts';
 import { loadFixtureFile, newStore } from '../test/fixtures.ts';
 import type { Fixture } from '../replay/plan.ts';
+import { pricingDesignKey, type PricingRequest } from '@ali/core/solution-pricing.ts';
 
 const enc = new TextEncoder();
 const HEALTH = { ok: true, model: 'qwen3.8-max', endpoint: 'dashscope-intl.aliyuncs.com', catalog: { version: '2026-10-31', entries: 223 }, keyConfigured: true, inFlight: 0, maxInFlight: 4, limits: { askChars: 50, turns: 200, nodes: 150, requirements: 40, bodyBytes: 1 }, uptimeS: 1 };
@@ -86,7 +87,7 @@ function turnResponse(fx: Fixture, turn = 0, upTo = Infinity): Response {
 const ME = { email: 'mina@example.com', name: 'Mina Park', role: 'member', status: 'approved', lang: 'en', createdAt: 1, turnsToday: 3, turnsPerDay: 60, links: { account: '/account', admin: null, signOut: '/auth/logout' } };
 const json = (body: unknown, status = 200): Response => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-function setup(o: { health?: unknown; me?: unknown | (() => unknown); turn?: () => Response | Promise<Response>; sessions?: ReturnType<typeof createSessionStore>; resumeId?: string | null; hosted?: boolean; leaveOk?: boolean; keptAsk?: PendingAsk } = {}) {
+function setup(o: { health?: unknown; me?: unknown | (() => unknown); turn?: () => Response | Promise<Response>; pricing?: (request: PricingRequest) => Response | Promise<Response>; sessions?: ReturnType<typeof createSessionStore>; resumeId?: string | null; hosted?: boolean; leaveOk?: boolean; keptAsk?: PendingAsk } = {}) {
   const store = newStore();
   const timers = new Map<number, () => void>();
   let n = 0;
@@ -144,6 +145,7 @@ function setup(o: { health?: unknown; me?: unknown | (() => unknown); turn?: () 
         const me = typeof o.me === 'function' ? (o.me as () => unknown)() : o.me;
         return me === undefined ? json({ error: 'not-found' }, 404) : json(me, me === null ? 401 : 200);
       }
+      if (String(url).endsWith('/api/pricing') && o.pricing) return o.pricing(JSON.parse(String(init!.body)));
       return o.turn ? o.turn() : turnResponse(loadFixtureFile('ha'));
     }) as typeof fetch,
   };
@@ -156,6 +158,64 @@ function setup(o: { health?: unknown; me?: unknown | (() => unknown); turn?: () 
   };
   return { store, c, sessions, requests, flushTimers, left, kept, signedOutVia: () => signedOutVia };
 }
+
+function pricingReply(req: PricingRequest): Response {
+  const messages = [...(req.pricing?.messages ?? []),
+    { role: 'user', text: req.ask }, { role: 'assistant', text: 'What do you pay per instance-hour?' }];
+  return json({ pricing: { designKey: pricingDesignKey(req.memory), messages, estimate: {
+    currency: 'USD', items: [], monthlyUsd: null, oneTimeUsd: null, assumptions: [], unknowns: ['Instance rate'],
+  } } });
+}
+
+test('pricing resumes its own conversation and preserves the last estimate and answer through a failure', async () => {
+  let fail = false;
+  const a = setup({ pricing: (req) => fail ? json({ code: 'service-error', message: 'Try again.' }, 503) : pricingReply(req) });
+  await a.c.boot();
+  a.c.submit('Design our shop');
+  await until(() => a.store.getState().session.revisions[0]?.status === 'done');
+  const design = a.store.getState().session.memory;
+  a.c.setPricingOpen(true);
+  await until(() => !!a.store.getState().session.pricing);
+  const before = a.store.getState().session.pricing!;
+  assert.equal(before.designKey, pricingDesignKey(design));
+  fail = true;
+  const answer = 'We have four existing ECS instances and 3 TB of data.';
+  assert.equal(a.c.sendPricing(answer), 'started');
+  assert.equal(a.c.sendPricing(answer), 'busy');
+  await until(() => a.store.getState().pricingStatus === 'failed');
+  assert.equal(a.store.getState().session.pricing, before);
+  const restored = setup({ sessions: a.sessions, resumeId: a.store.getState().session.id, pricing: pricingReply });
+  await restored.c.boot();
+  assert.equal(restored.store.getState().session.pricingOpen, true);
+  assert.equal(restored.store.getState().session.pricingPending, answer);
+  assert.ok(!restored.requests.some(r => r.url === '/api/pricing'));
+  restored.c.sendPricing(answer);
+  await until(() => restored.store.getState().session.pricing?.messages.length === 4);
+  assert.deepEqual(restored.requests.find(r => r.url === '/api/pricing')?.body,
+    { sessionId: a.store.getState().session.id, lang: 'en', ask: answer, memory: design, pricing: before });
+  assert.equal(restored.store.getState().session.pricingPending, undefined);
+  assert.deepEqual(restored.store.getState().session.memory, design);
+  a.c.dispose();
+  restored.c.dispose();
+});
+
+test('closing pricing aborts a pending turn and a late reply cannot replace another session', async () => {
+  let finish!: () => void;
+  const a = setup({ pricing: (req) => new Promise<Response>(resolve => { finish = () => resolve(pricingReply(req)); }) });
+  await a.c.boot();
+  a.c.submit('Draw');
+  await until(() => a.store.getState().session.revisions[0]?.status === 'done');
+  const firstId = a.store.getState().session.id;
+  a.c.setPricingOpen(true);
+  a.c.setPricingOpen(false);
+  assert.ok(a.sessions.get(firstId)?.pricingPending);
+  a.c.newSession();
+  finish();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(a.store.getState().session.pricing, undefined);
+  assert.equal(a.sessions.get(firstId)?.pricing, undefined);
+  a.c.dispose();
+});
 
 async function until(f: () => boolean, ms = 3000): Promise<void> {
   const t0 = Date.now();

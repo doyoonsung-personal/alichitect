@@ -1,4 +1,4 @@
-// The proposal overlay: a modal sheet over the workspace while the proposal is written (about a minute). It lists the
+// The proposal overlay: a modal sheet over the workspace while the proposal is written. It lists the
 // steps as the sections arrive, the elapsed time and the latest written line, and always offers Stop. On a failure it
 // says what happened and offers the basic version, Try again and Close. Escape never stops the work: an accidental key
 // must not throw away a minute of writing. The state lives in draft-flow.ts; this file only draws it.

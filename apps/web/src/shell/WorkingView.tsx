@@ -8,6 +8,7 @@ import { Header } from './Header.tsx';
 import { Console } from '../console/index.tsx';
 import { Canvas } from '../canvas/index.tsx';
 import { Panel } from '../panel/index.tsx';
+import { PricingStage } from '../pricing/PricingStage.tsx';
 import { useCanvasProps, useConsoleProps, usePanelProps } from '../app/props.ts';
 import { useAppState, useController, useT } from '../store/react.tsx';
 import { playHandoff } from './handoff.ts';
@@ -31,6 +32,8 @@ export function WorkingView(): ReactElement {
   const workflowProps = useWorkflowProps();
   const mode = useAppState((s) => s.session.mode ?? 'cloud');
   const sessionId = useAppState((s) => s.session.id);
+  const pricingOpen = useAppState((s) => !!s.session.pricingOpen);
+  const hasPricing = useAppState((s) => !!(s.session.pricingOpen || s.session.pricingPending || s.session.pricing));
 
   // the landing box travels to the composer once the console has mounted
   useEffect(() => {
@@ -48,14 +51,14 @@ export function WorkingView(): ReactElement {
 
   return (
     <div className="app app--working" data-view={mode} data-focus={focus || undefined} data-panel-open={open || undefined}>
-      <a className="skip" href="#composer" onClick={(e) => { e.preventDefault(); document.querySelector<HTMLElement>('.console [data-flip="composer"] textarea')?.focus(); }}>
+      <a className="skip" href={pricingOpen ? '#pricing-reply' : '#composer'} onClick={(e) => { e.preventDefault(); document.querySelector<HTMLElement>(pricingOpen ? '#pricing-reply' : '.console [data-flip="composer"] textarea')?.focus(); }}>
         {t('skip.toComposer')}
       </a>
-      <a className="skip" href="#diagram" onClick={(e) => { e.preventDefault(); document.getElementById('diagram')?.focus(); }}>
-        {t('skip.toDiagram')}
+      <a className="skip" href={pricingOpen ? '#estimate' : '#diagram'} onClick={(e) => { e.preventDefault(); document.getElementById(pricingOpen ? 'estimate' : 'diagram')?.focus(); }}>
+        {t(pricingOpen ? 'pricing.skip' : 'skip.toDiagram')}
       </a>
       <Header />
-      <div className="work">
+      <div className="work" hidden={pricingOpen}>
         <div className="work__console" hidden={focus}>
           <Console {...consoleProps} />
         </div>
@@ -68,6 +71,7 @@ export function WorkingView(): ReactElement {
           </div>
         </div>
       </div>
+      {hasPricing && <PricingStage key={sessionId} open={pricingOpen} />}
       <p className="visually-hidden" role="status" aria-live="polite">
         <span key={live?.seq}>{live?.text}</span>
       </p>

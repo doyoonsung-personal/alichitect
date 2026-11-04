@@ -1,5 +1,5 @@
 // "Export proposal": a header control that opens a small dialog (title, customer). Download writes the proposal's
-// narrative on the server (POST /api/proposal, about a minute) under a modal overlay with live steps and Stop, then lays
+// narrative on the server (POST /api/proposal) under a modal overlay with live steps and Stop, then lays
 // out the PDF in this tab with it. The heavy code (pdfkit, fonts, router) loads while the narrative is being written.
 // When no narrative can be written, the overlay offers the basic version: the same PDF without it.
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
@@ -30,7 +30,7 @@ export function ExportButton(): ReactElement {
   const store = useStore();
   const catalog = useCatalog();
   const controller = useController();
-  const streaming = useAppState(isStreaming);
+  const busy = useAppState((s) => isStreaming(s) || s.pricingStatus === 'working');
   const exportable = useAppState(canExport);
   const sessionId = useAppState(selSession);
   const [open, setOpen] = useState(false);
@@ -49,14 +49,15 @@ export function ExportButton(): ReactElement {
   const run = useRef(0);
   const ac = useRef<AbortController | null>(null);
   const drafted = useRef<ProposalDraft | null>(null);
+  const snapshot = useRef<AppState | null>(null);
   const overlayUp = useRef(false);
   overlayUp.current = flow !== null;
 
   const nameOf = useCallback((id: string): string => entryFor(catalog, id)?.name ?? id, [catalog]);
   const send = useCallback((ev: FlowEvent) => setFlow((f) => (f ? reduceFlow(f, ev, nameOf) : f)), [nameOf]);
 
-  const disabled = streaming || !exportable;
-  const disabledTitle = streaming ? xt('dialog.disabledBusy') : !exportable ? xt('dialog.disabledEmpty') : undefined;
+  const disabled = busy || !exportable;
+  const disabledTitle = busy ? xt('dialog.disabledBusy') : !exportable ? xt('dialog.disabledEmpty') : undefined;
 
   // a new session starts with a clean dialog; a draft still being written for the old one is dropped
   useEffect(() => {
@@ -138,7 +139,7 @@ export function ExportButton(): ReactElement {
     send({ type: draft ? 'drafted' : 'basic', now: Date.now() });
     try {
       const { exportProposalPdf, saveBytes } = await import('./browser.ts');
-      const r = await exportProposalPdf({ state: store.getState(), catalog, title, customer, draft });
+      const r = await exportProposalPdf({ state: snapshot.current ?? store.getState(), catalog, title, customer, draft });
       if (run.current !== mine) return;
       saveBytes(r.bytes, r.fileName);
       send({ type: 'saved', now: Date.now() });
@@ -153,6 +154,8 @@ export function ExportButton(): ReactElement {
 
   const startDraft = (): void => {
     const st = store.getState();
+    if (isStreaming(st) || st.pricingStatus === 'working') return;
+    snapshot.current = st;
     const mine = ++run.current;
     ac.current?.abort();
     drafted.current = null;

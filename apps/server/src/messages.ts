@@ -12,6 +12,16 @@ export type Lang = 'en' | 'ko' | 'zh';
 type Copy = Record<Lang, string>;
 
 export const FATAL_COPY: Record<string, Copy> = {
+  'pricing-unavailable': {
+    en: 'The estimate could not be updated. Try sending your answer again.',
+    ko: '견적을 업데이트하지 못했습니다. 답변을 다시 보내 주세요.',
+    zh: '未能更新估算，请重新发送您的回答。',
+  },
+  'pricing-timeout': {
+    en: 'The estimate took too long. Try sending your answer again.',
+    ko: '견적 계산 시간이 초과되었습니다. 답변을 다시 보내 주세요.',
+    zh: '估算超时，请重新发送您的回答。',
+  },
   'memory-budget': {
     en: 'Conversation memory is full. Shorten the documents or retry. Your diagram is unchanged.',
     ko: '대화 메모리가 가득 찼습니다. 문서를 줄이거나 다시 시도해 주세요. 다이어그램은 변경되지 않았습니다.',

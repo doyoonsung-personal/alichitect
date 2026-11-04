@@ -1,4 +1,5 @@
 import { layoutWorkflow, tidyWorkflow } from '@ali/core/workflow-layout.ts';
+import type { PricingSession } from '@ali/core/solution-pricing.ts';
 import type { WorkflowSettings, WorkflowEstimateSettings } from '@ali/core/types.ts';
 // The session store's reducer: pure, deterministic, no timers and no DOM. The controller dispatches actions with the
 // clock in them, so replays and tests are exact. One reducer owns the turn: the working raw graph (core applyOp on each
@@ -64,6 +65,11 @@ export type Action =
   | { type: 'workflow/settings'; next: WorkflowSettings; now: number }
   | { type: 'workflow/estimate'; next: WorkflowEstimateSettings; now: number }
   | { type: 'workflow/tidy' }
+  | { type: 'pricing/open'; open: boolean }
+  | { type: 'pricing/start'; ask: string; now: number }
+  | { type: 'pricing/stop' }
+  | { type: 'pricing/failure'; error: string }
+  | { type: 'pricing/commit'; pricing: PricingSession; now: number }
   | { type: 'session/mode'; mode: TurnMode }
   | { type: 'session/new'; id: string; now: number }
   | { type: 'session/open'; record: SessionRecord; now: number }
@@ -254,6 +260,18 @@ export function reduce(state: AppState, action: Action, deps: StoreDeps): AppSta
       return { ...state, account: action.account };
     case 'sessions/list':
       return { ...state, sessions: action.sessions, sessionsVersion: state.sessionsVersion + 1 };
+    case 'pricing/open':
+      return { ...state, session: { ...state.session, pricingOpen: action.open } };
+    case 'pricing/start':
+      return { ...state, pricingStatus: 'working', pricingError: undefined,
+        session: { ...state.session, pricingPending: action.ask, updatedAt: action.now } };
+    case 'pricing/stop':
+      return { ...state, pricingStatus: undefined, pricingError: undefined };
+    case 'pricing/failure':
+      return { ...state, pricingStatus: 'failed', pricingError: action.error };
+    case 'pricing/commit':
+      return { ...state, pricingStatus: undefined, pricingError: undefined,
+        session: { ...state.session, pricing: action.pricing, pricingPending: undefined, updatedAt: action.now } };
     case 'workflow/settings':
     case 'workflow/estimate': {
       if (state.work || state.replay) return state;
@@ -285,6 +303,8 @@ export function reduce(state: AppState, action: Action, deps: StoreDeps): AppSta
       const base: AppState = {
         ...state,
         view: 'working',
+        pricingStatus: undefined,
+        pricingError: undefined,
         session: { ...rec, mode: rec.mode ?? 'cloud' },
         workflowDisplay: workflowDisplay({ ...state, session: rec }, rec.memory.workflow ?? emptyWorkflow(), 'restore'),
         work: null,

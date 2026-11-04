@@ -4,6 +4,7 @@
 // (POST /api/proposal), when there is one, adds the business "why" on top; without one the model is exactly as before.
 import type { Catalog, CatalogEntry, Graph, NeedSource, ProposalDraft, SessionMemory } from '@ali/core/types.ts';
 import { estimateWorkflow } from '@ali/core/workflow-estimate.ts';
+import { pricingDesignKey, type SolutionEstimate } from '@ali/core/solution-pricing.ts';
 import { workflowPanelOrder } from '../workflow/panel-model.ts';
 import type { WorkflowLayoutState } from '@ali/core/workflow-layout.ts';
 import type { WorkflowEstimate } from '@ali/core/workflow-estimate.ts';
@@ -136,7 +137,7 @@ export interface NarrativeModel {
    * what businesses like theirs usually need, not "What you told us".
    */
   mostlyTypical: boolean;
-  /** "Pricing: your account team will prepare a cost estimate", when no product of the design has a catalog price. */
+  /** Invites the reader to size the solution when there is no estimate or published component rate. */
   pricingNote: string | null;
 }
 
@@ -191,6 +192,7 @@ export interface ProposalModel {
   narrative?: NarrativeModel;
   /** Generated workflow data; phase 7b supplies the PDF layout. */
   workflow?: WorkflowProposalModel;
+  pricing?: { stale: true } | { stale: false; estimate: SolutionEstimate; interpretation?: string };
 }
 
 const pad = (n: number): string => String(n).padStart(2, '0');
@@ -381,7 +383,8 @@ export function buildProposal(i: ProposalInput): ProposalModel {
     for (const text of deploymentNotices(mem, catalog, t)) workflow.openQuestions.push({ source: 'question', text, options: [] });
   }
   const narrative = i.draft ? buildNarrative(i.draft, components, recs, xt, lang) : null;
-  if (workflow && narrative) narrative.pricingNote = null;
+  const pricing = session.pricing;
+  if ((pricing || workflow) && narrative) narrative.pricingNote = null;
   if (i.draft) {
     for (const c of components) {
       const w = i.draft.why[c.product]?.trim();
@@ -412,6 +415,9 @@ export function buildProposal(i: ProposalInput): ProposalModel {
     revisions,
     ...(narrative ? { narrative } : {}),
     ...(workflow ? { workflow } : {}),
+    ...(pricing ? { pricing: pricing.designKey !== pricingDesignKey(mem)
+      ? { stale: true as const }
+      : { stale: false as const, estimate: pricing.estimate, interpretation: i.draft?.cost } } : {}),
   };
 }
 

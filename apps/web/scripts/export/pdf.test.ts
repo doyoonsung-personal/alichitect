@@ -8,6 +8,28 @@ import { avoidRoute, catalog, generateFromState, loadDraft, logoFor, playFixture
 import { bigGraph } from './big.ts';
 import { HIDDEN, checkPdf } from './checks.ts';
 import { inspectPdf, pageOps } from './inspect.ts';
+import { calculateSolutionEstimate, pricingDesignKey } from '@ali/core/solution-pricing.ts';
+
+test('a proposal prints the reviewed pricing, but a changed design withholds its old figures', async () => {
+  const state = playFixture('residency', 'en').getState();
+  state.session.pricing = { messages: [], designKey: pricingDesignKey(state.session.memory),
+    estimate: calculateSolutionEstimate({ items: [
+      { label: 'Planned servers', period: 'monthly', quantity: 1460, quantityNote: 'Two servers at 730 hours',
+        unit: 'hour', unitUsd: .23, basis: 'user', source: 'Customer agreement' },
+      { label: 'Migration assistance', period: 'one-time', quantity: 8, unit: 'hour', unitUsd: 85, basis: 'assumption', source: 'Planning input' },
+    ], assumptions: ['One migration window'], unknowns: ['Egress charge not confirmed'] }) };
+  const draft = { ...loadDraft('residency-en'), cost: 'Confirm the egress charge before choosing the migration window.' };
+  const result = await generateFromState(state, { draft });
+  const page = (await inspectPdf(result.bytes)).pages.find(p => p.text.includes('Solution price breakdown'))!;
+  const words = page.text.replace(/\s+/g, ' ');
+  for (const value of ['USD 335.8', 'USD 680', 'Customer agreement', 'One migration window', 'Egress charge not confirmed', draft.cost]) {
+    assert.ok(words.includes(value), `missing ${value}`);
+  }
+  state.session.pricing.designKey += '0';
+  const stale = await inspectPdf((await generateFromState(state, { draft })).bytes);
+  assert.match(stale.text, /design changed after pricing/);
+  assert.doesNotMatch(stale.text, /USD 335\.8|USD 680|Customer agreement|Confirm the egress charge/);
+});
 
 test('English: a four-revision session makes a complete, checkable PDF', async () => {
   const state = playFixture('residency', 'en').getState();
