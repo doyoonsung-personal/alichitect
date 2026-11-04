@@ -11,6 +11,28 @@ import { usd } from '../../src/workflow/panel-model.ts';
 import { xt } from '../../src/export/strings.ts';
 import { makeT } from '../../src/i18n/t.ts';
 import { deploymentSource } from '@ali/core/workflow-deployment.ts';
+import { calculateSolutionEstimate, pricingDesignKey } from '@ali/core/solution-pricing.ts';
+
+test('Korean handoff shows the approval decision and priced scope without an empty Connections page or competing estimate', async () => {
+  const state = createInitialState({ lang: 'ko', id: 'handoff', now: 0 });
+  state.session.mode = 'workflow';
+  const memory = state.session.memory;
+  memory.workflow = workflowFixture(6, 'ko');
+  memory.assumptions = [{ id: 'noise', text: '내부 설정 전체 목록', alt: '대체 설정' }];
+  const estimate = calculateSolutionEstimate({ items: [{ label: '검색 저장소', quantity: 1, unit: '개', period: 'monthly',
+    unitUsd: 50, basis: 'assumption', source: '검증용 단가' }], assumptions: ['내부 산정 메모'], unknowns: ['모델 사용료 미산정'] });
+  state.session.pricing = { designKey: pricingDesignKey(memory), messages: [], estimate };
+  const draft: ProposalDraft = { lang: 'ko', complete: true, exec: '승인 전 발송을 차단하도록 제안합니다.',
+    cost: '검색 저장소가 월 비용을 결정합니다.', needs: [], outcomes: [], why: {}, tradeoffs: [], next: ['승인 거부 시 발송되지 않는지 확인합니다.'] };
+  const { bytes } = await generateFromState(state, { draft });
+  const { info } = await checkPdf(bytes, state, { draft });
+  const text = info.text.replace(/\s/g, '');
+  for (const s of [draft.exec, draft.cost!, draft.next[0], 'USD 50.00', '모델 사용료 미산정']) assert.ok(text.includes(s.replace(/\s/g, '')), s);
+  for (const s of ['내부 설정 전체 목록', '내부 산정 메모', xt('ko','workflow.cost'), xt('ko','workflow.questions'), xt('ko','rev.heading')]) {
+    assert.ok(!text.includes(s.replace(/\s/g, '')), s);
+  }
+  assert.ok(!info.pages.some(page => page.text.includes(xt('ko','conn.intro'))));
+});
 
 for (const lang of ['en', 'ko', 'zh'] as const) for (const mixed of [false, true]) {
   test(`${lang}: ${mixed ? 'mixed drafted' : 'workflow-only basic'} PDF includes generated sections and readable vector tiles`, async () => {
@@ -51,7 +73,8 @@ for (const lang of ['en', 'ko', 'zh'] as const) for (const mixed of [false, true
     assert.equal(result.report.pages, check.info.pages.length);
     for (const page of check.info.pages) assert.ok(page.text.includes(xt(lang, 'page.of', { n: page.n, total: check.info.pages.length })));
     const texts = check.info.text.replace(/\s/g, '');
-    for (const key of ['steps.heading', 'cost.coverage', 'cost.unpriced'] as const) {
+    assert.equal(texts.includes(wt(lang, 'steps.heading').replace(/\s/g, '')), mixed);
+    for (const key of ['cost.coverage', 'cost.unpriced'] as const) {
       assert.ok(texts.includes(wt(lang, key).replace(/\s/g, '')));
     }
     assert.ok(texts.includes('Attachedtool3'));

@@ -325,8 +325,10 @@ export function checkProposalRequest(body: unknown): ProposalCheck {
     if (lang !== 'en' && lang !== 'ko' && lang !== 'zh') fail('lang', "expected 'en', 'ko' or 'zh'");
     const title = str(own(o, 'title') ?? '', 'title', LIMITS.proposalTitle)!;
     const customer = str(own(o, 'customer') ?? '', 'customer', LIMITS.proposalCustomer)!;
+    const editorialNotes = str(own(o, 'editorialNotes'), 'editorialNotes', 12000, { optional: true });
     const pricing = own(o, 'pricing');
     return { ok: true, value: { sessionId, lang, title, customer, memory: memory(own(o, 'memory'), 'memory'),
+      ...(editorialNotes ? { editorialNotes } : {}),
       ...(pricing !== undefined ? { pricing: validatePricingSession(pricing) } : {}) } };
   } catch (e) {
     if (e instanceof Bad) return { ok: false, code: 'bad-request', message: e.message };

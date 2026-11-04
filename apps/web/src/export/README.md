@@ -1,12 +1,12 @@
 # src/export
 
-**Export proposal** sends the committed design and its optional pricing interview to `POST /api/proposal`. Qwen3.8 Max uses private high-effort reasoning to write a recommendation, the design rationale, trade-offs, next steps and an interpretation of the estimate. The browser lays out the PDF from the same session snapshot. When the writer is unavailable, the user can download the basic PDF with the diagrams and pricing evidence. Stop cancels the export.
+**Export proposal** sends the committed design and its optional pricing interview to `POST /api/proposal`. Qwen3.8 Max uses medium reasoning for the recommendation and any follow-up writing pass. The browser renders the PDF from the same design. If writing fails, the web user can explicitly choose the basic technical record.
 
-The solution price breakdown separates monthly and one-time subtotals and prints quantities, rates, sources, assumptions and unpriced items. If the user has reviewed the current estimate, the writer also receives the saved review observations. If the design has changed since pricing, the PDF asks the reader to refresh the estimate before relying on it.
+The pricing section prints monthly and one-time subtotals, line calculations, rate sources and unpriced items. The writer receives the assumptions and current review observations and explains the material cost drivers. Outdated pricing is flagged and its amounts withheld.
 
 ## What is in the PDF
 
-With a narrative, the business reader comes first: cover, **Executive summary** (lead paragraph, then the outcomes as titled blocks, then **What we propose next**: the first two next steps), **What you told us, and how the design answers it** (or, when fewer than half of the needs are the customer's own words, **What businesses like yours usually need, and how the design answers it**; each need with its source: the customer's words in quotation marks, marked "(original wording)" when they are in another language than the document, "Implied by what you described", or "Typical for businesses like yours"; then the answer and the products involved), the diagram, components led by **Why it's here** (a construct such as users or a mobile app has no documentation row), recommendations (with the drafted why), **Considerations and next steps** (trade-offs with how each is handled, numbered next steps, and a prompt to open the price breakdown when the catalog alone cannot size the solution), then the summary renamed **Design record** (its first chat reply titled **Architect's first notes**), connections and revision history.
+An authored handoff opens with the executive recommendation, the material trade-offs and the next decision. It includes the evidence behind the recommendation, applicable pricing, diagrams and relevant component details. The client edition omits the console log, revision history and generated assumption questionnaires. Connections and diagrams appear only when there is content.
 
 The basic version (no narrative):
 
@@ -30,7 +30,7 @@ Every page has "Page n of N" and "Catalog checked <date>". File name: `<title>-a
 | `typeset.ts` | Line breaking for Latin, Korean (at spaces) and Chinese (between characters, with the punctuation rules), and drawing one text call per font face. |
 | `pdf.ts` | The pages. Runs twice: a dry pass on `stub.ts` lets the font set learn which glyphs are needed, then the real pass. |
 | `generate.ts` | The pipeline. `browser.ts` is the browser end (Vite font source, libavoid worker, logo fetch, download) and is loaded with `import()` on the first click, so none of this is in the app's first load. |
-| `worker.ts` | The MCP entry. The web build also bundles the renderer for Cloudflare Workers. It reads the same fonts and logo through the static assets binding, uses the channel router, and accepts the IDE's narrative for a pinned design revision. |
+| `worker.ts` | Renders private MCP proposals from a pinned revision and a saved final draft. The scheduled writer processes queued requests. The Worker uses the same fonts and logo through its static assets binding. |
 | `ExportButton.tsx`, `export.css` | The header control and its small dialog; it runs the draft, the overlay and the layout. |
 | `draft-client.ts` | `POST /api/proposal`: builds the `ProposalRequest`, reads the NDJSON `ProposalEvent`s with the turn client's line reader, and ends in the `ProposalDraft` or a typed `DraftError` (fatal with the server's message, unavailable, network, incomplete, aborted). |
 | `draft-flow.ts` | Pure: the overlay's state machine (steps from the sections that arrived, the calm latest line, the quiet slow note, failure, the basic version). |

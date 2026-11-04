@@ -39,8 +39,6 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
   const n = model.narrative;
 
   // pages: cover, [executive summary, needs], summary or design record, diagram (landscape), components, [recommendations], [considerations], connections, revisions
-  const wantPages = 5 + (model.components.length ? 1 : 0) + (model.recs.length ? 1 : 0) + (n ? (n.exec.length || n.outcomes.length ? 1 : 0) + (n.needs.length ? 1 : 0) + (n.tradeoffs.length || n.next.length ? 1 : 0) : 0);
-  if (total < wantPages) problems.push(`expected at least ${wantPages} pages, got ${total}`);
   const landscape = info.pages.filter((p) => p.width > p.height).map((p) => p.n);
   // a section starts on the page whose heading band (under the running header) opens with its heading
   const top = (p: PdfInfo['pages'][number]): string =>
@@ -53,36 +51,45 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
     );
   const firstPageWith = (text: string): number => info.pages.find((p) => p.n > 1 && top(p).startsWith(squash(text)))?.n ?? -1;
   const diagramPage = firstPageWith(xt('diagram.heading'));
-  if (!model.workflow && (landscape.length !== 1 || landscape[0] !== (n ? diagramPage : 3))) problems.push(`the diagram must be the only landscape page, page ${n ? diagramPage : 3} (landscape pages: ${landscape.join(',') || 'none'})`);
+  const cloud = Object.keys(state.display.graph.nodes).length > 0 || state.display.graph.recs.length > 0;
+  if (!model.workflow && (landscape.length !== Number(cloud) || (cloud && landscape[0] !== diagramPage))) problems.push('Cloud diagram page missing or unexpected');
 
   // the sections, each on a later page than the one before
   const order: ExportKey[] = n
     ? [
         ...(n.exec.length || n.outcomes.length ? (['exec.heading'] as const) : []),
+        ...(n.tradeoffs.length || n.next.length ? (['next.heading'] as const) : []),
         ...(n.needs.length ? ([n.mostlyTypical ? 'needs.headingTypical' : 'needs.heading'] as const) : []),
-        'diagram.heading',
+        ...(model.workflow || cloud ? (['diagram.heading'] as const) : []),
         ...(model.components.length ? (['components.heading'] as const) : []),
         ...(model.recs.length ? (['recs.heading'] as const) : []),
-        ...(n.tradeoffs.length || n.next.length ? (['next.heading'] as const) : []),
-        'record.heading',
-        'conn.heading',
-        'rev.heading',
+        ...(model.connections.length ? (['conn.heading'] as const) : []),
       ]
-    : ['summary.heading', 'diagram.heading', ...(model.components.length ? (['components.heading'] as const) : []), ...(model.recs.length ? (['recs.heading'] as const) : []), 'conn.heading', 'rev.heading'];
+    : [...(model.summary.narration || model.summary.requirements.length || model.summary.constraints.length ||
+        (!model.workflow && (model.summary.assumptions.length || model.summary.questions.length)) ? (['summary.heading'] as const) : []),
+      ...(model.workflow || cloud ? (['diagram.heading'] as const) : []), ...(model.components.length ? (['components.heading'] as const) : []),
+      ...(model.recs.length ? (['recs.heading'] as const) : []), ...(model.connections.length ? (['conn.heading'] as const) : []),
+      ...(model.revisions.length ? (['rev.heading'] as const) : [])];
+  const wf = model.workflow;
+  const mapping = wf?.mapping.filter(r => r.runtime !== xt('workflow.unspecified') || r.service !== xt('workflow.unspecified')) ?? [];
+  const questions = n ? [] : wf?.openQuestions.filter(q => q.source !== 'boundary') ?? [];
+  const showCost = wf && !(n && model.pricing) && (wf.cost.lines.length || wf.cost.fixed.length || wf.cost.unpriced.length);
   const titles = order.flatMap((k) => k === 'diagram.heading' && model.workflow
     ? [firstPageWith(wt(state.lang, 'diagram.overview')) > 0 ? wt(state.lang, 'diagram.overview') : wt(state.lang, 'diagram.heading'),
-      wt(state.lang, 'steps.heading'), model.workflow.mappingTitle, model.workflow.costTitle, model.workflow.questionsTitle] : [xt(k)]);
-  const at = titles.map(firstPageWith);
+      ...(wf?.steps.some(s => s.text) ? [wt(state.lang, 'steps.heading')] : []), ...(mapping.length ? [model.workflow.mappingTitle] : []),
+      ...(showCost ? [model.workflow.costTitle] : []), ...(questions.length ? [model.workflow.questionsTitle] : [])] : [xt(k)]);
+  const at = titles.map(title => title === xt('next.heading')
+    ? info.pages.find(p => p.n > 1 && squash(p.text).includes(squash(title)))?.n ?? -1 : firstPageWith(title));
   titles.forEach((title, idx) => {
     if (at[idx] < 0) problems.push(`heading missing: ${title}`);
-    else if (idx > 0 && at[idx] <= at[idx - 1]) problems.push(`"${title}" (page ${at[idx]}) must come after "${titles[idx - 1]}" (page ${at[idx - 1]})`);
+    else if (idx > 0 && (at[idx] < at[idx - 1] || (at[idx] === at[idx - 1] && title !== xt('next.heading')))) problems.push(`"${title}" (page ${at[idx]}) must come after "${titles[idx - 1]}" (page ${at[idx - 1]})`);
   });
 
   if (model.workflow) {
     if (!landscape.length) problems.push('Workflow requires diagram pages');
     const wf = model.workflow;
-    for (const value of [...wf.mapping.flatMap((r) => [r.id, r.label, r.runtime, r.service]),
-      ...wf.openQuestions.map((q) => q.text), wf.cost.coverage, wt(state.lang, 'cost.unpriced')]) {
+    for (const value of [...mapping.flatMap((r) => [r.id, r.label, r.runtime, r.service]), ...questions.map((q) => q.text),
+      ...(showCost ? [wf.cost.coverage] : []), ...(showCost && wf.cost.unpriced.length ? [wt(state.lang, 'cost.unpriced')] : [])]) {
       if (!all.includes(squash(value.slice(0, 100))) || !all.includes(squash(value.slice(-100)))) {
         problems.push(`Workflow content missing: ${value.slice(0, 100)}`);
       }
@@ -110,7 +117,7 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
 
   // content: every product name, every revision's ask, the entry labels
   for (const c of model.components) if (!all.includes(squash(c.name))) problems.push(`product name missing from the text: ${c.name}`);
-  for (const r of model.revisions) if (!all.includes(squash(r.ask.slice(0, 40)))) problems.push(`revision ${r.n}'s ask is missing`);
+  if (!n) for (const r of model.revisions) if (!all.includes(squash(r.ask.slice(0, 40)))) problems.push(`revision ${r.n}'s ask is missing`);
   if (model.components.length && !all.includes(squash(xt(n ? 'components.why' : 'components.role')))) problems.push(`"${xt(n ? 'components.why' : 'components.role')}" label is missing`);
   if (model.components.length && !all.includes(squash(xt('components.what')))) problems.push('"What it does" label is missing');
 

@@ -22,7 +22,8 @@ test('a proposal prints the reviewed pricing, but a changed design withholds its
   const result = await generateFromState(state, { draft });
   const page = (await inspectPdf(result.bytes)).pages.find(p => p.text.includes('Solution price breakdown'))!;
   const words = page.text.replace(/\s+/g, ' ');
-  for (const value of ['USD 335.8', 'USD 680', 'Customer agreement', 'One migration window', 'Egress charge not confirmed', draft.cost]) {
+  assert.ok(!words.includes('One migration window'), 'internal assumptions are input to the writer');
+  for (const value of ['USD 335.8', 'USD 680', 'Customer agreement', 'Egress charge not confirmed', draft.cost]) {
     assert.ok(words.includes(value), `missing ${value}`);
   }
   state.session.pricing.designKey += '0';
@@ -108,8 +109,9 @@ test('a session with nothing drawn still exports a valid, honest document', asyn
   const state = playFixture('stub-fatal', 'en').getState();
   const r = await generateFromState(state);
   const info = await inspectPdf(r.bytes);
-  assert.ok(info.pages.length >= 5);
-  assert.ok(info.text.includes('There is no diagram yet.'));
+  assert.ok(info.pages.length < 5);
+  assert.ok(!info.text.includes('There is no diagram yet.'));
+  assert.ok(!info.pages.some(page => page.width > page.height));
   assert.ok(info.text.includes('This revision was not applied.'));
   assert.equal(info.links.length, 0);
 });
@@ -171,7 +173,7 @@ test('a proposal from a revision that was finished after a content-filter stop n
 // ---------- with a drafted narrative (POST /api/proposal) ----------
 
 
-test('with a draft, the business reader comes first: summary, needs, diagram, components led by why, trade-offs, then the record', async () => {
+test('the handoff keeps the client recommendation and the real connections without the work log', async () => {
   const state = playFixture('residency', 'en').getState();
   const draft = loadDraft('residency-en');
   const r = await generateFromState(state, { title: 'Customer portal', customer: 'Acme Pay Pte Ltd', draft });
@@ -181,9 +183,8 @@ test('with a draft, the business reader comes first: summary, needs, diagram, co
   assert.ok(text.includes('“customer data must stay in Singapore”'), 'a stated need quotes the customer');
   assert.ok(!text.includes('Role in this design'), "components lead with Why it's here instead");
   assert.equal((text.match(/Why it's here/g) ?? []).length, check.model.components.length, 'every component entry leads with it');
-  assert.ok(text.includes('Design record'), 'the summary page is the design record');
-  // the technical record keeps everything it had
-  for (const h of ['Pinned requirements', 'Connections', 'Revision history']) assert.ok(text.includes(h), h);
+  assert.ok(text.includes('Connections'));
+  for (const h of ['Design record', 'Pinned requirements', 'Revision history']) assert.ok(!text.includes(h), h);
   assert.equal(check.summary.links, check.summary.expectedLinks, 'the documentation links all resolve');
   assert.equal(r.fileName, 'Customer-portal-architecture-proposal-2026-10-31.pdf');
 });
@@ -215,7 +216,7 @@ test('a long draft paginates cleanly: no overflow, no orphaned sub-heading, ever
   const r = await generateFromState(state, { title: 'Cross-border e-commerce', customer: 'Lumen Retail Group', draft });
   const check = await checkPdf(r.bytes, state, { title: 'Cross-border e-commerce', customer: 'Lumen Retail Group', draft });
   assert.deepEqual(check.problems, []);
-  assert.ok(check.info.pages.length >= 16, `${check.info.pages.length} pages`);
+  assert.ok(check.info.pages.length >= 10, `${check.info.pages.length} pages`);
 });
 
 test("a product the draft gave no reason for keeps the drawing's reason under Why it's here; a recommendation takes the drafted why", async () => {
