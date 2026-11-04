@@ -1,11 +1,7 @@
-// The Worker includes this script only after sign-in or when the user deliberately opens the preview.
+// Claim automatic notices on the signed-in landing view. A working session also has a Changelog link.
 (() => {
-  const preview = document.currentScript?.hasAttribute('data-preview');
-  async function show() {
-    const query = new URLSearchParams({ fallbackLang: document.documentElement.lang, ...(preview ? { preview: '1' } : {}) });
-    const res = await fetch('/api/release-notice?' + query, { method: 'POST', cache: 'no-store' });
-    if (res.status !== 200) return;
-    const { content, lang, translations, languageCookie } = await res.json();
+  const preview = new URLSearchParams(location.search).get('whats-new') === '1';
+  function show({ content, lang, translations, languageCookie }) {
     const dialog = document.createElement('dialog');
     dialog.className = 'ab-release';
     dialog.lang = lang;
@@ -64,16 +60,44 @@
       history.replaceState(history.state, '', url);
     }
   }
-  // The SPA mounts its signed-in navigation after loading the account (or a linked design).
-  // Leave the one-time receipt untouched until the notice has a visible destination.
-  function openWhenReady() {
-    if (document.visibilityState !== 'visible' || !document.querySelector('[data-changelog-link]')) return;
-    observer.disconnect();
-    document.removeEventListener('visibilitychange', openWhenReady);
-    void show().catch(() => {});
+  const selector = preview ? '[data-changelog-link]' : '.landing [data-changelog-link]';
+  let lastLink;
+  let loading = false;
+  let pending;
+  async function check() {
+    if (document.visibilityState !== 'visible') return;
+    const link = document.querySelector(selector);
+    if (!link) { lastLink = null; return; }
+    if (loading || (lastLink === link && !pending)) return;
+    lastLink = link;
+    if (pending) {
+      // The user may have left home while the request ran. Show it when they return.
+      const notice = pending;
+      pending = null;
+      if (preview) stop();
+      show(notice);
+      return;
+    }
+    loading = true;
+    try {
+      const query = new URLSearchParams({ fallbackLang: document.documentElement.lang, ...(preview ? { preview: '1' } : {}) });
+      const res = await fetch('/api/release-notice?' + query, { method: 'POST', cache: 'no-store' });
+      if (res.status === 200) pending = await res.json();
+    } catch { /* Retry on the next visit to the landing page. */ }
+    finally { loading = false; }
+    if (pending) void check();
   }
-  const observer = new MutationObserver(openWhenReady);
+  function restore(event) {
+    if (event.persisted) { lastLink = null; void check(); }
+  }
+  function stop() {
+    observer.disconnect();
+    document.removeEventListener('visibilitychange', check);
+    window.removeEventListener('pageshow', restore);
+  }
+  const observer = new MutationObserver(check);
   observer.observe(document.body, { childList: true, subtree: true });
-  document.addEventListener('visibilitychange', openWhenReady);
-  openWhenReady();
+  document.addEventListener('visibilitychange', check);
+  window.addEventListener('pageshow', restore);
+  void check();
 })();

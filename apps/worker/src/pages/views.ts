@@ -253,7 +253,7 @@ function roleTag(c: PageCtx, role: Role): string {
   return `<span class="tag ${role === 'admin' ? 'tag--ink' : 'tag--line'}">${e(t(c.lang, roleKeys[role]))}</span>`;
 }
 
-export function accountPage(c: PageCtx, o: { me: UserRow; note?: Note | null; passwordError?: StringKey | null; currentError?: boolean; shared?: boolean }): string {
+export function accountPage(c: PageCtx, o: { me: UserRow; note?: Note | null; passwordError?: StringKey | null; currentError?: boolean; shared?: boolean; previewRelease?: boolean }): string {
   const L = (k: StringKey, v?: Record<string, string | number>): string => e(t(c.lang, k, v));
   const me = o.me;
   const statusTag =
@@ -265,6 +265,7 @@ export function accountPage(c: PageCtx, o: { me: UserRow; note?: Note | null; pa
   return shell(c, {
     title: t(c.lang, 'account.title'),
     bodyClass: 'page page--admin',
+    previewRelease: o.previewRelease,
     body: `${appbar(c, me, 'account.title')}
 <main class="account" id="main">
   <h1 class="title">${L('account.title')}</h1>
