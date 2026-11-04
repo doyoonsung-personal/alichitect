@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import type { KeyboardEvent, ReactElement } from 'react';
 import { BrandMark } from '../brand/BrandMark.tsx';
 import { Icon } from '../shell/Icon.tsx';
-import { LanguageSwitch, SessionsMenu, ThemeMenu } from '../shell/controls.tsx';
+import { ChangelogLink, LanguageSwitch, SessionsMenu, ThemeMenu } from '../shell/controls.tsx';
 import { OfflineNotice } from '../shell/OfflineNotice.tsx';
 import { AccountMenu } from '../shell/AccountMenu.tsx';
 import { useAppState, useController, useT } from '../store/react.tsx';
@@ -109,6 +109,7 @@ export function Landing(): ReactElement {
   return (
     <main className="landing" data-handoff={handoff || undefined}>
       <div className="landing__util">
+        <ChangelogLink />
         <LanguageSwitch />
         <ThemeMenu />
         <SessionsMenu />

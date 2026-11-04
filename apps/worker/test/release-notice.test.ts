@@ -53,3 +53,32 @@ test('shared accounts get pricing instructions and personal-account guidance wit
   assert.match(content,/personal account/);
   assert.doesNotMatch(content,/href="\/account\/keys"/);
 });
+
+test('the archive and notice share localized entries and an independent language preference', async () => {
+  const env = makeEnv(), owner = await signIn(env, 'reader@example.org', { status: 'approved' });
+  const browser = new Browser(env);
+  for (const pair of owner.cookie.split(';')) {
+    const [key, value] = pair.trim().split('=');
+    browser.jar.set(key, value);
+  }
+  browser.jar.set('ab_lang', 'en');
+  const initial = await browser.text('/changelog?fallbackLang=ko');
+  assert.match(initial, /<html lang="ko"/);
+  assert.match(initial, /<time datetime="2026-11-04">/);
+  assert.match(initial, /data-changelog-link/);
+  const chinese = await browser.text('/changelog?lang=zh');
+  assert.match(chinese, /更新日志/);
+  assert.equal(browser.jar.get('ab_release_lang'), 'zh');
+  assert.equal(browser.jar.get('ab_lang'), 'en');
+  assert.match(await browser.text('/changelog?fallbackLang=ko'), /<html lang="zh"/);
+  const notice = await (await browser.post(claim + '?preview=1&fallbackLang=en')).json();
+  assert.equal(notice.lang, 'zh');
+  for (const lang of ['en', 'ko', 'zh']) {
+    assert.match(notice.translations[lang], new RegExp('/updates/keys-' + lang + '\\.webp'));
+    assert.ok(notice.translations[lang].includes(`data-language="${lang}" aria-pressed="true"`));
+    assert.match(notice.translations[lang], /data-minimize/);
+  }
+  assert.match(await browser.text('/account'), /<html lang="en"/);
+  assert.equal(await env.DB.prepare('SELECT user_id FROM release_notices').first(), null);
+  assert.equal((await call(env, req('/changelog'))).status, 302);
+});

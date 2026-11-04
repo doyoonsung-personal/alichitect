@@ -22,7 +22,7 @@ This connection uses a manually provisioned bearer credential. Clients that requ
 
 ## Try it
 
-The pricing and MCP walkthrough appears once after sign-in. Reopen it any time from **Account → Preview What’s new** to see screenshots of the pricing breakdown and connector setup.
+The pricing and MCP walkthrough appears once after sign-in. Inside the notice you can choose English, 한국어, or 中文. **Minimize to Changelog** returns focus to the Changelog link. Open it from the main page to reread dated updates and their screenshots, or replay the latest notice. The notice and changelog remember your update-language choice in this browser separately from the app language.
 
 After connecting, the client can discover the available tools and their schemas. The MCP initialization response also supplies a short guide for the key's access level. A separate IDE skill is optional and can describe your team's preferred discovery questions or handoff process.
 

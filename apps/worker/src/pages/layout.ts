@@ -31,8 +31,8 @@ export function shell(c: PageCtx, o: { title: string; bodyClass: string; body: s
 <title>${e(title)} · ${e(t(c.lang, 'app.name'))}</title>
 <link rel="icon" href="/brand/alibaba-cloud-logo-en.svg" type="image/svg+xml">
 <script src="/_auth/theme.js"></script>
-<link rel="stylesheet" href="/_auth/pages.css">
-<script src="/_auth/pages.js" defer></script>
+<link rel="stylesheet" href="/_auth/pages.css?v=changelog">
+<script src="/_auth/pages.js?v=changelog" defer></script>
 </head>
 <body class="${e(o.bodyClass)}">
 ${o.body}

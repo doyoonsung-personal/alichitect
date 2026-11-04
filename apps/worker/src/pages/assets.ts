@@ -215,6 +215,12 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
 /* ---------- account settings ---------- */
 .account { max-width: 760px; margin: 0 auto; padding: var(--s-8) var(--s-7) var(--s-11); }
 .account .section { margin-top: var(--s-8); padding-top: var(--s-6); border-top: 1px solid var(--line-1); }
+.release-entry time { font-size: var(--t-13); color: var(--ink-2); }
+.release-entry h2 { margin: var(--s-2) 0 var(--s-5); }
+.release-entry section { margin-block: var(--s-5); }
+.release-entry section p, .release-entry details { margin-top: var(--s-2); }
+.release-entry summary { cursor: pointer; color: var(--action); }
+.release-entry img { width: 100%; max-width: 36rem; height: auto; margin-top: var(--s-2); }
 .account > .status .notice { margin-bottom: 0; }
 .facts { margin: 0; display: grid; grid-template-columns: max-content 1fr; column-gap: var(--s-8); row-gap: var(--s-4); }
 .facts > div { display: contents; }
@@ -226,8 +232,8 @@ button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visib
   .lockup--landing .lockup__name { font-size: var(--t-18); }
   .lockup--landing .lockup__rule { margin: 0 12px; height: 22px; }
   .appbar__section, .appbar__me span { display: none; }
-  .page--keys .appbar { height: auto; min-height: var(--header-h); flex-wrap: wrap; padding-block: var(--s-2); }
-  .page--keys .appbar__right { flex-wrap: wrap; }
+  .appbar { height: auto; min-height: var(--header-h); flex-wrap: wrap; padding-block: var(--s-2); }
+  .appbar__right { flex-wrap: wrap; }
   .admin, .account { padding: var(--s-6) var(--s-5) var(--s-10); }
   .facts { grid-template-columns: 1fr; row-gap: var(--s-1); }
   .facts dd { margin-bottom: var(--s-3); }
@@ -252,8 +258,9 @@ export const PAGES_JS = `// The pages' script (theme.js only puts the stored the
   const KEY = 'ab.lang';
   try {
     const stored = localStorage.getItem(KEY);
-    if (root.dataset.langChosen === '1') localStorage.setItem(KEY, root.lang);
-    else if ((stored === 'en' || stored === 'ko' || stored === 'zh') && stored !== root.lang) {
+    const syncLanguage = !document.body.classList.contains('page--changelog');
+    if (syncLanguage && root.dataset.langChosen === '1') localStorage.setItem(KEY, root.lang);
+    else if (syncLanguage && (stored === 'en' || stored === 'ko' || stored === 'zh') && stored !== root.lang) {
       const u = new URL(location.href);
       u.searchParams.set('lang', stored);
       location.replace(u.toString());

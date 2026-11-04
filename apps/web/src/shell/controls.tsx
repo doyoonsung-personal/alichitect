@@ -16,6 +16,15 @@ const LANG_NAME: Record<Lang, string> = { en: 'English', ko: '한국어', zh: '�
 const LANG_TAG: Record<Lang, string> = { en: 'en', ko: 'ko', zh: 'zh' };
 const LANGS: Lang[] = ['en', 'ko', 'zh'];
 
+export function ChangelogLink(): ReactElement | null {
+  const { lang, t } = useT();
+  const account = useAppState((s) => s.account);
+  const working = useAppState((s) => s.view === 'working');
+  if (!account) return null;
+  return <a className="btn btn--ghost" data-changelog-link href={'/changelog?fallbackLang=' + lang}
+    target={working ? '_blank' : undefined} rel={working ? 'noopener' : undefined}>{t('header.changelog')}</a>;
+}
+
 export function LanguageSwitch(): ReactElement {
   const { lang, t } = useT();
   const c = useController();
