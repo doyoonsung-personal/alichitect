@@ -175,7 +175,7 @@ test('pricing resumes its own conversation and preserves the last estimate and a
   await until(() => a.store.getState().session.revisions[0]?.status === 'done');
   const design = a.store.getState().session.memory;
   a.c.setPricingOpen(true);
-  await until(() => !!a.store.getState().session.pricing);
+  assert.ok(!a.requests.some(r => r.url === '/api/pricing'), 'the opening question is local');
   const before = a.store.getState().session.pricing!;
   assert.equal(before.designKey, pricingDesignKey(design));
   fail = true;
@@ -190,7 +190,7 @@ test('pricing resumes its own conversation and preserves the last estimate and a
   assert.equal(restored.store.getState().session.pricingPending, answer);
   assert.ok(!restored.requests.some(r => r.url === '/api/pricing'));
   restored.c.sendPricing(answer);
-  await until(() => restored.store.getState().session.pricing?.messages.length === 4);
+  await until(() => restored.store.getState().session.pricing?.messages.length === 3);
   assert.deepEqual(restored.requests.find(r => r.url === '/api/pricing')?.body,
     { sessionId: a.store.getState().session.id, lang: 'en', ask: answer, memory: design, pricing: before });
   assert.equal(restored.store.getState().session.pricingPending, undefined);
@@ -207,13 +207,14 @@ test('closing pricing aborts a pending turn and a late reply cannot replace anot
   await until(() => a.store.getState().session.revisions[0]?.status === 'done');
   const firstId = a.store.getState().session.id;
   a.c.setPricingOpen(true);
+  a.c.sendPricing('Price five instances.');
   a.c.setPricingOpen(false);
   assert.ok(a.sessions.get(firstId)?.pricingPending);
   a.c.newSession();
   finish();
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(a.store.getState().session.pricing, undefined);
-  assert.equal(a.sessions.get(firstId)?.pricing, undefined);
+  assert.equal(a.sessions.get(firstId)?.pricing?.messages.length, 1, 'only the local opening question');
   a.c.dispose();
 });
 

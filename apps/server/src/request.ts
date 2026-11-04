@@ -345,7 +345,9 @@ export function checkPricingRequest(body: unknown): PricingCheck {
     const memoryValue = memory(own(o, 'memory'), 'memory');
     const previous = own(o, 'pricing');
     const pricing = previous === undefined ? undefined : validatePricingSession(previous);
-    return { ok: true, value: { sessionId, lang, memory: memoryValue, ask, ...(pricing ? { pricing } : {}) } };
+    const intent = own(o, 'intent');
+    if (intent !== undefined && (intent !== 'review' || !pricing)) fail('intent', 'a review requires a pricing session');
+    return { ok: true, value: { sessionId, lang, memory: memoryValue, ask, ...(pricing ? { pricing } : {}), ...(intent === 'review' ? { intent } : {}) } };
   } catch (e) {
     return { ok: false, code: 'bad-request', message: e instanceof Bad ? e.message : 'invalid pricing request' };
   }

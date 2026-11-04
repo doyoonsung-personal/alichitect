@@ -31,6 +31,7 @@ export interface PricingSession {
   messages: PricingMessage[];
   estimate: SolutionEstimate;
   designKey: string;
+  review?: { key: string; lang: PricingRequest['lang']; text: string };
 }
 export interface PricingRequest {
   sessionId: string;
@@ -38,6 +39,19 @@ export interface PricingRequest {
   memory: SessionMemory;
   ask: string;
   pricing?: PricingSession;
+  intent?: 'review';
+}
+
+/** A review belongs to the exact facts and conversation that were reviewed, in the requested language. */
+export function pricingReviewKey(pricing: PricingSession, lang: PricingRequest['lang']): string {
+  return prefixKey('review1', JSON.stringify([pricing.designKey, pricing.estimate, pricing.messages, lang]));
+}
+
+/** Replaying a completed review should not reserve a model slot or spend a daily turn. */
+export function cachedPricingReview(req: PricingRequest): PricingSession | undefined {
+  const { pricing } = req;
+  if (req.intent === 'review' && pricing?.review?.lang === req.lang && pricing.designKey === pricingDesignKey(req.memory) &&
+      pricing.review.key === pricingReviewKey(pricing, req.lang)) return pricing;
 }
 
 /** Only inputs to the estimate affect this key, independent of map insertion order or canvas layout. */
@@ -139,5 +153,12 @@ export function validatePricingSession(value: unknown): PricingSession {
     if (role !== 'assistant' && role !== 'user') throw new Error('invalid pricing speaker');
     return { role, text: text(message, role === 'user' ? PRICING_ASK_LIMIT : 4000) };
   });
-  return { messages, estimate: calculateSolutionEstimate(raw.estimate), designKey };
+  const session: PricingSession = { messages, estimate: calculateSolutionEstimate(raw.estimate), designKey };
+  if (raw.review != null) {
+    const review = record(raw.review);
+    if ((review.lang === 'en' || review.lang === 'ko' || review.lang === 'zh') && review.key === pricingReviewKey(session, review.lang)) {
+      session.review = { lang: review.lang, key: review.key, text: text(review.text, 4000) };
+    }
+  }
+  return session;
 }

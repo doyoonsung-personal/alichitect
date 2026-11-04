@@ -1,4 +1,5 @@
 import { PricingTurnError, runPricingTurn } from '../../../packages/core/src/solution-pricing-engine.ts';
+import { cachedPricingReview, type PricingSession } from '../../../packages/core/src/solution-pricing.ts';
 import { fatalMessage } from '../../server/src/messages.ts';
 import { checkPricingRequest } from '../../server/src/request.ts';
 import { decodeDesignBody, PRICING_ATTACHMENT_BYTES } from '../../server/src/pricing-envelope.ts';
@@ -19,6 +20,14 @@ export async function handlePricing(request: Request, env: Env, ctx: ExecutionCo
   const checked = checkPricingRequest(envelope.body);
   if (!checked.ok) return reject(400, checked.code, checked.message);
   const pricing = checked.value;
+  function reply(session: PricingSession): Response {
+    const redact = makeRedactor(env.DASHSCOPE_API_KEY, env.ANTHROPIC_API_KEY);
+    return new Response(redact(JSON.stringify({ pricing: session })), {
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+    });
+  }
+  const cached = cachedPricingReview(pricing);
+  if (cached) return reply(cached);
   const apiKey = env.DASHSCOPE_API_KEY?.trim();
   if (!apiKey) return reject(503, 'no-key', fatalMessage('no-key', pricing.lang));
 
@@ -53,10 +62,7 @@ export async function handlePricing(request: Request, env: Env, ctx: ExecutionCo
       started = true;
       const result = await price(pricing, sharedTurnState().catalog, { apiKey, baseUrl: cfg.baseUrl, signal: abort.signal });
       costUsd = result.costUsd;
-      const redact = makeRedactor(apiKey, env.ANTHROPIC_API_KEY);
-      return new Response(redact(JSON.stringify({ pricing: result.pricing })), {
-        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
-      });
+      return reply(result.pricing);
     } catch (error) {
       if (error instanceof PricingTurnError) costUsd = error.costUsd;
       const code = abort.signal.aborted ? 'pricing-timeout' : 'pricing-unavailable';

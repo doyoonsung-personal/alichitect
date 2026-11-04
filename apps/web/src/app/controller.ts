@@ -20,6 +20,7 @@ import type { Lang } from '../i18n/t.ts';
 import type { CanvasSize } from '../canvas/layout.ts';
 import { pricingDesignKey, PRICING_ASK_LIMIT } from '@ali/core/solution-pricing.ts';
 import { PricingError, requestPricing } from '../pricing/client.ts';
+import { startPricing } from '../pricing/starter.ts';
 
 export interface PendingAsk {
   text: string;
@@ -77,7 +78,7 @@ export interface Controller {
   setMode(mode: TurnMode): void;
   drawDeployment(): void;
   setPricingOpen(open: boolean): void;
-  sendPricing(ask: string): SubmitResult;
+  sendPricing(ask: string, intent?: 'review'): SubmitResult;
   stopPricing(): void;
   setWorkflowSettings(next: WorkflowSettings): void;
   setWorkflowEstimate(next: WorkflowEstimateSettings): void;
@@ -182,7 +183,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     d({ type: 'pricing/stop' });
   }
 
-  function sendPricing(ask: string): SubmitResult {
+  function sendPricing(ask: string, intent?: 'review'): SubmitResult {
     const s = st();
     if (s.replay || !s.session.pricingOpen) return 'read-only';
     if (s.work || pricingAc) return 'busy';
@@ -190,12 +191,14 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     if (!text) return 'empty';
     if (Array.from(text).length > PRICING_ASK_LIMIT) return 'too-long';
     const { id, memory, pricing } = s.session;
+    if (intent === 'review' && (!pricing || pricing.designKey !== pricingDesignKey(memory) ||
+        pricing.review?.lang === s.lang || s.session.pricingPending)) return 'read-only';
     const mine = new AbortController();
     pricingAc = mine;
-    d({ type: 'pricing/start', ask: text, now: env.now() });
+    d({ type: 'pricing/start', ask: intent === 'review' ? undefined : text, now: env.now() });
     saveSession();
     const current = () => !disposed && pricingAc === mine && st().session.id === id;
-    void requestPricing({ sessionId: id, memory, pricing, lang: s.lang, ask: text }, mine.signal, env.fetchImpl).then((result) => {
+    void requestPricing({ sessionId: id, memory, pricing, lang: s.lang, ask: text, ...(intent ? { intent } : {}) }, mine.signal, env.fetchImpl).then((result) => {
       if (!current()) return;
       if (result.designKey !== pricingDesignKey(st().session.memory)) {
         throw new PricingError('design-changed', makeT(st().lang)('pricing.changedDuring'));
@@ -357,10 +360,10 @@ export function createController(store: Store, env: ControllerEnv): Controller {
       if (s.session.pricingOpen === open || s.work || s.replay) return;
       if (!open) stopPricing();
       d({ type: 'pricing/open', open });
-      saveSession();
       if (open && !s.session.pricing && !s.session.pricingPending) {
-        sendPricing(makeT(s.lang)('pricing.startAsk'));
+        d({ type: 'pricing/commit', pricing: startPricing(s.session.memory, s.lang), now: env.now() });
       }
+      saveSession();
     },
     drawDeployment() {
       const s = st();
