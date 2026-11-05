@@ -22,5 +22,6 @@ Use a [task handoff record](docs/agent-handoffs/README.md) when multiple agents 
 | [apps/worker](apps/worker) | Hosted application, accounts, storage and MCP |
 | [docs/MCP.md](docs/MCP.md) | MCP connection and tool usage |
 | [docs/DEPLOY.md](docs/DEPLOY.md) | Deployment and operational instructions |
+| [docs/BD_MEETING_BRIEF_PLAN.md](docs/BD_MEETING_BRIEF_PLAN.md) | Proposed optional BD meeting brief: implementation, isolation and removal plan |
 
 From the repository root, `npm test` runs the core, eval and local-server tests. Web and Worker checks run from their respective directories; see [AGENTS.md](AGENTS.md#6-verify-the-change-you-are-handing-over) and the module documentation. A successful local build does not mean the changes have been deployed.
