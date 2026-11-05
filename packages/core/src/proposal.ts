@@ -1,16 +1,16 @@
 // The proposal writer: drafts the business narrative of the exported PDF (POST /api/proposal) from the session the
 // browser holds. Qwen3.8 Max reasons privately before writing NDJSON section lines (types.ts ProposalSection); each
-// complete line is validated (parseProposalLine), checked against what was already accepted (counts, duplicates, one
-// why per product) and handed to onSection at once, so the export overlay shows progress as the draft grows.
+// complete line is validated (parseProposalLine), checked against accepted counts and duplicates, then handed to
+// onSection at once. New reports use audience-specific authored chapters; legacy need/why/step drafts still parse.
 //
 // Every line also passes the writing rules (lintSection): a line making a claim nobody made is never printed; a line
 // breaking a style rule is held back as a last resort. Either way the continuation below is asked to write it again.
 //
 // Recovery, in the order it can happen:
-//   no first token in 20 s, 20 s of silence, 150 s in all, or a retryable error before any section arrived: one retry
+//   a per-call watchdog or a retryable error before any section arrived: one retry
 //   on the report model, onStatus('retry'). Once sections arrived nothing restarts: the draft continues;
-//   a stream cut off (finish_reason 'length', a watchdog), a draft missing required parts (exec, two needs, an outcome,
-//   a why for every product in the design, a tradeoff, a next step) or lines set aside by the rules gets ONE
+//   a stream cut off (finish_reason 'length', a watchdog), a draft missing its required chapters/decision (or legacy
+//   structured parts), or lines set aside by the rules gets ONE
 //   continuation call that lists the accepted lines, the set-aside ones with the reason and exactly what is missing,
 //   onStatus('finish'), when at least PROPOSAL_LIMITS.continueMinMs of the deadline is left. Every call ends
 //   deadlineMarginMs before the caller's deadline, so a deadline keeps the sections written;
@@ -20,7 +20,7 @@
 // The result never says who wrote a line: sections carry no provider or model, and statuses are only 'retry' and
 // 'finish'. Upstream failures never throw: the outcome is 'failed' with a neutral error code, and the PDF falls back to
 // the version without a narrative. Browser-safe like llm.ts; the API key only goes to complete().
-import type { Catalog, ProposalDraft, ProposalNeed, ProposalRequest, ProposalSection, Provider } from './types.ts';
+import type { Catalog, ProposalAudience, ProposalDraft, ProposalNeed, ProposalRequest, ProposalSection, Provider } from './types.ts';
 import { BACKUP_MIN_MS_LEFT, QWEN_HIGH_REASONING, complete, isContentFilter } from './llm.ts';
 import type { BackupCall, BackupGateResult, BackupProvider, BackupSkipped, CompleteResult, TurnError, Usage } from './llm.ts';
 import type { Price } from './pricing.ts';
@@ -35,6 +35,9 @@ export { PROPOSAL_SYSTEM, designProducts, regionWords } from './proposal-prompt.
 /** Caps of the drafted narrative and of the drafting calls. Text lengths are in code points. */
 export const PROPOSAL_LIMITS = {
   exec: 1400,
+  sectionTitle: 120,
+  sectionText: 4000,
+  sectionMinText: 80,
   need: 220,
   quote: 160,
   answer: 700,
@@ -50,18 +53,19 @@ export const PROPOSAL_LIMITS = {
   outcomes: 4,
   tradeoffs: 4,
   nextSteps: 5,
+  sections: 6,
   /** A quote shorter than this (after normalising) proves nothing and is dropped. */
   quoteMin: 4,
   /** Needs a draft must have before it counts as complete enough to skip the continuation call. */
   needsWanted: 2,
-  // Qwen3.8 Max maps 4,097–16,384 thinking tokens to medium. Leave room for the visible report.
-  thinkingBudget: 6_144,
-  maxTokens: QWEN_HIGH_REASONING.maxTokens,
+  // Qwen3.8 Max maps >16,384 thinking tokens to high (xhigh). The total also leaves room for authored prose.
+  thinkingBudget: 20_480,
+  maxTokens: 32_768,
   temperature: 0.5,
   /** Watchdogs of one Qwen call. */
   firstByteMs: QWEN_HIGH_REASONING.firstByteTimeoutMs,
   idleMs: QWEN_HIGH_REASONING.idleTimeoutMs,
-  totalMs: QWEN_HIGH_REASONING.totalTimeoutMs,
+  totalMs: 360_000,
   /** Backup calls at most: the continuation, and one more when that was cut off at its token cap. */
   backupCalls: 2,
   /** The continuation call starts only with this much of the caller's deadline left (msLeft). */
@@ -75,6 +79,9 @@ export const PROPOSAL_LIMITS = {
 /** What the validator needs to know about the session. */
 export interface ProposalCtx {
   lang: ProposalRequest['lang'];
+  audience: ProposalAudience;
+  /** New authors never quote money in prose. Absent/false keeps old stored cloud drafts readable. */
+  authored?: boolean;
   /** Catalog ids in the design, in reading order (designProducts): the only ids a why or a need may name. */
   products: string[];
   steps: string[];
@@ -111,6 +118,8 @@ export function proposalCtx(req: ProposalRequest, catalog: Catalog): ProposalCtx
   const names = [...new Set(entries.flatMap((e) => [e.name, e.name.replace(/\s*\([^)]*\)$/, ''), e.short]).map((n) => n.trim()).filter((n) => Array.from(n).length >= 2))];
   return {
     lang: req.lang === 'ko' || req.lang === 'zh' ? req.lang : 'en',
+    audience: req.audience ?? 'client',
+    authored: req.audience !== undefined,
     products,
     pricing,
     steps: Object.values(memory.workflow?.nodes ?? {})
@@ -185,7 +194,7 @@ export function capText(s: string, max: number): string {
   return head.trimEnd() + '…';
 }
 
-/** A text field as the PDF prints it, or null when it is missing or empty. `paragraphs` keeps \n\n breaks (exec). */
+/** A text field as the PDF prints it, or null when missing/empty. `paragraphs` keeps breaks in summaries and chapters. */
 function text(v: unknown, max: number, paragraphs = false): string | null {
   if (typeof v !== 'string') return null;
   const p = regionWords(plain(v));
@@ -217,6 +226,12 @@ function sanitize(raw: unknown, ctx: ProposalCtx): ProposalSection | null {
   const L = PROPOSAL_LIMITS;
   let s: ProposalSection | null = null;
   switch (o.k) {
+    case 'section': {
+      const title = text(o.title, L.sectionTitle);
+      const t = text(o.text, L.sectionText, true);
+      if (title && t && Array.from(t).length >= L.sectionMinText) s = { k: 'section', title, text: t };
+      break;
+    }
     case 'cost': {
       const t = text(o.text, L.exec);
       if (ctx.pricing === 'current' && t) s = { k: 'cost', text: t };
@@ -409,6 +424,7 @@ function fieldsOf(s: ProposalSection): string[] {
     case 'need':
       return [s.need, s.answer];
     case 'outcome':
+    case 'section':
       return [s.title, s.text];
     case 'tradeoff':
       return [s.text, s.mitigation ?? ''];
@@ -429,7 +445,7 @@ export function lintSection(s: ProposalSection, ctx: ProposalCtx): LintProblem |
   const all = fieldsOf(s).join('\n');
   if (ctx.workflow && WRITER.test(all))
     return { level: 'hard', rule: 'model', reason: 'never identify the writer or say who generated the text' };
-  if ((ctx.workflow || ctx.pricing !== 'none') && workflowMoney(s))
+  if ((ctx.authored || s.k === 'section' || ctx.workflow || ctx.pricing !== 'none') && workflowMoney(s))
     return { level: 'hard', rule: 'price', reason: 'write no monetary figures in this narrative; the app generates the estimate table' };
   // Promises live in exec, a need's answer, outcomes and whys. A need states the problem ("관리 부담 해소 필요"), and
   // trade-offs and next steps may say honestly what the design does not do ("confirmation is not instant").
@@ -456,7 +472,7 @@ export function lintSection(s: ProposalSection, ctx: ProposalCtx): LintProblem |
         reason: `it names ${m[0]}, which is neither in the catalog excerpt nor in the customer's messages`,
       };
   }
-  if ((s.k === 'exec' || s.k === 'need' || s.k === 'outcome') && ((REGULATION.test(all) && !CUSTOMER_REGULATION.test(ctx.customerWords)) || (REQUIRED.test(all) && !CUSTOMER_REQUIRED.test(ctx.customerWords) && !RESIDENCY_ASK.test(ctx.customerWords))))
+  if ((s.k === 'exec' || s.k === 'need' || s.k === 'outcome' || s.k === 'section') && ((REGULATION.test(all) && !CUSTOMER_REGULATION.test(ctx.customerWords)) || (REQUIRED.test(all) && !CUSTOMER_REQUIRED.test(ctx.customerWords) && !RESIDENCY_ASK.test(ctx.customerWords))))
     return { level: 'hard', rule: 'requirement', reason: 'it presents a requirement, regulation or compliance need the customer never stated; say only what the customer said, and present a region or other design choice as a choice' };
   if (ctx.lang === 'ko' && s.k === 'need' && /매출이 발생합니다/.test(all)) return { level: 'hard', rule: 'inversion', reason: 'it says revenue occurs where a loss is meant; write 매출 손실이 발생합니다' };
   if (s.k === 'why' && ctx.lang === 'en') {
@@ -516,10 +532,10 @@ function createGate(): { add(s: ProposalSection): ProposalSection | null; sectio
       else if (s.k === 'why') key = `why:${s.product}`;
       else if (s.k === 'step') key = `step:${s.id}`;
       else if (s.k === 'need') key = `need:${normalizeKey(s.need)}`;
-      else if (s.k === 'outcome') key = `outcome:${normalizeKey(s.title)}`;
+      else if (s.k === 'outcome' || s.k === 'section') key = `${s.k}:${normalizeKey(s.title)}`;
       else key = `${s.k}:${normalizeKey(s.text)}`;
       if (seen.has(key)) return null;
-      const cap = s.k === 'need' ? L.needs : s.k === 'outcome' ? L.outcomes : s.k === 'tradeoff' ? L.tradeoffs : s.k === 'next' ? L.nextSteps : Infinity;
+      const cap = s.k === 'section' ? L.sections : s.k === 'need' ? L.needs : s.k === 'outcome' ? L.outcomes : s.k === 'tradeoff' ? L.tradeoffs : s.k === 'next' ? L.nextSteps : Infinity;
       if (count(s.k) >= cap) return null;
       seen.add(key);
       const out: ProposalSection = s.k === 'need' ? { ...s, id: `n${count('need') + 1}` } : s;
@@ -529,12 +545,20 @@ function createGate(): { add(s: ProposalSection): ProposalSection | null; sectio
   };
 }
 
-/** Machine names of the parts a draft still lacks: exec, needs (fewer than two), outcomes, why:<id> per product, tradeoffs, next. */
-function missingOf(sections: readonly ProposalSection[], ctx: ProposalCtx): string[] {
+/** Machine names of missing authored parts, or the older inventory-style sections when the model returned those. */
+function missingOf(sections: readonly ProposalSection[], ctx: ProposalCtx, preferAuthored = false): string[] {
   const n = (k: ProposalSection['k']): number => sections.filter((s) => s.k === k).length;
   const whys = new Set(sections.flatMap((s) => (s.k === 'why' ? [s.product] : [])));
   const out: string[] = [];
   if (!n('exec')) out.push('exec');
+  // Bespoke chapters carry the rationale and handoffs in prose. Requiring another line per product/step here
+  // recreated the boilerplate report even after a good editorial pass; legacy drafts keep their original checks.
+  if (n('section') || (preferAuthored && !n('need') && !n('outcome') && !n('why') && !n('step'))) {
+    if (n('section') < 2) out.push('sections');
+    if (ctx.pricing === 'current' && !n('cost')) out.push('cost');
+    if (!n('next')) out.push('next');
+    return out;
+  }
   if (n('need') < PROPOSAL_LIMITS.needsWanted) out.push('needs');
   if (ctx.pricing === 'current' && !n('cost')) out.push('cost');
   const steps = new Set(sections.flatMap((s) => s.k === 'step' ? [s.id] : []));
@@ -553,6 +577,7 @@ function describeMissing(missing: readonly string[], sections: readonly Proposal
   const whys = missing.filter((m) => m.startsWith('why:')).map((m) => m.slice(4));
   const out: string[] = [];
   if (missing.includes('exec')) out.push('the exec line');
+  if (missing.includes('sections')) out.push('authored section lines: add enough distinct, substantive chapters to reach at least two; explain the recommendation and its validation in connected paragraphs');
   if (missing.includes('cost')) out.push('one cost line explaining the main driver, coverage and decision that could change the estimate, without monetary figures');
   if (missing.includes('needs')) out.push(`need lines: ${needs ? `${needs} written, add more to reach 2 to 5 in all, each a different need` : '2 to 5'}`);
   if (missing.includes('outcomes')) out.push('outcome lines: 3 or 4');
@@ -560,7 +585,7 @@ function describeMissing(missing: readonly string[], sections: readonly Proposal
   const steps = missing.filter((m) => m.startsWith('step:')).map((m) => m.slice(5));
   if (steps.length) out.push(`step lines for these workflow node ids: ${steps.join(', ')}`);
   if (missing.includes('tradeoffs')) out.push('tradeoff lines: 2 to 4');
-  if (missing.includes('next')) out.push('next lines: 3 to 5');
+  if (missing.includes('next')) out.push(missing.includes('sections') || sections.some(s => s.k === 'section') ? 'one or two next lines: the concrete decision or validation to proceed' : 'next lines: 3 to 5');
   return out;
 }
 
@@ -581,14 +606,16 @@ export function leadWithEngagement(next: string[]): string[] {
 /** The validated sections as the PDF's narrative. Lines past a cap, repeated lines and a second why for a product are dropped. */
 export function assembleDraft(sections: ProposalSection[], ctx: ProposalCtx): ProposalDraft {
   const gate = createGate();
+  const authored = ctx.authored || sections.some(s => s.k === 'section');
   for (const s of sections) {
     const clean = sanitize(s, ctx);
-    if (clean && !((ctx.workflow || ctx.pricing !== 'none') && workflowMoney(clean))) gate.add(clean);
+    if (clean && !((authored || ctx.workflow || ctx.pricing !== 'none') && workflowMoney(clean))) gate.add(clean);
   }
-  const d: ProposalDraft = { lang: ctx.lang, exec: '', needs: [], outcomes: [], why: {}, tradeoffs: [], next: [], complete: false };
+  const d: ProposalDraft = { audience: ctx.audience, lang: ctx.lang, exec: '', needs: [], outcomes: [], why: {}, tradeoffs: [], next: [], complete: false };
   if (ctx.workflow) d.steps = {};
   for (const s of gate.sections) {
     if (s.k === 'exec') d.exec = s.text;
+    else if (s.k === 'section') (d.sections ??= []).push({ title: s.title, text: s.text });
     else if (s.k === 'cost') d.cost = s.text;
     else if (s.k === 'need') d.needs.push({ id: s.id, need: s.need, source: s.source, ...(s.quote ? { quote: s.quote } : {}), answer: s.answer, products: s.products });
     else if (s.k === 'outcome') d.outcomes.push({ title: s.title, text: s.text });
@@ -604,6 +631,7 @@ export function assembleDraft(sections: ProposalSection[], ctx: ProposalCtx): Pr
     d.complete = (ctx.workflowOnly ? !!d.exec && d.needs.length >= PROPOSAL_LIMITS.needsWanted : d.complete) && stepsComplete;
   }
   if (ctx.pricing === 'current' && !d.cost) d.complete = false;
+  if (d.sections?.length) d.complete = missingOf(gate.sections, ctx).length === 0;
   return d;
 }
 
@@ -684,12 +712,13 @@ const ERRORS: Record<ErrorCode, string> = {
 
 /**
  * Drafts the proposal's narrative for a session. Streams accepted sections through onSection, and returns the
- * assembled draft ('done': an exec, a need and a why at least), 'aborted' (the caller's signal; no further calls) or
+ * assembled draft ('done': complete authored chapters or a usable legacy draft), 'aborted' (the caller's signal) or
  * 'failed' with a neutral error code. Never throws for upstream problems.
  */
 export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: DraftProposalOptions): Promise<DraftProposalResult> {
   const t0 = now();
-  const ctx = proposalCtx(req, catalog);
+  // Every newly generated report uses the authored contract, including requests from older clients omitting audience.
+  const ctx = { ...proposalCtx(req, catalog), authored: true };
   const messages = proposalMessages(req, catalog, ctx.products);
   const editorial = proposalEditorialMessages(req, catalog, ctx.products);
   const model = o.model ?? QWEN_HIGH_REASONING.model;
@@ -810,14 +839,14 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
   };
   const stop = (): DraftProposalResult => {
     stats.ms = Math.round(now() - t0);
-    stats.missing = missingOf(gate.sections, ctx);
+    stats.missing = missingOf(gate.sections, ctx, true);
     return { outcome: 'aborted', draft: null, stats };
   };
   /** The continuation's message: what is written, what is missing, and the set-aside lines to write again. */
   const continueWith = (missing: string[]): ChatMessage =>
     continuationMessage(gate.sections, describeMissing(missing, gate.sections), ctx.lang, refused.slice(-12).map((x) => `${JSON.stringify(x.section)} (not accepted: ${x.reason})`));
   /**
-   * 'done' when the draft is usable (an exec, a need and a why), whatever went wrong on the way; else 'failed' with
+   * 'done' when the draft is usable, whatever went wrong on the way; else 'failed' with
    * `err`. A held-back line fills its part first when nothing better arrived for it (an exec, a why, the minimum needs).
    */
   const finish = (err: ErrorCode | null): DraftProposalResult => {
@@ -826,7 +855,7 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
         s.k === 'exec' || s.k === 'next' || s.k === 'cost' ? s.k : `${s.k}s`;
       // a stated need is the customer's own point: kept when no accepted need carries its quote, even past the minimum
       const lostQuote = s.k === 'need' && !!s.quote && !gate.sections.some((x) => x.k === 'need' && x.quote === s.quote);
-      if (!lostQuote && !missingOf(gate.sections, ctx).includes(slot)) continue;
+      if (!lostQuote && !missingOf(gate.sections, ctx, true).includes(slot)) continue;
       const a = gate.add(s);
       if (a) {
         stats.heldUsed++;
@@ -834,9 +863,9 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
       }
     }
     stats.ms = Math.round(now() - t0);
-    stats.missing = missingOf(gate.sections, ctx);
+    stats.missing = missingOf(gate.sections, ctx, true);
     const draft = assembleDraft(gate.sections, ctx);
-    if (draft.exec && draft.needs.length && (ctx.workflowOnly ? draft.complete : Object.keys(draft.why).length)) return { outcome: 'done', draft, stats };
+    if (draft.sections?.length ? draft.complete : draft.exec && draft.needs.length && (ctx.workflowOnly ? draft.complete : Object.keys(draft.why).length)) return { outcome: 'done', draft, stats };
     const code = err ?? 'empty';
     return { outcome: 'failed', draft: null, error: { code, message: ERRORS[code] }, stats };
   };
@@ -860,7 +889,7 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
 
   // 2. One continuation for a cut-off or incomplete draft (never for an error a new call cannot fix, such as auth).
   if (!filtered) {
-    const missing = missingOf(gate.sections, ctx);
+    const missing = missingOf(gate.sections, ctx, true);
     const fixable = !lastError || lastError.retryable;
     // not when the deadline is near: a continuation cut off by it would gain nothing, and the draft as it is still prints
     // Also for lines set aside for breaking a rule: the person asked for a careful document and waits for it.
@@ -869,7 +898,7 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
       if (contModel !== model) stats.fallbackUsed = true;
       // "Taking a little longer" only when parts are missing; rewriting set-aside lines is part of the usual work
       if (missing.length) status('finish');
-      // Use the same Qwen to expand its recommendation into the structured business and design sections.
+      // Use the same high-effort Qwen author to finish the recommendation without restarting accepted prose.
       const cont = await qwen(contModel, [...messages, continueWith(missing)]);
       if (aborted()) return stop();
       // A failed continuation leaves the draft as it was; its error explains a draft that is still unusable.
@@ -902,7 +931,7 @@ export async function draftProposal(req: ProposalRequest, catalog: Catalog, o: D
       status('finish');
       stats.backupUsed = true;
       for (let i = 0; i < PROPOSAL_LIMITS.backupCalls; i++) {
-        const missing = missingOf(gate.sections, ctx);
+        const missing = missingOf(gate.sections, ctx, true);
         if (!missing.length) break;
         const msgs = gate.sections.length || refused.length ? [...messages, continueWith(missing)] : messages;
         const f = feed();

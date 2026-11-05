@@ -128,7 +128,16 @@
 .menu__list--start { left: 0; }
 
 .menu--sessions .menu__list {
-  min-width: 320px;
+  width: min(360px, calc(100vw - 32px));
+  min-width: 0;
+  max-height: min(560px, calc(100dvh - 80px));
+  overflow-y: auto;
+}
+
+/* A nested nowrap label otherwise determines the flex item's intrinsic width and defeats ellipsis. */
+.menu--sessions .menu__label {
+  min-width: 0;
+  width: 100%;
 }
 
 .menu--account .menu__list {

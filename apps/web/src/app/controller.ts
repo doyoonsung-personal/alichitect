@@ -21,6 +21,7 @@ import type { CanvasSize } from '../canvas/layout.ts';
 import { pricingDesignKey, PRICING_ASK_LIMIT } from '@ali/core/solution-pricing.ts';
 import { PricingError, requestPricing } from '../pricing/client.ts';
 import { startPricing } from '../pricing/starter.ts';
+import { compactSessionTitle, needsSessionTitle, SESSION_TITLE_VERSION } from '@ali/core/session-title.ts';
 
 export interface PendingAsk {
   text: string;
@@ -115,6 +116,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
   let healthAc: AbortController | null = null;
   let accountAc: AbortController | null = null;
   let pricingAc: AbortController | null = null;
+  let titlesAc: AbortController | null = null;
   let lastAsk = '';
   let disposed = false;
 
@@ -126,6 +128,43 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     env.sessions.save(s);
     d({ type: 'sessions/list', sessions: env.sessions.list() });
   };
+
+  /** Saved records are migrated once in the background; every write merges into the newest saved record. */
+  async function migrateTitles(): Promise<void> {
+    if (titlesAc || disposed || st().replay || st().conn.mode !== 'live') return;
+    const mine = new AbortController();
+    titlesAc = mine;
+    try {
+      for (const item of env.sessions.list()) {
+        if (disposed || mine.signal.aborted || st().replay) break;
+        const record = env.sessions.get(item.id);
+        if (!record || record.replayOf || (record.titleRetryAt ?? 0) > env.now()) continue;
+        const brief = record.revisions[0]?.ask || record.memory.turns.find(turn => turn.role === 'user')?.text || '';
+        if (!needsSessionTitle(record.title, brief, record.titleVersion)) continue;
+        const previousTitle = record.title;
+        // A closed tab or transient outage cannot cause another paid attempt on every page load.
+        const retryAt = env.now() + 86_400_000;
+        if (!env.sessions.save({ ...record, titleRetryAt: retryAt })) continue;
+        d({ type: 'session/title', id: item.id, previousTitle, title: previousTitle, titleRetryAt: retryAt });
+        try {
+          const response = await (env.fetchImpl ?? fetch)('/api/session-title', { method: 'POST',
+            headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ask: Array.from(brief).slice(0, 6000).join('') }), signal: mine.signal });
+          if (!response.ok) continue;
+          const result = await response.json() as { title?: unknown; titleVersion?: unknown };
+          if (disposed || mine.signal.aborted || typeof result.title !== 'string' || !result.title.trim() || result.titleVersion !== SESSION_TITLE_VERSION) continue;
+          const latest = env.sessions.get(item.id);
+          if (!latest || latest.title !== previousTitle || latest.titleVersion === SESSION_TITLE_VERSION) continue;
+          if (st().session.id === item.id && st().session.revisions.length && st().session.title !== previousTitle) continue;
+          const title = compactSessionTitle(result.title);
+          if (!env.sessions.save({ ...latest, title, titleVersion: SESSION_TITLE_VERSION, titleRetryAt: undefined })) continue;
+          d({ type: 'session/title', id: item.id, previousTitle, title, titleVersion: SESSION_TITLE_VERSION });
+          d({ type: 'sessions/list', sessions: env.sessions.list() });
+        } catch { /* the original title and all history remain usable; retry after the persisted cooldown */ }
+      }
+    } finally {
+      if (titlesAc === mine) titlesAc = null;
+    }
+  }
 
   const clearFlush = (): void => {
     if (flushTimer !== null) env.clearTimeout(flushTimer);
@@ -231,6 +270,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     // the Worker is up but no longer knows this browser: the session ended while the page was open
     if (anonymous) leaveForAuth('login', lastFailedAsk() ?? '');
     d({ type: 'conn/set', mode: h && h.keyConfigured ? 'live' : 'offline', health: h, now: env.now() });
+    if (h?.keyConfigured) void migrateTitles();
   }
 
   function start(ask: string, replaceLast: boolean, mode: TurnMode = st().session.mode ?? 'cloud', intent?: 'deployment'): void {
@@ -242,7 +282,8 @@ export function createController(store: Store, env: ControllerEnv): Controller {
     const sessionId = st().session.id;
     const memory = st().session.memory;
     d({ type: 'turn/start', ask: text, now: env.now(), replaceLast, mode, intent });
-    const req: TurnRequest = { sessionId, ask: text, memory, mode, intent };
+    const req: TurnRequest = { sessionId, ask: text, memory, mode, intent,
+      ...(st().session.revisions.length === 1 && !memory.turns.length ? { generateTitle: true } : {}) };
     void postTurn(req, { signal: mine.signal, fetchImpl: env.fetchImpl, onEvent: onWire }).then((end) => {
       if (disposed || ac !== mine) return;
       if (end.kind === 'network') {
@@ -288,6 +329,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
   async function startReplay(id: string, o: { speed?: ReplaySpeed } = {}): Promise<boolean> {
     const fx = await env.loadFixture(id);
     if (!fx || disposed) return false;
+    titlesAc?.abort();
     stopPricing();
     ac?.abort();
     ac = null;
@@ -470,6 +512,7 @@ export function createController(store: Store, env: ControllerEnv): Controller {
       ac?.abort();
       healthAc?.abort();
       accountAc?.abort();
+      titlesAc?.abort();
       clearFlush();
       player?.stop();
     },

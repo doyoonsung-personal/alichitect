@@ -212,6 +212,8 @@ export interface Constraint {
 
 /** POST /api/turn body. The browser holds the session and sends it with each turn; the server keeps no session state. */
 export interface TurnRequest {
+  /** Request a short title alongside the first turn. Ignored once the memory has conversation history. */
+  generateTitle?: boolean;
   intent?: 'deployment'; // explicit request to draw the cloud graph from the workflow
   sessionId: string;
   ask: string;
@@ -234,17 +236,22 @@ export type ServerEvent =
   // 'finish': a second pass is completing the answer (see apps/server/src/turn.ts). The wire never names who runs it:
   // no provider, model or reason field travels to the browser.
   | { type: 'status'; code: 'fallback' | 'retry' | 'continue' | 'repair' | 'summary' | 'finish'; text: string }
-  | { type: 'commit'; memory: SessionMemory; changes: string; warnings: Warning[] } // final repaired state; the browser replaces its memory with it
+  | { type: 'commit'; memory: SessionMemory; changes: string; warnings: Warning[]; title?: string } // final repaired state and optional initial session title
   | { type: 'summary'; summary: string } // rolling summary after the commit; the browser stores it in memory.summary
   | { type: 'fatal'; code: string; message: string; retryable: boolean }; // the turn failed and memory is unchanged
 
 // ---------- Proposal drafting (POST /api/proposal) ----------
+
+/** Determines the report's recommendation and perspective, never the underlying design or estimate. */
+export type ProposalAudience = 'client' | 'alibaba';
 
 /**
  * POST /api/proposal body: the session as the browser holds it, plus the export dialog's cover fields. The server
  * drafts the proposal's narrative with Qwen (packages/core/src/proposal.ts draftProposal) and streams it back.
  */
 export interface ProposalRequest {
+  /** Omitted by older callers: a client handoff. Alibaba is an internal account/solutions-architect brief. */
+  audience?: ProposalAudience;
   /** Unverified context from the calling IDE. It is not a customer quote or pricing evidence. */
   editorialNotes?: string;
   sessionId: string;
@@ -270,6 +277,8 @@ export type NeedSource = 'stated' | 'inferred' | 'general';
 export type ProposalSection =
   /** Executive summary for business decision makers: 2 or 3 short paragraphs separated by a blank line. */
   | { k: 'exec'; text: string }
+  /** A bespoke chapter, written as connected paragraphs rather than a fixed product/assumption inventory. */
+  | { k: 'section'; title: string; text: string }
   /** A customer need or pain point and how the design answers it, in business terms. `products` are catalog ids in the design. */
   | { k: 'need'; id: string; need: string; source: NeedSource; quote?: string; answer: string; products: string[] }
   /** A business outcome of the design ("Pay only for what you use"): a short title and why it follows. */
@@ -297,8 +306,11 @@ export interface ProposalNeed {
 
 /** The validated, assembled narrative the PDF prints. Products without a `why` entry fall back to the drawing's own reason. */
 export interface ProposalDraft {
+  /** Absent on legacy drafts; treated as client. New drafts preserve the requested audience. */
+  audience?: ProposalAudience;
   lang: 'en' | 'ko' | 'zh';
   exec: string;
+  sections?: Array<{ title: string; text: string }>;
   needs: ProposalNeed[];
   outcomes: Array<{ title: string; text: string }>;
   /** Catalog id -> why it is in this design for this customer. */
@@ -308,7 +320,7 @@ export interface ProposalDraft {
   cost?: string;
   tradeoffs: Array<{ text: string; mitigation?: string }>;
   next: string[];
-  /** Every section kind arrived and every product in the design got a why line. */
+  /** Authored chapters and a next decision arrived, or the legacy structured draft is complete. */
   complete: boolean;
 }
 

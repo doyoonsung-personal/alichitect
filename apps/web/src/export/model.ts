@@ -2,7 +2,7 @@
 // catalog. Nothing here draws or measures. Names, reasons, prices and links come from the same builders the console,
 // the canvas popover and the products panel use, so the document says what the screen says. A drafted narrative
 // (POST /api/proposal), when there is one, adds the business "why" on top; without one the model is exactly as before.
-import type { Catalog, CatalogEntry, Graph, NeedSource, ProposalDraft, SessionMemory } from '@ali/core/types.ts';
+import type { Catalog, CatalogEntry, Graph, NeedSource, ProposalAudience, ProposalDraft, SessionMemory } from '@ali/core/types.ts';
 import { estimateWorkflow } from '@ali/core/workflow-estimate.ts';
 import { pricingDesignKey, type SolutionEstimate } from '@ali/core/solution-pricing.ts';
 import { workflowPanelOrder } from '../workflow/panel-model.ts';
@@ -39,6 +39,7 @@ export interface ProposalInput {
   title?: string;
   /** Customer name; empty leaves the line out. */
   customer?: string;
+  audience?: ProposalAudience;
   now: Date;
   /** The drafted narrative; null or absent prints the document without it. */
   draft?: ProposalDraft | null;
@@ -126,6 +127,7 @@ export interface NeedItem {
 
 /** The drafted narrative, ready to print: the business case first, the honest trade-offs and next steps after. */
 export interface NarrativeModel {
+  sections?: Array<{ title: string; paragraphs: string[] }>;
   /** Executive summary paragraphs. */
   exec: string[];
   outcomes: Array<{ title: string; text: string }>;
@@ -172,6 +174,7 @@ export interface WorkflowProposalModel {
 
 export interface ProposalModel {
   lang: Lang;
+  audience?: ProposalAudience;
   title: string;
   customer: string;
   /** yyyy-mm-dd, in the viewer's time zone. */
@@ -401,6 +404,7 @@ export function buildProposal(i: ProposalInput): ProposalModel {
     lang,
     title,
     customer: (i.customer ?? '').trim(),
+    audience: i.audience ?? i.draft?.audience ?? 'client',
     date: isoDate(i.now),
     dateText: longDate(i.now, lang),
     catalogDate: catalog.version,
@@ -486,6 +490,7 @@ function buildNarrative(d: ProposalDraft, components: ComponentEntry[], recs: Re
   const needs = d.needs.filter((n) => n.need.trim() && n.answer.trim());
   return {
     exec: paragraphs(d.exec),
+    ...(d.sections?.length ? { sections: d.sections.map(s => ({ title: oneLine(s.title), paragraphs: paragraphs(s.text) })).filter(s => s.title && s.paragraphs.length) } : {}),
     outcomes: d.outcomes.map((o) => ({ title: oneLine(o.title), text: oneLine(o.text) })).filter((o) => o.title && o.text),
     needs: needs
       .map((n) => ({

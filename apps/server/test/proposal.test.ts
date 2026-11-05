@@ -122,6 +122,16 @@ const logLines = (file: string): Array<Record<string, unknown>> => (existsSync(f
 
 // ---------- tests ----------
 
+test('proposal audience accepts both perspectives and rejects unknown audiences', () => {
+  for (const audience of ['client', 'alibaba'] as const) {
+    const result = checkProposalRequest(proposal({ audience }));
+    assert.equal(result.ok, true);
+    if (result.ok) assert.equal(result.value.audience, audience);
+  }
+  assert.equal(checkProposalRequest(proposal()).ok, true);
+  assert.equal(checkProposalRequest({ ...proposal(), audience: 'sales-pitch' }).ok, false);
+});
+
 describe('POST /api/proposal on the local server', () => {
   test('streams sections and statuses, ends with done; CORS as /api/turn; a log entry without text', async () => {
     const f = fakeDraft(happy);

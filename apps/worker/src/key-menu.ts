@@ -58,6 +58,10 @@ export async function keyMenu(req: Request, env: Env, user: UserRow, page: PageC
     <p class="intro intro--left">${L('mcp.workflowIntro')}</p>
     <textarea id="mcp-prompt" class="textarea" rows="8" readonly aria-labelledby="mcp-workflow">${L('mcp.workflowPrompt')}</textarea>
     <button type="button" hidden data-copy-from="mcp-prompt" data-copied="${L('mcp.copied')}" class="btn btn--secondary">${L('mcp.copyPrompt')}</button></section>
+    <section class="section" aria-labelledby="mcp-workshop"><h2 class="section__title" id="mcp-workshop">${L('mcp.workshopTitle')}</h2>
+    <p class="intro intro--left">${L('mcp.workshopIntro')}</p>
+    <textarea id="mcp-workshop-prompt" class="textarea" rows="6" readonly aria-labelledby="mcp-workshop">${L('mcp.workshopPrompt')}</textarea>
+    <button type="button" hidden data-copy-from="mcp-workshop-prompt" data-copied="${L('mcp.copied')}" class="btn btn--secondary">${L('mcp.copyPrompt')}</button></section>
     ${keys.length ? keys.map(k => `<section class="section"><h2 class="section__title">${e(k.name)}</h2>
       <p><code>ali_mcp_${e(k.id)}_…</code> · ${L(k.scope === 'read' ? 'mcp.read' : 'mcp.write')}</p>
       <p>${L('mcp.expires')} · ${time(page, k.expires_at)}<br>${L('mcp.used')} · ${time(page, k.last_used_at, t(page.lang, 'mcp.never'))}</p>

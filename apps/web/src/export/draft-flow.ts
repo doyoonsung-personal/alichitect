@@ -37,6 +37,8 @@ export interface FlowState {
   stepIds: string[];
   steps: string[];
   workflowOnly: boolean;
+  authored: boolean;
+  sections: number;
   exec: boolean;
   needs: number;
   outcomes: number;
@@ -68,16 +70,16 @@ export type FlowEvent =
   | { type: 'saved'; now: number }
   | { type: 'failed'; error: FlowError; now: number };
 
-export function startFlow(now: number, products: string[], workflow?: WorkflowGraph, workflowOnly = false): FlowState {
+export function startFlow(now: number, products: string[], workflow?: WorkflowGraph, workflowOnly = false, authored = false): FlowState {
   const stepIds = Object.values(workflow?.nodes ?? {}).filter((n) => !n.on && n.kind !== 'trigger' && n.kind !== 'end').map((n) => n.id);
   return {
     phase: 'drafting', startedAt: now, now, products: [...new Set(products)], stepIds, steps: [], workflowOnly,
-    exec: false, needs: 0, outcomes: 0, why: [], tradeoffs: 0, next: 0, reached: 0,
+    authored, sections: 0, exec: false, needs: 0, outcomes: 0, why: [], tradeoffs: 0, next: 0, reached: 0,
     preview: null, pending: null, previewAt: 0, slow: false, basic: false, error: null,
   };
 }
 
-const STEP_OF: Record<ProposalSection['k'], number> = { exec: 1, need: 2, outcome: 3, why: 4, step: 4, cost: 5, tradeoff: 5, next: 5 };
+const STEP_OF: Record<ProposalSection['k'], number> = { exec: 1, need: 2, outcome: 3, section: 4, why: 4, step: 4, cost: 5, tradeoff: 5, next: 5 };
 
 /** The first sentence of a paragraph, cut to a readable length at a word boundary where there is one. */
 export function firstSentence(text: string): string {
@@ -122,6 +124,7 @@ export function reduceFlow(s: FlowState, ev: FlowEvent, productName: (id: string
       const sec = ev.section;
       let next: FlowState = { ...s, now: ev.now, reached: Math.max(s.reached, STEP_OF[sec.k]) };
       if (sec.k === 'exec') next.exec = true;
+      else if (sec.k === 'section') next.sections++;
       else if (sec.k === 'need') next.needs++;
       else if (sec.k === 'outcome') next.outcomes++;
       else if (sec.k === 'why') next.why = next.why.includes(sec.product) ? next.why : [...next.why, sec.product];
@@ -166,14 +169,14 @@ export function stepsOf(s: FlowState): StepView[] {
   const counts: Partial<Record<StepId, StepView['count']>> = {
     needs: s.needs ? { k: s.needs } : null,
     outcomes: s.outcomes ? { k: s.outcomes } : null,
-    why: n ? { k: Math.min(k, n), n } : null,
+    why: s.authored ? (s.sections ? { k: s.sections } : null) : n ? { k: Math.min(k, n), n } : null,
   };
   const at = s.phase === 'layout' ? STEPS.indexOf('layout') : s.phase === 'done' ? STEPS.length : s.reached;
   return STEPS.map((id, i): StepView => ({
     id,
     status: i < at ? 'done' : i === at && s.phase !== 'failed' && s.phase !== 'unavailable' ? 'active' : 'pending',
     count: counts[id] ?? null,
-  })).filter((v) => !s.workflowOnly || (v.id !== 'outcomes' && v.id !== 'close'));
+  })).filter((v) => s.authored ? v.id !== 'needs' && v.id !== 'outcomes' : !s.workflowOnly || (v.id !== 'outcomes' && v.id !== 'close'));
 }
 
 /** The active step, for the polite live region (one short line per step, never the streaming text). */

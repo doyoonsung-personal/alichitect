@@ -191,8 +191,11 @@ export interface SessionRecord {
   id: string;
   createdAt: number;
   updatedAt: number;
-  /** The first ask, for the header and the sessions menu. */
+  /** Flash's short title, or a bounded first-ask fallback, for the header and sessions menu. */
   title: string;
+  /** Version of the automatic title migration; does not change the original ask or activity time. */
+  titleVersion?: number;
+  titleRetryAt?: number;
   /** The memory the server sent with the last commit. The next turn posts it back. */
   memory: SessionMemory;
   revisions: Revision[];

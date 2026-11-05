@@ -20,7 +20,7 @@ async function render(env: Env, design: PdfDesign, options: PdfOptions) {
 async function writeHandoff(env: Env, ctx: ExecutionContextLike, user: UserRow, design: PdfDesign, options: PdfOptions) {
   const request = new Request(env.ALLOWED_ORIGIN + '/api/proposal', { method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sessionId: design.designId, lang: options.lang, title: Array.from(options.title || design.title).slice(0, 160).join(''),
-      customer: Array.from(options.customer || '').slice(0, 80).join(''), memory: design.memory, pricing: design.pricing,
+      customer: Array.from(options.customer || '').slice(0, 80).join(''), audience: options.audience ?? 'client', memory: design.memory, pricing: design.pricing,
       editorialNotes: options.draft ? Array.from(JSON.stringify(options.draft)).slice(0, 12000).join('') : undefined }) });
   const response = await handleProposal(request, env, ctx, user);
   for (const line of (await response.text()).trim().split('\n')) {
@@ -36,7 +36,9 @@ async function writeHandoff(env: Env, ctx: ExecutionContextLike, user: UserRow, 
 
 export async function exportPdf(env: Env, user: UserRow, designId: string, revision: number, options: PdfOptions, includeFile: boolean, retryFailed: boolean) {
   const owner = user.id;
-  const id = await sha256Hex(JSON.stringify(['client-handoff-v1', owner, designId, revision, options]));
+  // Audience and writing version are part of the identity: an internal brief must never reuse a client PDF.
+  options = { ...options, audience: options.audience ?? 'client' };
+  const id = await sha256Hex(JSON.stringify(['audience-proposal-v2', owner, designId, revision, options]));
   let row = await latestDesign(env.DB, owner, designId);
   if (!row) throw new DesignError('Design not found for this account.');
   if (row.revision !== revision) {
@@ -57,11 +59,11 @@ export async function exportPdf(env: Env, user: UserRow, designId: string, revis
   if (!job) throw new DesignError('Another proposal is being prepared for this account. Retry after it finishes.');
   if (job.write_error) throw new DesignError(job.write_error + ' Set retryFailed=true to request a new writing pass.');
   if (job.writing_since !== null) {
-    const pending = { designId, revision, url, status: 'preparing', retryAfterSeconds: 60 };
+    const pending = { designId, revision, audience: options.audience, url, status: 'preparing', retryAfterSeconds: 60 };
     return { content: [{ type: 'text' as const, text: JSON.stringify(pending) }], structuredContent: pending };
   }
   const { bytes, fileName } = await render(env, design, JSON.parse(job.options));
-  const metadata = { designId, revision, url, status: 'ready', fileName, mimeType: 'application/pdf' };
+  const metadata = { designId, revision, audience: options.audience, url, status: 'ready', fileName, mimeType: 'application/pdf' };
   const text = { type: 'text' as const, text: JSON.stringify(metadata) };
   if (!includeFile) return { content: [text], structuredContent: metadata };
   // Encode in bounded chunks to avoid exceeding the JavaScript argument limit.

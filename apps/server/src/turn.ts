@@ -15,6 +15,7 @@ import { DEFAULT_WINDOW } from '../../../packages/core/src/prompt.ts';
 import { fatalMessage, langOf, statusMessage } from './messages.ts';
 import type { Lang } from './messages.ts';
 import { LIMITS, memoryBytes, TURN_MEMORY_BUDGET } from './request.ts';
+import { draftSessionTitle } from '../../../packages/core/src/session-title.ts';
 
 export interface TurnDeps {
   apiKey: string;
@@ -57,6 +58,7 @@ export interface TurnOutcome {
   statuses: Array<{ code: string; phase: string; model?: string; provider?: string; reason?: string; delayMs?: number }>;
   summary?: { folded: boolean; ms: number };
   summaryCostUsd: number;
+  titleCostUsd?: number;
   /** What the browser is not sent about the backup's calls (usage and errors), for the log. */
   backupLog: BackupLogEntry[];
   nodes?: number;
@@ -146,6 +148,28 @@ export function fatalOf(stats: TurnStats): { code: string; retryable: boolean } 
 export async function executeTurn<M extends TurnMode = 'cloud'>(
   req: TurnRequest, deps: TurnDeps, listener: (e: WireEvent<M>) => void, signal: AbortSignal,
 ): Promise<TurnOutcome> {
+  // Starts alongside the design under the same admission/quota check. Older clients and later turns do no extra work.
+  const titleAbort = new AbortController();
+  const cancelTitle = () => titleAbort.abort();
+  signal.addEventListener('abort', cancelTitle, { once: true });
+  if (signal.aborted) cancelTitle();
+  const title = req.generateTitle && !req.memory.turns.length && !signal.aborted
+    ? draftSessionTitle(req.ask, { apiKey: deps.apiKey, baseUrl: deps.baseUrl, fetchImpl: deps.fetchImpl, signal: titleAbort.signal })
+    : undefined;
+  let result: TurnOutcome;
+  try {
+    result = await executeDesignTurn(req, deps, listener, signal, title);
+  } finally {
+    titleAbort.abort();
+    signal.removeEventListener('abort', cancelTitle);
+  }
+  return title ? { ...result, titleCostUsd: (await title).costUsd } : result;
+}
+
+async function executeDesignTurn<M extends TurnMode = 'cloud'>(
+  req: TurnRequest, deps: TurnDeps, listener: (e: WireEvent<M>) => void, signal: AbortSignal,
+  title?: ReturnType<typeof draftSessionTitle>,
+): Promise<TurnOutcome> {
   const emit = listener as unknown as (e: WireEvent<TurnMode>) => void;
   const lang = langOf(req.ask);
   const window = deps.window ?? DEFAULT_WINDOW;
@@ -234,7 +258,9 @@ export async function executeTurn<M extends TurnMode = 'cloud'>(
   } else memory = trimTurns(r.memory);
   out.outcome = 'commit';
   out.nodes = Object.keys(req.mode === 'workflow' ? memory.workflow!.nodes : memory.graph.nodes).length;
-  emit({ type: 'commit', memory, changes: r.changes, warnings: r.stats.warningsAfter });
+  const named = await title;
+  if (signal.aborted) return { ...out, outcome: 'aborted' };
+  emit({ type: 'commit', memory, changes: r.changes, warnings: r.stats.warningsAfter, ...(named ? { title: named.title } : {}) });
   if (!memory.workflow && historyOverflows(memory, window) && !signal.aborted) {
     const t0 = Date.now();
     const folded = await foldSummary(memory, window, { apiKey: deps.apiKey, baseUrl: deps.baseUrl, signal, fetchImpl: deps.fetchImpl, onCost, onStatus });

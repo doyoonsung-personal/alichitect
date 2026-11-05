@@ -14,6 +14,30 @@ export interface WorkflowSvgInput {
   legend: WorkflowLegendText; tile?: boolean;
 }
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+export const insideWorkflowWindow = (b: Rect, r: Rect) => r.x >= b.x && r.y >= b.y
+  && r.x + r.w <= b.x + b.w && r.y + r.h <= b.y + b.h;
+
+/** A viewport alone clips routes into disconnected fragments. Only draw a complete, endpoint-owned route. */
+export function workflowWindowEdges(i: Pick<WorkflowSvgInput, 'bounds' | 'scene' | 'edges'>) {
+  const visible = new Set(i.scene.cards.filter(c => insideWorkflowWindow(i.bounds, c)).map(c => c.id));
+  const full = i.edges.filter(e => visible.has(e.edge.from) && visible.has(e.edge.to)
+    && e.points.every(p => insideWorkflowWindow(i.bounds, { ...p, w: 0, h: 0 }))
+    && (!e.label || insideWorkflowWindow(i.bounds, e.labelBox)));
+  const continued = i.edges.filter(e => !full.includes(e) && (visible.has(e.edge.from) || visible.has(e.edge.to)));
+  return { visible, full, continued };
+}
+/** Compress only truly consecutive references; a range must never imply a missing connection. */
+function connectorLabel(refs: readonly string[]): string {
+  const numbers = [...new Set(refs.map(ref => Number(ref.slice(1))))].sort((a, b) => a - b);
+  const labels: string[] = [];
+  for (let k = 0; k < numbers.length; k++) {
+    const start = numbers[k];
+    while (k + 1 < numbers.length && numbers[k + 1] === numbers[k] + 1) k++;
+    const end = numbers[k];
+    labels.push(start === end ? `C${start}` : `C${start}–C${end}`);
+  }
+  return labels.join(', ');
+}
 export type WorkflowCardFonts = Pick<SvgFonts, 'width' | 'metrics'>;
 export function workflowCardContent(c: WorkflowCardView, fonts: WorkflowCardFonts) {
   const metrics = fonts.metrics();
@@ -55,7 +79,7 @@ export function renderWorkflowSvg(i: WorkflowSvgInput): DiagramSvg {
   const { fonts, bounds: b } = i;
   const parts: string[] = [];
   let runs = 0;
-  const inside = (r: Rect) => r.x >= b.x && r.y >= b.y && r.x + r.w <= b.x + b.w && r.y + r.h <= b.y + b.h;
+  const inside = (r: Rect) => insideWorkflowWindow(b, r);
   function text(x: number, y: number, value: string, px = 12, weight: Weight = 400, color = '#334155'): void {
     for (const r of fonts.runs(value, weight)) {
       const lead = r.text.length - r.text.trimStart().length;
@@ -66,7 +90,13 @@ export function renderWorkflowSvg(i: WorkflowSvgInput): DiagramSvg {
   }
   const cards = i.scene.cards.filter((c) => !i.tile || inside(c));
   const brackets = i.scene.brackets.filter((c) => !i.tile || inside(c));
-  for (const e of i.edges) {
+  const window = workflowWindowEdges(i);
+  const edges = i.tile ? window.full : i.edges;
+  const continuations: NonNullable<DiagramSvg['continuations']> = (i.tile ? window.continued : []).map(e => ({ ref: `C${i.edges.indexOf(e) + 1}`,
+    from: `${i.scene.byId.get(e.edge.from)?.label ?? e.edge.from} (${e.edge.from})`,
+    to: `${i.scene.byId.get(e.edge.to)?.label ?? e.edge.to} (${e.edge.to})`,
+    label: e.label || (e.attached ? i.legend.attached : e.loop ? i.legend.loop : i.legend.next) }));
+  for (const e of edges) {
     const color = e.warning ? '#a85b00' : '#64748b';
     parts.push(`<g data-kind="edge" data-id="${esc(e.id)}"><path d="${esc(e.path)}" fill="none" stroke="${color}"`
       + ` stroke-width="1.5"${e.attached ? ' stroke-dasharray="5 4"' : ''}/>`);
@@ -83,7 +113,8 @@ export function renderWorkflowSvg(i: WorkflowSvgInput): DiagramSvg {
     parts.push('</g>');
   }
   for (const r of brackets) {
-    parts.push(`<path d="M${r.x} ${r.y + r.h} V${r.y} H${r.x + r.w} V${r.y + r.h}" fill="none" stroke="#64748b"/>`);
+    // This labels repetition, rather than depicting an unfinished node or an open box.
+    parts.push(`<rect data-kind="repetition" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="4" fill="#f1f5f9"/>`);
     text(r.x + 8, r.y + 16, r.label);
   }
   for (const c of cards) {
@@ -102,6 +133,71 @@ export function renderWorkflowSvg(i: WorkflowSvgInput): DiagramSvg {
     }
     parts.push('</g>');
   }
+  // A numbered connector at each visible endpoint points to the cross-view connection table.
+  // Shared ports combine references into one badge rather than painting several badges on top of each other.
+  const markers = new Map<string, { id: string; x: number; y: number; dx: number; dy: number; refs: string[] }>();
+  // A group reference is based on every port in the complete diagram, not this page's subset.
+  // Its member C references remain explicit in the connection table and SVG metadata.
+  const portKey = (id: string, point: { x: number; y: number }) => `${id}:${point.x}:${point.y}`;
+  const groupIds = new Map([...new Set(i.edges.flatMap(e => [
+    e.points[0] && portKey(e.edge.from, e.points[0]),
+    e.points.at(-1) && portKey(e.edge.to, e.points.at(-1)!),
+  ].filter((key): key is string => !!key)))].sort().map((key, index) => [key, `G${index + 1}`]));
+  if (i.tile) for (const e of window.continued) {
+    for (const [id, point, next] of [[e.edge.from, e.points[0], e.points[1]],
+      [e.edge.to, e.points.at(-1)!, e.points.at(-2)!]] as const) {
+      if (!window.visible.has(id) || !point || !next) continue;
+      const key = portKey(id, point);
+      const marker = markers.get(key) ?? { id, x: point.x, y: point.y,
+        dx: Math.sign(next.x - point.x), dy: Math.sign(next.y - point.y), refs: [] };
+      marker.refs.push(`C${i.edges.indexOf(e) + 1}`);
+      markers.set(key, marker);
+    }
+  }
+  const occupied: Rect[] = [...cards, ...brackets, ...edges.filter(e => e.label && inside(e.labelBox)).map(e => e.labelBox)];
+  const intersects = (a: Rect, b: Rect) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  const routeSegments = edges.flatMap(e => e.points.slice(1).map((p, k) => ({
+    x: Math.min(p.x, e.points[k].x) - 1, y: Math.min(p.y, e.points[k].y) - 1,
+    w: Math.abs(p.x - e.points[k].x) + 2, h: Math.abs(p.y - e.points[k].y) + 2 })));
+  for (const [key, marker] of markers) {
+    const card = i.scene.byId.get(marker.id)!;
+    // Clamping a badge into a narrow crop margin can cover the node title or ID. Move it into
+    // the clear row above/below the card and retain a short, endpoint-anchored leader instead.
+    // A badge spanning several cards is technically inside the page but difficult to associate
+    // with its endpoint. Keep it no wider than its own card and use an exact table-backed group.
+    const available = (r: Rect) => r.w <= card.w - 4 && inside(r) && !occupied.some(o => intersects(o, r));
+    const locate = (value: string): Rect | undefined => {
+      const w = fonts.width(value, 10, 500) + 8;
+      const preferred = { x: marker.x + (marker.dx < 0 ? -w - 2 : marker.dx > 0 ? 2 : -w / 2),
+        y: marker.y + (marker.dy < 0 ? -18 : marker.dy > 0 ? 2 : -8), w, h: 16 };
+      const xs = [marker.x - w / 2, card.x + 2, card.x + card.w - w - 2];
+      const candidates = [preferred, ...[card.y + card.h + 2, card.y - 18].flatMap(y => xs.map(x => ({ x, y, w, h: 16 })))];
+      const compactW = fonts.width(value, 8, 500) + 6;
+      return candidates.find(r => available(r) && !routeSegments.some(s => intersects(r, s)))
+        ?? candidates.find(available) ?? [card.y - 14, card.y + card.h + 2].flatMap(y =>
+        [card.x + 2, card.x + card.w - compactW - 2].map(x => ({ x, y, w: compactW, h: 12 }))).find(available);
+    };
+    let value = connectorLabel(marker.refs), badge = locate(value);
+    if (!badge) {
+      value = groupIds.get(key)!;
+      badge = locate(value);
+      if (badge) for (const row of continuations) if (marker.refs.includes(row.ref)) {
+        row.groups = [...new Set([...(row.groups ?? []), value])];
+      }
+    }
+    if (!badge) throw new Error(`No clear position for workflow connector ${value} at ${marker.id}`);
+    occupied.push(badge);
+    const { x, y } = badge, compact = badge.h === 12;
+    const end = { x: Math.max(x, Math.min(marker.x, x + badge.w)), y: Math.max(y, Math.min(marker.y, y + badge.h)) };
+    const opposite = marker.dy && Math.sign(end.y - marker.y) !== marker.dy;
+    const lead = marker.dx ? `M${marker.x} ${marker.y} h${marker.dx * 6} V${end.y} H${end.x}`
+      : opposite ? `M${marker.x} ${marker.y} v${marker.dy * 6} H${card.x - 6} V${end.y} H${end.x}`
+      : `M${marker.x} ${marker.y} v${marker.dy * 6} H${end.x} V${end.y}`;
+    parts.push(`<g data-kind="continuation" data-node="${esc(marker.id)}" data-refs="${marker.refs.join(' ')}" data-label="${esc(value)}"><path d="${lead}" fill="none" stroke="#64748b"/>`
+      + `<rect x="${x}" y="${y}" width="${badge.w}" height="${badge.h}" rx="3" fill="#ffffff" stroke="#64748b"/>`);
+    text(x + (compact ? 3 : 4), y + (compact ? 9 : 11), value, compact ? 8 : 10, 500);
+    parts.push('</g>');
+  }
   if (!i.tile) Object.entries(i.legend).forEach(([key, value], k) => {
     const y = b.y + b.h - 84 + k * 20;
     parts.push(`<path d="M${b.x + 14} ${y} h28" stroke="${key === 'escalate' ? '#a85b00' : '#64748b'}"`
@@ -109,10 +205,11 @@ export function renderWorkflowSvg(i: WorkflowSvgInput): DiagramSvg {
     text(b.x + 50, y + 4, value);
   });
   return {
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${b.w}" height="${b.h}" viewBox="${b.x} ${b.y} ${b.w} ${b.h}">${parts.join('')}</svg>`,
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" overflow="hidden" width="${b.w}" height="${b.h}" viewBox="${b.x} ${b.y} ${b.w} ${b.h}">${parts.join('')}</svg>`,
     width: b.w, height: b.h,
+    continuations,
     counts: { frames: brackets.length, cards: cards.length, badges: cards.reduce((n, c) => n + c.badges.length, 0),
-      edges: i.edges.length, labels: i.edges.filter((e) => e.label).length, runs },
+      edges: edges.length, labels: edges.filter((e) => e.label && (!i.tile || inside(e.labelBox))).length, runs },
   };
 }
 
@@ -154,8 +251,14 @@ export function renderWorkflowStrips(i: WorkflowSvgInput, windows: readonly Rect
   const width = Math.max(...windows.map((b) => b.w));
   const height = windows.reduce((h, b) => h + b.h, 0) + (windows.length - 1) * 24 + (withLegend ? 124 : 0);
   let y = 0;
+  const continued = new Map<string, NonNullable<DiagramSvg['continuations']>[number]>();
   const parts = windows.map((bounds, index) => {
     const strip = renderWorkflowSvg({ ...i, bounds, tile: true });
+    for (const row of strip.continuations ?? []) {
+      const previous = continued.get(row.ref);
+      continued.set(row.ref, { ...row, ...((previous?.groups || row.groups)
+        ? { groups: [...new Set([...(previous?.groups ?? []), ...(row.groups ?? [])])] } : {}) });
+    }
     const svg = strip.svg.replace('<svg ', `<svg x="0" y="${y}" `);
     y += bounds.h + 24;
     return svg + (index + 1 < windows.length
@@ -167,7 +270,7 @@ export function renderWorkflowStrips(i: WorkflowSvgInput, windows: readonly Rect
     parts.push(legend.svg.replace('<svg ', `<svg x="0" y="${y}" `));
   }
   const full = renderWorkflowSvg(i);
-  return { ...full, width, height,
+  return { ...full, width, height, continuations: [...continued.values()],
     svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"`
       + ` viewBox="0 0 ${width} ${height}">${parts.join('')}</svg>` };
 }

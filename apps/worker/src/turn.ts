@@ -309,7 +309,7 @@ export async function handleTurn(request: Request, env: Env, ctx: ExecutionConte
       (clientGone ? writer.abort() : writer.close()).catch(() => undefined);
     }
     const s = outcome.stats;
-    const cost = (s?.costUsd ?? 0) + outcome.summaryCostUsd;
+    const cost = (s?.costUsd ?? 0) + outcome.summaryCostUsd + (outcome.titleCostUsd ?? 0);
     // In this order, one after the other: while the slot is held the same user's next turn is refused (409), so by the
     // time the slot is free the count it reads includes this turn. A failure of one must not skip the other.
     await db.recordUsage(env.DB, user.id, day, cost, rescueRan ? 2 : 1).catch(() => undefined);
@@ -336,6 +336,7 @@ export async function handleTurn(request: Request, env: Env, ctx: ExecutionConte
         timings: s ? { firstByteMs: s.firstByteMs, firstOpMs: s.firstOpMs, turnMs: s.turnMs } : null,
         tokens: s ? { prompt: s.promptTokens, cached: s.cachedTokens, completion: s.completionTokens } : null,
         costUsd: Number(cost.toFixed(6)),
+        titleCostUsd: Number((outcome.titleCostUsd ?? 0).toFixed(6)),
         nodes: outcome.nodes ?? null,
       }),
     );

@@ -29,14 +29,18 @@ export interface CheckResult {
   summary: { pages: number; landscape: number[]; links: number; expectedLinks: number; missingDocs: number; names: number };
 }
 
-export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: string; customer?: string; draft?: ProposalDraft | null } = {}): Promise<CheckResult> {
-  const model = buildProposal({ session: state.session, graph: state.display.graph, layout: state.display.layout, catalog, lang: state.lang, title: o.title ?? '', customer: o.customer ?? '', now: new Date(2026, 9, 31, 12), draft: o.draft ?? null });
+export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: string; customer?: string; now?: Date; draft?: ProposalDraft | null } = {}): Promise<CheckResult> {
+  const model = buildProposal({ session: state.session, graph: state.display.graph, layout: state.display.layout, catalog, lang: state.lang, title: o.title ?? '', customer: o.customer ?? '', now: o.now ?? new Date(2026, 9, 31, 12), draft: o.draft ?? null });
   const xt = makeXT(state.lang);
   const info = await inspectPdf(bytes);
   const problems: string[] = [];
   const all = squash(info.text);
+  const bodyText = squash(info.pages.flatMap(p => p.items.filter(it => it.y > 60 && it.y < p.height - FOOTER)
+    .sort((a, b) => a.y - b.y || a.x - b.x).map(it => it.str)).join(''));
   const total = info.pages.length;
   const n = model.narrative;
+  const authored = Boolean(n?.sections?.length);
+  const references = [...new Map([...model.components, ...model.recs].filter(c => c.docs).map(c => [c.product, c])).values()];
 
   // pages: cover, [executive summary, needs], summary or design record, diagram (landscape), components, [recommendations], [considerations], connections, revisions
   const landscape = info.pages.filter((p) => p.width > p.height).map((p) => p.n);
@@ -55,7 +59,11 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
   if (!model.workflow && (landscape.length !== Number(cloud) || (cloud && landscape[0] !== diagramPage))) problems.push('Cloud diagram page missing or unexpected');
 
   // the sections, each on a later page than the one before
-  const order: ExportKey[] = n
+  const order: ExportKey[] = authored
+    ? [...(n!.exec.length || n!.outcomes.length ? (['exec.heading'] as const) : []),
+      ...(model.workflow || cloud ? (['diagram.heading'] as const) : []),
+      ...(references.length ? (['references.heading'] as const) : [])]
+    : n
     ? [
         ...(n.exec.length || n.outcomes.length ? (['exec.heading'] as const) : []),
         ...(n.tradeoffs.length || n.next.length ? (['next.heading'] as const) : []),
@@ -71,15 +79,15 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
       ...(model.recs.length ? (['recs.heading'] as const) : []), ...(model.connections.length ? (['conn.heading'] as const) : []),
       ...(model.revisions.length ? (['rev.heading'] as const) : [])];
   const wf = model.workflow;
-  const mapping = wf?.mapping.filter(r => r.runtime !== xt('workflow.unspecified') || r.service !== xt('workflow.unspecified')) ?? [];
+  const mapping = authored ? [] : wf?.mapping.filter(r => r.runtime !== xt('workflow.unspecified') || r.service !== xt('workflow.unspecified')) ?? [];
   const questions = n ? [] : wf?.openQuestions.filter(q => q.source !== 'boundary') ?? [];
-  const showCost = wf && !(n && model.pricing) && (wf.cost.lines.length || wf.cost.fixed.length || wf.cost.unpriced.length);
+  const showCost = !authored && wf && !(n && model.pricing) && (wf.cost.lines.length || wf.cost.fixed.length || wf.cost.unpriced.length);
   const titles = order.flatMap((k) => k === 'diagram.heading' && model.workflow
     ? [firstPageWith(wt(state.lang, 'diagram.overview')) > 0 ? wt(state.lang, 'diagram.overview') : wt(state.lang, 'diagram.heading'),
-      ...(wf?.steps.some(s => s.text) ? [wt(state.lang, 'steps.heading')] : []), ...(mapping.length ? [model.workflow.mappingTitle] : []),
+      ...(!authored && wf?.steps.some(s => s.text) ? [wt(state.lang, 'steps.heading')] : []), ...(mapping.length ? [model.workflow.mappingTitle] : []),
       ...(showCost ? [model.workflow.costTitle] : []), ...(questions.length ? [model.workflow.questionsTitle] : [])] : [xt(k)]);
   const canSharePage = (title: string) => title === xt('next.heading') || title === wf?.mappingTitle
-    || (!!wf && !!n && title === xt('components.heading'));
+    || (authored && title === xt('references.heading')) || (!!wf && !!n && title === xt('components.heading'));
   const at = titles.map(title => canSharePage(title)
     ? info.pages.find(p => p.n > 1 && squash(p.text).includes(squash(title)))?.n ?? -1 : firstPageWith(title));
   titles.forEach((title, idx) => {
@@ -102,6 +110,7 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
   const cover = squash(info.pages[0]?.text ?? '');
   for (const [what, text] of [
     ['title', model.title],
+    ['audience', xt(model.audience === 'alibaba' ? 'doc.alibaba' : 'doc.client')],
     ['preparedWith', xt('doc.preparedWith')],
     ['AI notice', xt('doc.aiNotice')],
     ['date', model.dateText],
@@ -118,30 +127,38 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
   });
 
   // content: every product name, every revision's ask, the entry labels
-  for (const c of model.components) if (!all.includes(squash(c.name))) problems.push(`product name missing from the text: ${c.name}`);
+  for (const c of authored ? references : model.components) if (!all.includes(squash(c.name))) problems.push(`product name missing from the text: ${c.name}`);
   if (!n) for (const r of model.revisions) if (!all.includes(squash(r.ask.slice(0, 40)))) problems.push(`revision ${r.n}'s ask is missing`);
-  if (model.components.length && !all.includes(squash(xt(n ? 'components.why' : 'components.role')))) problems.push(`"${xt(n ? 'components.why' : 'components.role')}" label is missing`);
-  if (model.components.some(c => c.what && (!n || !c.draftWhy)) && !all.includes(squash(xt('components.what')))) problems.push('"What it does" label is missing');
+  if (!authored && model.components.length && !all.includes(squash(xt(n ? 'components.why' : 'components.role')))) problems.push(`"${xt(n ? 'components.why' : 'components.role')}" label is missing`);
+  if (!authored && model.components.some(c => c.what && (!n || !c.draftWhy)) && !all.includes(squash(xt('components.what')))) problems.push('"What it does" label is missing');
 
   // the drafted narrative: what the business reader is there for must all be in the text
   if (n) {
     const has = (text: string): boolean => all.includes(squash(text.slice(0, 60)));
     n.exec.forEach((p, k) => !has(p) && problems.push(`executive summary paragraph ${k + 1} is missing`));
     for (const o2 of n.outcomes) if (!has(o2.title) || !has(o2.text)) problems.push(`outcome missing: ${o2.title}`);
-    for (const need of n.needs) {
+    for (const need of authored ? [] : n.needs) {
       if (!has(need.need) || !has(need.answer)) problems.push(`need missing: ${need.need.slice(0, 60)}`);
       if (!all.includes(squash(need.sourceText))) problems.push(`the source line of a need is missing: ${need.sourceText.slice(0, 60)}`);
     }
-    for (const c of model.components) if (c.draftWhy && !has(c.draftWhy)) problems.push(`the drafted why for ${c.product} is missing`);
-    for (const r of model.recs) if (r.draftWhy && !has(r.draftWhy)) problems.push(`the drafted why for recommendation ${r.product} is missing`);
+    if (!authored) {
+      for (const c of model.components) if (c.draftWhy && !has(c.draftWhy)) problems.push(`the drafted why for ${c.product} is missing`);
+      for (const r of model.recs) if (r.draftWhy && !has(r.draftWhy)) problems.push(`the drafted why for recommendation ${r.product} is missing`);
+    }
+    let chapterAt = 0;
+    for (const section of n.sections ?? []) for (const text of [section.title, ...section.paragraphs]) {
+      const index = bodyText.indexOf(squash(text), chapterAt);
+      if (index < 0) problems.push(`authored chapter content missing or out of order: ${text.slice(0, 80)}`);
+      else chapterAt = index + squash(text).length;
+    }
     for (const t of n.tradeoffs) if (!has(t.text) || (t.mitigation && !has(t.mitigation))) problems.push(`trade-off missing: ${t.text.slice(0, 60)}`);
     n.next.forEach((s, k) => !has(s) && problems.push(`next step ${k + 1} is missing`));
   }
 
   // links: exactly the catalog's documentation URLs
-  const wantLinks = model.components.map((c) => c.docs).filter((d): d is string => !!d).concat(model.recs.map((r) => r.docs).filter((d): d is string => !!d));
+  const wantLinks = (authored ? references : [...model.components, ...model.recs]).map(c => c.docs).filter((d): d is string => !!d);
   // with a draft a construct (users, a mobile app) prints no documentation row at all
-  const missing = model.components.filter((c) => !c.docs && !c.construct).length + model.recs.filter((r) => !r.docs).length;
+  const missing = authored ? 0 : model.components.filter((c) => !c.docs && !c.construct).length + model.recs.filter((r) => !r.docs).length;
   if (model.workflow) wantLinks.push(...[...new Set([...model.workflow.cost.lines, ...model.workflow.cost.fixed]
     .map((r) => r.source).filter((source) => /^https:\/\//.test(source)))].flatMap((source) =>
       info.links.filter((link) => link === source)));
@@ -170,6 +187,8 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
 
   // no orphaned sub-heading: the last line of content on a page is never one
   const subs = new Set((['exec.outcomes', 'next.tradeoffs', 'next.steps', 'summary.design', 'summary.requirements', 'summary.constraints', 'summary.assumptions', 'summary.questions', 'recs.gaps'] as const).map((k) => squash(xt(k))));
+  for (const key of ['cost.coverage', 'cost.fixed', 'cost.unpriced', 'cost.assumptions'] as const) subs.add(squash(wt(state.lang, key)));
+  for (const section of n?.sections ?? []) subs.add(squash(section.title));
   for (const p of info.pages) {
     const body = p.items.filter((it) => it.y > 60 && it.y < p.height - FOOTER).sort((a, b) => a.y - b.y || a.x - b.x);
     const lastY = body.at(-1)?.y;

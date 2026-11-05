@@ -18,6 +18,16 @@ test('before anything is written, the overlay is reading the conversation', () =
   assert.deepEqual(stepsOf(s).find((v) => v.id === 'why')?.count, { k: 0, n: 3 });
 });
 
+test('authored reports show chapter progress without requiring one explanation per component', () => {
+  let s = startFlow(0, ['alb', 'ecs'], undefined, true, true);
+  assert.deepEqual(stepsOf(s).map(v => v.id), ['read', 'exec', 'why', 'close', 'layout']);
+  s = reduceFlow(s, sec({ k: 'section', title: 'Protect the next release', text: 'A rationale specific to this customer.' }, 100));
+  assert.equal(activeStep(s), 'why');
+  assert.deepEqual(stepsOf(s).find(v => v.id === 'why')?.count, { k: 1 });
+  s = reduceFlow(s, sec({ k: 'next', text: 'Agree the pilot scope in a workshop.' }, 200));
+  assert.equal(activeStep(s), 'close');
+});
+
 test('sections move the steps forward and count what was written', () => {
   let s = startFlow(0, ['alb', 'ecs', 'rds']);
   s = run(s, [

@@ -87,7 +87,7 @@ function turnResponse(fx: Fixture, turn = 0, upTo = Infinity): Response {
 const ME = { email: 'mina@example.com', name: 'Mina Park', role: 'member', status: 'approved', lang: 'en', createdAt: 1, turnsToday: 3, turnsPerDay: 60, links: { account: '/account', admin: null, signOut: '/auth/logout' } };
 const json = (body: unknown, status = 200): Response => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 
-function setup(o: { health?: unknown; me?: unknown | (() => unknown); turn?: () => Response | Promise<Response>; pricing?: (request: PricingRequest) => Response | Promise<Response>; sessions?: ReturnType<typeof createSessionStore>; resumeId?: string | null; hosted?: boolean; leaveOk?: boolean; keptAsk?: PendingAsk } = {}) {
+function setup(o: { health?: unknown; me?: unknown | (() => unknown); turn?: () => Response | Promise<Response>; title?: (ask: string, signal?: AbortSignal | null) => Response | Promise<Response>; pricing?: (request: PricingRequest) => Response | Promise<Response>; sessions?: ReturnType<typeof createSessionStore>; resumeId?: string | null; hosted?: boolean; leaveOk?: boolean; keptAsk?: PendingAsk } = {}) {
   const store = newStore();
   const timers = new Map<number, () => void>();
   let n = 0;
@@ -146,6 +146,7 @@ function setup(o: { health?: unknown; me?: unknown | (() => unknown); turn?: () 
         return me === undefined ? json({ error: 'not-found' }, 404) : json(me, me === null ? 401 : 200);
       }
       if (String(url).endsWith('/api/pricing') && o.pricing) return o.pricing(JSON.parse(String(init!.body)));
+      if (String(url).endsWith('/api/session-title')) return o.title ? o.title(JSON.parse(String(init!.body)).ask, init?.signal) : json({}, 404);
       return o.turn ? o.turn() : turnResponse(loadFixtureFile('ha'));
     }) as typeof fetch,
   };
@@ -166,6 +167,84 @@ function pricingReply(req: PricingRequest): Response {
     currency: 'USD', items: [], monthlyUsd: null, oneTimeUsd: null, assumptions: [], unknowns: ['Instance rate'],
   } } });
 }
+
+test('Flash title is saved and survives reload; follow-up turns preserve it and the full initial ask', async () => {
+  const a = setup({ turn: () => {
+    const events = loadFixtureFile('ha').turns[0].ev.map(([, e]) =>
+      e.type === 'commit' ? { ...e, title: 'Regional inventory planning' } : e);
+    return new Response(events.map(e => JSON.stringify(e)).join('\n') + '\n');
+  } });
+  await a.c.boot();
+  const ask = 'Help plan inventory across all our stores';
+  a.c.submit(ask);
+  await until(() => a.store.getState().session.revisions[0]?.status === 'done');
+  const first = a.store.getState().session;
+  assert.equal(first.title, 'Regional inventory planning');
+  assert.equal(first.revisions[0].ask, ask);
+  assert.equal((a.requests.find(r => r.url === '/api/turn')?.body as { generateTitle?: boolean }).generateTitle, true);
+  assert.equal(a.sessions.get(first.id)?.title, first.title);
+  const back = setup({ sessions: a.sessions, resumeId: first.id });
+  await back.c.boot();
+  assert.equal(back.store.getState().session.title, first.title);
+  back.c.submit('Add a database');
+  await until(() => back.store.getState().session.revisions[1]?.status === 'done');
+  assert.equal((back.requests.find(r => r.url === '/api/turn')?.body as { generateTitle?: boolean }).generateTitle, undefined);
+  assert.equal(back.store.getState().session.title, first.title);
+  a.c.dispose(); back.c.dispose();
+});
+
+test('existing sessions get one Flash title in the background, preserving order, full history and custom titles', async () => {
+  const original = setup();
+  await original.c.boot();
+  original.c.submit('Plan inventory for our regional stores');
+  await until(() => original.store.getState().session.revisions[0]?.status === 'done');
+  const record = original.sessions.get(original.store.getState().session.id)!;
+  original.sessions.save({ ...record, title: record.revisions[0].ask, titleVersion: undefined });
+  original.sessions.save({ ...record, id: 'custom-name', title: 'My approved proposal', titleVersion: undefined, updatedAt: record.updatedAt - 1 });
+  original.c.dispose();
+  let count = 0;
+  const back = setup({ sessions: original.sessions, resumeId: record.id, title: async ask => {
+    count++; assert.equal(ask, record.revisions[0].ask);
+    return json({ title: 'Regional inventory planning', titleVersion: 1 });
+  } });
+  await back.c.boot();
+  await until(() => back.sessions.get(record.id)?.titleVersion === 1);
+  const changed = back.sessions.get(record.id)!;
+  assert.equal(back.store.getState().session.title, 'Regional inventory planning');
+  assert.equal(changed.updatedAt, record.updatedAt);
+  assert.deepEqual(changed.memory, record.memory);
+  assert.deepEqual(changed.revisions, record.revisions);
+  assert.equal(back.sessions.get('custom-name')?.title, 'My approved proposal');
+  await back.c.checkHealth();
+  assert.equal(count, 1);
+  back.c.dispose();
+  const reload = setup({ sessions: back.sessions });
+  await reload.c.boot();
+  assert.ok(!reload.requests.some(request => request.url === '/api/session-title'));
+  reload.c.dispose();
+});
+
+test('legacy title completion merges newer edits, never resurrects a deleted session, and cancellation cools retries', async () => {
+  for (const scenario of ['edited', 'deleted', 'disposed'] as const) {
+    const a = setup(); await a.c.boot(); a.c.submit('Plan inventory for all our stores');
+    await until(() => a.store.getState().session.revisions[0]?.status === 'done');
+    const record = a.sessions.get(a.store.getState().session.id)!;
+    a.sessions.save({ ...record, title: record.revisions[0].ask, titleVersion: undefined }); a.c.dispose();
+    let resolve!: (value: Response) => void;
+    const pending = new Promise<Response>(done => { resolve = done; });
+    const b = setup({ sessions: a.sessions, title: () => pending }); await b.c.boot();
+    if (scenario === 'edited') b.sessions.save({ ...b.sessions.get(record.id)!, memory: { ...record.memory, requirements: ['New confirmed constraint'] }, updatedAt: record.updatedAt + 100 });
+    if (scenario === 'deleted') b.sessions.remove(record.id);
+    if (scenario === 'disposed') b.c.dispose();
+    resolve(json({ title: 'Inventory planning', titleVersion: 1 }));
+    await new Promise(done => setImmediate(done));
+    const after = b.sessions.get(record.id);
+    if (scenario === 'deleted') assert.equal(after, null);
+    if (scenario === 'edited') { assert.equal(after?.title, 'Inventory planning'); assert.deepEqual(after?.memory.requirements, ['New confirmed constraint']); assert.equal(after?.updatedAt, record.updatedAt + 100); }
+    if (scenario === 'disposed') { assert.equal(after?.title, record.revisions[0].ask); assert.ok(after!.titleRetryAt! > Date.now()); }
+    b.c.dispose();
+  }
+});
 
 test('pricing resumes its own conversation and preserves the last estimate and answer through a failure', async () => {
   let fail = false;

@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { ProposalDraft, ProposalRequest, ProposalSection } from '@ali/core/types.ts';
 import { DraftError, asDraft, buildProposalRequest, parseProposalEvent, requestDraft } from './draft-client.ts';
+import { createInitialState } from '../store/reducer.ts';
 
 const enc = new TextEncoder();
 const MEMORY = { turns: [], requirements: [], graph: { groups: {}, nodes: {}, edges: {}, recs: [] }, tombstones: [] };
@@ -17,6 +18,17 @@ const DRAFT: ProposalDraft = {
   next: ['트래픽 수치를 확인합니다.'],
   complete: true,
 };
+
+test('audience and authored chapters survive the streamed proposal boundary', async () => {
+  const section = { k: 'section' as const, title: 'Why Alibaba Cloud fits', text: 'A customer-specific rationale.\n\nA second paragraph.' };
+  const draft: ProposalDraft = { ...DRAFT, audience: 'alibaba', sections: [{ title: section.title, text: section.text }] };
+  const req = buildProposalRequest(createInitialState({ lang: 'ko', id: 's1', now: 0 }), 'Title', 'Client', 'alibaba');
+  assert.equal(req.audience, 'alibaba');
+  assert.deepEqual(parseProposalEvent(JSON.stringify({ type: 'section', section })), { type: 'section', section });
+  assert.deepEqual(asDraft(draft), draft);
+  assert.equal(parseProposalEvent(JSON.stringify({ type: 'section', section: { ...section, title: '' } })), null);
+  assert.deepEqual(asDraft({ ...draft, sections: [null, { title: '', text: 'bad' }, draft.sections![0]] })?.sections, draft.sections);
+});
 
 const SECTIONS: ProposalSection[] = [
   { k: 'exec', text: DRAFT.exec },

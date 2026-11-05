@@ -154,7 +154,7 @@ describe('POST /api/proposal streaming', () => {
     assert.equal(o.fallbackModel, 'qwen3.8-max');
     assert.ok(o.signal instanceof AbortSignal);
     const left = o.msLeft!();
-    assert.ok(left > 350_000 && left <= 360_000, `msLeft ${left}`);
+    assert.ok(left > 830_000 && left <= 840_000, `msLeft ${left}`);
     assert.equal(o.backup, undefined);
     assert.equal(o.backupGate, undefined);
 
@@ -296,12 +296,12 @@ describe('POST /api/proposal streaming', () => {
     assert.equal(log.deadlineHit, true);
   });
 
-  test('PROPOSAL_DEADLINE_MS: 30000-600000, else 360000', () => {
-    assert.equal(proposalDeadlineMs(makeEnv()), 360_000);
+  test('PROPOSAL_DEADLINE_MS: 30000-840000, else 840000', () => {
+    assert.equal(proposalDeadlineMs(makeEnv()), 840_000);
     assert.equal(proposalDeadlineMs(makeEnv({ PROPOSAL_DEADLINE_MS: '90000' })), 90_000);
-    assert.equal(proposalDeadlineMs(makeEnv({ PROPOSAL_DEADLINE_MS: '1000' })), 360_000);
-    assert.equal(proposalDeadlineMs(makeEnv({ PROPOSAL_DEADLINE_MS: '700000' })), 360_000);
-    assert.equal(proposalDeadlineMs(makeEnv({ PROPOSAL_DEADLINE_MS: 'soon' })), 360_000);
+    assert.equal(proposalDeadlineMs(makeEnv({ PROPOSAL_DEADLINE_MS: '1000' })), 840_000);
+    assert.equal(proposalDeadlineMs(makeEnv({ PROPOSAL_DEADLINE_MS: '900000' })), 840_000);
+    assert.equal(proposalDeadlineMs(makeEnv({ PROPOSAL_DEADLINE_MS: 'soon' })), 840_000);
   });
 
   test('Stop in the browser (the stream is cancelled) aborts the draft and frees the slot; no done', async () => {

@@ -37,6 +37,8 @@ export interface DiagramSvgInput {
 }
 
 export interface DiagramSvg {
+  /** Numbered connectors replace routes that cannot be shown whole in a workflow detail window. */
+  continuations?: Array<{ ref: string; from: string; to: string; label: string; groups?: string[] }>;
   svg: string;
   /** The viewBox size, in world px. */
   width: number;

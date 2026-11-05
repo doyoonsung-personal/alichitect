@@ -2,7 +2,7 @@
 // ProposalEvents as they arrive (sharing the turn client's line reader), hands each written section to the overlay, and
 // resolves with the assembled ProposalDraft. Every other way a draft can end is a DraftError the overlay can explain.
 // Pure apart from fetch, which the caller can replace; the AbortSignal is the overlay's Stop.
-import type { NeedSource, ProposalDraft, ProposalEvent, ProposalNeed, ProposalRequest, ProposalSection } from '@ali/core/types.ts';
+import type { NeedSource, ProposalAudience, ProposalDraft, ProposalEvent, ProposalNeed, ProposalRequest, ProposalSection } from '@ali/core/types.ts';
 import { createLineDecoder } from '../stream/ndjson-client.ts';
 import type { AppState } from '../store/types.ts';
 
@@ -36,8 +36,9 @@ export interface DraftOptions {
 }
 
 /** The request for the session on screen: the cover fields as typed, in the UI's language. */
-export function buildProposalRequest(s: Pick<AppState, 'session' | 'lang'>, title: string, customer: string): ProposalRequest {
+export function buildProposalRequest(s: Pick<AppState, 'session' | 'lang'>, title: string, customer: string, audience?: ProposalAudience): ProposalRequest {
   return { sessionId: s.session.id, lang: s.lang, title: title.trim(), customer: customer.trim(), memory: s.session.memory,
+    ...(audience ? { audience } : {}),
     ...(s.session.pricing ? { pricing: s.session.pricing } : {}) };
 }
 
@@ -61,7 +62,8 @@ export function asSection(v: unknown): ProposalSection | null {
       if (!str(v.id) || !text(v.need) || !text(v.answer) || !str(v.source) || !SOURCES.has(v.source)) return null;
       return { k: 'need', id: v.id, need: v.need, source: v.source as NeedSource, ...(text(v.quote) ? { quote: v.quote } : {}), answer: v.answer, products: strings(v.products) };
     case 'outcome':
-      return text(v.title) && text(v.text) ? { k: 'outcome', title: v.title, text: v.text } : null;
+    case 'section':
+      return text(v.title) && text(v.text) ? { k: v.k, title: v.title, text: v.text } : null;
     case 'why':
       return str(v.product) && text(v.text) ? { k: 'why', product: v.product, text: v.text } : null;
     case 'step':
@@ -91,6 +93,8 @@ export function asDraft(v: unknown): ProposalDraft | null {
   if (isObj(v.why)) for (const [id, w] of Object.entries(v.why)) if (text(w)) why[id] = w;
   return {
     lang,
+    ...(v.audience === 'client' || v.audience === 'alibaba' ? { audience: v.audience } : {}),
+    ...(Array.isArray(v.sections) ? { sections: v.sections.filter((o): o is { title: string; text: string } => isObj(o) && text(o.title) && text(o.text)).map(o => ({ title: o.title, text: o.text })) } : {}),
     exec: v.exec,
     ...(text(v.cost) ? { cost: v.cost } : {}),
     needs,

@@ -99,10 +99,10 @@ test('the summary carries the first revision narration and the pinned requiremen
   assert.match(m.summary.facts, /products, .* connections, 4 revisions/);
 });
 
-test('cover data: title from the first ask, editable; customer optional; date and catalog date', () => {
+test('cover data: bounded session title, editable; customer optional; date and catalog date', () => {
   const s = stateOf('residency');
   const m = modelOf(s);
-  assert.equal(m.title, "We're a Singapore fintech and customer data must stay in Singapore");
+  assert.equal(m.title, "We're a Singapore fintech and customer data must stay in…");
   assert.equal(m.customer, '');
   assert.equal(m.date, '2026-10-31');
   assert.equal(m.catalogDate, catalog.version);

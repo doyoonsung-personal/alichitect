@@ -9,9 +9,10 @@ import { readFileSync } from 'node:fs';
 import { loadCatalog } from '../src/catalog-node.ts';
 import { assembleDraft, buildProposalMessages, capText, draftProposal, leadWithEngagement, lintSection, parseProposalLine, proposalCtx, PROPOSAL_LIMITS, regionWords } from '../src/proposal.ts';
 import type { DraftProposalOptions } from '../src/proposal.ts';
-import { PROPOSAL_KEEP_LAST, estimateProposalTokens } from '../src/proposal-prompt.ts';
+import { PROPOSAL_KEEP_LAST, estimateProposalTokens, proposalEditorialMessages } from '../src/proposal-prompt.ts';
 import { calculateSolutionEstimate, pricingDesignKey } from '../src/solution-pricing.ts';
 import { BACKUP_MIN_MS_LEFT } from '../src/llm.ts';
+import { needsApproval } from '../src/approval.ts';
 import type { BackupCall, BackupCompleteOptions, BackupCompleteResult, BackupProvider } from '../src/llm.ts';
 import { BACKUP_TEXT_VOICE_NOTE, createClaudeBackup } from '../src/claude.ts';
 import type { ProposalRequest, ProposalSection, SessionMemory } from '../src/types.ts';
@@ -81,6 +82,203 @@ const L = {
   next2: line({ k: 'next', text: 'Run a load test before the next big sale.' }),
 };
 const FULL = [L.exec, L.need1, L.need2, L.outcome1, L.outcome2, ...L.whys, L.tradeoff, L.next1, L.next2];
+
+const CHAPTERS = [
+  { k: 'section' as const, title: 'Protect the next ticket release', text: 'Alibaba Cloud ECS places the ticketing application behind a shared entry point so demand can be spread across the proposed web servers. This addresses the sales spike the customer described.\n\nA load test using the expected ticket-release pattern would show whether this arrangement is sufficient before rollout.' },
+  { k: 'section' as const, title: 'Keep the database the team knows', text: 'The proposed RDS database retains PostgreSQL, matching the team’s stated experience. This makes database familiarity part of the design choice rather than introducing a separate retraining decision.\n\nThe first validation should exercise a representative ticket reservation and confirm that the recorded order matches the response seen by the buyer.' },
+];
+
+describe('audience-specific authored reports', () => {
+  test('compact editorial evidence preserves rejection, revision loops and selected AI models', () => {
+    const req = workflowRequest();
+    req.memory.workflow!.edges = {
+      reject: { id: 'reject', from: 'review', to: 'end', outcome: 'reject' },
+      edit: { id: 'edit', from: 'review', to: 'draft', outcome: 'edit', kind: 'loop', max: 2 },
+    };
+    const messages = proposalEditorialMessages(req, CAT, []);
+    const evidence = JSON.parse(String(messages[1].content));
+    assert.deepEqual(evidence.workflow.links, [
+      { id: 'reject', from: 'review', to: 'end', outcome: 'reject' },
+      { id: 'edit', from: 'review', to: 'draft', outcome: 'edit', kind: 'loop', max: 2 },
+    ]);
+    assert.equal(evidence.workflow.steps.find((step: { id: string }) => step.id === 'end').kind, 'end');
+    assert.equal(evidence.workflow.steps.find((step: { id: string }) => step.id === 'draft').ai, 'qwen3.5-plus');
+    assert.match(String(messages[0].content), /only an explicit loop returns for revision/);
+  });
+  test('both writing passes follow the diagram approval policy, including settings-only changes and explicit node precedence', () => {
+    const req = workflowRequest();
+    req.memory.workflow!.nodes.send = { id: 'send', kind: 'act', label: 'Send reply', effect: 'send', runs: 'customer' };
+    req.memory.workflow!.nodes.edit = { id: 'edit', kind: 'act', label: 'Update stock', effect: 'write', approval: 'skip' };
+    req.memory.workflow!.nodes.pay = { id: 'pay', kind: 'act', label: 'Pay supplier', effect: 'pay', approval: 'required' };
+    const evidence = () => {
+      const editorial = JSON.parse(String(proposalEditorialMessages(req, CAT, [])[1].content));
+      const continuation = String(buildProposalMessages(req, CAT)[1].content).split('\n')
+        .filter(line => line.startsWith('{')).map(line => JSON.parse(line))
+        .filter(value => 'effectiveApproval' in value);
+      return [editorial.workflow.steps, continuation] as Array<Array<{ id: string; effect?: string; effectiveApproval: string }>>;
+    };
+    const original = String(proposalEditorialMessages(req, CAT, [])[1].content);
+    for (const pass of evidence()) assert.equal(pass.find(step => step.id === 'send')!.effectiveApproval, 'required');
+    req.memory.workflowSettings = { approvalOff: ['send', 'pay'], approvalOn: ['write'] };
+    assert.notEqual(String(proposalEditorialMessages(req, CAT, [])[1].content), original, 'a setting-only edit changes writer evidence');
+    for (const pass of evidence()) {
+      for (const node of Object.values(req.memory.workflow!.nodes)) {
+        assert.equal(pass.find(step => step.id === node.id)!.effectiveApproval,
+          needsApproval(node, req.memory.workflowSettings) ? 'required' : 'not-required', node.id);
+      }
+      assert.equal(pass.find(step => step.id === 'send')!.effectiveApproval, 'not-required');
+      assert.equal(pass.find(step => step.id === 'edit')!.effectiveApproval, 'not-required', 'explicit skip beats approvalOn');
+      assert.equal(pass.find(step => step.id === 'pay')!.effectiveApproval, 'required', 'explicit required beats approvalOff');
+      assert.equal(pass.find(step => step.id === 'send')!.effect, 'send');
+    }
+  });
+
+  test('region, repeat and usage changes are preserved in both evidence packs with consistent aliased references', () => {
+    const req = workflowRequest();
+    const baseline = String(proposalEditorialMessages(req, CAT, [])[1].content);
+    req.memory.workflowSettings = { region: 'ap-northeast-1', approvalOn: ['write'] };
+    req.memory.workflow!.groups['claude-items'] = { id: 'claude-items', over: 'Each store', parallel: true };
+    req.memory.workflow!.nodes.draft.repeat = 'claude-items';
+    req.memory.workflow!.nodes.review.subject = 'draft';
+    req.memory.workflow!.edges.edit = { id: 'edit', from: 'review', to: 'draft', kind: 'loop', outcome: 'edit', max: 2 };
+    req.memory.estimate = { runsPerMonth: 1200, scope: 'international', items: { 'claude-items': { typical: 2, upper: 5 } },
+      loops: { edit: { typical: 1, upper: 2 } }, steps: { draft: { inTokens: 1800, outTokens: 250, thinking: true } } };
+    const raw = String(proposalEditorialMessages(req, CAT, [])[1].content);
+    assert.notEqual(raw, baseline);
+    const workflow = JSON.parse(raw).workflow;
+    assert.equal(workflow.settings.region, 'Tokyo');
+    assert.equal(workflow.settings.regionSource, 'selected');
+    assert.deepEqual(workflow.settings.approvalOn, ['write']);
+    assert.equal(workflow.groups[0].over, 'Each store');
+    assert.equal(workflow.groups[0].parallel, true);
+    const groupId = workflow.groups[0].id;
+    assert.notEqual(groupId, 'claude-items');
+    assert.equal(workflow.steps.find((step: { id: string }) => step.id === 'draft').repeat, groupId);
+    assert.equal(workflow.steps.find((step: { id: string }) => step.id === 'review').subject, 'draft');
+    assert.deepEqual(workflow.usage.items[groupId], { typical: 2, upper: 5 });
+    assert.equal(workflow.usage.runsPerMonth, 1200);
+    assert.deepEqual(workflow.usage.loops.edit, { typical: 1, upper: 2 });
+    assert.equal(workflow.usage.steps.draft.thinking, true);
+    const continuation = String(buildProposalMessages(req, CAT)[1].content);
+    assert.ok(continuation.includes(JSON.stringify(workflow.settings)));
+    assert.ok(continuation.includes(JSON.stringify(workflow.groups[0])));
+    assert.ok(continuation.includes(JSON.stringify(workflow.usage)));
+    assert.doesNotMatch(raw + continuation, /claude-items/);
+    assert.match(continuation, /scenario settings, not confirmed customer quantities/);
+  });
+
+  test('compact catalog evidence keeps restrictions and caveats so a service is not pitched as generally available', () => {
+    const req = workflowRequest();
+    const catalog = { ...CAT, byId: new Map(CAT.byId) };
+    catalog.byId.set('model-studio', { ...catalog.byId.get('model-studio')!, status: 'preview', availability: 'restricted',
+      regions: ['ap-southeast-1'], note: 'Existing approved accounts only.', avoidWhen: 'New accounts without access.' });
+    const evidence = JSON.parse(String(proposalEditorialMessages(req, catalog, ['model-studio'])[1].content));
+    assert.equal(evidence.services[0].status, 'preview');
+    assert.equal(evidence.services[0].availability, 'restricted');
+    assert.equal(evidence.services[0].note, 'Existing approved accounts only.');
+    assert.equal(evidence.services[0].avoidWhen, 'New accounts without access.');
+    assert.deepEqual(evidence.services[0].regions, ['Singapore']);
+    assert.ok(evidence.services[0].verified);
+    const continuation = String(buildProposalMessages(req, catalog)[1].content);
+    assert.match(continuation, /in preview; restricted for new international accounts/);
+    assert.match(continuation, /Existing approved accounts only/);
+    assert.match(continuation, /Known international regions: Singapore/);
+  });
+
+  test('custom chapters preserve paragraphs and products, and replace fixed inventories for both audiences', () => {
+    for (const audience of ['client', 'alibaba'] as const) {
+      const ctx = proposalCtx(request({ audience }), CAT);
+      const chapters = CHAPTERS.map(s => parseProposalLine(line(s), ctx)!);
+      assert.deepEqual(chapters, CHAPTERS);
+      const draft = assembleDraft([parseProposalLine(L.exec, ctx)!, ...chapters, parseProposalLine(L.next2, ctx)!], ctx);
+      assert.equal(draft.audience, audience);
+      assert.equal(draft.complete, true);
+      assert.equal(draft.sections?.length, 2);
+      assert.deepEqual(draft.needs, []);
+      assert.deepEqual(draft.why, {});
+      assert.equal(assembleDraft([parseProposalLine(L.exec, ctx)!, chapters[0], parseProposalLine(L.next2, ctx)!], ctx).complete, false);
+    }
+    assert.equal(assembleDraft([], CTX).audience, 'client');
+  });
+
+  test('chapters remain subject to factual checks and minimum substance', () => {
+    assert.equal(parseProposalLine(line({ ...CHAPTERS[0], text: 'A heading with no explanation.' }), CTX), null);
+    assert.equal(parseProposalLine(line({ ...CHAPTERS[0], text: CHAPTERS[0].text + ' This guarantees zero downtime.' }), CTX), null);
+    assert.equal(parseProposalLine(line({ ...CHAPTERS[0], text: CHAPTERS[0].text + ' This meets the legal compliance requirement.' }), CTX), null);
+    assert.equal(parseProposalLine(line({ ...CHAPTERS[0], text: CHAPTERS[0].text + ' The model is Qwen99-max.' }), CTX), null);
+    assert.equal(parseProposalLine(line({ ...CHAPTERS[0], text: CHAPTERS[0].text + ' This costs USD 500.' }), CTX), null);
+  });
+
+  test('an authored cloud report cannot quote money in the summary or next steps before a chapter arrives', async () => {
+    const calls: Call[] = [];
+    const streamed: ProposalSection[] = [];
+    const bad = [{ k: 'exec', text: 'The project costs USD 500.' }, { k: 'next', text: 'Approve the USD 500 quote.' }];
+    const r = await draftProposal(request(), CAT, opts(fakeFetch([
+      ok([...bad.map(line), L.exec, ...CHAPTERS.map(line), L.next2]), ok([]),
+    ], calls), { onSection: s => streamed.push(s) }));
+    assert.equal(r.draft?.complete, true);
+    assert.equal(r.stats.lint.price, 2);
+    assert.doesNotMatch(JSON.stringify(streamed), /500/);
+    const assembled = assembleDraft([...bad as ProposalSection[], ...CHAPTERS], CTX);
+    assert.equal(assembled.exec, '');
+    assert.deepEqual(assembled.next, []);
+  });
+
+  test('initial and continuation briefs preserve the same audience and forbid unsupported marketing claims', () => {
+    for (const audience of ['client', 'alibaba'] as const) {
+      const req = request({ audience });
+      for (const messages of [buildProposalMessages(req, CAT), proposalEditorialMessages(req, CAT, PRODUCTS)]) {
+        const system = String(messages[0].content);
+        assert.match(system, audience === 'client' ? /AUDIENCE: CLIENT/ : /AUDIENCE: ALIBABA PERSONNEL/);
+        assert.match(system, /unsupported exclusivity, superiority, lower prices/);
+        assert.match(system, /two to four section lines/);
+        assert.doesNotMatch(system, /one line for EVERY|For each inline workflow step/);
+      }
+    }
+    assert.match(String(buildProposalMessages(request(), CAT)[0].content), /AUDIENCE: CLIENT/);
+  });
+
+  test('one high-effort call can deliver an authored report without product or workflow inventories', async () => {
+    const calls: Call[] = [];
+    const streamed: ProposalSection[] = [];
+    const req = workflowRequest();
+    req.audience = 'alibaba';
+    const r = await draftProposal(req, CAT, opts(fakeFetch([ok([L.exec, ...CHAPTERS.map(line), L.next2])], calls), { onSection: s => streamed.push(s) }));
+    assert.equal(r.outcome, 'done');
+    assert.equal(r.draft?.audience, 'alibaba');
+    assert.equal(r.draft?.complete, true);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].body.thinking_budget, PROPOSAL_LIMITS.thinkingBudget);
+    assert.ok(PROPOSAL_LIMITS.thinkingBudget > 16_384);
+    assert.equal(calls[0].body.reasoning_effort, undefined);
+    assert.deepEqual(streamed.map(s => s.k), ['exec', 'section', 'section', 'next']);
+    assert.deepEqual(r.stats.missing, []);
+  });
+
+  test('a stream cut off after the summary continues with authored chapters rather than legacy inventories', async () => {
+    const calls: Call[] = [];
+    const r = await draftProposal(request(), CAT, opts(fakeFetch([ok([L.exec]), ok([...CHAPTERS.map(line), L.next2])], calls)));
+    assert.equal(r.draft?.complete, true);
+    assert.equal(calls.length, 2);
+    assert.match(lastUser(calls[1]), /authored section lines/);
+    assert.doesNotMatch(lastUser(calls[1]), /why lines for|need lines:|outcome lines:/);
+  });
+
+  test('current pricing requires a qualitative cost interpretation before an authored draft is complete', () => {
+    const req = request();
+    req.pricing = { designKey: pricingDesignKey(req.memory), messages: [],
+      estimate: calculateSolutionEstimate({ items: [], assumptions: [], unknowns: ['Provider transfer charge'] }) };
+    const ctx = proposalCtx(req, CAT);
+    const sections = [parseProposalLine(L.exec, ctx)!, ...CHAPTERS, parseProposalLine(L.next2, ctx)!];
+    assert.equal(assembleDraft(sections, ctx).complete, false);
+    assert.equal(assembleDraft([...sections, { k: 'cost', text: 'Confirm the provider transfer charge before choosing a migration window.' }], ctx).complete, true);
+    req.memory.requirements.push('Another application');
+    const stale = proposalCtx(req, CAT);
+    assert.equal(stale.pricing, 'stale');
+    assert.equal(assembleDraft(sections, stale).complete, true);
+    assert.equal(parseProposalLine(line({ k: 'cost', text: 'The old estimate still applies.' }), stale), null);
+  });
+});
 
 // ---------- fake Model Studio ----------
 
@@ -446,7 +644,7 @@ describe('draftProposal', () => {
     assert.equal(run.draft?.cost, cost);
     assert.equal(run.draft?.complete, true);
     assert.deepEqual(calls.map(c => [c.body.model, c.body.enable_thinking, c.body.thinking_budget]),
-      [['qwen3.8-max', true, 6_144], ['qwen3.8-max', true, 6_144]]);
+      [['qwen3.8-max', true, PROPOSAL_LIMITS.thinkingBudget], ['qwen3.8-max', true, PROPOSAL_LIMITS.thinkingBudget]]);
     assert.ok(lastUser(calls[1]).includes(cost));
     assert.equal(run.stats.lint.price, 1);
     assert.doesNotMatch(JSON.stringify(run.draft), /Private reasoning|9943/);
@@ -468,7 +666,7 @@ describe('draftProposal', () => {
     assert.equal(calls[0].body.model, 'qwen3.8-max');
     assert.equal(calls[0].body.enable_thinking, true);
     assert.equal(calls[0].body.reasoning_effort, undefined);
-    assert.equal(calls[0].body.thinking_budget, 6_144);
+    assert.equal(calls[0].body.thinking_budget, PROPOSAL_LIMITS.thinkingBudget);
     assert.equal(calls[0].body.temperature, PROPOSAL_LIMITS.temperature);
     assert.equal(calls[0].body.max_completion_tokens, PROPOSAL_LIMITS.maxTokens);
     assert.deepEqual(got.map((s) => s.k), ['exec', 'need', 'need', 'outcome', 'outcome', 'why', 'why', 'why', 'why', 'why', 'tradeoff', 'next', 'next']);
@@ -879,8 +1077,8 @@ test('workflow prompt has steps, attachments, runtime products and generated-tab
   assert.match(text, /"ai":"qwen3.5-plus"/);
   assert.match(text, /"on":"draft"/);
   assert.match(text, /Write no cost figures/);
-  assert.match(text, /runtime mapping and open questions/);
-  assert.match(text, /inline node except trigger and end/);
+  assert.match(text, /saved solution-estimate table when one exists/);
+  assert.match(text, /critical path and the meaningful review or system handoff/);
   assert.doesNotMatch(text, /This is workflow-only/);
 });
 

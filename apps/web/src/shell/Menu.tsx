@@ -1,7 +1,7 @@
 // A small menu button: a trigger and a list of items in a popover. Closes on Escape, outside click and selection;
 // arrow keys move between items; focus returns to the trigger. Used for Sessions, the language menu, the theme menu
 // (a choice of one: its items are menuitemradio with a check on the one in force) and the account menu.
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactElement, ReactNode } from 'react';
 
 export interface MenuItem {
@@ -59,6 +59,22 @@ export function Menu(p: MenuProps): ReactElement {
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
   }, [open, close]);
+
+  // A bounded menu can still fall off the left edge when its trigger is near the middle of a narrow header.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const list = root.current?.querySelector<HTMLElement>('.menu__list');
+    if (!list) return;
+    const position = () => {
+      list.style.translate = '';
+      const bounds = list.getBoundingClientRect();
+      const shift = Math.max(12 - bounds.left, Math.min(0, document.documentElement.clientWidth - 12 - bounds.right));
+      list.style.translate = `${shift}px 0`;
+    };
+    position();
+    window.addEventListener('resize', position);
+    return () => window.removeEventListener('resize', position);
+  }, [open]);
 
   // focus lands on the choice in force in a choice-of-one menu, else on the first item
   useEffect(() => {

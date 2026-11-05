@@ -8,6 +8,7 @@ import { changeDesign, getDesign } from '../src/mcp-designs.ts';
 import { turnsToday } from '../src/db.ts';
 import { createMemory } from '../../../packages/core/src/prompt.ts';
 import { pricingDesignKey } from '../../../packages/core/src/solution-pricing.ts';
+import { PROPOSAL_LIMITS } from '../../../packages/core/src/proposal.ts';
 
 const rpc = (method: string, params = {}, token?: string, origin: string | null = null) => req('/mcp', {
   method: 'POST', origin, type: 'application/json', headers: { Accept: 'application/json, text/event-stream', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
@@ -46,7 +47,7 @@ test('MCP writes the handoff from the saved design, charges once, and pins the p
     const body = JSON.parse(String(init.body));
     assert.equal(body.model, 'qwen3.8-max');
     assert.equal(body.enable_thinking, true);
-    assert.equal(body.thinking_budget, 6_144);
+    assert.equal(body.thinking_budget, PROPOSAL_LIMITS.thinkingBudget);
     assert.ok(JSON.stringify(body.messages).includes(input.narrative.exec));
     const delta = { choices: [{ delta: { content: sections.map(s => JSON.stringify(s)).join('\n') + '\n' }, finish_reason: 'stop' }] };
     return new Response('data: ' + JSON.stringify(delta) + '\n\ndata: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } });
@@ -69,6 +70,7 @@ test('MCP writes the handoff from the saved design, charges once, and pins the p
   assert.ok(!result.isError, result.content[0].text);
   const info = result.structuredContent;
   assert.equal(info.status, 'ready');
+  assert.equal(info.audience, 'client');
   assert.equal(info.revision, 1);
   assert.match(info.fileName, /^포털-설계.*\.pdf$/u);
   const attachment = result.content[1].resource;
@@ -108,6 +110,21 @@ test('MCP writes the handoff from the saved design, charges once, and pins the p
   await ctx.flush();
   assert.equal((await invoke(writer, second)).result.structuredContent.status, 'ready');
   assert.equal(upstream.mock.callCount(), 2);
+  const internal = { ...second, audience: 'alibaba' };
+  const internalPending = (await invoke(writer, internal)).result.structuredContent;
+  assert.equal(internalPending.status, 'preparing');
+  assert.equal(internalPending.audience, 'alibaba');
+  assert.notEqual(internalPending.url, pending.url, 'audiences never share cached drafts');
+  await worker.scheduled({}, env, ctx);
+  await ctx.flush();
+  const internalReady = (await invoke(writer, internal)).result.structuredContent;
+  assert.equal(internalReady.status, 'ready');
+  assert.match(internalReady.fileName, /-alibaba\.pdf$/);
+  assert.equal(upstream.mock.callCount(), 3);
+  const savedInternal = await env.DB.prepare('SELECT options FROM mcp_pdf_exports WHERE id=?')
+    .bind(new URL(internalReady.url).pathname.split('/').pop()!.replace('.pdf', '')).first<{ options: string }>();
+  assert.equal(JSON.parse(savedInternal!.options).draft.audience, 'alibaba');
+  assert.equal(await turnsToday(env.DB, owner.user.id, Date.now()), 3);
 });
 
 test('the key page explains remote setup in each language and gives valid client-specific examples', async () => {
@@ -118,7 +135,7 @@ test('the key page explains remote setup in each language and gives valid client
     assert.match(page, /<textarea id="mcp-prompt"[^>]+>[^<]*design_solution[^<]*estimate_solution/);
     assert.ok(page.includes('data-copy-from="mcp-prompt"'));
     assert.ok(page.includes('<code>Authorization: Bearer &lt;YOUR_API_KEY&gt;</code>'));
-    for (const name of ['Streamable HTTP', 'get_design', 'design_solution', 'estimate_solution', 'export_proposal_pdf']) assert.ok(page.includes(name));
+    for (const name of ['Streamable HTTP', 'get_design', 'design_solution', 'estimate_solution', 'export_proposal_pdf', 'prepare_workshop']) assert.ok(page.includes(name));
     const examples = [...page.matchAll(/<details><summary>[^<]+<\/summary><pre class="mcp-config">([^<]+)<\/pre>/g)]
       .map(([, html]) => JSON.parse(html.replaceAll('&quot;', '"').replaceAll('&lt;', '<').replaceAll('&gt;', '>')));
     const servers = { alichitect: { type: 'http', url: ORIGIN + '/mcp', headers: { Authorization: 'Bearer <YOUR_API_KEY>' } } };
@@ -158,16 +175,17 @@ test('personal keys are shown once, scoped to MCP and rechecked for expiry, revo
   assert.match(draft.inputSchema.properties.mode.description, /human approvals/);
   assert.equal(draft.annotations.destructiveHint, false);
   const list = async (k: string) => (await (await call(env, rpc('tools/list', {}, k))).json()).result.tools.map((v: { name: string }) => v.name).sort();
-  assert.deepEqual(await list(key), ['design_solution', 'estimate_solution', 'export_proposal_pdf', 'get_design']);
+  assert.deepEqual(await list(key), ['design_solution', 'estimate_solution', 'export_proposal_pdf', 'get_design', 'prepare_workshop']);
   const read = (await issueKey(env.DB, owner.user.id, 'reader', 'read', 30, Date.now()))!;
-  assert.deepEqual(await list(read), ['get_design']);
+  assert.deepEqual(await list(read), ['get_design', 'prepare_workshop']);
   const readHello = await (await call(env, rpc('initialize', { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'test', version: '1' } }, read))).json();
   assert.match(readHello.result.instructions, /get_design/);
+  assert.match(readHello.result.instructions, /prepare_workshop/);
   assert.doesNotMatch(readHello.result.instructions, /design_solution|estimate_solution/);
   const denied = await (await call(env, rpc('tools/call', { name: 'estimate_solution', arguments: {} }, read))).json();
   assert.ok(denied.error || denied.result?.isError);
   await call(env, form('/account/keys/revoke', other.cookie, { id: key.slice(8, 24) }));
-  assert.deepEqual(await list(key), ['design_solution', 'estimate_solution', 'export_proposal_pdf', 'get_design']);
+  assert.deepEqual(await list(key), ['design_solution', 'estimate_solution', 'export_proposal_pdf', 'get_design', 'prepare_workshop']);
   await call(env, form('/account/keys/revoke', owner.cookie, { id: key.slice(8, 24) }));
   assert.equal((await call(env, rpc('tools/list', {}, key))).status, 401);
   await env.DB.prepare('UPDATE users SET status=? WHERE id=?').bind('revoked', owner.user.id).run();

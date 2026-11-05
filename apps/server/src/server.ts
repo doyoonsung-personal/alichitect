@@ -25,6 +25,7 @@ import { createCacheTracker, QWEN_HIGH_REASONING } from '../../../packages/core/
 import type { CacheTracker, ConstraintChecker, RunTurnOptions } from '../../../packages/core/src/llm.ts';
 import { createClaudeBackup } from '../../../packages/core/src/claude.ts';
 import { draftProposal } from '../../../packages/core/src/proposal.ts';
+import { draftSessionTitle, sessionTitleBrief, SESSION_TITLE_VERSION } from '../../../packages/core/src/session-title.ts';
 import { PricingTurnError, runPricingTurn } from '../../../packages/core/src/solution-pricing-engine.ts';
 import { cachedPricingReview } from '../../../packages/core/src/solution-pricing.ts';
 import type { DraftProposalResult } from '../../../packages/core/src/proposal.ts';
@@ -84,7 +85,7 @@ class HttpError extends Error {
 
 const BASE_HEADERS: Record<string, string> = { 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' };
 const JSON_RE = /^application\/json\s*(;.*)?$/i;
-const PROPOSAL_DEADLINE_MS = 360_000;
+const PROPOSAL_DEADLINE_MS = 840_000;
 
 /** An oversized body is read and discarded up to this many bytes, so the client finishes sending and can read the 413; beyond it the socket is destroyed. */
 const DRAIN_CAP = 8 * 1024 * 1024;
@@ -133,6 +134,8 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
   const tracker = deps.tracker ?? createCacheTracker();
   const sessions = new Set<string>();
   let turns = 0;
+  let titlesInFlight = 0;
+  const titles = new Map<string, Promise<{ title: string; costUsd: number }>>();
   const startedAt = Date.now();
   const line = (s: string): void => {
     if (deps.onLine) deps.onLine(redact(s));
@@ -162,7 +165,7 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
     if (!config.allowedHosts.includes(host)) return reject(403, 'bad-host', 'Host header not allowed');
     if (origin !== undefined && !config.allowedOrigins.includes(origin)) return reject(403, 'bad-origin', 'Origin not allowed');
     const cors: Record<string, string> = origin ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {};
-    if (route !== '/api/turn' && route !== '/api/proposal' && route !== '/api/pricing' && route !== '/api/health') return reject(404, 'not-found', 'no such route', {}, cors);
+    if (route !== '/api/turn' && route !== '/api/proposal' && route !== '/api/pricing' && route !== '/api/health' && route !== '/api/session-title') return reject(404, 'not-found', 'no such route', {}, cors);
     if (req.method === 'OPTIONS') {
       res.writeHead(204, { ...BASE_HEADERS, ...cors, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '600' });
       res.end();
@@ -197,7 +200,7 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
     let raw: Buffer;
     const allowsPricing = route === '/api/pricing' || route === '/api/proposal';
     try {
-      raw = await readBody(req, config.maxBodyBytes + (allowsPricing ? PRICING_ATTACHMENT_BYTES : 0));
+      raw = await readBody(req, route === '/api/session-title' ? 32_768 : config.maxBodyBytes + (allowsPricing ? PRICING_ATTACHMENT_BYTES : 0));
     } catch (e) {
       const h = e instanceof HttpError ? e : new HttpError(400, 'bad-request', 'request body could not be read');
       return reject(h.status, h.code, h.message, {}, cors);
@@ -205,6 +208,22 @@ export function createTurnServer(deps: ServerDeps): TurnServer {
     const envelope = decodeDesignBody(raw, config.maxBodyBytes, allowsPricing);
     if (!envelope.ok) return reject(envelope.status, envelope.code, envelope.message, {}, cors);
     const body = envelope.body;
+    if (route === '/api/session-title') {
+      const brief = sessionTitleBrief(body);
+      if (!brief) return reject(400, 'invalid-title-brief', 'A brief of 1–6000 characters is required.', {}, cors);
+      if (!deps.apiKey) return reject(503, 'no-key', 'Title generation is unavailable.', {}, cors);
+      let pending = titles.get(brief);
+      if (!pending) {
+        if (titlesInFlight >= 2) return reject(429, 'title-busy', 'Title generation is busy.', { 'Retry-After': '10' }, cors);
+        titlesInFlight++;
+        pending = draftSessionTitle(brief, { apiKey: deps.apiKey, baseUrl: config.baseUrl, fetchImpl: deps.fetchImpl })
+          .finally(() => { titlesInFlight--; });
+        titles.set(brief, pending);
+        if (titles.size > 200) titles.delete(titles.keys().next().value!);
+      }
+      const result = await pending;
+      return send(res, 200, { title: result.title, titleVersion: SESSION_TITLE_VERSION }, cors);
+    }
     if (route === '/api/pricing') {
       const checked = checkPricingRequest(body);
       if (!checked.ok) return reject(400, checked.code, checked.message, {}, cors);
@@ -472,6 +491,7 @@ export function turnLogEntry(sessionId: string, ask: string, o: TurnOutcome, x: 
       costUsd: Number(s.costUsd.toFixed(6)),
       costEstimated: s.costEstimated,
       summaryCostUsd: Number(o.summaryCostUsd.toFixed(6)),
+      titleCostUsd: Number((o.titleCostUsd ?? 0).toFixed(6)),
       ops: s.ops,
       badLines: s.badLines,
       finalDone: s.finalDone,

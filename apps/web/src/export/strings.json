@@ -111,7 +111,7 @@
     "record.intro": "What the design rests on: the requirements pinned in the conversation, constraints, assumptions and open questions, with the architect's first notes.",
     "dialog.open": "Export proposal",
     "dialog.title": "Export proposal",
-    "dialog.hint": "Download a PDF with the design recommendation, trade-offs, diagrams and any solution price breakdown you have prepared.",
+    "dialog.hint": "Choose who will read the proposal. The report is written for that audience using the current design and estimate.",
     "dialog.fieldTitle": "Proposal title",
     "dialog.fieldCustomer": "Customer name (optional)",
     "dialog.download": "Download PDF",
@@ -167,7 +167,16 @@
     "workflow.confirm": "Confirm the assumption: {text}",
     "workflow.fields": "Which data fields leave the customer environment, and where are they sent?",
     "workflow.identity": "Which identity reads each data store, and what access does it need?",
-    "workflow.retention": "How long are inputs, outputs, memory and logs retained, and how are they deleted?"
+    "workflow.retention": "How long are inputs, outputs, memory and logs retained, and how are they deleted?",
+    "dialog.audience": "Prepared for",
+    "dialog.audience.client": "Client",
+    "dialog.audience.client.hint": "Business value, why Alibaba Cloud, and the recommended next step.",
+    "dialog.audience.alibaba": "Alibaba personnel",
+    "dialog.audience.alibaba.hint": "Customer pain points, solution fit, validation and account next steps.",
+    "doc.client": "Client proposal",
+    "doc.alibaba": "Alibaba Cloud · Internal solution brief",
+    "references.heading": "Selected service references",
+    "overlay.step.sections": "Writing the proposal"
   },
   "ko": {
     "doc.type": "아키텍처 제안서",
@@ -281,7 +290,7 @@
     "record.intro": "설계의 근거입니다. 대화에서 고정된 요구 사항, 제약 조건, 가정, 미결 질문과 설계자의 초기 메모를 담았습니다.",
     "dialog.open": "제안서 내보내기",
     "dialog.title": "제안서 내보내기",
-    "dialog.hint": "설계 제안, 선택에 따른 장단점, 다이어그램과 산정된 솔루션 비용 내역을 PDF로 다운로드합니다.",
+    "dialog.hint": "제안서를 읽을 대상을 선택하세요. 현재 설계와 비용 추산을 바탕으로 대상에 맞게 작성합니다.",
     "dialog.fieldTitle": "제안서 제목",
     "dialog.fieldCustomer": "고객 이름 (선택)",
     "dialog.download": "PDF 다운로드",
@@ -337,7 +346,16 @@
     "workflow.confirm": "가정을 확인해 주십시오: {text}",
     "workflow.fields": "어떤 데이터 필드가 고객 환경 밖으로 전송되며, 전송 대상은 어디입니까?",
     "workflow.identity": "각 데이터 저장소를 읽는 계정은 무엇이며, 어떤 접근 권한이 필요합니까?",
-    "workflow.retention": "입력, 출력, 메모리 및 로그의 보관 기간과 삭제 방법은 무엇입니까?"
+    "workflow.retention": "입력, 출력, 메모리 및 로그의 보관 기간과 삭제 방법은 무엇입니까?",
+    "dialog.audience": "제안서 대상",
+    "dialog.audience.client": "고객용",
+    "dialog.audience.client.hint": "비즈니스 가치, Alibaba Cloud 도입 이유, 권장 다음 단계.",
+    "dialog.audience.alibaba": "Alibaba 담당자용",
+    "dialog.audience.alibaba.hint": "고객 과제, 솔루션 적합성, 검증 사항과 후속 협의.",
+    "doc.client": "고객 제안서",
+    "doc.alibaba": "Alibaba Cloud · 내부 솔루션 검토서",
+    "references.heading": "주요 서비스 참고 자료",
+    "overlay.step.sections": "제안서 본문 작성"
   },
   "zh": {
     "doc.type": "架构提案",
@@ -451,7 +469,7 @@
     "record.intro": "方案的基础依据：包括沟通中固定的需求、约束条件、假设、待决问题，以及架构师的初始说明。",
     "dialog.open": "导出提案",
     "dialog.title": "导出提案",
-    "dialog.hint": "下载 PDF，查看方案建议、设计取舍、架构图和已准备的方案费用明细。",
+    "dialog.hint": "请选择提案的读者。报告将根据当前设计和费用估算，为所选读者撰写。",
     "dialog.fieldTitle": "提案标题",
     "dialog.fieldCustomer": "客户名称（可选）",
     "dialog.download": "下载 PDF",
@@ -507,6 +525,15 @@
     "workflow.confirm": "请确认假设：{text}",
     "workflow.fields": "哪些数据字段离开客户环境，发送到哪里？",
     "workflow.identity": "哪个身份读取各数据存储，需要什么访问权限？",
-    "workflow.retention": "输入、输出、记忆和日志保留多久，如何删除？"
+    "workflow.retention": "输入、输出、记忆和日志保留多久，如何删除？",
+    "dialog.audience": "提案读者",
+    "dialog.audience.client": "客户",
+    "dialog.audience.client.hint": "业务价值、选择阿里云的理由及建议的下一步。",
+    "dialog.audience.alibaba": "阿里云人员",
+    "dialog.audience.alibaba.hint": "客户痛点、方案匹配、验证事项及后续沟通。",
+    "doc.client": "客户提案",
+    "doc.alibaba": "阿里云 · 内部解决方案简报",
+    "references.heading": "所选服务参考资料",
+    "overlay.step.sections": "撰写提案正文"
   }
 }

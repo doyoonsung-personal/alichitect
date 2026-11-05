@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createInitialState } from '../../src/store/reducer.ts';
-import { workflowFixture } from '../../src/export/workflow-fixtures.ts';
-import { generateFromState, playFixture } from './node-env.ts';
+import { fanoutWorkflowFixture, inventoryWorkflowFixture, workflowFixture } from '../../src/export/workflow-fixtures.ts';
+import { channelRoute, generateFromState, playFixture } from './node-env.ts';
 import { checkPdf } from './checks.ts';
 import { pageOps } from './inspect.ts';
 import { wt } from '../../src/export/workflow-strings.ts';
@@ -12,6 +12,20 @@ import { xt } from '../../src/export/strings.ts';
 import { makeT } from '../../src/i18n/t.ts';
 import { deploymentSource } from '@ali/core/workflow-deployment.ts';
 import { calculateSolutionEstimate, pricingDesignKey } from '@ali/core/solution-pricing.ts';
+
+test('large fragmented fanout PDF keeps group references and every connection in its printed table', async () => {
+  const state = createInitialState({ lang: 'en', id: 'fanout', now: 0 });
+  state.session.mode = 'workflow';
+  state.session.memory.workflow = fanoutWorkflowFixture(30, true);
+  const draft: ProposalDraft = { lang: 'en', complete: true, exec: 'Fanout pagination verification.', needs: [], outcomes: [], why: {}, tradeoffs: [], next: [],
+    sections: [{ title: 'Purpose', text: 'This synthetic example checks dense cross-page workflow connections.' }, { title: 'Validation', text: 'Each connector must remain readable and retain its complete source and destination.' }] };
+  const result = await generateFromState(state, { draft, route: channelRoute });
+  const check = await checkPdf(result.bytes, state, { draft });
+  assert.deepEqual(check.problems, []);
+  assert.ok(check.info.text.includes('G reference groups'));
+  const table = check.info.text.slice(check.info.text.indexOf('A G reference groups'));
+  assert.match(table, /C\d+\s*·\s*G\d+/u, 'connection rows map bounded G markers back to exact C references');
+});
 
 test('Korean handoff shows the approval decision and priced scope without an empty Connections page or competing estimate', async () => {
   const state = createInitialState({ lang: 'ko', id: 'handoff', now: 0 });
@@ -28,10 +42,24 @@ test('Korean handoff shows the approval decision and priced scope without an emp
   const { info } = await checkPdf(bytes, state, { draft });
   const text = info.text.replace(/\s/g, '');
   for (const s of [draft.exec, draft.cost!, draft.next[0], 'USD 50.00', '모델 사용료 미산정']) assert.ok(text.includes(s.replace(/\s/g, '')), s);
-  for (const s of ['내부 설정 전체 목록', '내부 산정 메모', xt('ko','workflow.cost'), xt('ko','workflow.questions'), xt('ko','rev.heading')]) {
+  for (const s of ['내부 설정 전체 목록', '내부 산정 메모', xt('ko','summary.requirementsNone'), xt('ko','workflow.cost'), xt('ko','workflow.questions'), xt('ko','rev.heading')]) {
     assert.ok(!text.includes(s.replace(/\s/g, '')), s);
   }
   assert.ok(!info.pages.some(page => page.text.includes(xt('ko','conn.intro'))));
+});
+
+test('inventory cost subsection stays with its table instead of becoming an orphan at the page end', async () => {
+  const state = createInitialState({ lang: 'ko', id: 'inventory-cost', now: 0 });
+  state.session.mode = 'workflow';
+  state.session.memory.workflow = inventoryWorkflowFixture();
+  const draft: ProposalDraft = { lang: 'ko', complete: true, exec: '재고 분석 및 승인 흐름을 검토합니다.',
+    needs: [], outcomes: [], why: {}, tradeoffs: [], next: [] };
+  const { bytes } = await generateFromState(state, { draft });
+  const check = await checkPdf(bytes, state, { draft });
+  assert.deepEqual(check.problems, []);
+  const unpriced = check.info.pages.find(page => page.text.includes(wt('ko', 'cost.unpriced')))!;
+  assert.ok(unpriced, 'unpriced cost section exists');
+  assert.ok(unpriced.text.includes('review:human'), 'its first cost row stays with the subsection heading');
 });
 
 for (const lang of ['en', 'ko', 'zh'] as const) for (const mixed of [false, true]) {
@@ -73,6 +101,8 @@ for (const lang of ['en', 'ko', 'zh'] as const) for (const mixed of [false, true
     assert.equal(result.report.pages, check.info.pages.length);
     for (const page of check.info.pages) assert.ok(page.text.includes(xt(lang, 'page.of', { n: page.n, total: check.info.pages.length })));
     const texts = check.info.text.replace(/\s/g, '');
+    if (!check.model.summary.requirements.length) assert.ok(!texts.includes(xt(lang, 'summary.requirementsNone').replace(/\s/g, '')));
+    assert.ok(texts.includes(wt(lang, 'diagram.connections').replace(/\s/g, '')));
     assert.equal(texts.includes(wt(lang, 'steps.heading').replace(/\s/g, '')), mixed);
     for (const key of ['cost.coverage', 'cost.unpriced'] as const) {
       assert.ok(texts.includes(wt(lang, key).replace(/\s/g, '')));

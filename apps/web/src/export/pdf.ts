@@ -171,7 +171,7 @@ export function buildDocument(i: PdfInput): PdfReport {
     let ty = 276 - Math.max(0, titleLines.lines.length - 2) * titleLines.lh;
     ty = ts.draw(titleLines, margin, ty, ink(30, 700));
     ty += 14;
-    ts.line(margin, ts.baseline(ty, 22, 14), xt('doc.type'), ink(14, 400, COLOR.ink2));
+    ts.line(margin, ts.baseline(ty, 22, 14), xt(model.audience === 'alibaba' ? 'doc.alibaba' : 'doc.client'), ink(14, 400, COLOR.ink2));
     ty += 40;
     if (model.customer) {
       const cp = ts.paragraph(xt('doc.preparedFor', { customer: model.customer }), w, 13, 500, 20);
@@ -203,13 +203,22 @@ export function buildDocument(i: PdfInput): PdfReport {
   // ---------- the sections, in the order of the document ----------
   if (n) {
     execSection(n);
-    considerationsSection(n);
-    solutionPricingSection();
-    needsSection(n);
-    diagramSection();
-    workflowSections();
-    componentsSection();
-    recsSection();
+    if (n.sections?.length) {
+      // The writer chooses the story; the renderer adds only the saved financial evidence and diagrams.
+      authoredSections(n.sections);
+      solutionPricingSection();
+      authoredClosing(n);
+      diagramSection();
+      serviceReferences();
+    } else {
+      considerationsSection(n);
+      solutionPricingSection();
+      needsSection(n);
+      diagramSection();
+      workflowSections();
+      componentsSection();
+      recsSection();
+    }
   } else {
     summarySection();
     solutionPricingSection();
@@ -218,7 +227,7 @@ export function buildDocument(i: PdfInput): PdfReport {
     componentsSection();
     recsSection();
   }
-  connectionsSection();
+  if (!n?.sections?.length) connectionsSection();
   if (!n && model.revisions.length) revisionsSection();
 
   // ---------- running header and footer ----------
@@ -362,15 +371,17 @@ export function buildDocument(i: PdfInput): PdfReport {
   function workflowDiagram(diagram: PdfDiagram): void {
     const pages = diagram.pages;
     if (!pages?.length) throw new Error('Workflow diagram requires a measured page plan');
+    const connections = new Map<string, NonNullable<DiagramSvg['continuations']>[number] & { pages: number[] }>();
     pages.forEach((p, index) => {
       newPage(p.size === 'A3' ? A3_LANDSCAPE : A4_LANDSCAPE);
       const title = p.overview ? wt(model.lang, 'diagram.overview') : index === 0 ? diagram.title
         : wt(model.lang, 'diagram.detail', { n: index, total: pages.length - 1 });
       outline(title);
       heading(title);
-      if (index + 1 < pages.length) {
+      if (index + 1 < pages.length || p.drawing.continuations?.length) {
         const page = doc.bufferedPageRange().count;
-        const continuation = wt(model.lang, 'diagram.continued', { page: page + 1 });
+        const continuation = [index + 1 < pages.length ? wt(model.lang, 'diagram.continued', { page: page + 1 }) : '',
+          p.drawing.continuations?.length ? wt(model.lang, 'diagram.references') : ''].filter(Boolean).join(' · ');
         ts.line(margin, ts.baseline(y, 16, 9), continuation, ink(9));
         y += 18;
       }
@@ -383,7 +394,21 @@ export function buildDocument(i: PdfInput): PdfReport {
       const value = { size: p.size, scale: p.scale };
       report.diagramPage ??= value;
       report.diagramPages.push({ id: diagram.id, page: doc.bufferedPageRange().count, ...value, overview: p.overview });
+      for (const row of p.drawing.continuations ?? []) {
+        const entry = connections.get(row.ref) ?? { ...row, pages: [] };
+        if (entry.groups || row.groups) entry.groups = [...new Set([...(entry.groups ?? []), ...(row.groups ?? [])])];
+        entry.pages.push(doc.bufferedPageRange().count);
+        connections.set(row.ref, entry);
+      }
     });
+    if (connections.size) {
+      start(wt(model.lang, 'diagram.connections'));
+      paragraph(wt(model.lang, 'diagram.connectionGuide'));
+      table([wt(model.lang, 'diagram.reference'), xt('conn.from'), xt('conn.to'), xt('conn.kind')],
+        [...connections.values()].sort((a, b) => Number(a.ref.slice(1)) - Number(b.ref.slice(1)))
+          .map(row => [`${[row.ref, ...(row.groups ?? [])].join(' · ')}\n${wt(model.lang, 'diagram.pages', { pages: row.pages.join(', ') })}`,
+          row.from, row.to, row.label]), [.13, .3, .3, .27]);
+    }
   }
 
   function start(title: string, sectionHeight = Infinity): void {
@@ -401,6 +426,66 @@ export function buildDocument(i: PdfInput): PdfReport {
       y += body.lh;
     }
     y += 6;
+  }
+
+  /** Chapters flow naturally. Keep headings with body text and avoid single-line paragraph fragments. */
+  function prose(text: string): void {
+    const px = 10.5, lh = cjk ? 17 : 15.5;
+    const p = ts.paragraph(text, MEASURE, px, 400, lh);
+    let offset = 0;
+    while (offset < p.lines.length) {
+      const remaining = p.lines.length - offset;
+      const room = Math.floor((bottomLimit() - y) / lh);
+      let count = Math.min(remaining, room);
+      if (remaining - count === 1) count--;
+      if (count < Math.min(2, remaining)) { newPage(A4); continue; }
+      for (const line of p.lines.slice(offset, offset + count)) {
+        ts.line(margin, ts.baseline(y, lh, px), line, ink(px));
+        y += lh;
+      }
+      offset += count;
+      if (offset < p.lines.length) newPage(A4);
+    }
+    y += 10;
+  }
+
+  function authoredSections(sections: NonNullable<NarrativeModel['sections']>): void {
+    for (const section of sections) {
+      if (kind !== A4) newPage(A4);
+      const h = ts.paragraph(section.title, MEASURE, 15, 700, 22);
+      ensure(h.height + 20 + 3 * (cjk ? 17 : 15.5));
+      y += 16;
+      outline(section.title);
+      y = ts.draw(h, margin, y, ink(15, 700)) + 12;
+      section.paragraphs.forEach(prose);
+    }
+  }
+
+  function authoredClosing(nv: NarrativeModel): void {
+    const sections = [
+      ...(nv.tradeoffs.length ? [{ title: xt('next.tradeoffs'), paragraphs: nv.tradeoffs.map(t => [t.text, t.mitigation].filter(Boolean).join(' ')) }] : []),
+      ...(nv.next.length ? [{ title: xt('next.steps'), paragraphs: nv.next }] : []),
+    ];
+    authoredSections(sections);
+    if (nv.pricingNote) prose(nv.pricingNote);
+  }
+
+  function serviceReferences(): void {
+    const refs = [...new Map([...model.components, ...model.recs].filter(c => c.docs).map(c => [c.product, c])).values()];
+    if (!refs.length) return;
+    start(xt('references.heading'), Math.min(300, 70 + refs.length * 50));
+    for (const ref of refs) {
+      const name = ts.paragraph(ref.name, contentW(), body.px, 500, body.lh);
+      const lines = ts.wrap(ref.docs!.replace(/^https:\/\//, ''), contentW(), small.px, 400);
+      ensure(name.height + lines.length * small.lh + 14);
+      y = ts.draw(name, margin, y, ink(body.px, 500));
+      for (const line of lines) {
+        ts.link(margin, ts.baseline(y, small.lh, small.px), line, ref.docs!, ink(small.px, 400, COLOR.action));
+        y += small.lh;
+      }
+      report.links++;
+      y += 12;
+    }
   }
   function table(headers: string[], rows: string[][], widths: number[]): void {
     if (!rows.length) return;
@@ -449,7 +534,10 @@ export function buildDocument(i: PdfInput): PdfReport {
     start(xt('price.heading'));
     const { estimate } = pricing;
     paragraph(xt('price.caveat'));
-    if (pricing.interpretation) paragraph(pricing.interpretation);
+    if (pricing.interpretation) {
+      if (n?.sections?.length) pricing.interpretation.split(/\n\s*\n/u).forEach(prose);
+      else paragraph(pricing.interpretation);
+    }
     const number = new Intl.NumberFormat(model.lang, { maximumSignificantDigits: 17 });
     const total = new Intl.NumberFormat(model.lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const money = (amount: number) => `USD ${total.format(amount)}`;
@@ -467,7 +555,7 @@ export function buildDocument(i: PdfInput): PdfReport {
       sub(xt('price.assumptions'));
       for (const note of estimate.assumptions) paragraph(note);
     }
-    if (estimate.unknowns.length) {
+    if (estimate.unknowns.length && !(n?.sections?.length && pricing.interpretation)) {
       sub(xt('price.open'));
       for (const note of new Set(estimate.unknowns)) paragraph(note);
     }
@@ -510,6 +598,18 @@ export function buildDocument(i: PdfInput): PdfReport {
 
     function workflowCost(title: string, ids: string[]): void {
       start(title);
+      const costTable = (caption: string, headers: string[], rows: string[][], widths: number[]) => {
+        if (!rows.length) return;
+        const lines = (row: string[], weight: 400 | 500) => Math.max(...row.map((cell, k) =>
+          ts.wrap(cell, widths[k] * contentW() - 12, body.px, weight).length));
+        const headerHeight = lines(headers, 500) * body.lh + 30;
+        const firstHeight = lines(rows[0], 400) * body.lh + 12;
+        const captionHeight = ts.paragraph(caption, contentW(), body.px, 700, body.lh).height + 6;
+        // Keep a subsection caption with its table header and first row instead of leaving it above a page break.
+        ensure(captionHeight + headerHeight + Math.min(firstHeight, A4[1] - CONTENT_TOP - 54 - captionHeight - headerHeight));
+        paragraph(caption, 700);
+        table(headers, rows, widths);
+      };
       if (!model.pricing) paragraph(xt('next.pricing'));
       const order = new Map(ids.map((id, index) => [id, index]));
       const ordered = <T extends { id: string }>(rows: readonly T[]): T[] =>
@@ -528,11 +628,9 @@ export function buildDocument(i: PdfInput): PdfReport {
       paragraph(cost.coverage);
       table([w('cost.item'), w('cost.unit'), w('cost.typical'), w('cost.upper')],
         ordered(cost.lines).map((r) => [`${r.id} - ${r.label}`, r.unit, usd(r.typical), usd(r.upper)]), [.40, .20, .20, .20]);
-      if (cost.fixed.length) paragraph(w('cost.fixed'), 700);
-      table([w('cost.item'), w('cost.unit'), w('cost.perMonth')],
+      costTable(w('cost.fixed'), [w('cost.item'), w('cost.unit'), w('cost.perMonth')],
         cost.fixed.map((r) => [r.label, r.unit, r.monthlyUsd === null ? w('cost.unpriced') : usd(r.monthlyUsd)]), [.45, .30, .25]);
-      if (cost.unpriced.length) paragraph(w('cost.unpriced'), 700);
-      table([w('cost.item'), w('cost.unit'), w('cost.reason')],
+      costTable(w('cost.unpriced'), [w('cost.item'), w('cost.unit'), w('cost.reason')],
         ordered(cost.unpriced).map((r) => [`${r.id} - ${r.label}`, r.unit, unpricedReason(r.why, t)]), [.34, .22, .44]);
       if (!n && cost.assumptions.length) {
         paragraph(w('cost.assumptions'), 700);

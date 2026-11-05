@@ -15,7 +15,7 @@ export async function importAgentDesign(id: string, fresh: SessionRecord, lang: 
   rev.mode = data.mode;
   const title = data.title + ' · ' + t(lang, 'account.agentCopy', { n: data.revision });
   const record = reviveSession({
-    ...fresh, title, memory: data.memory, mode: data.mode, revisions: [rev],
+    ...fresh, title, titleVersion: data.titleVersion, memory: data.memory, mode: data.mode, revisions: [rev],
     pricing: data.pricing, updatedAt: data.updatedAt
   });
   if (!record) throw new Error('Invalid design snapshot');

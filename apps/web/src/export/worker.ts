@@ -21,7 +21,7 @@ export const renderProposal: RenderProposal = async (d, options, asset) => {
   const result = await generateProposalPdf({
     session, graph: d.memory.graph, layout: layoutFor(d.memory.graph, catalog, null, DEFAULT_CANVAS),
     catalog, lang: options.lang, title: options.title || d.title, customer: options.customer || '',
-    now: new Date(d.updatedAt), draft: options.draft, route: async request => routeChannels(request),
+    now: new Date(d.updatedAt), audience: options.audience, draft: options.draft, route: async request => routeChannels(request),
     logo: { svg: await (await asset('/' + brand.file)).text(), aspect: brand.aspect },
     fontSource: {
       css: async family => family === 'kr' ? kr : sc,

@@ -1,4 +1,5 @@
 import { createMemory } from '../../../packages/core/src/prompt.ts';
+import { compactSessionTitle, needsSessionTitle, SESSION_TITLE_VERSION } from '../../../packages/core/src/session-title.ts';
 import type { ServerEvent, SessionMemory, TurnMode } from '../../../packages/core/src/types.ts';
 import type { PricingSession } from '../../../packages/core/src/solution-pricing.ts';
 import { pricingDesignKey } from '../../../packages/core/src/solution-pricing.ts';
@@ -8,9 +9,10 @@ import type { UserRow } from './db.ts';
 import type { D1Database, Env, ExecutionContextLike } from './env.ts';
 import { handlePricing } from './pricing.ts';
 import { handleTurn } from './turn.ts';
+import { cachedSessionTitle } from './session-title.ts';
 
 interface Snapshot {
-  title: string; mode: TurnMode; memory: SessionMemory; summary: string; pricing?: PricingSession;
+  title: string; titleVersion?: number; mode: TurnMode; memory: SessionMemory; summary: string; pricing?: PricingSession;
 }
 interface Receipt {
   design_id: string; revision: number; status: 'working' | 'failed' | 'done'; snapshot: string | null;
@@ -26,6 +28,19 @@ export class DesignError extends Error { }
 export async function latestDesign(db: D1Database, owner: string, id: string) {
   return db.prepare("SELECT * FROM mcp_revisions WHERE user_id=? AND design_id=? AND status='done' ORDER BY revision DESC LIMIT 1")
     .bind(owner, id).first<Receipt>();
+}
+/** Upgrade a legacy MCP snapshot on first read, retaining its revision, history and original activity time. */
+export async function refreshDesignTitle(env: Env, owner: string, row: Receipt) {
+  const snapshot = JSON.parse(row.snapshot!) as Snapshot;
+  const brief = snapshot.memory.turns.find(turn => turn.role === 'user')?.text || '';
+  if (!needsSessionTitle(snapshot.title, brief, snapshot.titleVersion)) return row;
+  try {
+    const title = await cachedSessionTitle(env, owner, Array.from(brief).slice(0, 6000).join(''));
+    const next = JSON.stringify({ ...snapshot, ...title });
+    const changed = await env.DB.prepare(`UPDATE mcp_revisions SET snapshot=?
+      WHERE user_id=? AND design_id=? AND revision=? AND snapshot=?`).bind(next, owner, row.design_id, row.revision, row.snapshot).run();
+    return changed.meta.changes === 1 ? { ...row, snapshot: next } : row;
+  } catch { return row; } // Optional naming must never make an existing design unreadable.
 }
 export function openedDesign(row: Receipt) {
   const snapshot = JSON.parse(row.snapshot!) as Snapshot;
@@ -68,7 +83,7 @@ function answer(row: Receipt, origin: string) {
 export async function getDesign(env: Env, user: UserRow, id: string) {
   const row = await latestDesign(env.DB, user.id, id);
   if (!row) throw new DesignError('Design not found for this account.');
-  return answer(row, env.ALLOWED_ORIGIN);
+  return answer(await refreshDesignTitle(env, user.id, row), env.ALLOWED_ORIGIN);
 }
 
 async function applyTurn(response: Response, snapshot: Snapshot): Promise<Snapshot> {
@@ -80,7 +95,8 @@ async function applyTurn(response: Response, snapshot: Snapshot): Promise<Snapsh
     const event = JSON.parse(line) as ServerEvent | { type: 'done'; summary: string; phase: string };
     if (event.type === 'fatal') throw new DesignError(event.code + ': ' + event.message);
     if (event.type === 'done' && event.phase === 'main' && event.summary?.trim()) designSummary = event.summary.trim();
-    if (event.type === 'commit') result = { ...snapshot, memory: event.memory, summary: designSummary || event.changes || snapshot.title };
+    if (event.type === 'commit') result = { ...snapshot, memory: event.memory,
+      ...(event.title ? { title: compactSessionTitle(event.title), titleVersion: SESSION_TITLE_VERSION } : {}), summary: designSummary || event.changes || snapshot.title };
     if (event.type === 'summary' && result) result.memory.summary = event.summary;
   }
   if (!result) throw new DesignError('No committed design was returned.');
@@ -117,7 +133,7 @@ export async function changeDesign(tool: Tool, args: Inputs, env: Env, ctx: Exec
   }
   try {
     let snapshot: Snapshot = prior ? JSON.parse(prior.snapshot!) : {
-      memory: createMemory(), title: Array.from(args.ask).slice(0, 120).join(''),
+      memory: createMemory(), title: compactSessionTitle(args.ask),
       mode: args.mode ?? initialMode(args.ask), summary: ''
     };
     // The internal request has no user-supplied headers or credential. The normal handlers enforce admission,
@@ -128,7 +144,7 @@ export async function changeDesign(tool: Tool, args: Inputs, env: Env, ctx: Exec
       snapshot.mode = args.mode ?? snapshot.mode;
       snapshot = await applyTurn(await runners.turn(request('/api/turn', {
         sessionId: designId, memory: snapshot.memory,
-        ask: args.ask, mode: snapshot.mode
+        ask: args.ask, mode: snapshot.mode, ...(!prior ? { generateTitle: true } : {})
       }), env, ctx, user), snapshot);
     } else {
       const resp = await runners.price(request('/api/pricing', {

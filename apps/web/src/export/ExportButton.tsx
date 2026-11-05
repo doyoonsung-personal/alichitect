@@ -4,7 +4,7 @@
 // When no narrative can be written, the overlay offers the basic version: the same PDF without it.
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent, ReactElement } from 'react';
-import type { ProposalDraft } from '@ali/core/types.ts';
+import type { ProposalAudience, ProposalDraft } from '@ali/core/types.ts';
 import { useAppState, useCatalog, useController, useStore, useT } from '../store/react.tsx';
 import { canExport, isStreaming } from '../store/selectors.ts';
 import type { AppState } from '../store/types.ts';
@@ -36,6 +36,7 @@ export function ExportButton(): ReactElement {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [customer, setCustomer] = useState('');
+  const [audience, setAudience] = useState<ProposalAudience>('client');
   const [phase, setPhase] = useState<Phase>('idle');
   const [note, setNote] = useState('');
   const [flow, setFlow] = useState<FlowState | null>(null);
@@ -68,6 +69,7 @@ export function ExportButton(): ReactElement {
     setFlow(null);
     setTitle('');
     setCustomer('');
+    setAudience('client');
     setPhase('idle');
     setNote('');
     setOpen(false);
@@ -139,7 +141,7 @@ export function ExportButton(): ReactElement {
     send({ type: draft ? 'drafted' : 'basic', now: Date.now() });
     try {
       const { exportProposalPdf, saveBytes } = await import('./browser.ts');
-      const r = await exportProposalPdf({ state: snapshot.current ?? store.getState(), catalog, title, customer, draft });
+      const r = await exportProposalPdf({ state: snapshot.current ?? store.getState(), catalog, title, customer, audience, draft });
       if (run.current !== mine) return;
       saveBytes(r.bytes, r.fileName);
       send({ type: 'saved', now: Date.now() });
@@ -166,7 +168,7 @@ export function ExportButton(): ReactElement {
       const e = entryFor(catalog, id);
       return !!e && e.kind !== 'construct';
     }, workflow);
-    setFlow(startFlow(Date.now(), productIds, workflow, workflowOnly));
+    setFlow(startFlow(Date.now(), productIds, workflow, workflowOnly, true));
     setPhase('working');
     setNote('');
     // a replay or an offline session has no server to write with: say so, and offer the basic version
@@ -178,7 +180,7 @@ export function ExportButton(): ReactElement {
     void import('./browser.ts').catch(() => {});
     const mineAc = new AbortController();
     ac.current = mineAc;
-    requestDraft(buildProposalRequest(st, title, customer), {
+    requestDraft(buildProposalRequest(st, title, customer, audience), {
       signal: mineAc.signal,
       onSection: (section) => {
         if (run.current === mine) send({ type: 'section', section, now: Date.now() });
@@ -261,6 +263,13 @@ export function ExportButton(): ReactElement {
           </span>
           <h2 className="xp__title">{xt('dialog.title')}</h2>
           <p className="xp__hint">{xt('dialog.hint')}</p>
+          <fieldset className="xp__audience" disabled={phase === 'working'}>
+            <legend className="xp__label">{xt('dialog.audience')}</legend>
+            {(['client', 'alibaba'] as const).map(value => <label key={value} className="xp__choice">
+              <input type="radio" name={`${panelId}-audience`} value={value} checked={audience === value} onChange={() => setAudience(value)} />
+              <span><strong>{xt(`dialog.audience.${value}`)}</strong><small>{xt(`dialog.audience.${value}.hint`)}</small></span>
+            </label>)}
+          </fieldset>
           <label className="xp__field">
             <span className="xp__label">{xt('dialog.fieldTitle')}</span>
             <input ref={titleInput} className="xp__input" type="text" value={title} maxLength={160} autoComplete="off" spellCheck={false} onChange={(e) => setTitle(e.target.value)} />
@@ -287,7 +296,7 @@ export function ExportButton(): ReactElement {
       ) : null}
       {flow ? <DraftOverlay
         flow={flow}
-        xt={(key, vars) => xt(key === 'overlay.step.why' && flow.stepIds.length ? 'overlay.step.workflow' : key, vars)}
+        xt={(key, vars) => xt(key === 'overlay.step.why' && flow.authored ? 'overlay.step.sections' : key === 'overlay.step.why' && flow.stepIds.length ? 'overlay.step.workflow' : key, vars)}
         lang={lang} onStop={stop} onBasic={basic} onRetry={retry} onClose={closeOverlay} returnFocus={download}
       /> : null}
     </div>

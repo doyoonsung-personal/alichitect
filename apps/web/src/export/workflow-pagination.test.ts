@@ -38,3 +38,16 @@ test('sparse lower rows and trailing edge space never produce empty tiles', () =
   for (const b of pages.slice(1).flatMap((p) => p.windows ?? [p.bounds])) assert.ok(cards.some((c) =>
     c.x >= b.x && c.y >= b.y && c.x + c.w <= b.x + b.w && c.y + c.h <= b.y + b.h));
 });
+
+test('complete return routes use spare sheet space without increasing page count', () => {
+  const cards = [0, 350, 2000].map(x => ({ x, y: 20, w: 260, h: 220 }));
+  const input = { bounds: { x: -14, y: -14, w: 4000, h: 1600 }, cards, minTitlePx: 14 };
+  const before = planWorkflowDiagramPages(input);
+  const route = { from: cards[0], to: cards[1], bounds: { x: 130, y: 240, w: 350, h: 160 } };
+  const after = planWorkflowDiagramPages({ ...input, routes: [route] });
+  assert.equal(after.length, before.length);
+  assert.ok(after.slice(1).flatMap(p => p.windows ?? [p.bounds])
+    .some(b => b.y <= route.bounds.y && b.y + b.h >= route.bounds.y + route.bounds.h));
+  const tooTall = planWorkflowDiagramPages({ ...input, routes: [{ ...route, bounds: { ...route.bounds, h: 2000 } }] });
+  assert.deepEqual(tooTall, before, 'oversized loops use continuation references instead of adding sheets');
+});

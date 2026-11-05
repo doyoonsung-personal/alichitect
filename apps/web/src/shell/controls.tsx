@@ -123,7 +123,7 @@ export function SessionsMenu(p: { withNew?: boolean }): ReactElement {
       empty={t('header.noSessions')}
       items={sessions.map((s) => ({
         key: s.id,
-        label: <span className="menu__title">{s.title || t('header.untitled')}</span>,
+        label: <span className="menu__title" title={s.title || undefined}>{s.title || t('header.untitled')}</span>,
         text: s.title,
         meta: (
           <>

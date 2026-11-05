@@ -3,12 +3,13 @@
 // on client disconnect, key redaction and a metadata-only log.
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { handleTurn, makeRedactor, sharedTurnState } from '../src/turn.ts';
+import { handleTurn, makeRedactor, sharedTurnState, turnConfig } from '../src/turn.ts';
 import * as db from '../src/db.ts';
 import { createMemory } from '../../../packages/core/src/prompt.ts';
 import type { SessionMemory } from '../../../packages/core/src/types.ts';
 import { API_KEY, ADMIN, makeCtx, makeEnv, ndjson, signIn } from './helpers.ts';
 import type { D1PreparedStatement, Env } from '../src/env.ts';
+import { proposalDeadlineMs } from '../src/env.ts';
 
 const line = (o: unknown): string => JSON.stringify(o);
 const sseEv = (x: unknown): string => `data: ${JSON.stringify(x)}\n\n`;
@@ -269,11 +270,17 @@ describe('POST /api/turn limits', () => {
   test('one turn in flight per user: a second is 409 user-busy; a stale slot is taken over', async () => {
     const env = makeEnv();
     const user = await approved(env);
-    assert.equal(await db.acquireTurnSlot(env.DB, user.id, 'other-request', Date.now(), 300_000), true);
+    const leaseMs = Math.max(turnConfig(env).deadlineMs, proposalDeadlineMs(env)) + 60_000;
+    assert.equal(await db.acquireTurnSlot(env.DB, user.id, 'other-request', Date.now(), leaseMs), true);
     const res = await handleTurn(turnReq(body('x')), env, makeCtx(), user, { log: () => undefined });
     assert.equal(res.status, 409);
     assert.equal(((await res.json()) as { code: string }).code, 'user-busy');
-    await env.DB.prepare('UPDATE inflight SET started_at = ?').bind(Date.now() - 301_000 - 240_000).run();
+    // A high-effort report can still be active after the ordinary chat deadline; it keeps the shared slot.
+    await env.DB.prepare('UPDATE inflight SET started_at = ?').bind(Date.now() - proposalDeadlineMs(env) + 1_000).run();
+    const reporting = await handleTurn(turnReq(body('x')), env, makeCtx(), user, { log: () => undefined });
+    assert.equal(reporting.status, 409, 'an active high-effort report retains its lease');
+    await reporting.text();
+    await env.DB.prepare('UPDATE inflight SET started_at = ?').bind(Date.now() - leaseMs - 1_000).run();
     const up = upstream([(c) => streamed(c, sseText(DIAGRAM))]);
     const ctx = makeCtx();
     const ok = await handleTurn(turnReq(body('x')), env, ctx, user, { fetchImpl: up.fetchImpl, turnOptions: OPTS, log: () => undefined });

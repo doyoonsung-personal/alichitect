@@ -83,6 +83,8 @@ export function reviveSession(v: unknown): SessionRecord | null {
     createdAt: typeof v.createdAt === 'number' ? v.createdAt : 0,
     updatedAt: typeof v.updatedAt === 'number' ? v.updatedAt : 0,
     title: v.title,
+    ...(v.titleVersion === 1 ? { titleVersion: 1 } : {}),
+    ...(typeof v.titleRetryAt === 'number' && Number.isFinite(v.titleRetryAt) ? { titleRetryAt: v.titleRetryAt } : {}),
     memory: v.memory,
     revisions,
     reqPinnedIn: isObj(v.reqPinnedIn) ? (v.reqPinnedIn as Record<string, number>) : {},

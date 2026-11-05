@@ -15,7 +15,8 @@ test('a turn goes waiting, streaming, then idle at commit with the server memory
   assert.equal(s.view, 'working');
   assert.equal(s.turn.phase, 'waiting');
   assert.equal(last(s.session.revisions).status, 'waiting');
-  assert.equal(s.session.title, fx.turns[0].ask);
+  assert.equal(s.session.title, 'We run an online store in Southeast Asia with about 30,000…');
+  assert.equal(s.session.revisions[0].ask, fx.turns[0].ask);
   assert.equal(s.ui.live?.text, 'Revision 1 started.');
 
   const first = fx.turns[0].ev.findIndex(([, e]) => e.type === 'say');

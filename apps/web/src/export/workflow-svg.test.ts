@@ -12,7 +12,8 @@ import { routeChannels } from '../routing/channel.ts';
 import { createFontSet } from './fonts.ts';
 import { nodeFontSource } from './fonts-node.ts';
 import { prepareWorkflowDiagram, drawWorkflowDiagram, fitWorkflowPdfScene } from './workflow-diagram.ts';
-import { workflowFixture } from './workflow-fixtures.ts';
+import { fanoutWorkflowFixture, inventoryWorkflowFixture, workflowFixture } from './workflow-fixtures.ts';
+import { renderWorkflowSvg, workflowWindowEdges } from './workflow-svg.ts';
 test('workflow SVG preserves semantics, escapes labels and tiles without losing a card', async () => {
   const workflow = workflowFixture(25);
   const prepared = await prepareWorkflowDiagram({ workflow, layout: layoutWorkflow(workflow), catalog, models,
@@ -32,13 +33,124 @@ test('workflow SVG preserves semantics, escapes labels and tiles without losing 
   for (const id of Object.keys(prepared.input.layout.cards)) {
     assert.ok(d.pages.slice(1).some((p) => p.drawing.svg.includes(`data-id="${id}"`)), id);
   }
+  const legend = { next: 'Next', attached: 'Attached', loop: 'Repeat', escalate: 'Escalate' };
+  for (const page of d.pages.slice(1)) for (const bounds of page.windows ?? [page.bounds]) {
+    const input = { scene: d.scene, edges: d.edges, bounds, fonts, legend, tile: true };
+    const window = workflowWindowEdges(input);
+    const tile = renderWorkflowSvg(input);
+    for (const edge of d.edges) {
+      const drawn = tile.svg.includes(`data-kind="edge" data-id="${edge.id}"`);
+      assert.equal(drawn, window.full.includes(edge));
+      if (drawn) {
+        assert.ok(window.visible.has(edge.edge.from) && window.visible.has(edge.edge.to));
+        for (const point of edge.points) assert.ok(contains(bounds, { ...point, w: 0, h: 0 }));
+      }
+      if (window.continued.includes(edge)) {
+        const ref = `C${d.edges.indexOf(edge) + 1}`;
+        assert.ok(tile.continuations?.some(row => row.ref === ref));
+        assert.ok([...tile.svg.matchAll(/data-refs="([^"]*)"/g)].some(m => m[1].split(' ').includes(ref)));
+      }
+    }
+    assert.match(tile.svg, /overflow="hidden"/);
+    assertClearConnectors(tile.svg, d.scene.cards, bounds);
+  }
 });
+for (const count of [20, 30]) for (const fragmented of [false, true]) {
+test(`high fanout connector references remain bounded and complete: ${count}, fragmented=${fragmented}`, async () => {
+  const workflow = fanoutWorkflowFixture(count, fragmented);
+  const prepared = await prepareWorkflowDiagram({ workflow, layout: layoutWorkflow(workflow), catalog, models,
+    settings: {}, lang: 'en', route: async r => routeChannels(r) });
+  const fonts = createFontSet(nodeFontSource());
+  let diagram = drawWorkflowDiagram(prepared, fonts);
+  while (fonts.missing) { await fonts.load(); diagram = drawWorkflowDiagram(prepared, fonts); }
+  const groupsByNode = new Map<string, Set<string>>();
+  let grouped = 0;
+  const legend = { next: 'Next', attached: 'Attached', loop: 'Repeat', escalate: 'Escalate' };
+  for (const page of diagram.pages.slice(1)) for (const bounds of page.windows ?? [page.bounds]) {
+    const input = { scene: diagram.scene, edges: diagram.edges, bounds, fonts, legend, tile: true };
+    const tile = renderWorkflowSvg(input);
+    assertClearConnectors(tile.svg, diagram.scene.cards, bounds);
+    for (const match of tile.svg.matchAll(/<g data-kind="continuation"([^>]*)>([\s\S]*?)<\/g>/g)) {
+      const marker = attrs(match[1]), box = attrs(/<rect\b([^>]*)/.exec(match[2])![1]);
+      assert.ok(+box.width <= diagram.scene.byId.get(marker['data-node'])!.w - 4, 'a marker remains associated with one card');
+    }
+    const refs = new Set<string>();
+    for (const match of tile.svg.matchAll(/<g data-kind="continuation"([^>]*)>/g)) {
+      const a = attrs(match[1]), members = a['data-refs'].split(' ');
+      for (const ref of members) refs.add(ref);
+      const label = decode(a['data-label']);
+      if (label.startsWith('G')) {
+        grouped++;
+        const groups = groupsByNode.get(a['data-node']) ?? new Set();
+        groups.add(label); groupsByNode.set(a['data-node'], groups);
+        for (const ref of members) assert.ok(tile.continuations?.find(row => row.ref === ref)?.groups?.includes(label));
+      } else {
+        const expanded = label.split(', ').flatMap(part => {
+          const [start, end = start] = part.split('–').map(ref => Number(ref.slice(1)));
+          return Array.from({ length: end - start + 1 }, (_, index) => `C${start + index}`);
+        });
+        assert.deepEqual(expanded, [...members].sort((a, b) => Number(a.slice(1)) - Number(b.slice(1))), 'ranges include exactly their members');
+      }
+    }
+    for (const edge of workflowWindowEdges(input).continued) {
+      const ref = `C${diagram.edges.indexOf(edge) + 1}`;
+      assert.ok(refs.has(ref), `${ref} retains an endpoint marker`);
+      assert.ok(tile.continuations?.some(row => row.ref === ref), `${ref} retains its connection-table row`);
+    }
+    for (const row of tile.continuations ?? []) for (const group of row.groups ?? []) {
+      assert.ok(page.drawing.continuations?.find(r => r.ref === row.ref)?.groups?.includes(group), 'strip composition retains group membership');
+    }
+  }
+  if (fragmented) assert.ok(grouped > 0, 'nonconsecutive references exercise the bounded group fallback');
+  for (const groups of groupsByNode.values()) assert.equal(groups.size, 1, 'the shared port keeps its group ID across windows');
+});
+}
 const dir = new URL('../../../../packages/core/test/fixtures/workflows/', import.meta.url);
 const contains = (a: Rect, b: Rect) => b.x >= a.x - .01 && b.y >= a.y - .01
   && b.x + b.w <= a.x + a.w + .01 && b.y + b.h <= a.y + a.h + .01;
 const overlaps = (a: Rect, b: Rect) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 const decode = (s: string) => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
 const attrs = (s: string) => Object.fromEntries([...s.matchAll(/([\w-]+)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
+function assertClearConnectors(svg: string, cards: readonly Rect[], bounds: Rect): void {
+  for (const group of svg.matchAll(/<g data-kind="continuation"[^>]*>([\s\S]*?)<\/g>/g)) {
+    const a = attrs(/<rect\b([^>]*)/.exec(group[1])![1]);
+    const box = { x: +a.x, y: +a.y, w: +a.width, h: +a.height };
+    assert.ok(contains(bounds, box), 'continuation reference stays within the diagram view');
+    for (const card of cards) assert.ok(!overlaps(box, card), 'continuation reference does not cover a node');
+  }
+}
+test('inventory workflow keeps return loops whole and continuation references clear of node text', async () => {
+  const workflow = inventoryWorkflowFixture();
+  const prepared = await prepareWorkflowDiagram({ workflow, layout: layoutWorkflow(workflow), catalog, models,
+    settings: {}, lang: 'ko', route: async r => routeChannels(r) });
+  const fonts = createFontSet(nodeFontSource());
+  let diagram = drawWorkflowDiagram(prepared, fonts);
+  while (fonts.missing) { await fonts.load(); diagram = drawWorkflowDiagram(prepared, fonts); }
+  assert.equal(diagram.pages.length, 3, 'one overview and two readable details');
+  const loop = diagram.edges.find(e => e.loop)!;
+  assert.ok(loop);
+  const legend = { next: 'Next', attached: 'Attached', loop: 'Repeat', escalate: 'Escalate' };
+  for (const page of diagram.pages.slice(1)) for (const bounds of page.windows ?? [page.bounds]) {
+    const input = { scene: diagram.scene, edges: diagram.edges, bounds, fonts, legend, tile: true };
+    const tile = renderWorkflowSvg(input);
+    assertClearConnectors(tile.svg, diagram.scene.cards, bounds);
+    assert.ok(workflowWindowEdges(input).full.includes(loop), 'a return path with both endpoints is kept whole when space permits');
+    assert.match(tile.svg, /data-kind="repetition"/);
+  }
+  const bounds = { x: 0, y: 0, w: 340, h: 140 };
+  const cards = diagram.scene.cards.slice(0, 3).map((c, k) => ({ ...c, id: ['a', 'b', 'outside'][k],
+    x: [20, 200, 1000][k], y: 20, w: 100, h: 60 }));
+  const scene = { ...diagram.scene, cards, byId: new Map(cards.map(c => [c.id, c])), brackets: [] };
+  const routed = (id: string, from: string, to: string, points: {x: number; y: number}[], label = '',
+    labelBox = { x: 145, y: 30, w: 40, h: 20 }) => ({ ...loop, id, edge: { ...loop.edge, from, to }, points, label, labelBox });
+  const crossing = routed('crossing', 'outside', 'missing', [{ x: -100, y: 10 }, { x: 400, y: 10 }]);
+  const cutLoop = routed('cut-loop', 'a', 'b', [{ x: 120, y: 50 }, { x: 120, y: 200 }, { x: 200, y: 200 }, { x: 200, y: 50 }]);
+  const hiddenLabel = routed('hidden-label', 'a', 'b', [{ x: 120, y: 50 }, { x: 200, y: 50 }], 'Approved', { x: 145, y: -30, w: 40, h: 20 });
+  const complete = routed('complete', 'a', 'b', [{ x: 120, y: 50 }, { x: 200, y: 50 }]);
+  const visible = workflowWindowEdges({ scene, bounds, edges: [crossing, cutLoop, hiddenLabel, complete] });
+  assert.deepEqual(visible.full, [complete]);
+  assert.deepEqual(visible.continued, [cutLoop, hiddenLabel], 'unowned route fragments disappear; clipped loops or labels get a reference');
+});
 for (const file of readdirSync(dir).filter((f) => f.endsWith('.json'))) for (const lang of ['en', 'ko', 'zh'] as const) {
 test(`SVG fixture: ${file} ${lang}`, async () => {
   const fixture = JSON.parse(readFileSync(new URL(file, dir), 'utf8'));
@@ -60,6 +172,9 @@ test(`SVG fixture: ${file} ${lang}`, async () => {
     assert.ok(page.scale * 14 >= 11);
     for (const window of page.windows ?? [page.bounds]) {
       assert.ok(svg.scene.cards.some((c) => contains(window, c)));
+      const tile = renderWorkflowSvg({ scene: svg.scene, edges: svg.edges, bounds: window, fonts,
+        legend: { next: 'Next', attached: 'Attached', loop: 'Repeat', escalate: 'Escalate' }, tile: true });
+      assertClearConnectors(tile.svg, svg.scene.cards, window);
     }
   }
   for (const card of svg.scene.cards) assert.ok(svg.pages.filter((p) => !p.overview)

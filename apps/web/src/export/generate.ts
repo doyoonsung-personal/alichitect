@@ -2,7 +2,7 @@
 // PDF bytes. Pure TypeScript over pdfkit; the browser and Node differ only in the font source, the logo and the router,
 // which the caller passes in. Nothing here touches the DOM.
 import PDFDocument from 'pdfkit';
-import type { Catalog, Graph, ProposalDraft, WorkflowGraph } from '@ali/core/types.ts';
+import type { Catalog, Graph, ProposalAudience, ProposalDraft, WorkflowGraph } from '@ali/core/types.ts';
 import type { LayoutState } from '@ali/core/layout.ts';
 import type { Lang } from '../i18n/t.ts';
 import type { SessionRecord } from '../store/types.ts';
@@ -35,6 +35,7 @@ export interface GenerateInput {
   lang: Lang;
   title: string;
   customer: string;
+  audience?: ProposalAudience;
   now: Date;
   fontSource: FontSource;
   route: RouteFn;
@@ -67,7 +68,7 @@ type Drawn = ReturnType<typeof drawDiagram>;
 export async function generateProposalPdf(i: GenerateInput): Promise<GenerateResult> {
   const t0 = now();
   const model = buildProposal({ session: i.session, graph: i.graph, layout: i.layout, catalog: i.catalog,
-    lang: i.lang, title: i.title, customer: i.customer, now: i.now, draft: i.draft,
+    lang: i.lang, title: i.title, customer: i.customer, audience: i.audience, now: i.now, draft: i.draft,
     ...(i.workflowLayout ? { workflowLayout: i.workflowLayout } : {}) });
   const fonts = createFontSet(i.fontSource);
   const workflow = i.session.memory.workflow;
@@ -114,7 +115,7 @@ export async function generateProposalPdf(i: GenerateInput): Promise<GenerateRes
       font: null,
       lang: i.lang === 'zh' ? 'zh-CN' : i.lang === 'ko' ? 'ko-KR' : 'en',
       displayTitle: true,
-      info: { Title: model.title, Author: 'Architecture Builder', Creator: 'Architecture Builder', Subject: xt(i.lang, 'doc.type'), Keywords: 'Alibaba Cloud, architecture, proposal' },
+      info: { Title: model.title, Author: 'Architecture Builder', Creator: 'Architecture Builder', Subject: xt(i.lang, model.audience === 'alibaba' ? 'doc.alibaba' : 'doc.client'), Keywords: 'Alibaba Cloud, architecture, proposal' },
     });
     const chunks: Uint8Array[] = [];
     const done = new Promise<void>((resolve, reject) => {
@@ -139,7 +140,7 @@ export async function generateProposalPdf(i: GenerateInput): Promise<GenerateRes
   const st = fonts.stats();
   return {
     bytes: out.bytes,
-    fileName: proposalFileName(model.title, model.date),
+    fileName: proposalFileName(model.title, model.date).replace(/\.pdf$/, i.audience || i.draft?.audience ? `-${model.audience}.pdf` : '.pdf'),
     report: {
       ...out.report,
       totalMs: Math.round(now() - t0),

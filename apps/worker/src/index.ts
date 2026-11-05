@@ -22,10 +22,11 @@ import { FLASH_COOKIE, adminApi, adminDenyOld, adminFormAction, adminNotice, upd
 import { handleTurn, health, reject, sharedTurnState, workerFatalMessage } from './turn.ts';
 import { handleProposal } from './proposal.ts';
 import { handlePricing } from './pricing.ts';
+import { handleSessionTitle } from './session-title.ts';
 import { handleMcp } from './mcp.ts';
 import { downloadPdf, processPdfQueue } from './mcp-pdf.ts';
 import { keyMenu } from './key-menu.ts';
-import { latestDesign, openedDesign } from './mcp-designs.ts';
+import { latestDesign, openedDesign, refreshDesignTitle } from './mcp-designs.ts';
 import { changelogPage, claimReleaseNotice } from './release-notice.ts';
 import { authAsset } from './pages/assets.ts';
 import { LANG_COOKIE, isLang, langOfRequest } from './pages/i18n.ts';
@@ -203,7 +204,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
   if (path.startsWith('/api/agent-designs/')) {
     if (method !== 'GET') return json(405, { error: 'method-not-allowed' }, { Allow: 'GET' });
     const row = await latestDesign(env.DB, me.id, path.slice('/api/agent-designs/'.length));
-    return row ? json(200, openedDesign(row)) : json(404, { error: 'design-not-found' });
+    return row ? json(200, openedDesign(await refreshDesignTitle(env, me.id, row))) : json(404, { error: 'design-not-found' });
   }
   if (path === '/api/me') {
     if (!isGet(method)) return json(405, { error: 'method-not-allowed' }, { Allow: 'GET' });
@@ -223,6 +224,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
     });
   }
   if (path === '/api/turn') return method === 'POST' ? handleTurn(request, env, ctx, me) : reject(405, 'method-not-allowed', 'use POST', { Allow: 'POST' });
+  if (path === '/api/session-title') return method === 'POST' ? handleSessionTitle(request, env, me.id) : json(405, { error: 'method-not-allowed' }, { Allow: 'POST' });
   if (path === '/api/pricing') return method === 'POST' ? handlePricing(request, env, ctx, me) : reject(405, 'method-not-allowed', 'use POST', { Allow: 'POST' });
   if (path === '/api/proposal') return method === 'POST' ? handleProposal(request, env, ctx, me) : reject(405, 'method-not-allowed', 'use POST', { Allow: 'POST' });
   if (path.startsWith('/api/')) return json(404, { error: 'not-found', message: 'no such route' });

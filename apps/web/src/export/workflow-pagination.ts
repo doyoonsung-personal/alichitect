@@ -34,7 +34,11 @@ export function planTablePages(i: TableLayoutInput): TablePage[] {
   return pages;
 }
 
-export interface DiagramPageInput { bounds: Rect; cards: readonly Rect[]; minTitlePx: number }
+export interface DiagramPageInput {
+  bounds: Rect; cards: readonly Rect[]; minTitlePx: number;
+  /** Keep a return path whole when both endpoint cards fit and the complete path fits a readable sheet. */
+  routes?: readonly { from: Rect; to: Rect; bounds: Rect }[];
+}
 export interface DiagramPage { size: 'A4' | 'A3'; scale: number; overview: boolean; bounds: Rect; windows?: Rect[] }
 export const WORKFLOW_TITLE_FLOOR = 11;
 const fit = (b: Rect, w: number, h: number) => Math.min(w / b.w, h / b.h, 1.3);
@@ -77,6 +81,15 @@ export function planWorkflowDiagramPages(i: DiagramPageInput): DiagramPage[] {
   const groups: Rect[][] = [];
   for (let end = tiles.length; end > 0; end = plans[end].start) groups.unshift(tiles.slice(plans[end].start, end));
   for (const windows of groups) {
+    // Spend only the existing sheet's spare space on complete return paths; don't create extra sheets for a loop.
+    for (const bounds of windows) for (const route of i.routes ?? []) {
+      if (!contains(bounds, route.from) || !contains(bounds, route.to)) continue;
+      const x = Math.min(bounds.x, route.bounds.x - 14), y = Math.min(bounds.y, route.bounds.y - 28);
+      const expanded = { x, y, w: Math.max(bounds.x + bounds.w, route.bounds.x + route.bounds.w + 14) - x,
+        h: Math.max(bounds.y + bounds.h, route.bounds.y + route.bounds.h + 14) - y };
+      const otherHeight = windows.reduce((sum, b) => sum + (b === bounds ? 0 : b.h), (windows.length - 1) * 24);
+      if (expanded.w <= w && expanded.h + otherHeight <= h) Object.assign(bounds, expanded);
+    }
     const bounds = windows.length === 1 ? windows[0] : { x: 0, y: 0, w: Math.max(...windows.map((b) => b.w)),
       h: windows.reduce((n, b) => n + b.h + 24, -24) };
     pages.push({ size: 'A3', scale: Math.max(minScale, fit(bounds, 1094.55, 649.89)), overview: false, bounds,

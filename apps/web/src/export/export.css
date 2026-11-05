@@ -7,6 +7,8 @@
   right: 0;
   width: 340px;
   max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - var(--header-h) - 24px);
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
@@ -41,6 +43,15 @@
 
 .xp__field { display: flex; flex-direction: column; gap: var(--s-2); }
 .xp__label { font-size: var(--t-12); line-height: var(--lh-12); font-weight: var(--w-medium); color: var(--ink-3); }
+.xp__audience { display: grid; gap: var(--s-2); margin: 0; padding: 0; border: 0; min-width: 0; }
+.xp__audience legend { margin-bottom: var(--s-2); }
+.xp__choice { display: flex; align-items: flex-start; gap: var(--s-3); padding: var(--s-3); border: 1px solid var(--line-control); border-radius: var(--r-control); cursor: pointer; }
+.xp__choice:has(input:checked) { border-color: var(--action); background: var(--sheet); }
+.xp__choice input { flex: none; margin-top: 3px; accent-color: var(--action); }
+.xp__choice span { min-width: 0; display: grid; gap: var(--s-1); }
+.xp__choice strong { font-size: var(--t-13); font-weight: var(--w-medium); }
+.xp__choice small { font-size: var(--t-12); line-height: var(--lh-cjk); color: var(--ink-3); }
+:root:lang(ko) .xp__choice small { word-break: keep-all; }
 
 .xp__input {
   height: 36px;

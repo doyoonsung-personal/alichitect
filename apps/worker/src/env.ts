@@ -72,7 +72,7 @@ export interface Env {
   QWEN_FALLBACK_MODEL?: string;
   QWEN_BASE_URL?: string;
   TURN_DEADLINE_MS?: string;
-  /** Hard stop for one proposal draft (POST /api/proposal), 30000-600000 ms (default 360000). */
+  /** Hard stop for one high-effort proposal draft, 30000-840000 ms (default 840000). */
   PROPOSAL_DEADLINE_MS?: string;
   /** The Claude backup's model (default claude-opus-5-5); used only when ANTHROPIC_API_KEY is set. Any other value, and any model not in the PRICES table, falls back to the default. */
   CLAUDE_BACKUP_MODEL?: string;
@@ -114,12 +114,12 @@ export function isSharedAccount(env: Env, email: string): boolean {
 }
 
 /** The default deadline of one proposal draft (POST /api/proposal). */
-export const DEFAULT_PROPOSAL_DEADLINE_MS = 360_000;
+export const DEFAULT_PROPOSAL_DEADLINE_MS = 840_000;
 
-/** PROPOSAL_DEADLINE_MS, 30 s to 10 min. Here rather than in proposal.ts so turn.ts can read it without an import cycle. */
+/** Up to 14 min: leave a minute for job persistence within the scheduled Worker's 15-minute wall-clock limit. */
 export function proposalDeadlineMs(env: Env): number {
   const d = Number(env.PROPOSAL_DEADLINE_MS);
-  return Number.isInteger(d) && d >= 30_000 && d <= 600_000 ? d : DEFAULT_PROPOSAL_DEADLINE_MS;
+  return Number.isInteger(d) && d >= 30_000 && d <= 840_000 ? d : DEFAULT_PROPOSAL_DEADLINE_MS;
 }
 
 export function turnsPerDay(env: Env): number {

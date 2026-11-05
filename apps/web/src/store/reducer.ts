@@ -1,4 +1,5 @@
 import { layoutWorkflow, tidyWorkflow } from '@ali/core/workflow-layout.ts';
+import { compactSessionTitle } from '@ali/core/session-title.ts';
 import type { PricingSession } from '@ali/core/solution-pricing.ts';
 import type { WorkflowSettings, WorkflowEstimateSettings } from '@ali/core/types.ts';
 // The session store's reducer: pure, deterministic, no timers and no DOM. The controller dispatches actions with the
@@ -74,6 +75,7 @@ export type Action =
   | { type: 'session/new'; id: string; now: number }
   | { type: 'session/open'; record: SessionRecord; now: number }
   | { type: 'sessions/list'; sessions: SessionSummary[] }
+  | { type: 'session/title'; id: string; previousTitle: string; title: string; titleVersion?: number; titleRetryAt?: number }
   | { type: 'turn/start'; mode?: TurnMode; intent?: 'deployment'; ask: string; now: number; replayOf?: string | null; replaceLast?: boolean }
   | { type: 'rev/discardFailed' }
   | { type: 'turn/event'; event: WireEvent; now: number }
@@ -260,6 +262,10 @@ export function reduce(state: AppState, action: Action, deps: StoreDeps): AppSta
       return { ...state, account: action.account };
     case 'sessions/list':
       return { ...state, sessions: action.sessions, sessionsVersion: state.sessionsVersion + 1 };
+    case 'session/title':
+      if (state.session.id !== action.id || state.session.title !== action.previousTitle || state.replay) return state;
+      return { ...state, session: { ...state.session, title: action.title,
+        titleVersion: action.titleVersion, titleRetryAt: action.titleRetryAt } };
     case 'pricing/open':
       return { ...state, session: { ...state.session, pricingOpen: action.open } };
     case 'pricing/start':
@@ -446,7 +452,7 @@ function startTurn(state: AppState, ask: string, now: number, replayOf: string |
     session: {
       ...session,
       mode,
-      title: session.title || text,
+      title: session.title || compactSessionTitle(text),
       updatedAt: now,
       replayOf: replayOf ?? session.replayOf,
       revisions: [...session.revisions, { ...emptyRevision(n, text, now), mode, ...(intent ? { intent } : {}) }],
@@ -743,6 +749,7 @@ function onCommit(state: AppState, work: TurnWork, ev: Extract<WireEvent, { type
     reqPinnedIn[text] = n;
   }
   const session: SessionRecord = { ...next.session, memory, updatedAt: now, reqPinnedIn,
+    ...(n === 1 && typeof ev.title === 'string' && ev.title.trim() ? { title: compactSessionTitle(ev.title), titleVersion: 1 } : {}),
     ...(workflow ? { workflowLayout: layoutWorkflow(afterWorkflow, work.workflowLayout) } : {}),
     ...(workflow ? { workflowProvenance: provenance } : { provenance }) };
   session.summarizedThrough = memory.summary ? Math.max(session.summarizedThrough, foldedThrough(session, memory)) : session.summarizedThrough;

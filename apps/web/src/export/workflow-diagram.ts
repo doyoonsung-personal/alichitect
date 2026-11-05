@@ -74,7 +74,13 @@ export function drawWorkflowDiagram(d: PreparedWorkflowDiagram, fonts: FontSet) 
   const bounds = { x: raw.x - 14, y: raw.y - 14,
     w: Math.max(raw.w + 28, ...Object.values(legend).map((s) => fonts.width(s, 12, 400) + 70)), h: raw.h + 128 };
   const minTitlePx = Math.min(14, ...scene.cards.map((c) => c.titlePx));
-  const pages = planWorkflowDiagramPages({ bounds, cards: scene.cards, minTitlePx });
+  const pages = planWorkflowDiagramPages({ bounds, cards: scene.cards, minTitlePx, routes: edges.map(e => {
+    const points = [...e.points, ...(e.label ? [{ x: e.labelBox.x, y: e.labelBox.y },
+      { x: e.labelBox.x + e.labelBox.w, y: e.labelBox.y + e.labelBox.h }] : [])];
+    const x = Math.min(...points.map(p => p.x)), y = Math.min(...points.map(p => p.y));
+    return { from: scene.byId.get(e.edge.from)!, to: scene.byId.get(e.edge.to)!,
+      bounds: { x, y, w: Math.max(...points.map(p => p.x)) - x, h: Math.max(...points.map(p => p.y)) - y } };
+  }) });
   const drawing = renderWorkflowSvg({ scene, edges, bounds, fonts, legend });
   const rendered = pages.map((p, index) => {
     if (p.overview) {

@@ -1,7 +1,7 @@
 // The browser end of the export: the Vite font source, the libavoid router (with the channel router as the fallback),
 // the logo file, and the download. This module is loaded with import() when the person asks for the PDF, so pdfkit,
 // svg-to-pdfkit, fontkit and the router stay out of the app's first load.
-import type { Catalog, ProposalDraft } from '@ali/core/types.ts';
+import type { Catalog, ProposalAudience, ProposalDraft } from '@ali/core/types.ts';
 import { committedExportSnapshot } from './workflow-data.ts';
 import { LOGOS } from '../icons/brand.generated.ts';
 import { routeWithBudget } from '../routing/budget.ts';
@@ -42,6 +42,7 @@ export interface ExportRequest {
   catalog: Catalog;
   title: string;
   customer: string;
+  audience?: ProposalAudience;
   /** The drafted narrative; null or absent lays out the basic version. */
   draft?: ProposalDraft | null;
 }
@@ -55,6 +56,7 @@ export async function exportProposalPdf(r: ExportRequest): Promise<GenerateResul
     lang: state.lang,
     title: r.title,
     customer: r.customer,
+    audience: r.audience,
     now: new Date(),
     fontSource: webFontSource(),
     route,

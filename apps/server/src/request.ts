@@ -297,6 +297,8 @@ export function checkTurnRequest(body: unknown): RequestCheck {
     const ask = str(own(o, 'ask'), 'ask', LIMITS.askChars, { nonEmpty: true })!;
     const turnMode = mode(own(o, 'mode'), 'mode');
     const parsed = memory(own(o, 'memory'), 'memory');
+    const generateTitle = own(o, 'generateTitle');
+    if (generateTitle !== undefined && typeof generateTitle !== 'boolean') fail('generateTitle', 'expected a boolean');
     const intent = own(o, 'intent');
     if (intent !== undefined && (intent !== 'deployment' || turnMode !== 'cloud' || !Object.keys(parsed.workflow?.nodes ?? {}).length)) {
       fail('intent', 'drawing a deployment requires cloud mode and a workflow with steps');
@@ -305,7 +307,8 @@ export function checkTurnRequest(body: unknown): RequestCheck {
       const retained = { ...parsed, turns: [], tombstones: [], workflowTombstones: [] };
       if (memoryBytes(retained) > TURN_MEMORY_BUDGET) fail('memory', 'retained documents exceed the next-request budget');
     }
-    return { ok: true, value: { sessionId, ask, mode: turnMode, memory: parsed, ...(intent === 'deployment' ? { intent } : {}) } };
+    return { ok: true, value: { sessionId, ask, mode: turnMode, memory: parsed,
+      ...(generateTitle === true ? { generateTitle: true } : {}), ...(intent === 'deployment' ? { intent } : {}) } };
   } catch (e) {
     if (e instanceof Bad) return { ok: false, code: 'bad-request', message: e.message };
     return { ok: false, code: 'bad-request', message: 'invalid request body' };
@@ -326,9 +329,12 @@ export function checkProposalRequest(body: unknown): ProposalCheck {
     const title = str(own(o, 'title') ?? '', 'title', LIMITS.proposalTitle)!;
     const customer = str(own(o, 'customer') ?? '', 'customer', LIMITS.proposalCustomer)!;
     const editorialNotes = str(own(o, 'editorialNotes'), 'editorialNotes', 12000, { optional: true });
+    const audience = own(o, 'audience');
+    if (audience !== undefined && audience !== 'client' && audience !== 'alibaba') fail('audience', "expected 'client' or 'alibaba'");
     const pricing = own(o, 'pricing');
     return { ok: true, value: { sessionId, lang, title, customer, memory: memory(own(o, 'memory'), 'memory'),
       ...(editorialNotes ? { editorialNotes } : {}),
+      ...(audience !== undefined ? { audience } : {}),
       ...(pricing !== undefined ? { pricing: validatePricingSession(pricing) } : {}) } };
   } catch (e) {
     if (e instanceof Bad) return { ok: false, code: 'bad-request', message: e.message };
