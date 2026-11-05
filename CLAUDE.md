@@ -1,5 +1,9 @@
 # ali_catalog
 
+## Shared agent instructions
+
+Before starting work, read and follow [AGENTS.md](AGENTS.md). It is the common working agreement for all agents: file ownership, coordination, commit messages, verification and handoffs. Check relevant [task records](docs/agent-handoffs/README.md) when continuing shared work. The implementation notes below supplement that agreement; they do not replace it.
+
 A live Alibaba Cloud architecture builder: a chat console on the left, and a diagram on the right that Qwen draws as it streams. Start from `research/FEASIBILITY.md`. Shared code lives in `packages/core`; its contract is `packages/core/src/types.ts`.
 
 ## Offload lower-level work to Qwen
