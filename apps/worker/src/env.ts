@@ -47,6 +47,8 @@ export interface Env {
   ADMIN_EMAILS?: string;
   /** Turns per UTC day for a standard user (default 60). */
   TURNS_PER_DAY?: string;
+  /** Optional isolated business-case worksheet. Unset or any value other than "1" disables it. */
+  BUSINESS_CASE_ENABLED?: string;
   /** The one origin the app is served from, e.g. https://architect.alikorea-demo.com. */
   ALLOWED_ORIGIN: string;
   MAIL_FROM?: string;

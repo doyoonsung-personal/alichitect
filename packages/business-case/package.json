@@ -1,0 +1,10 @@
+{
+  "name": "@ali/business-case",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Optional business-case validation and deterministic scenario calculations, independent of the architecture and BD modules",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.ts\""
+  }
+}

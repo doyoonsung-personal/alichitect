@@ -12,6 +12,8 @@ export interface Account {
   /** The daily limit, or null for admins and verified users. */
   turnsPerDay: number | null;
   links: { account: string; admin: string | null; signOut: string; keys?: string };
+  /** Optional capabilities: old servers and malformed values fail closed per feature. */
+  features?: { businessCase: boolean };
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -31,6 +33,7 @@ export function parseAccount(v: unknown): Account | null {
     role: v.role === 'admin' || v.role === 'verified' ? v.role : 'member',
     turnsToday: Math.max(0, Math.floor(v.turnsToday)),
     turnsPerDay: limit,
+    features: { businessCase: isObj(v.features) && v.features.businessCase === true },
     links: { account: l.account, admin: l.admin, signOut: l.signOut, ...(isPath(l.keys) ? { keys: l.keys } : {}) },
   };
 }

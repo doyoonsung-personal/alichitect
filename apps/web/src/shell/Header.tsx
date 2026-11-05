@@ -6,6 +6,7 @@ import { useWorkflowProps } from '../workflow/props.ts';
 import type { ReactElement } from 'react';
 import { BrandMark } from '../brand/BrandMark.tsx';
 import { ExportButton } from '../export/ExportButton.tsx';
+import { BusinessCaseEntry } from '../features/business-case/entry.tsx';
 import { Icon } from './Icon.tsx';
 import { ChangelogLink, LanguageMenu, ModeState, SessionsMenu, ThemeMenu } from './controls.tsx';
 import { AccountMenu } from './AccountMenu.tsx';
@@ -63,6 +64,7 @@ export function Header(): ReactElement {
           <span>{focus ? t('header.showConsole') : t('header.focusDiagram')}</span>
         </button>}
         <ExportButton />
+        <BusinessCaseEntry />
         <ChangelogLink />
         <SessionsMenu />
         <button type="button" className="btn btn--ghost" onClick={() => c.newSession()} disabled={streaming}>

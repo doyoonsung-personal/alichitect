@@ -30,6 +30,13 @@ test('fetchAccount is null for a missing route, an HTML page, a 401, a network e
   assert.equal(await fetchAccount({ timeoutMs: 10, fetchImpl: ((_u: string, i?: RequestInit) => new Promise((_r, rej) => i?.signal?.addEventListener('abort', () => rej(new DOMException('x', 'AbortError'))))) as typeof fetch }), null);
 });
 
+test('optional feature capabilities fail closed without rejecting existing accounts', () => {
+  for (const features of [undefined, null, [], true, {}, { businessCase: 'true' }, { businessCase: 1 }]) {
+    assert.equal(parseAccount({ ...ME, features })?.features?.businessCase, false);
+  }
+  assert.equal(parseAccount({ ...ME, features: { businessCase: true, futureModule: true } })?.features?.businessCase, true);
+});
+
 test('quota: unlimited accounts show usage, limited accounts count down to zero', () => {
   assert.deepEqual(quotaOf({ turnsToday: 5, turnsPerDay: null }), { kind: 'unlimited', used: 5 });
   assert.deepEqual(quotaOf({ turnsToday: 12, turnsPerDay: 60 }), { kind: 'limited', used: 12, limit: 60, left: 48 });

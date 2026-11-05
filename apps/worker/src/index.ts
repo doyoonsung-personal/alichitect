@@ -23,6 +23,7 @@ import { handleTurn, health, reject, sharedTurnState, workerFatalMessage } from 
 import { handleProposal } from './proposal.ts';
 import { handlePricing } from './pricing.ts';
 import { handleSessionTitle } from './session-title.ts';
+import { businessCaseEnabled } from './features/business-case/policy.ts';
 import { handleMcp } from './mcp.ts';
 import { downloadPdf, processPdfQueue } from './mcp-pdf.ts';
 import { keyMenu } from './key-menu.ts';
@@ -218,6 +219,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
       createdAt: me.created_at,
       turnsToday: await db.turnsToday(env.DB, me.id, now),
       turnsPerDay: dailyTurnLimit(env, me.role),
+      ...(businessCaseEnabled(env) ? { features: { businessCase: true } } : {}),
       // signOut takes a same-origin POST (a form, or fetch with method POST); the others are pages
       links: { account: '/account', admin: isAdmin ? '/admin' : null, signOut: '/auth/logout',
         ...(!isSharedAccount(env, me.email) ? { keys: '/account/keys' } : {}) },
@@ -227,6 +229,11 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
   if (path === '/api/session-title') return method === 'POST' ? handleSessionTitle(request, env, me.id) : json(405, { error: 'method-not-allowed' }, { Allow: 'POST' });
   if (path === '/api/pricing') return method === 'POST' ? handlePricing(request, env, ctx, me) : reject(405, 'method-not-allowed', 'use POST', { Allow: 'POST' });
   if (path === '/api/proposal') return method === 'POST' ? handleProposal(request, env, ctx, me) : reject(405, 'method-not-allowed', 'use POST', { Allow: 'POST' });
+  if (path === '/api/features/business-case' || path.startsWith('/api/features/business-case/')) {
+    if (!businessCaseEnabled(env)) return json(404, { error: 'not-found' });
+    const { handleBusinessCase } = await import('./features/business-case/routes.ts');
+    return handleBusinessCase(request, env, me);
+  }
   if (path.startsWith('/api/')) return json(404, { error: 'not-found', message: 'no such route' });
 
   // ---------- admin ----------
