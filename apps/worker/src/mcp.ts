@@ -15,7 +15,9 @@ const paragraph = z.string().trim().min(1).max(3000);
 const narrative = z.object({
   exec: paragraph.describe('Executive summary written by the calling agent.'),
   outcomes: z.array(z.object({ title: z.string().max(200), text: paragraph })).max(16).default([]),
-  sections: z.array(z.object({ title: z.string().trim().min(1).max(200), text: paragraph })).max(12).optional(),
+  sections: z.array(z.object({ title: z.string().trim().min(1).max(200), text: paragraph,
+    points: z.array(z.object({ title: z.string().trim().min(1).max(70), text: z.string().trim().min(1).max(500) })).max(4).optional(),
+  })).max(12).optional(),
   needs: z.array(z.object({ id: z.string().max(100), need: paragraph, source: z.enum(['stated','inferred','general']),
     quote: paragraph.optional(), answer: paragraph, products: z.array(z.string().max(100)).max(32).default([]) })).max(32).default([]),
   why: z.record(z.string().max(100), paragraph).default({}).describe('Optional rationale keyed by catalog product ID.'),

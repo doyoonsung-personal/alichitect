@@ -62,8 +62,13 @@ export function asSection(v: unknown): ProposalSection | null {
       if (!str(v.id) || !text(v.need) || !text(v.answer) || !str(v.source) || !SOURCES.has(v.source)) return null;
       return { k: 'need', id: v.id, need: v.need, source: v.source as NeedSource, ...(text(v.quote) ? { quote: v.quote } : {}), answer: v.answer, products: strings(v.products) };
     case 'outcome':
-    case 'section':
       return text(v.title) && text(v.text) ? { k: v.k, title: v.title, text: v.text } : null;
+    case 'section': {
+      if (!text(v.title) || !text(v.text)) return null;
+      if (v.points !== undefined && (!Array.isArray(v.points) || !v.points.every(p => isObj(p) && text(p.title) && text(p.text)))) return null;
+      const points = (v.points as Array<{ title: string; text: string }> | undefined)?.map(p => ({ title: p.title, text: p.text }));
+      return { k: 'section', title: v.title, text: v.text, ...(points?.length ? { points } : {}) };
+    }
     case 'why':
       return str(v.product) && text(v.text) ? { k: 'why', product: v.product, text: v.text } : null;
     case 'step':
@@ -91,10 +96,18 @@ export function asDraft(v: unknown): ProposalDraft | null {
   }
   const why: Record<string, string> = {};
   if (isObj(v.why)) for (const [id, w] of Object.entries(v.why)) if (text(w)) why[id] = w;
+  const sections: NonNullable<ProposalDraft['sections']> = [];
+  for (const chapter of Array.isArray(v.sections) ? v.sections : []) {
+    const section = asSection({ ...(isObj(chapter) ? chapter : {}), k: 'section' });
+    if (section?.k === 'section') {
+      const { k: _k, ...content } = section;
+      sections.push(content);
+    }
+  }
   return {
     lang,
     ...(v.audience === 'client' || v.audience === 'alibaba' ? { audience: v.audience } : {}),
-    ...(Array.isArray(v.sections) ? { sections: v.sections.filter((o): o is { title: string; text: string } => isObj(o) && text(o.title) && text(o.text)).map(o => ({ title: o.title, text: o.text })) } : {}),
+    ...(Array.isArray(v.sections) ? { sections } : {}),
     exec: v.exec,
     ...(text(v.cost) ? { cost: v.cost } : {}),
     needs,

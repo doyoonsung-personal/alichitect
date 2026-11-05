@@ -38,7 +38,7 @@ export async function exportPdf(env: Env, user: UserRow, designId: string, revis
   const owner = user.id;
   // Audience and writing version are part of the identity: an internal brief must never reuse a client PDF.
   options = { ...options, audience: options.audience ?? 'client' };
-  const id = await sha256Hex(JSON.stringify(['audience-proposal-v2', owner, designId, revision, options]));
+  const id = await sha256Hex(JSON.stringify(['audience-proposal-v3-readable', owner, designId, revision, options]));
   let row = await latestDesign(env.DB, owner, designId);
   if (!row) throw new DesignError('Design not found for this account.');
   if (row.revision !== revision) {

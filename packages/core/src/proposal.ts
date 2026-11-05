@@ -38,6 +38,9 @@ export const PROPOSAL_LIMITS = {
   sectionTitle: 120,
   sectionText: 4000,
   sectionMinText: 80,
+  pointTitle: 70,
+  pointText: 500,
+  sectionPoints: 4,
   need: 220,
   quote: 160,
   answer: 700,
@@ -229,7 +232,19 @@ function sanitize(raw: unknown, ctx: ProposalCtx): ProposalSection | null {
     case 'section': {
       const title = text(o.title, L.sectionTitle);
       const t = text(o.text, L.sectionText, true);
-      if (title && t && Array.from(t).length >= L.sectionMinText) s = { k: 'section', title, text: t };
+      const points: Array<{ title: string; text: string }> = [];
+      if (o.points !== undefined && !Array.isArray(o.points)) break;
+      for (const raw of (o.points as unknown[] | undefined ?? []).slice(0, L.sectionPoints)) {
+        if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+        const point = raw as Record<string, unknown>;
+        const title = text(point.title, L.pointTitle);
+        const body = text(point.text, L.pointText);
+        if (!title || !body) return null;
+        points.push({ title, text: body });
+      }
+      const substance = [t ?? '', ...points.map(point => point.text)].join(' ');
+      if (title && t && Array.from(substance).length >= L.sectionMinText)
+        s = { k: 'section', title, text: t, ...(points.length ? { points } : {}) };
       break;
     }
     case 'cost': {
@@ -287,7 +302,7 @@ function sanitize(raw: unknown, ctx: ProposalCtx): ProposalSection | null {
   }
   if (!s) return null;
   if (ctx.workflow && HIDDEN.test(JSON.stringify(s))) return null;
-  const words = Object.entries(s).filter(([k]) => k !== 'k' && k !== 'product' && k !== 'products' && k !== 'id').map(([, v]) => String(v)).join('\n');
+  const words = [...fieldsOf(s), ...(s.k === 'need' && s.quote ? [s.quote] : [])].join('\n');
   if (HIDDEN.test(words) || PLACEHOLDER.test(words) || (ctx.workflow && WRITER.test(words))) return null;
   return s;
 }
@@ -424,8 +439,9 @@ function fieldsOf(s: ProposalSection): string[] {
     case 'need':
       return [s.need, s.answer];
     case 'outcome':
-    case 'section':
       return [s.title, s.text];
+    case 'section':
+      return [s.title, s.text, ...(s.points ?? []).flatMap(point => [point.title, point.text])];
     case 'tradeoff':
       return [s.text, s.mitigation ?? ''];
   }
@@ -553,7 +569,7 @@ function missingOf(sections: readonly ProposalSection[], ctx: ProposalCtx, prefe
   if (!n('exec')) out.push('exec');
   // Bespoke chapters carry the rationale and handoffs in prose. Requiring another line per product/step here
   // recreated the boilerplate report even after a good editorial pass; legacy drafts keep their original checks.
-  if (n('section') || (preferAuthored && !n('need') && !n('outcome') && !n('why') && !n('step'))) {
+  if (n('section') || (preferAuthored && !n('need') && !n('why') && !n('step'))) {
     if (n('section') < 2) out.push('sections');
     if (ctx.pricing === 'current' && !n('cost')) out.push('cost');
     if (!n('next')) out.push('next');
@@ -577,7 +593,7 @@ function describeMissing(missing: readonly string[], sections: readonly Proposal
   const whys = missing.filter((m) => m.startsWith('why:')).map((m) => m.slice(4));
   const out: string[] = [];
   if (missing.includes('exec')) out.push('the exec line');
-  if (missing.includes('sections')) out.push('authored section lines: add enough distinct, substantive chapters to reach at least two; explain the recommendation and its validation in connected paragraphs');
+  if (missing.includes('sections')) out.push('authored section lines: add enough distinct chapters to reach at least two; use a short orienting paragraph and optional labeled points to explain the recommendation and its validation without a wall of text');
   if (missing.includes('cost')) out.push('one cost line explaining the main driver, coverage and decision that could change the estimate, without monetary figures');
   if (missing.includes('needs')) out.push(`need lines: ${needs ? `${needs} written, add more to reach 2 to 5 in all, each a different need` : '2 to 5'}`);
   if (missing.includes('outcomes')) out.push('outcome lines: 3 or 4');
@@ -609,13 +625,15 @@ export function assembleDraft(sections: ProposalSection[], ctx: ProposalCtx): Pr
   const authored = ctx.authored || sections.some(s => s.k === 'section');
   for (const s of sections) {
     const clean = sanitize(s, ctx);
-    if (clean && !((authored || ctx.workflow || ctx.pricing !== 'none') && workflowMoney(clean))) gate.add(clean);
+    if (clean && !((authored || ctx.workflow || ctx.pricing !== 'none') && workflowMoney(clean))
+      && !(clean.k === 'section' && lintSection(clean, ctx)?.level === 'hard')) gate.add(clean);
   }
   const d: ProposalDraft = { audience: ctx.audience, lang: ctx.lang, exec: '', needs: [], outcomes: [], why: {}, tradeoffs: [], next: [], complete: false };
   if (ctx.workflow) d.steps = {};
   for (const s of gate.sections) {
     if (s.k === 'exec') d.exec = s.text;
-    else if (s.k === 'section') (d.sections ??= []).push({ title: s.title, text: s.text });
+    else if (s.k === 'section') (d.sections ??= []).push({ title: s.title, text: s.text,
+      ...(s.points?.length ? { points: s.points.map(point => ({ ...point })) } : {}) });
     else if (s.k === 'cost') d.cost = s.text;
     else if (s.k === 'need') d.needs.push({ id: s.id, need: s.need, source: s.source, ...(s.quote ? { quote: s.quote } : {}), answer: s.answer, products: s.products });
     else if (s.k === 'outcome') d.outcomes.push({ title: s.title, text: s.text });

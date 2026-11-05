@@ -205,6 +205,8 @@ export function buildDocument(i: PdfInput): PdfReport {
     execSection(n);
     if (n.sections?.length) {
       // The writer chooses the story; the renderer adds only the saved financial evidence and diagrams.
+      // A stand-alone executive brief gives a decision maker a complete first read.
+      newPage(A4);
       authoredSections(n.sections);
       solutionPricingSection();
       authoredClosing(n);
@@ -429,9 +431,9 @@ export function buildDocument(i: PdfInput): PdfReport {
   }
 
   /** Chapters flow naturally. Keep headings with body text and avoid single-line paragraph fragments. */
-  function prose(text: string): void {
-    const px = 10.5, lh = cjk ? 17 : 15.5;
-    const p = ts.paragraph(text, MEASURE, px, 400, lh);
+  function prose(text: string, x = margin, w = MEASURE, px = 10.5, weight: 400 | 700 = 400): void {
+    const lh = cjk ? 18 : 16.5;
+    const p = ts.paragraph(text, w, px, weight, lh);
     let offset = 0;
     while (offset < p.lines.length) {
       const remaining = p.lines.length - offset;
@@ -440,31 +442,41 @@ export function buildDocument(i: PdfInput): PdfReport {
       if (remaining - count === 1) count--;
       if (count < Math.min(2, remaining)) { newPage(A4); continue; }
       for (const line of p.lines.slice(offset, offset + count)) {
-        ts.line(margin, ts.baseline(y, lh, px), line, ink(px));
+        ts.line(x, ts.baseline(y, lh, px), line, ink(px, weight));
         y += lh;
       }
       offset += count;
       if (offset < p.lines.length) newPage(A4);
     }
-    y += 10;
+    y += 12;
   }
 
   function authoredSections(sections: NonNullable<NarrativeModel['sections']>): void {
     for (const section of sections) {
       if (kind !== A4) newPage(A4);
       const h = ts.paragraph(section.title, MEASURE, 15, 700, 22);
-      ensure(h.height + 20 + 3 * (cjk ? 17 : 15.5));
-      y += 16;
+      ensure(h.height + 24 + 3 * (cjk ? 18 : 16.5));
+      if (y > CONTENT_TOP) y += 18;
       outline(section.title);
-      y = ts.draw(h, margin, y, ink(15, 700)) + 12;
-      section.paragraphs.forEach(prose);
+      y = ts.draw(h, margin, y, ink(15, 700)) + 14;
+      section.paragraphs.forEach(text => prose(text));
+      for (const point of section.points ?? []) {
+        const title = ts.paragraph(point.title, MEASURE - 16, 10.5, 700, cjk ? 18 : 16.5);
+        const body = ts.paragraph(point.text, MEASURE - 16, 10.5, 400, cjk ? 18 : 16.5);
+        // Keep ordinary points whole; very long stored points still flow without truncation.
+        ensure(Math.min(title.height + body.height + 16, bottomLimit() - CONTENT_TOP));
+        doc.rect(margin, y + 7, 4, 4).fill(COLOR.ink3);
+        y = ts.draw(title, margin + 16, y, ink(10.5, 700)) + 3;
+        prose(point.text, margin + 16, MEASURE - 16);
+        y += 3;
+      }
     }
   }
 
   function authoredClosing(nv: NarrativeModel): void {
     const sections = [
       ...(nv.tradeoffs.length ? [{ title: xt('next.tradeoffs'), paragraphs: nv.tradeoffs.map(t => [t.text, t.mitigation].filter(Boolean).join(' ')) }] : []),
-      ...(nv.next.length ? [{ title: xt('next.steps'), paragraphs: nv.next }] : []),
+      // Next decisions are already visible on the executive brief, without a duplicate closing paragraph.
     ];
     authoredSections(sections);
     if (nv.pricingNote) prose(nv.pricingNote);
@@ -535,7 +547,7 @@ export function buildDocument(i: PdfInput): PdfReport {
     const { estimate } = pricing;
     paragraph(xt('price.caveat'));
     if (pricing.interpretation) {
-      if (n?.sections?.length) pricing.interpretation.split(/\n\s*\n/u).forEach(prose);
+      if (n?.sections?.length) pricing.interpretation.split(/\n\s*\n/u).forEach(text => prose(text));
       else paragraph(pricing.interpretation);
     }
     const number = new Intl.NumberFormat(model.lang, { maximumSignificantDigits: 17 });
@@ -770,10 +782,35 @@ export function buildDocument(i: PdfInput): PdfReport {
 
   /** The executive summary: the lead paragraph a step larger, the rest as body, then the outcomes as titled blocks. */
   function execSection(nv: NarrativeModel): void {
-    if (!nv.exec.length && !nv.outcomes.length) return;
+    if (!nv.exec.length && !nv.outcomes.length && !(nv.sections?.length && nv.next.length)) return;
     newPage(A4);
     outline(xt('exec.heading'));
     heading(xt('exec.heading'));
+    if (nv.sections?.length) {
+      // Recommendation first, then skim-friendly takeaways and the decision to carry into the meeting.
+      for (const [index, text] of nv.exec.entries()) {
+        if (index === 0) callout(null, [text], 12, true);
+        else prose(text);
+      }
+      if (nv.outcomes.length) {
+        const rows = nv.outcomes.map(item => {
+          const name = ts.paragraph(item.title, 118, 10.5, 700, cjk ? 18 : 16.5);
+          const body = ts.paragraph(item.text, MEASURE - 140, 10.5, 400, cjk ? 18 : 16.5);
+          return { name, body, h: Math.max(name.height, body.height) + 28 };
+        });
+        sub(xt('exec.takeaways'), rows[0].h);
+        for (const { name, body, h } of rows) {
+          ensure(h);
+          doc.lineWidth(.5).strokeColor(COLOR.line1).moveTo(margin, y).lineTo(margin + MEASURE, y).stroke();
+          ts.draw(name, margin, y + 12, ink(10.5, 700));
+          ts.draw(body, margin + 140, y + 12, ink(10.5));
+          y += h;
+        }
+        y += 12;
+      }
+      if (nv.next.length) callout(xt('next.steps'), nv.next, 10.5);
+      return;
+    }
     nv.exec.forEach((text, k) => {
       const px = k === 0 ? 12 : 10.5;
       const lh = k === 0 ? (cjk ? 19.5 : 18) : cjk ? 17 : 15.5;
@@ -792,6 +829,26 @@ export function buildDocument(i: PdfInput): PdfReport {
       for (const sp of specs) entry(sp);
     }
 
+  }
+
+  /** A soft panel emphasizes the recommendation or decision; oversized legacy text remains fully printable. */
+  function callout(title: string | null, texts: string[], px: number, flowIfNoRoom = false): void {
+    const lh = cjk ? 19.5 : 18, inset = 16;
+    const hp = title ? ts.paragraph(title, MEASURE - 2 * inset, 11, 700, 18) : null;
+    const parts = texts.map(text => ts.paragraph(text, MEASURE - 2 * inset, px, 400, lh));
+    const height = 2 * inset + (hp ? hp.height + 8 : 0) + parts.reduce((total, p) => total + p.height + 8, -8);
+    if (height > bottomLimit() - CONTENT_TOP || (flowIfNoRoom && height + 14 > bottomLimit() - y)) {
+      if (title) sub(title, 40);
+      texts.forEach(text => prose(text));
+      return;
+    }
+    ensure(height + 14);
+    doc.rect(margin, y, MEASURE, height).fill(COLOR.surface2);
+    doc.rect(margin, y, 2, height).fill(COLOR.line2);
+    y += inset;
+    if (hp) y = ts.draw(hp, margin + inset, y, ink(11, 700)) + 8;
+    for (const p of parts) y = ts.draw(p, margin + inset, y, ink(px)) + 8;
+    y += inset + 6;
   }
 
   /** Each customer need: the need and where it came from on the left, how the design answers it on the right. */

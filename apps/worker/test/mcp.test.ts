@@ -32,7 +32,8 @@ test('MCP writes the handoff from the saved design, charges once, and pins the p
   const save = (revision: number) => env.DB.prepare("INSERT INTO mcp_revisions(user_id,request_id,fingerprint,design_id,revision,status,snapshot,created_at) VALUES (?,?,?,?,?,'done',?,?)")
     .bind(owner.user.id, 'test-pdf-' + revision, '', designId, revision, snapshot, Date.now()).run();
   await save(1);
-  const input = { designId, revision: 1, lang: 'ko', title: '포털 설계', narrative: { exec: '고객 전용 포털을 구축합니다.' } };
+  const input = { designId, revision: 1, lang: 'ko', title: '포털 설계', narrative: { exec: '고객 전용 포털을 구축합니다.',
+    sections: [{ title: '접수 경로', text: '검증할 범위입니다.', points: [{ title: '확인할 연동', text: '담당자 배정 흐름을 확인합니다.' }] }] } };
   const authored = '지원팀이 먼저 고객 전용 포털에서 접수 절차를 검증하도록 제안합니다.';
   const sections = [
     { k: 'exec', text: authored },
@@ -49,6 +50,7 @@ test('MCP writes the handoff from the saved design, charges once, and pins the p
     assert.equal(body.enable_thinking, true);
     assert.equal(body.thinking_budget, PROPOSAL_LIMITS.thinkingBudget);
     assert.ok(JSON.stringify(body.messages).includes(input.narrative.exec));
+    assert.ok(JSON.stringify(body.messages).includes(input.narrative.sections[0].points[0].title));
     const delta = { choices: [{ delta: { content: sections.map(s => JSON.stringify(s)).join('\n') + '\n' }, finish_reason: 'stop' }] };
     return new Response('data: ' + JSON.stringify(delta) + '\n\ndata: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } });
   });
@@ -56,6 +58,10 @@ test('MCP writes the handoff from the saved design, charges once, and pins the p
   const denied = await invoke(reader, input);
   assert.ok(denied.error || denied.result?.isError);
   assert.equal((await invoke(peerKey, input)).result.isError, true);
+  const invalidPoints = { ...input, narrative: { ...input.narrative, sections: [{ title: 'Test', text: 'Scope',
+    points: Array.from({ length: 5 }, () => ({ title: 'Choice', text: 'Details' })) }] } };
+  const invalid = await invoke(writer, invalidPoints);
+  assert.ok(invalid.error || invalid.result?.isError);
   const preparing = (await invoke(writer, { ...input, includeFile: true })).result.structuredContent;
   assert.equal(preparing.status, 'preparing');
   assert.equal((await invoke(writer, input)).result.structuredContent.url, preparing.url);
@@ -171,6 +177,11 @@ test('personal keys are shown once, scoped to MCP and rechecked for expiry, revo
   assert.match(hello.result.instructions, /write the client report yourself/);
   const discovery = (await (await call(env, rpc('tools/list', {}, key))).json()).result.tools;
   const draft = discovery.find((tool: { name: string }) => tool.name === 'design_solution');
+  const pdf = discovery.find((tool: { name: string }) => tool.name === 'export_proposal_pdf');
+  const pointsSchema = pdf.inputSchema.properties.narrative.properties.sections.items.properties.points;
+  assert.equal(pointsSchema.maxItems, 4);
+  assert.equal(pointsSchema.items.properties.title.maxLength, 70);
+  assert.equal(pointsSchema.items.properties.text.maxLength, 500);
   assert.match(draft.description, /first for a new solution brief/);
   assert.match(draft.inputSchema.properties.mode.description, /human approvals/);
   assert.equal(draft.annotations.destructiveHint, false);

@@ -127,7 +127,7 @@ export interface NeedItem {
 
 /** The drafted narrative, ready to print: the business case first, the honest trade-offs and next steps after. */
 export interface NarrativeModel {
-  sections?: Array<{ title: string; paragraphs: string[] }>;
+  sections?: Array<{ title: string; paragraphs: string[]; points?: Array<{ title: string; text: string }> }>;
   /** Executive summary paragraphs. */
   exec: string[];
   outcomes: Array<{ title: string; text: string }>;
@@ -490,7 +490,9 @@ function buildNarrative(d: ProposalDraft, components: ComponentEntry[], recs: Re
   const needs = d.needs.filter((n) => n.need.trim() && n.answer.trim());
   return {
     exec: paragraphs(d.exec),
-    ...(d.sections?.length ? { sections: d.sections.map(s => ({ title: oneLine(s.title), paragraphs: paragraphs(s.text) })).filter(s => s.title && s.paragraphs.length) } : {}),
+    ...(d.sections?.length ? { sections: d.sections.map(s => ({ title: oneLine(s.title), paragraphs: paragraphs(s.text),
+      ...(s.points?.length ? { points: s.points.map(p => ({ title: oneLine(p.title), text: oneLine(p.text) })).filter(p => p.title && p.text) } : {}),
+    })).filter(s => s.title && s.paragraphs.length) } : {}),
     outcomes: d.outcomes.map((o) => ({ title: oneLine(o.title), text: oneLine(o.text) })).filter((o) => o.title && o.text),
     needs: needs
       .map((n) => ({

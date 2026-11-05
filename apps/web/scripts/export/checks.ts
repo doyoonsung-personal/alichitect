@@ -146,7 +146,8 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
       for (const r of model.recs) if (r.draftWhy && !has(r.draftWhy)) problems.push(`the drafted why for recommendation ${r.product} is missing`);
     }
     let chapterAt = 0;
-    for (const section of n.sections ?? []) for (const text of [section.title, ...section.paragraphs]) {
+    for (const section of n.sections ?? []) for (const text of [section.title, ...section.paragraphs,
+      ...(section.points ?? []).flatMap(p => [p.title, p.text])]) {
       const index = bodyText.indexOf(squash(text), chapterAt);
       if (index < 0) problems.push(`authored chapter content missing or out of order: ${text.slice(0, 80)}`);
       else chapterAt = index + squash(text).length;
@@ -189,6 +190,8 @@ export async function checkPdf(bytes: Uint8Array, state: AppState, o: { title?: 
   const subs = new Set((['exec.outcomes', 'next.tradeoffs', 'next.steps', 'summary.design', 'summary.requirements', 'summary.constraints', 'summary.assumptions', 'summary.questions', 'recs.gaps'] as const).map((k) => squash(xt(k))));
   for (const key of ['cost.coverage', 'cost.fixed', 'cost.unpriced', 'cost.assumptions'] as const) subs.add(squash(wt(state.lang, key)));
   for (const section of n?.sections ?? []) subs.add(squash(section.title));
+  for (const section of n?.sections ?? []) for (const point of section.points ?? []) subs.add(squash(point.title));
+  subs.add(squash(xt('exec.takeaways')));
   for (const p of info.pages) {
     const body = p.items.filter((it) => it.y > 60 && it.y < p.height - FOOTER).sort((a, b) => a.y - b.y || a.x - b.x);
     const lastY = body.at(-1)?.y;

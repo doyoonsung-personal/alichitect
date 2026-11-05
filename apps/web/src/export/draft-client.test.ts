@@ -20,14 +20,29 @@ const DRAFT: ProposalDraft = {
 };
 
 test('audience and authored chapters survive the streamed proposal boundary', async () => {
-  const section = { k: 'section' as const, title: 'Why Alibaba Cloud fits', text: 'A customer-specific rationale.\n\nA second paragraph.' };
-  const draft: ProposalDraft = { ...DRAFT, audience: 'alibaba', sections: [{ title: section.title, text: section.text }] };
+  const section = { k: 'section' as const, title: 'Why Alibaba Cloud fits', text: 'A customer-specific rationale.',
+    points: [{ title: 'Retain the existing database', text: 'The proposed service supports the database the team already knows.' }] };
+  const { k: _kind, ...chapter } = section;
+  const draft: ProposalDraft = { ...DRAFT, audience: 'alibaba', sections: [chapter] };
   const req = buildProposalRequest(createInitialState({ lang: 'ko', id: 's1', now: 0 }), 'Title', 'Client', 'alibaba');
   assert.equal(req.audience, 'alibaba');
   assert.deepEqual(parseProposalEvent(JSON.stringify({ type: 'section', section })), { type: 'section', section });
   assert.deepEqual(asDraft(draft), draft);
   assert.equal(parseProposalEvent(JSON.stringify({ type: 'section', section: { ...section, title: '' } })), null);
   assert.deepEqual(asDraft({ ...draft, sections: [null, { title: '', text: 'bad' }, draft.sections![0]] })?.sections, draft.sections);
+});
+
+test('nested chapter points are checked on streamed and assembled drafts, while legacy prose remains valid', () => {
+  const chapter = { title: 'A specific recommendation', text: 'A short orientation.' };
+  const valid = { ...chapter, points: [{ title: 'Key choice', text: 'A focused explanation.', ignored: 'not copied' }] };
+  const cleaned = { ...chapter, points: [{ title: 'Key choice', text: 'A focused explanation.' }] };
+  assert.deepEqual(parseProposalEvent(JSON.stringify({ type: 'section', section: { k: 'section', ...valid } })),
+    { type: 'section', section: { k: 'section', ...cleaned } });
+  assert.deepEqual(asDraft({ ...DRAFT, sections: [valid, chapter] })?.sections, [cleaned, chapter]);
+  for (const points of [null, 'bad', [null], [{ title: 'Missing text' }], [{ title: '', text: 'Body' }], [{ title: 'Label', text: 12 }]]) {
+    assert.equal(parseProposalEvent(JSON.stringify({ type: 'section', section: { k: 'section', ...chapter, points } })), null);
+    assert.deepEqual(asDraft({ ...DRAFT, sections: [{ ...chapter, points }, chapter] })?.sections, [chapter]);
+  }
 });
 
 const SECTIONS: ProposalSection[] = [

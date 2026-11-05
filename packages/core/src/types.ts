@@ -273,12 +273,19 @@ export interface ProposalRequest {
  */
 export type NeedSource = 'stated' | 'inferred' | 'general';
 
+/** A focused chapter: an orienting paragraph and optional labeled points, or short prose when that reads better. */
+export interface ProposalChapter {
+  title: string;
+  text: string;
+  points?: Array<{ title: string; text: string }>;
+}
+
 /** One NDJSON line of the drafted narrative, as the writer model emits it and proposal.ts validates it. */
 export type ProposalSection =
-  /** Executive summary for business decision makers: 2 or 3 short paragraphs separated by a blank line. */
+  /** Executive brief for business decision makers; new drafts use 2 or 3 concise sentences. */
   | { k: 'exec'; text: string }
   /** A bespoke chapter, written as connected paragraphs rather than a fixed product/assumption inventory. */
-  | { k: 'section'; title: string; text: string }
+  | ({ k: 'section' } & ProposalChapter)
   /** A customer need or pain point and how the design answers it, in business terms. `products` are catalog ids in the design. */
   | { k: 'need'; id: string; need: string; source: NeedSource; quote?: string; answer: string; products: string[] }
   /** A business outcome of the design ("Pay only for what you use"): a short title and why it follows. */
@@ -310,7 +317,7 @@ export interface ProposalDraft {
   audience?: ProposalAudience;
   lang: 'en' | 'ko' | 'zh';
   exec: string;
-  sections?: Array<{ title: string; text: string }>;
+  sections?: ProposalChapter[];
   needs: ProposalNeed[];
   outcomes: Array<{ title: string; text: string }>;
   /** Catalog id -> why it is in this design for this customer. */

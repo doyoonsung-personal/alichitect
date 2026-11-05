@@ -88,6 +88,55 @@ const CHAPTERS = [
   { k: 'section' as const, title: 'Keep the database the team knows', text: 'The proposed RDS database retains PostgreSQL, matching the team’s stated experience. This makes database familiarity part of the design choice rather than introducing a separate retraining decision.\n\nThe first validation should exercise a representative ticket reservation and confirm that the recorded order matches the response seen by the buyer.' },
 ];
 
+const SCANNABLE: Extract<ProposalSection, { k: 'section' }> = { k: 'section', title: 'Protect the next release', text: 'Start with the ticket path.', points: [
+  { title: 'Keep the familiar database', text: 'Retain PostgreSQL so the team can validate the proposed order flow using its existing database experience.' },
+  { title: 'Test the release pattern', text: 'Exercise a representative reservation and compare the recorded order with the buyer response before rollout.' },
+] };
+
+describe('scannable authored chapter contract', () => {
+  test('short orientation plus focused points is substantive and survives parser, assembly and streaming', async () => {
+    const clean = parseProposalLine(line(SCANNABLE), CTX);
+    assert.deepEqual(clean, SCANNABLE);
+    const calls: Call[] = [];
+    const emitted: ProposalSection[] = [];
+    const r = await draftProposal(request(), CAT, opts(fakeFetch([
+      ok([L.exec, L.outcome1, L.outcome2, line(SCANNABLE), line(CHAPTERS[1]), L.next2]),
+    ], calls), { onSection: section => emitted.push(section) }));
+    assert.equal(calls.length, 1);
+    assert.equal(r.draft?.complete, true);
+    assert.deepEqual(emitted.find(section => section.k === 'section'), SCANNABLE);
+    assert.equal(r.draft?.outcomes.length, 2);
+    assert.deepEqual(r.draft?.sections?.[0].points, SCANNABLE.points);
+    assert.equal(r.draft?.sections?.[0].text, SCANNABLE.text);
+  });
+
+  test('point limits use code points and malformed nested content cannot reach the renderer', () => {
+    const raw = { ...SCANNABLE, points: Array.from({ length: 7 }, () => ({ title: '가'.repeat(100), text: '나'.repeat(650) })) };
+    const parsed = parseProposalLine(line(raw), CTX);
+    assert.equal(parsed?.k, 'section');
+    if (parsed?.k !== 'section') return;
+    assert.equal(parsed.points?.length, PROPOSAL_LIMITS.sectionPoints);
+    assert.equal(Array.from(parsed.points![0].title).length, PROPOSAL_LIMITS.pointTitle);
+    assert.equal(Array.from(parsed.points![0].text).length, PROPOSAL_LIMITS.pointText);
+    for (const points of [null, 'not an array', [null], [[]], [{ title: 'Missing text' }], [{ title: '', text: 'Body' }]]) {
+      assert.equal(parseProposalLine(line({ ...SCANNABLE, points }), CTX), null);
+    }
+    assert.equal(parseProposalLine(line({ ...SCANNABLE, text: 'Short', points: [{ title: 'a'.repeat(70), text: 'Tiny' }] }), CTX), null,
+      'labels alone do not count as substantive explanation');
+  });
+
+  test('every nested title and body receives money, claim, model and prompt-artifact checks', () => {
+    for (const bad of ['USD 500', 'This guarantees zero downtime.', 'Use Qwen99-max.',
+      'Written by Claude.', '<customer benefit>', 'This meets legal compliance requirements.']) {
+      for (const field of ['title', 'text'] as const) {
+        const chapter = { ...SCANNABLE, points: [{ title: 'Decision', text: 'Explain this specific choice and how it supports the customer objective before proceeding.', [field]: bad }] };
+        assert.equal(parseProposalLine(line(chapter), CTX), null, `${field}: ${bad}`);
+        assert.equal(assembleDraft([chapter], CTX).sections, undefined, `assembled ${field}: ${bad}`);
+      }
+    }
+  });
+});
+
 describe('audience-specific authored reports', () => {
   test('compact editorial evidence preserves rejection, revision loops and selected AI models', () => {
     const req = workflowRequest();
@@ -232,6 +281,9 @@ describe('audience-specific authored reports', () => {
         assert.match(system, audience === 'client' ? /AUDIENCE: CLIENT/ : /AUDIENCE: ALIBABA PERSONNEL/);
         assert.match(system, /unsupported exclusivity, superiority, lower prices/);
         assert.match(system, /two to four section lines/);
+        assert.match(system, /two or three outcome lines/);
+        assert.match(system, /optional points/);
+        assert.match(system, /120 Korean\/Chinese characters/);
         assert.doesNotMatch(system, /one line for EVERY|For each inline workflow step/);
       }
     }
@@ -257,11 +309,12 @@ describe('audience-specific authored reports', () => {
 
   test('a stream cut off after the summary continues with authored chapters rather than legacy inventories', async () => {
     const calls: Call[] = [];
-    const r = await draftProposal(request(), CAT, opts(fakeFetch([ok([L.exec]), ok([...CHAPTERS.map(line), L.next2])], calls)));
+    const r = await draftProposal(request(), CAT, opts(fakeFetch([ok([L.exec, L.outcome1, L.outcome2]), ok([...CHAPTERS.map(line), L.next2])], calls)));
     assert.equal(r.draft?.complete, true);
     assert.equal(calls.length, 2);
     assert.match(lastUser(calls[1]), /authored section lines/);
     assert.doesNotMatch(lastUser(calls[1]), /why lines for|need lines:|outcome lines:/);
+    assert.equal(r.draft?.outcomes.length, 2);
   });
 
   test('current pricing requires a qualitative cost interpretation before an authored draft is complete', () => {

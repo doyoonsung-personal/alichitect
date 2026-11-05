@@ -52,13 +52,18 @@ const copy = {
 
 function authoredDraft(lang: keyof typeof copy, audience: ProposalAudience): ProposalDraft {
   const words = copy[lang];
+  const labels = lang === 'ko' ? ['도입 범위', '운영 통제', '검증 기준']
+    : lang === 'zh' ? ['试点范围', '操作控制', '验证标准'] : ['Initial scope', 'Operational control', 'Validation'];
   return { lang, audience, complete: true, exec: words.exec,
-    sections: [{ title: words.value, text: words[audience] }, { title: words.approach,
+    sections: [{ title: words.value, text: words[audience], points: [
+      { title: labels[1], text: words.risk }, { title: labels[2], text: words.mitigation },
+    ] }, { title: words.approach,
       // A long paragraph crosses a sheet; every sentence must survive pagination, including its ending.
       text: Array.from({ length: 15 }, (_, k) => `${words.paragraph} (${k + 1})`).join(' ') + '\n\n' + words[audience] }],
     needs: [{ id: 'legacy-need', need: 'LEGACY_NEED_SHOULD_NOT_PRINT', source: 'inferred',
       answer: 'LEGACY_ANSWER_SHOULD_NOT_PRINT', products: ['schedulerx'] }],
-    outcomes: [], why: { schedulerx: 'LEGACY_COMPONENT_WHY_SHOULD_NOT_PRINT' },
+    outcomes: labels.map(title => ({ title, text: words.mitigation })),
+    why: { schedulerx: 'LEGACY_COMPONENT_WHY_SHOULD_NOT_PRINT' },
     steps: { review: 'LEGACY_STEP_SHOULD_NOT_PRINT' }, cost: words.cost,
     tradeoffs: [{ text: words.risk, mitigation: words.mitigation }], next: [words.next] };
 }
@@ -86,6 +91,11 @@ for (const lang of ['en', 'ko', 'zh'] as const) for (const audience of ['client'
     assert.deepEqual(check.problems, []);
     const text = squash(check.info.text);
     assert.ok(squash(check.info.pages[0].text).includes(squash(xt(lang, `doc.${audience}`))));
+    const brief = squash(check.info.pages[1].text);
+    assert.ok(brief.includes(squash(draft.exec)) && brief.includes(squash(draft.next[0])), 'recommendation and decision share the executive brief');
+    for (const item of draft.outcomes) assert.ok(brief.includes(squash(item.title)) && brief.includes(squash(item.text)));
+    assert.ok(!brief.includes(squash(draft.sections![0].title)), 'supporting chapters start after the executive brief');
+    assert.equal(text.split(squash(draft.next[0])).length - 1, 1, 'the next decision is printed once, without a duplicate closing');
     assert.ok(result.fileName.includes(audience === 'alibaba' ? 'alibaba' : 'proposal'));
     for (const value of ['USD 335.80', 'USD 680.00', '1460', '0.23', 'Customer agreement', 'Planning input', copy[lang].cost]) {
       assert.ok(text.includes(squash(value).replace('1460', '1,460')), `saved financial evidence: ${value}`);
@@ -120,4 +130,32 @@ test('an authored cloud proposal omits legacy component inventory and withholds 
   assert.doesNotMatch(check.info.text, /STALE_PRICE|123\.45|LEGACY_/);
   assert.ok(!squash(check.info.text).includes(squash(draft.cost!)));
   assert.ok(check.info.links.length > 0);
+});
+
+test('a partial authored draft retains its next decision even when the executive text is missing', async () => {
+  const state = playFixture('ha', 'en').getState();
+  const draft = { ...authoredDraft('en', 'client'), exec: '', outcomes: [], complete: false };
+  const result = await generateFromState(state, { draft, route: channelRoute });
+  const check = await checkPdf(result.bytes, state, { draft });
+  assert.deepEqual(check.problems, []);
+  assert.ok(squash(check.info.pages[1].text).includes(squash(draft.next[0])));
+  assert.equal(squash(check.info.text).split(squash(draft.next[0])).length - 1, 1);
+});
+
+test('a legacy executive paragraph that nearly fills a page flows below its heading without a heading-only sheet', async () => {
+  const state = createInitialState({ lang: 'ko', id: 'long-executive-brief', now: 0 });
+  const sentence = '현장 담당자가 판단 근거를 검토하고 운영 도입 여부를 결정하는 데 필요한 증거를 확인합니다. ';
+  const exec = sentence.repeat(30).slice(0, 1300);
+  const draft: ProposalDraft = { lang: 'ko', complete: true, exec, needs: [], outcomes: [], why: {}, tradeoffs: [], next: [],
+    sections: [{ title: '검증 범위', text: '첫 번째 장에서는 고객의 운영 요구와 제안된 검증 범위를 설명합니다.' },
+      { title: '진행 판단', text: '두 번째 장에서는 고객이 운영 도입 여부를 판단하는 데 필요한 근거를 설명합니다.' }] };
+  const result = await generateFromState(state, { draft });
+  const check = await checkPdf(result.bytes, state, { draft });
+  assert.deepEqual(check.problems, []);
+  const brief = squash(check.info.pages[1].text);
+  assert.ok(brief.includes(squash(xt('ko', 'exec.heading'))));
+  assert.ok(brief.includes(squash(sentence)), 'the executive heading stays with the opening body text');
+  const bodyText = check.info.pages.flatMap(page => page.items.filter(item => item.y >= 70 && item.y < page.height - 54)
+    .sort((a, b) => a.y - b.y || a.x - b.x).map(item => item.str)).join('');
+  assert.ok(squash(bodyText).includes(squash(exec)), 'every character of the legacy recommendation survives flowing pagination');
 });
