@@ -1,8 +1,8 @@
 # Task: Integrate BD meeting briefs and release an admin-only trial
 
-- Status: review complete; release pending
+- Status: done
 - Coordinator: root integration agent
-- Updated: 2026-11-06
+- Updated: 2026-11-06T09:49:00+09:00
 - Checkout: `C:/Users/mendo/ali_catalog`, `codex/business-case`
 - User scope: Merge the supplied `bd-brief-feature-files.zip` with the business-case worksheet, commit with explanations, push and publish. Both features are restricted to the owner's admin account for initial testing.
 
@@ -44,6 +44,12 @@ Imported code was three-way merged against its stated baseline `70c7594`. Existi
 
 ## Integration and release
 
-- Not yet committed, pushed or deployed.
+- Integration commit: `de53fac` (imported BD feature, coexistence fixes, admin trial gates and validation). History merge: `5584920`, with an identical application tree. Both were pushed to `origin/main` and `origin/codex/business-case` without force-pushing.
+- Production deployment completed 2026-11-06T00:48:35Z (09:48 KST), Worker version `ce35312b-9ea3-4301-b375-8c5fd963bcbe`, 100% traffic. Deployment record: `994cfd2b-9cf0-4c35-9cb5-7e79e5f6b607`.
+- Remote migrations `0009_session_titles.sql`, `0010_business_case.sql` and `0011_bd_briefs.sql` were applied successfully before deployment and verified in D1. All are additive. Existing account/session data and secrets were preserved.
+- Published variables enable both modules with `*_ADMIN_ONLY=1` and only the owner's email allowlisted. A read-only D1 check confirmed that account is `admin` and `approved`.
+- Production smoke: health and login return 200; unauthenticated account, both module endpoints and MCP return 401. The available browser session was signed out, so no authenticated live UI/model request was claimed. Authenticated flows and role gates were exercised in the browser harness and real Worker dispatch tests; real model calls used the synthetic smoke matrix described above.
+- Rollback reference: prior Worker version `4ffec21c-244e-4fdf-a665-bd6901479825`. A code rollback retains additive migration history; do not drop feature tables to roll back.
+- Local release evidence: `tmp/bd-integration/{deployment.log,migrations-production.log,production-after.json,production-database-check.json,production-smoke.json}`. These are local verification artifacts, not secrets or committed customer data.
 - Existing `origin/main` has parallel cherry-picked history. Audit found zero remote-only patches; its application tree matches local equivalent `f831399`, with differences limited to local evaluation/run-log artifacts. Preserve the validated integrated tree while joining both histories; do not force-push.
 - Current production target: `https://architect.alikorea-demo.com`, Worker `alichitect`.

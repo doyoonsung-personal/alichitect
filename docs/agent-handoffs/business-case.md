@@ -1,5 +1,11 @@
 # Task: Independent customer business-case module
 
+> Release update (2026-11-06): this feature is now integrated with the independent BD
+> meeting brief, pushed to main and deployed as an owner-admin-only trial. The current
+> release state, migration checks and Worker version are in
+> [bd-business-case-release.md](bd-business-case-release.md). The record below describes
+> the original feature implementation and its earlier local-only handoff.
+
 - Status: done
 - Coordinator: Codex root; workers communicate through collaboration messages
 - Updated: 2026-11-06T00:13:00+09:00
