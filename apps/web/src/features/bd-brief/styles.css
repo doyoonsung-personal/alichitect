@@ -1,0 +1,303 @@
+/* The BD meeting brief module's own styles (plan §9): scoped to the feature root, tokens only,
+   in the same grammar as the export dialog (.xp) and the proposal overlay (.dov). Nothing here
+   changes global typography, the proposal PDF renderer or any other feature's CSS. Removing the
+   feature removes this file with it. */
+
+.bdb {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: var(--s-5);
+}
+.bdb__scrim {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--record) 84%, transparent);
+  animation: m-fade var(--d-fade) linear;
+}
+
+.bdb__panel {
+  position: relative;
+  width: min(860px, calc(100vw - 2 * var(--s-5)));
+  min-width: 0;
+  max-width: 100%;
+  max-height: calc(100vh - 2 * var(--s-5));
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-6);
+  background: var(--surface-pop);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-pop);
+  box-shadow: var(--shadow-raise);
+  color: var(--ink);
+  animation: m-rise var(--d-enter) var(--ease-out);
+}
+/* the panel takes focus so the dialog is announced; the controls inside carry the visible focus */
+.bdb__panel:focus { outline: none; }
+
+.bdb__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-4); }
+.bdb__head-titles { display: flex; flex-direction: column; gap: var(--s-2); min-width: 0; }
+.bdb__title { margin: 0; font-size: var(--t-16); line-height: var(--lh-16); font-weight: var(--w-medium); }
+.bdb__head-actions { display: flex; align-items: center; gap: var(--s-3); flex: none; }
+.bdb__version { font-size: var(--t-12); line-height: var(--lh-12); color: var(--ink-3); font-variant-numeric: var(--num); }
+
+/* internal working-document labeling stays visible wherever the brief is (plan §2) */
+.bdb__internal { margin: 0; font-size: var(--t-12); line-height: var(--lh-12); color: var(--ink-3); }
+
+.bdb__body { display: flex; flex-direction: column; gap: var(--s-5); min-width: 0; }
+.bdb__hint { margin: 0; font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink-3); }
+.bdb__retention {
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  border-left: 2px solid var(--line-2);
+  background: var(--record);
+  font-size: var(--t-12);
+  line-height: var(--lh-12);
+  color: var(--ink-3);
+}
+
+.bdb__working { display: flex; align-items: center; gap: var(--s-3); margin: 0; font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink-2); }
+.bdb__working .icon { color: var(--action); }
+.bdb__spin { animation: bdb-spin 900ms linear infinite; }
+@keyframes bdb-spin { to { transform: rotate(360deg); } }
+.bdb__elapsed { font-variant-numeric: var(--num); color: var(--ink-3); }
+
+.bdb__banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line-2);
+  background: var(--warn-soft);
+  font-size: var(--t-13);
+  line-height: var(--lh-13);
+  color: var(--ink-2);
+}
+.bdb__banner--conflict { background: var(--action-soft); }
+.bdb__banner--error { background: var(--danger-soft); color: var(--danger); }
+.bdb__banner-actions { display: flex; gap: var(--s-3); margin-left: auto; }
+
+/* ---- forms ---- */
+
+.bdb__prep, .bdb__notes { display: flex; flex-direction: column; gap: var(--s-4); }
+.bdb__field { display: flex; flex-direction: column; gap: var(--s-2); min-width: 0; }
+.bdb__label { font-size: var(--t-12); line-height: var(--lh-12); font-weight: var(--w-medium); color: var(--ink-3); }
+.bdb__notes-row { display: flex; gap: var(--s-4); }
+.bdb__notes-row .bdb__field { flex: 1; }
+
+.bdb__input {
+  height: 36px;
+  padding: 0 var(--s-4);
+  background: var(--sheet);
+  border: 1px solid var(--line-control);
+  border-radius: var(--r-control);
+  font-size: var(--t-14);
+  line-height: var(--lh-14);
+  color: var(--ink);
+}
+.bdb__textarea {
+  padding: var(--s-3) var(--s-4);
+  background: var(--sheet);
+  border: 1px solid var(--line-control);
+  border-radius: var(--r-control);
+  font: inherit;
+  font-size: var(--t-14);
+  line-height: var(--lh-14);
+  color: var(--ink);
+  resize: vertical;
+}
+.bdb__input:hover, .bdb__textarea:hover { border-color: var(--ink); }
+.bdb__input:focus-visible, .bdb__textarea:focus-visible { outline: var(--focus-outline); outline-offset: -1px; border-color: var(--action); }
+
+.bdb__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+.bdb__actions .btn--ghost { margin-left: auto; }
+
+/* ---- the six brief areas ---- */
+
+.bdb__brief { display: flex; flex-direction: column; gap: var(--s-5); border-top: 1px solid var(--line-1); padding-top: var(--s-5); }
+.bdb__sec { display: flex; flex-direction: column; gap: var(--s-3); }
+.bdb__sec-h { margin: 0; font-size: var(--t-14); line-height: var(--lh-14); font-weight: var(--w-medium); color: var(--ink); }
+.bdb__p { margin: 0; font-size: var(--t-14); line-height: var(--lh-14); color: var(--ink-2); overflow-wrap: anywhere; }
+.bdb__p--dim { color: var(--ink-3); font-size: var(--t-13); line-height: var(--lh-13); }
+
+.bdb__items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-3); }
+.bdb__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line-1);
+  background: var(--sheet);
+}
+/* review state on the item's left edge: confirmed green, conflicted amber, rejected red */
+.bdb__item[data-review='confirmed'] { border-left: 2px solid var(--ok); }
+.bdb__item[data-review='conflicted'] { border-left: 2px solid var(--warn); background: var(--warn-soft); }
+.bdb__item[data-review='rejected'] { border-left: 2px solid var(--line-2); color: var(--ink-3); }
+.bdb__item-main { display: flex; flex-direction: column; gap: var(--s-2); min-width: 0; flex: 1; }
+.bdb__item-text { font-size: var(--t-14); line-height: var(--lh-14); color: var(--ink-2); overflow-wrap: anywhere; }
+.bdb__item-label { font-size: var(--t-13); line-height: var(--lh-13); font-weight: var(--w-medium); color: var(--ink); }
+.bdb__item-context { font-size: var(--t-12); line-height: var(--lh-12); color: var(--ink-3); }
+.bdb__item-answer { font-size: var(--t-13); line-height: var(--lh-13); color: var(--ok); }
+
+.bdb__badges { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); flex: none; }
+.bdb__badge {
+  padding: 0 var(--s-2);
+  border: 1px solid var(--line-2);
+  font-size: var(--t-12);
+  line-height: var(--lh-12);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.bdb__badge[data-review='confirmed'] { border-color: var(--ok); color: var(--ok); }
+.bdb__badge[data-review='conflicted'] { border-color: var(--warn); color: var(--warn); background: var(--warn-soft); }
+.bdb__badge[data-review='rejected'] { color: var(--ink-3); }
+.bdb__badge[data-decision='accepted'] { border-color: var(--ok); color: var(--ok); }
+.bdb__badge[data-decision='rejected'] { color: var(--ink-3); }
+.bdb__badge--model { border-style: dashed; }
+.bdb__badge--edited { border-color: var(--action); color: var(--action); }
+.bdb__badge--priority { border-color: var(--action); color: var(--action); }
+.bdb__badge--hypothesis { border-style: dashed; color: var(--warn); border-color: var(--warn); }
+.bdb__badge--internal { border-color: var(--ink-3); color: var(--ink-2); font-weight: var(--w-medium); }
+.bdb__badge--conflict { border-color: var(--warn); color: var(--warn); background: var(--warn-soft); }
+
+.bdb__item-btn {
+  padding: 0 var(--s-2);
+  background: none;
+  border: none;
+  font-size: var(--t-12);
+  line-height: var(--lh-12);
+  color: var(--action);
+  cursor: pointer;
+  text-decoration: underline;
+}
+.bdb__item-btn:hover { color: var(--action-hover); }
+.bdb__item-btn:focus-visible { outline: var(--focus-outline); outline-offset: 1px; }
+
+.bdb__editor { display: flex; flex-direction: column; gap: var(--s-2); }
+.bdb__editor-actions { display: flex; gap: var(--s-3); }
+
+/* ---- notes review: proposed changes beside the saved brief (plan §2) ---- */
+
+.bdb__review { display: flex; flex-direction: column; gap: var(--s-4); border-top: 1px solid var(--line-1); padding-top: var(--s-5); }
+.bdb__review-head { display: flex; flex-direction: column; gap: var(--s-2); }
+.bdb__review-cols { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--s-5); align-items: start; }
+.bdb__changes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-3); }
+.bdb__change {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line-1);
+  background: var(--sheet);
+}
+.bdb__change[data-decision='accepted'] { border-left: 2px solid var(--ok); }
+.bdb__change[data-decision='rejected'] { border-left: 2px solid var(--line-2); opacity: 0.7; }
+.bdb__change[data-kind='conflict'] { border-color: var(--warn); background: var(--warn-soft); }
+.bdb__change-kind { display: flex; gap: var(--s-2); }
+.bdb__change-text { font-size: var(--t-14); line-height: var(--lh-14); color: var(--ink-2); overflow-wrap: anywhere; }
+.bdb__change-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); }
+.bdb__conflict { display: flex; flex-direction: column; gap: var(--s-2); }
+.bdb__conflict-hint { font-size: var(--t-12); line-height: var(--lh-12); color: var(--warn); font-weight: var(--w-medium); }
+.bdb__conflict-side { font-size: var(--t-13); line-height: var(--lh-13); color: var(--ink-2); padding-left: var(--s-3); border-left: 2px solid var(--line-2); overflow-wrap: anywhere; }
+
+.bdb__review-saved {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border: 1px solid var(--line-1);
+  background: var(--record);
+  position: sticky;
+  top: 0;
+}
+.bdb__review-saved-title { margin: 0; font-size: var(--t-13); line-height: var(--lh-13); font-weight: var(--w-medium); color: var(--ink-3); }
+
+/* ---- footer ---- */
+
+.bdb__foot { display: flex; flex-wrap: wrap; gap: var(--s-3); border-top: 1px solid var(--line-1); padding-top: var(--s-4); }
+.bdb__foot .btn--primary { margin-right: auto; }
+.bdb__delete { color: var(--danger); }
+.bdb__delete-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); font-size: var(--t-13); line-height: var(--lh-13); color: var(--danger); margin-left: auto; }
+
+/* ---- mobile: one column, the saved-brief column follows the changes ---- */
+
+@media (max-width: 720px) {
+  .bdb__review-cols { grid-template-columns: 1fr; }
+  .bdb__review-saved { position: static; }
+  .bdb__notes-row { flex-direction: column; }
+  .bdb__item { flex-direction: column; }
+  .bdb__item-main { width: 100%; }
+}
+
+/* ---- CJK: the same line-height and word-break handling export.css uses ---- */
+
+:root:lang(ko) .bdb__hint,
+:root:lang(zh) .bdb__hint,
+:root:lang(ko) .bdb__p,
+:root:lang(zh) .bdb__p,
+:root:lang(ko) .bdb__item-text,
+:root:lang(zh) .bdb__item-text,
+:root:lang(ko) .bdb__change-text,
+:root:lang(zh) .bdb__change-text,
+:root:lang(ko) .bdb__internal,
+:root:lang(zh) .bdb__internal,
+:root:lang(ko) .bdb__retention,
+:root:lang(zh) .bdb__retention,
+:root:lang(ko) .bdb__conflict-side,
+:root:lang(zh) .bdb__conflict-side { line-height: var(--lh-cjk); }
+:root:lang(ko) .bdb__hint,
+:root:lang(ko) .bdb__p,
+:root:lang(ko) .bdb__item-text,
+:root:lang(ko) .bdb__change-text { word-break: keep-all; }
+:root:lang(zh) .bdb__p,
+:root:lang(zh) .bdb__item-text,
+:root:lang(zh) .bdb__change-text { overflow-wrap: anywhere; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bdb__panel { animation-name: m-fade; }
+  .bdb__spin { animation: none; }
+}
+
+/* ---- the isolated print surface (plan §9): one A4 page, nothing else prints ----
+   Deliberate exception to tokens-only: screen tokens flip with the dark theme, but paper is
+   always white — printed ink must stay theme-independent and legible (plan §11), so this
+   block pins fixed paper colours instead of var(--ink*) which would invert with the theme. */
+
+.bdb__print { display: none; }
+
+@media print {
+  @page bd-meeting-brief { size: A4; margin: 14mm; }
+  /* while a print surface exists, the app chrome and the dialog never reach the paper;
+     :has() scopes this to the brief dialog being open, so normal page printing is unchanged */
+  body.bdb-printing > :not(.bdb__print) { display: none !important; }
+  html:has(body.bdb-printing), body.bdb-printing { height: auto !important; overflow: visible !important; background: #fff !important; }
+  body.bdb-printing > .bdb__print {
+    page: bd-meeting-brief;
+    display: block;
+    color: #000;
+    background: #fff;
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+  .bdb__print-note { margin: 0 0 2mm; font-size: 8pt; color: #444; text-transform: uppercase; letter-spacing: 0.04em; }
+  .bdb__print-title { margin: 0 0 4mm; font-size: 16pt; line-height: 1.25; font-weight: 700; }
+  .bdb__print-sec { margin: 0 0 4mm; break-inside: avoid; }
+  .bdb__print-h { margin: 0 0 1.5mm; font-size: 11pt; line-height: 1.3; font-weight: 700; border-bottom: 0.4pt solid #999; padding-bottom: 1mm; }
+  .bdb__print-p { margin: 0; }
+  .bdb__print-ul, .bdb__print-ol { margin: 0; padding-left: 5mm; }
+  .bdb__print-ul { list-style: disc; }
+  .bdb__print-ol { list-style: decimal; }
+  .bdb__print-ul li, .bdb__print-ol li { margin-bottom: 1.5mm; }
+  .bdb__print-label { font-weight: 700; }
+  .bdb__print-meta { margin: 1mm 0 0; font-size: 9pt; color: #333; }
+  /* CJK print: keep Korean words whole, let Chinese wrap anywhere */
+  .bdb__print[lang='ko'] { word-break: keep-all; line-height: 1.6; }
+  .bdb__print[lang='zh'] { overflow-wrap: anywhere; line-height: 1.6; }
+}

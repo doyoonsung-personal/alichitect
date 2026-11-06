@@ -1,0 +1,10 @@
+{
+  "name": "@ali/bd-brief",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Optional BD meeting brief module: versioned domain contracts, validation, evidence fingerprints and the bounded authoring engine. Not imported by core design, pricing, report or MCP code.",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.ts\""
+  }
+}

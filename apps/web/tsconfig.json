@@ -15,7 +15,7 @@
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "types": ["vite/client", "node"],
-    "paths": { "@ali/core/*": ["../../packages/core/src/*"], "@ali/catalog/*": ["../../packages/core/catalog/*"] }
+    "paths": { "@ali/core/*": ["../../packages/core/src/*"], "@ali/catalog/*": ["../../packages/core/catalog/*"], "@ali/bd-brief/*": ["../../packages/bd-brief/src/*"] }
   },
-  "include": ["src", "scripts/replay", "scripts/export", "vite.config.ts", "../../packages/core/src"]
+  "include": ["src", "scripts/replay", "scripts/export", "vite.config.ts", "../../packages/core/src", "../../packages/bd-brief/src"]
 }

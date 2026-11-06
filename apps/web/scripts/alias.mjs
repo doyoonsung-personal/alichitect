@@ -7,6 +7,7 @@ const root = fileURLToPath(new URL('../../../', import.meta.url));
 const aliases = [
   ['@ali/core/', pathToFileURL(root + 'packages/core/src/').href],
   ['@ali/catalog/', pathToFileURL(root + 'packages/core/catalog/').href],
+  ['@ali/bd-brief/', pathToFileURL(root + 'packages/bd-brief/src/').href],
 ];
 
 registerHooks({

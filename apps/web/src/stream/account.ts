@@ -13,7 +13,7 @@ export interface Account {
   turnsPerDay: number | null;
   links: { account: string; admin: string | null; signOut: string; keys?: string };
   /** Optional capabilities: old servers and malformed values fail closed per feature. */
-  features?: { businessCase: boolean };
+  features?: { businessCase?: boolean; bdBrief?: boolean };
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -27,13 +27,17 @@ export function parseAccount(v: unknown): Account | null {
   if (!isObj(l) || !isPath(l.account) || !isPath(l.signOut) || !(l.admin === null || isPath(l.admin))) return null;
   const limit = v.turnsPerDay;
   if (!(limit === null || (typeof limit === 'number' && Number.isFinite(limit) && limit >= 0))) return null;
+  const features = {
+    ...(isObj(v.features) && v.features.businessCase === true ? { businessCase: true } : {}),
+    ...(isObj(v.features) && v.features.bdBrief === true ? { bdBrief: true } : {}),
+  };
   return {
     email: v.email,
     name: typeof v.name === 'string' ? v.name.trim() : '',
     role: v.role === 'admin' || v.role === 'verified' ? v.role : 'member',
     turnsToday: Math.max(0, Math.floor(v.turnsToday)),
     turnsPerDay: limit,
-    features: { businessCase: isObj(v.features) && v.features.businessCase === true },
+    ...(Object.keys(features).length ? { features } : {}),
     links: { account: l.account, admin: l.admin, signOut: l.signOut, ...(isPath(l.keys) ? { keys: l.keys } : {}) },
   };
 }

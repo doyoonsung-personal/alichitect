@@ -25,10 +25,10 @@ AUTH_TIMING.jitterMs = 0;
 
 // every migration, in order, as `wrangler d1 migrations apply` runs them
 const MIGRATIONS_DIR = fileURLToPath(new URL('../migrations/', import.meta.url));
-const MIGRATIONS = readdirSync(MIGRATIONS_DIR)
+const MIGRATION_NAMES = readdirSync(MIGRATIONS_DIR)
   .filter((f) => f.endsWith('.sql'))
-  .sort()
-  .map((f) => readFileSync(MIGRATIONS_DIR + f, 'utf8'));
+  .sort();
+const MIGRATIONS = MIGRATION_NAMES.map((f) => readFileSync(MIGRATIONS_DIR + f, 'utf8'));
 
 type Row = Record<string, unknown>;
 
@@ -74,11 +74,8 @@ class Stmt implements D1PreparedStatement {
 
 export type TestDB = D1Database & { sqlite: DatabaseSync };
 
-/** D1 over an in-memory SQLite database with the migration applied (foreign keys on, as in D1). */
-export function makeD1(): TestDB {
-  const sqlite = new DatabaseSync(':memory:');
-  sqlite.exec('PRAGMA foreign_keys = ON;');
-  for (const m of MIGRATIONS) sqlite.exec(m);
+/** Wraps an in-memory SQLite database in the D1 stand-in (foreign keys on, as in D1). */
+function d1Over(sqlite: DatabaseSync): TestDB {
   return {
     sqlite,
     prepare: (sql: string) => new Stmt(sqlite, sql),
@@ -94,6 +91,27 @@ export function makeD1(): TestDB {
       }
     },
   };
+}
+
+/** D1 over an in-memory SQLite database with the migration applied (foreign keys on, as in D1). */
+export function makeD1(): TestDB {
+  const sqlite = new DatabaseSync(':memory:');
+  sqlite.exec('PRAGMA foreign_keys = ON;');
+  for (const m of MIGRATIONS) sqlite.exec(m);
+  return d1Over(sqlite);
+}
+
+/** D1 as an OLD deployment sees it: every migration except the ones whose filename starts
+ * with one of the given prefixes. Used to prove a feature's missing tables fail only that
+ * feature's routes, never /api/me, application boot or the existing flows. */
+export function makeD1Without(...migrationPrefixes: string[]): TestDB {
+  const sqlite = new DatabaseSync(':memory:');
+  sqlite.exec('PRAGMA foreign_keys = ON;');
+  for (const name of MIGRATION_NAMES) {
+    if (migrationPrefixes.some((p) => name.startsWith(p))) continue;
+    sqlite.exec(readFileSync(MIGRATIONS_DIR + name, 'utf8'));
+  }
+  return d1Over(sqlite);
 }
 
 export interface Mail {

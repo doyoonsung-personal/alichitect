@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 const core = fileURLToPath(new URL('../../packages/core/src', import.meta.url));
 const catalog = fileURLToPath(new URL('../../packages/core/catalog', import.meta.url));
+// Optional BD meeting brief module (packages/bd-brief). Feature-only alias: removing the feature removes this line.
+const bdBrief = fileURLToPath(new URL('../../packages/bd-brief/src', import.meta.url));
 // The local turn server (apps/server). The Host header is rewritten to the target's, as the server's DNS-rebinding check requires.
 const api = { target: process.env.API_TARGET ?? 'http://127.0.0.1:8787', changeOrigin: true };
 
@@ -13,7 +15,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [react()],
   // see src/app/tools.ts: the test and demo tools are in every build except the production one (`npm run build`)
   define: { __AB_TOOLS__: JSON.stringify(mode !== 'production') },
-  resolve: { alias: { '@ali/core': core, '@ali/catalog': catalog } },
+  resolve: { alias: { '@ali/core': core, '@ali/catalog': catalog, '@ali/bd-brief': bdBrief } },
   server: {
     port: 5174,
     strictPort: true,

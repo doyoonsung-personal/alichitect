@@ -4,7 +4,7 @@ import { defaultInputs } from '../../../packages/business-case/src/engine.ts';
 import type { BusinessCaseDocument, BusinessCaseRecord } from '../../../packages/business-case/src/types.ts';
 import type { CompleteOptions, CompleteResult } from '../../../packages/core/src/llm.ts';
 import { handleBusinessCase, BUSINESS_CASE_PREFIX as PREFIX, MAX_BODY_BYTES } from '../src/features/business-case/routes.ts';
-import { businessCaseEnabled } from '../src/features/business-case/policy.ts';
+import { businessCaseEligible, businessCaseEnabled } from '../src/features/business-case/policy.ts';
 import { MODEL_CALLS_CONCURRENT, MODEL_CALLS_PER_DAY, MODEL_CALLS_PER_USER_DAY, reserveModelCall } from '../src/features/business-case/repository.ts';
 import { call, makeEnv, makeUser, req, signIn } from './helpers.ts';
 
@@ -33,7 +33,27 @@ test('default-off capability is strict and routes do not query feature storage',
   assert.equal(businessCaseEnabled({ BUSINESS_CASE_ENABLED: '1' }), true);
   const env = makeEnv();
   env.DB.prepare = () => { throw new Error('feature-off must not read DB'); };
-  assert.equal((await handleBusinessCase(post({ document: document() }), env, { id: 'owner', status: 'approved' })).status, 404);
+  assert.equal((await handleBusinessCase(post({ document: document() }), env, { id: 'owner', status: 'approved', email: 'owner@example.org', role: 'user' })).status, 404);
+});
+
+test('business-case admin trial checks both role and optional exact email allowlist before any storage access', async () => {
+  const env = makeEnv({ BUSINESS_CASE_ENABLED: '1', BUSINESS_CASE_ADMIN_ONLY: '1', BUSINESS_CASE_ALLOWLIST: ' Trial@Example.org ' });
+  assert.equal(businessCaseEligible(env, { email: 'trial@example.org', role: 'admin' }), true);
+  for (const role of ['user', 'verified'] as const) {
+    assert.equal(businessCaseEligible(env, { email: 'trial@example.org', role }), false);
+    const forbidden = await makeUser(env, `${role}@example.org`, { role, status: 'approved' });
+    env.BUSINESS_CASE_ALLOWLIST = `${forbidden.email},trial@example.org`;
+    const originalPrepare = env.DB.prepare;
+    env.DB.prepare = () => { throw new Error('ineligible account must not query feature storage'); };
+    try { assert.equal((await handleBusinessCase(post({ document: document() }), env, forbidden)).status, 404); }
+    finally { env.DB.prepare = originalPrepare; }
+  }
+  const outside = await makeUser(env, 'outside@example.org', { role: 'admin', status: 'approved' });
+  assert.equal((await handleBusinessCase(post({ document: document() }), env, outside)).status, 404);
+  const allowed = await makeUser(env, 'trial@example.org', { role: 'admin', status: 'approved' });
+  assert.equal((await handleBusinessCase(post({ document: document() }), env, allowed)).status, 201);
+  assert.equal(businessCaseEligible({ BUSINESS_CASE_ENABLED: '1' }, { email: 'user@example.org', role: 'user' }), true, 'an unset optional allowlist retains general release compatibility');
+  assert.equal(businessCaseEligible({ BUSINESS_CASE_ENABLED: '1', BUSINESS_CASE_ALLOWLIST: ' , ' }, allowed), false, 'a configured but empty entry list grants nobody');
 });
 
 test('host preserves cookie auth, account approval and same-origin checks', async () => {

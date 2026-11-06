@@ -49,6 +49,10 @@ export interface Env {
   TURNS_PER_DAY?: string;
   /** Optional isolated business-case worksheet. Unset or any value other than "1" disables it. */
   BUSINESS_CASE_ENABLED?: string;
+  /** Restrict the worksheet trial to admins, even if another role is allowlisted. */
+  BUSINESS_CASE_ADMIN_ONLY?: string;
+  /** Optional comma-separated trial addresses; unset retains the normal enabled policy. */
+  BUSINESS_CASE_ALLOWLIST?: string;
   /** The one origin the app is served from, e.g. https://architect.alikorea-demo.com. */
   ALLOWED_ORIGIN: string;
   MAIL_FROM?: string;
@@ -73,6 +77,25 @@ export interface Env {
   /** 'none' disables failover. */
   QWEN_FALLBACK_MODEL?: string;
   QWEN_BASE_URL?: string;
+
+  // Optional BD meeting brief module (apps/worker/src/features/bd-brief). Deployment-configuration
+  // switches: default off, and removing the feature removes these entries with nothing else to undo.
+  /** "1": serve the BD brief feature (capability flag on /api/me and the /api/features/bd-brief routes). Default off. */
+  BD_BRIEF_ENABLED?: string;
+  /** Restrict the brief trial to admins as well as its explicit allowlist. */
+  BD_BRIEF_ADMIN_ONLY?: string;
+  /** Comma-separated email addresses allowed to use the BD brief trial. Only read while
+   * BD_BRIEF_ENABLED is "1"; empty or unset then means NOBODY is eligible — a trial needs
+   * an explicit list. The same server-side eligibility check guards the capability flag
+   * and every feature route. */
+  BD_BRIEF_ALLOWLIST?: string;
+  /** Model for brief generation (default qwen3.8-flash, thinking disabled). */
+  BD_BRIEF_MODEL?: string;
+  /** Hard deadline for one brief generation in ms (default 30000). */
+  BD_BRIEF_DEADLINE_MS?: string;
+  /** Brief generations per account per UTC day (default 20). Separate from TURNS_PER_DAY. */
+  BD_BRIEF_MAX_PER_USER_DAY?: string;
+
   TURN_DEADLINE_MS?: string;
   /** Hard stop for one high-effort proposal draft, 30000-840000 ms (default 840000). */
   PROPOSAL_DEADLINE_MS?: string;

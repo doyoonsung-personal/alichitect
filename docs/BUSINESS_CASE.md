@@ -41,7 +41,7 @@ Missing costs never silently become zero. A stale or absent pricing snapshot sup
 | Worker | `apps/worker/src/features/business-case/` | Authenticated routes, owner-scoped persistence and bounded explanation calls |
 | Migration | `apps/worker/migrations/0010_business_case.sql` | Independent `bc_` tables; no changes to design, session or pricing records |
 
-No dependency on the planned BD meeting brief exists. The module adds nothing to `ab.sessions.v1`, the design controller, the pricing conversation, proposal authoring or MCP tools. A later BD integration should explicitly import selected, attributed information through a small adapter; neither module should import the other's storage or UI.
+No dependency on the BD meeting brief exists. Both modules coexist through separate header controls, independent capability keys and disjoint routes. The worksheet adds nothing to `ab.sessions.v1`, the design controller, the pricing conversation, proposal authoring or MCP tools. Any future cross-module exchange should explicitly import selected, attributed information through a small adapter; neither module should import the other's storage or UI.
 
 The approved account cookie and existing same-origin checks protect every route. API keys remain MCP-only. Each saved version is scoped to its owner. The client submits the source snapshot because browser sessions are local; this is user-provided evidence, not a server-certified quote. HTML renders as text. Saved versions remain until explicitly deleted or the owning account is deleted. The optional account-wide history endpoint returns only owned metadata for cleanup, not all stored customer documents.
 
@@ -49,24 +49,24 @@ AI discussion uses Qwen 3.8 Flash with thinking disabled and a thirty-second dea
 
 ## Enable and merge
 
-The default is disabled. The server advertises `features.businessCase` from `/api/me`; older servers and malformed capabilities leave the entry hidden. Disabled routes return not found without accessing the module tables or making a model call.
+The code defaults to disabled when `BUSINESS_CASE_ENABLED` is unset. The current production configuration enables an admin-only trial: `BUSINESS_CASE_ENABLED=1`, `BUSINESS_CASE_ADMIN_ONLY=1`, and `BUSINESS_CASE_ALLOWLIST=dysung.alicloud@gmail.com`. Both the admin role and listed email must match. The server advertises `features.businessCase` from `/api/me` only for eligible users and repeats the eligibility check on every module request. Older servers and malformed capabilities leave the entry hidden. Disabled or ineligible routes return not found without accessing the module tables or making a model call.
 
-For a release, follow the repository's deployment procedure, apply the additive migration, then set Worker variable `BUSINESS_CASE_ENABLED` to the literal string `1`. Unset it or use `0` to disable the feature. No production setting has been changed by this implementation. Existing accounts need only reload the application after a future enablement.
+For a release, follow the repository's deployment procedure and apply the additive migration before enabling the feature. Unset the enabled flag or use `0` to disable it. Removing the admin restriction or expanding the allowlist is a separate rollout decision. Eligible accounts need only reload the application after enablement. Actual deployment state is recorded in `docs/agent-handoffs/bd-business-case-release.md`.
 
 The branch starts at `d29f490` and is intended to merge independently of BD work. Shared integration points are small:
 
 1. One optional feature entry in `apps/web/src/shell/Header.tsx`.
 2. One optional capability in `apps/web/src/stream/account.ts` and its parser test.
-3. One feature flag type in `apps/worker/src/env.ts`.
+3. Enablement and trial policy types in `apps/worker/src/env.ts` and configuration variables.
 4. A policy import, additive capability field and bounded route dispatch in `apps/worker/src/index.ts`.
 5. The domain test glob in the root `package.json` and documentation links.
 
-When resolving a later BD merge, preserve both entries, both capability keys and both disjoint route prefixes. If another unshipped migration also uses `0010`, renumber one before either is applied. Never rename a migration already applied in an environment.
+The BD merge preserves both entries, both capability keys and both disjoint route prefixes. The incoming, unapplied BD migration was renumbered to `0011_bd_briefs.sql`, leaving session titles `0009` and business-case `0010` intact. Never rename a migration already applied in an environment.
 
 ## Disable or remove
 
 Disabling requires only the flag. It preserves saved versions for a later re-enable and leaves other features usable. The module's fixed request budgets and lease are independent of chat turn limits, but hosting, D1 and the model provider are still shared infrastructure.
 
-For physical removal, remove the five additive integration points above and the three module directories plus their dedicated test. Retain the migration history and stored tables until an explicit data-retention decision permits cleanup. No core session migration or restoration is required. Run `node scripts/check-business-case-removal.mjs` to verify this in a disposable copy, without changing the active checkout. The script rebuilds existing assets before testing PDF paths and retains its temporary copy for inspection.
+For physical removal, remove the five additive integration points above and the three module directories plus their dedicated test. Retain the migration history and stored tables until an explicit data-retention decision permits cleanup. No core session migration or restoration is required. Run `node scripts/check-business-case-removal.mjs` to remove the worksheet in a disposable copy while retaining BD, or add `bd-brief` to test the reverse. The script rebuilds existing assets before testing PDF paths and retains its temporary copy for inspection; it never changes the active checkout.
 
 This release does not add CRM synchronization, automatic actions, MCP exposure, BD imports or inclusion in existing proposal PDFs. The optional explanation is generated on request and is not saved as an approved customer statement.

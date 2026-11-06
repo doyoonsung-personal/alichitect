@@ -50,7 +50,15 @@
     // page ("temporarily unavailable") and logged as mail-cap-reached.
     "CODE_MAILS_PER_DAY": "100",
     "RESET_MAILS_PER_DAY": "50",
-    "ADMIN_CODE_MAILS_PER_DAY": "40"
+    "ADMIN_CODE_MAILS_PER_DAY": "40",
+    // Owner-authorized admin-only trial. Server eligibility gates both the menu
+    // capability and every module request; ordinary/verified users stay unchanged.
+    "BUSINESS_CASE_ENABLED": "1",
+    "BUSINESS_CASE_ADMIN_ONLY": "1",
+    "BUSINESS_CASE_ALLOWLIST": "dysung.alicloud@gmail.com",
+    "BD_BRIEF_ENABLED": "1",
+    "BD_BRIEF_ADMIN_ONLY": "1",
+    "BD_BRIEF_ALLOWLIST": "dysung.alicloud@gmail.com"
   },
   "routes": [{ "pattern": "architect.alikorea-demo.com", "custom_domain": true }],
   "workers_dev": false,
@@ -87,7 +95,15 @@
         "CODE_MAILS_PER_DAY": "100",
         "RESET_MAILS_PER_DAY": "50",
         "ADMIN_CODE_MAILS_PER_DAY": "40",
-        "MAIL_LOG": "1"
+        "MAIL_LOG": "1",
+        // Mirror the production admin-only trial in local development.
+        "BUSINESS_CASE_ENABLED": "1",
+        "BUSINESS_CASE_ADMIN_ONLY": "1",
+        "BUSINESS_CASE_ALLOWLIST": "dysung.alicloud@gmail.com",
+        "BD_BRIEF_ENABLED": "1",
+        "BD_BRIEF_ADMIN_ONLY": "1",
+        // Enabled + empty allowlist means NOBODY is eligible (fail closed), so list the dev admin explicitly.
+        "BD_BRIEF_ALLOWLIST": "dysung.alicloud@gmail.com"
       },
       // Secrets come from .dev.vars (dummy values); with --env-file they may come from the process environment instead.
       // ANTHROPIC_API_KEY is optional and not listed: without it the dev Worker runs without the Claude backup.

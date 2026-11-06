@@ -7,6 +7,9 @@ import type { ReactElement } from 'react';
 import { BrandMark } from '../brand/BrandMark.tsx';
 import { ExportButton } from '../export/ExportButton.tsx';
 import { BusinessCaseEntry } from '../features/business-case/entry.tsx';
+// Optional BD meeting brief module. Removing the feature removes this import and the <BdBriefEntry /> below;
+// the entry itself renders nothing unless /api/me advertised features.bdBrief (see features/bd-brief/entry.tsx).
+import { BdBriefEntry } from '../features/bd-brief/entry.tsx';
 import { Icon } from './Icon.tsx';
 import { ChangelogLink, LanguageMenu, ModeState, SessionsMenu, ThemeMenu } from './controls.tsx';
 import { AccountMenu } from './AccountMenu.tsx';
@@ -65,6 +68,7 @@ export function Header(): ReactElement {
         </button>}
         <ExportButton />
         <BusinessCaseEntry />
+        <BdBriefEntry />
         <ChangelogLink />
         <SessionsMenu />
         <button type="button" className="btn btn--ghost" onClick={() => c.newSession()} disabled={streaming}>

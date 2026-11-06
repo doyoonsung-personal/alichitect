@@ -5,8 +5,8 @@ import { json, readBodyLimited } from '../../http.ts';
 import { deleteRecord, finishModelCall, listRecords, listRecordSummaries, reserveModelCall, saveRecord } from './repository.ts';
 import { explainDocument } from './model.ts';
 import type { ModelDeps } from './model.ts';
-import { businessCaseEnabled } from './policy.ts';
-export { businessCaseEnabled } from './policy.ts';
+import { businessCaseEligible, businessCaseEnabled } from './policy.ts';
+export { businessCaseEligible, businessCaseEnabled } from './policy.ts';
 
 export const BUSINESS_CASE_PREFIX = '/api/features/business-case';
 export const MAX_BODY_BYTES = 65_536;
@@ -15,11 +15,12 @@ const sessionIdValid = (value: string | null): value is string => typeof value =
 const methodError = (allow: string): Response => json(405, { error: 'method-not-allowed' }, { Allow: allow });
 
 /** Host invokes this only after cookie auth, approval and same-origin write checks. */
-export async function handleBusinessCase(request: Request, env: Env, user: Pick<UserRow, 'id' | 'status'>,
+export async function handleBusinessCase(request: Request, env: Env, user: Pick<UserRow, 'id' | 'status' | 'email' | 'role'>,
   deps: BusinessCaseDeps = {}): Promise<Response> {
   // Feature-off must not touch module tables, allowing an unapplied migration.
   if (!businessCaseEnabled(env)) return json(404, { error: 'not-found' });
   if (user.status !== 'approved') return json(403, { error: 'not-approved' });
+  if (!businessCaseEligible(env, user)) return json(404, { error: 'not-found' });
   const url = new URL(request.url), suffix = url.pathname.slice(BUSINESS_CASE_PREFIX.length);
   const now = deps.now ?? Date.now;
   if (!url.pathname.startsWith(BUSINESS_CASE_PREFIX)) return json(404, { error: 'not-found' });

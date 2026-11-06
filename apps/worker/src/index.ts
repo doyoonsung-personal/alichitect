@@ -23,12 +23,17 @@ import { handleTurn, health, reject, sharedTurnState, workerFatalMessage } from 
 import { handleProposal } from './proposal.ts';
 import { handlePricing } from './pricing.ts';
 import { handleSessionTitle } from './session-title.ts';
-import { businessCaseEnabled } from './features/business-case/policy.ts';
+import { businessCaseEligible } from './features/business-case/policy.ts';
 import { handleMcp } from './mcp.ts';
 import { downloadPdf, processPdfQueue } from './mcp-pdf.ts';
 import { keyMenu } from './key-menu.ts';
 import { latestDesign, openedDesign, refreshDesignTitle } from './mcp-designs.ts';
 import { changelogPage, claimReleaseNotice } from './release-notice.ts';
+// Optional BD meeting brief module. Removing the feature removes these imports, the route block and the
+// capability line in /api/me; nothing else in this file depends on it (see features/bd-brief/).
+import { bdBriefEligible } from './features/bd-brief/policy.ts';
+import { handleBdBrief } from './features/bd-brief/routes.ts';
+import { BD_BRIEF_API_PREFIX } from '../../../packages/bd-brief/src/types.ts';
 import { authAsset } from './pages/assets.ts';
 import { LANG_COOKIE, isLang, langOfRequest } from './pages/i18n.ts';
 import { accountPage, adminPage, loginPage, pendingPage } from './pages/views.ts';
@@ -210,6 +215,12 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
   if (path === '/api/me') {
     if (!isGet(method)) return json(405, { error: 'method-not-allowed' }, { Allow: 'GET' });
     const isAdmin = me.role === 'admin';
+    // Independent optional modules must share one capability object; a later
+    // spread must never hide another eligible feature. Omit it for old clients.
+    const features = {
+      ...(businessCaseEligible(env, me) ? { businessCase: true } : {}),
+      ...(bdBriefEligible(env, me) ? { bdBrief: true } : {}),
+    };
     return json(200, {
       email: me.email,
       name: me.name,
@@ -219,7 +230,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
       createdAt: me.created_at,
       turnsToday: await db.turnsToday(env.DB, me.id, now),
       turnsPerDay: dailyTurnLimit(env, me.role),
-      ...(businessCaseEnabled(env) ? { features: { businessCase: true } } : {}),
+      ...(Object.keys(features).length ? { features } : {}),
       // signOut takes a same-origin POST (a form, or fetch with method POST); the others are pages
       links: { account: '/account', admin: isAdmin ? '/admin' : null, signOut: '/auth/logout',
         ...(!isSharedAccount(env, me.email) ? { keys: '/account/keys' } : {}) },
@@ -230,10 +241,13 @@ async function route(request: Request, env: Env, ctx: ExecutionContextLike, url:
   if (path === '/api/pricing') return method === 'POST' ? handlePricing(request, env, ctx, me) : reject(405, 'method-not-allowed', 'use POST', { Allow: 'POST' });
   if (path === '/api/proposal') return method === 'POST' ? handleProposal(request, env, ctx, me) : reject(405, 'method-not-allowed', 'use POST', { Allow: 'POST' });
   if (path === '/api/features/business-case' || path.startsWith('/api/features/business-case/')) {
-    if (!businessCaseEnabled(env)) return json(404, { error: 'not-found' });
+    if (!businessCaseEligible(env, me)) return json(404, { error: 'not-found' });
     const { handleBusinessCase } = await import('./features/business-case/routes.ts');
     return handleBusinessCase(request, env, me);
   }
+  // Optional BD brief routes, after the existing sign-in and approval checks. The handler re-checks the
+  // server-side setting and eligibility on every request, so a stale browser cannot bypass a disabled server.
+  if (path === BD_BRIEF_API_PREFIX || path.startsWith(BD_BRIEF_API_PREFIX + '/')) return handleBdBrief(request, env, ctx, me, url);
   if (path.startsWith('/api/')) return json(404, { error: 'not-found', message: 'no such route' });
 
   // ---------- admin ----------

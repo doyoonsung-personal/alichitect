@@ -21,6 +21,22 @@ test('parseAccount reads the Worker shape and refuses anything else', () => {
   }
 });
 
+test('the optional bd-brief capability flag never invalidates the account', () => {
+  // Each capability is parsed independently; a missing brief flag never enables it
+  // or discards the worksheet capability from the same response.
+  assert.deepEqual(parseAccount({ ...ME, features: { bdBrief: true } })!.features, { bdBrief: true });
+  for (const features of [{ bdBrief: false }, { bdBrief: 'yes' }, {}, null, 'x', 7, { bdBrief: true, other: 1 }]) {
+    const a = parseAccount({ ...ME, features });
+    assert.ok(a, `account must stay valid with features=${JSON.stringify(features)}`);
+    if (features !== null && typeof features === 'object' && (features as { bdBrief?: unknown }).bdBrief === true) {
+      assert.equal(a.features?.bdBrief, true);
+    } else {
+      assert.notEqual(a.features?.bdBrief, true);
+    }
+  }
+  assert.notEqual(parseAccount(ME)!.features?.bdBrief, true);
+});
+
 test('fetchAccount is null for a missing route, an HTML page, a 401, a network error and a timeout', async () => {
   assert.equal((await fetchAccount({ fetchImpl: (async () => json(ME)) as typeof fetch }))?.name, 'Mina Park');
   assert.equal(await fetchAccount({ fetchImpl: (async () => json({ error: 'not-found' }, 404)) as typeof fetch }), null);
@@ -32,9 +48,18 @@ test('fetchAccount is null for a missing route, an HTML page, a 401, a network e
 
 test('optional feature capabilities fail closed without rejecting existing accounts', () => {
   for (const features of [undefined, null, [], true, {}, { businessCase: 'true' }, { businessCase: 1 }]) {
-    assert.equal(parseAccount({ ...ME, features })?.features?.businessCase, false);
+    assert.notEqual(parseAccount({ ...ME, features })?.features?.businessCase, true);
   }
   assert.equal(parseAccount({ ...ME, features: { businessCase: true, futureModule: true } })?.features?.businessCase, true);
+});
+
+test('combined optional module capabilities remain independently available', () => {
+  assert.deepEqual(parseAccount({ ...ME, features: { businessCase: true, bdBrief: true } })!.features,
+    { businessCase: true, bdBrief: true });
+  assert.deepEqual(parseAccount({ ...ME, features: { businessCase: 'true', bdBrief: true } })!.features,
+    { bdBrief: true });
+  assert.deepEqual(parseAccount({ ...ME, features: { businessCase: true, bdBrief: 'true' } })!.features,
+    { businessCase: true });
 });
 
 test('quota: unlimited accounts show usage, limited accounts count down to zero', () => {
