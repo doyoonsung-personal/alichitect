@@ -7,7 +7,7 @@ export interface KeyInfo {
   id: string; name: string; scope: KeyScope; created_at: number; expires_at: number;
   last_used_at: number | null; revoked_at: number | null;
 }
-export const MAX_ACTIVE_KEYS = 10;
+export const MAX_ACTIVE_KEYS = 3;
 export async function issueKey(db: D1Database, owner: string, name: string, scope: KeyScope, days: number, now: number, issuanceId = randomHex(16)) {
   if (!name.trim() || name.length > 60 || !['read', 'write'].includes(scope) || ![30, 90, 365].includes(days) || !/^[a-f0-9]{32}$/.test(issuanceId)) return null;
   const id = randomHex(8);
@@ -18,9 +18,18 @@ export async function issueKey(db: D1Database, owner: string, name: string, scop
     .bind(id, owner, name.trim(), await sha256Hex(secret), scope, now, now + days * 86400000, issuanceId, owner, now, MAX_ACTIVE_KEYS).run();
   return result.meta.changes === 1 ? secret : null;
 }
-export async function listKeys(db: D1Database, owner: string) {
-  return (await db.prepare(`SELECT id,name,scope,created_at,expires_at,last_used_at,revoked_at FROM mcp_keys
-    WHERE user_id=? ORDER BY (revoked_at IS NULL AND expires_at>?) DESC, created_at DESC LIMIT 100`).bind(owner, Date.now()).all<KeyInfo>()).results;
+export async function listKeys(db: D1Database, owner: string, now = Date.now()) {
+  // Keep every active key visible, including legacy accounts above the new cap.
+  // Bound only history so old records cannot hide an active key or undercount it.
+  const columns = 'id,name,scope,created_at,expires_at,last_used_at,revoked_at';
+  return (await db.prepare(`SELECT ${columns} FROM (
+    SELECT ${columns}, 1 AS active FROM mcp_keys WHERE user_id=? AND revoked_at IS NULL AND expires_at>?
+    UNION ALL
+    SELECT ${columns}, 0 AS active FROM (
+      SELECT ${columns} FROM mcp_keys WHERE user_id=? AND (revoked_at IS NOT NULL OR expires_at<=?)
+      ORDER BY created_at DESC, id DESC LIMIT 100
+    )
+  ) ORDER BY active DESC, created_at DESC, id DESC`).bind(owner, now, owner, now).all<KeyInfo>()).results;
 }
 export async function revokeKey(db: D1Database, owner: string, id: string, now: number) {
   await db.prepare('UPDATE mcp_keys SET revoked_at=? WHERE id=? AND user_id=? AND revoked_at IS NULL').bind(now, id, owner).run();
