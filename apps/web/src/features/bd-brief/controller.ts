@@ -450,7 +450,7 @@ export function createBriefController(deps: BriefControllerDeps): BriefControlle
       const key = sourceKey ?? g.sessionId;
       set({ phase: 'loading-brief', sourceKey: key, error: null, conflict: null });
       try {
-        const list = await deps.api.listBriefs(key, { signal });
+        const list = await deps.api.listBriefs(key, { signal }, deps.capture().sourceKind);
         if (stale(g)) return endCall(g);
         if (!list.brief) {
           lastSource = { fingerprint: '', revision: 0 };

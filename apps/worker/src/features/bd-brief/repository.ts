@@ -9,6 +9,7 @@ import type {
   BriefNote,
   BriefPayload,
   BriefRecord,
+  BriefSnapshot,
   BriefSourceKind,
   BriefVersionMeta,
   Lang,
@@ -16,8 +17,9 @@ import type {
   VersionOrigin,
 } from '../../../../../packages/bd-brief/src/types.ts';
 import { BD_BRIEF_SCHEMA_VERSION, LIMITS, makeEmptyContent } from '../../../../../packages/bd-brief/src/types.ts';
+import { validateSnapshot } from '../../../../../packages/bd-brief/src/validate.ts';
 
-/* ---------- row shapes (bd_ tables, migration 0011) ---------- */
+/* ---------- row shapes (bd_ tables, migrations 0011 and 0012) ---------- */
 
 interface BriefRow {
   id: string;
@@ -32,6 +34,8 @@ interface BriefRow {
   source_revision: number;
   created_at: number;
   updated_at: number;
+  discovery_title: string | null;
+  discovery_snapshot: string | null;
 }
 
 interface VersionRow {
@@ -100,7 +104,13 @@ const isRequestState = (v: string): v is RequestRow['state'] => v === 'in-progre
 /** The bd_briefs row as the contract's BriefRecord; null when the row is missing or its content JSON is corrupt. */
 function toBrief(row: BriefRow): BriefRecord | null {
   const content = parseJson<BriefContent>(row.content);
-  if (!content || !isLang(row.lang) || row.source_kind !== 'browser-session') return null;
+  if (!content || !isLang(row.lang) || !['browser-session', 'discovery'].includes(row.source_kind)) return null;
+  let discovery: BriefRecord['discovery'];
+  if (row.source_kind === 'discovery') {
+    const parsed = validateSnapshot(parseJson(row.discovery_snapshot));
+    if (!parsed.ok || parsed.value.sourceKind !== 'discovery' || parsed.value.sourceKey !== row.source_key || !row.discovery_title) return null;
+    discovery = { title: row.discovery_title, snapshot: parsed.value };
+  }
   return {
     id: row.id,
     ownerId: row.owner_id,
@@ -114,6 +124,7 @@ function toBrief(row: BriefRow): BriefRecord | null {
     sourceRevision: row.source_revision,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    ...(discovery ? { discovery } : {}),
   };
 }
 
@@ -147,7 +158,7 @@ function toRequest(row: RequestDbRow): RequestRow | null {
   };
 }
 
-const BRIEF_COLS = 'id, owner_id, source_kind, source_key, schema_version, lang, version, content, snapshot_fingerprint, source_revision, created_at, updated_at';
+const BRIEF_COLS = 'id, owner_id, source_kind, source_key, schema_version, lang, version, content, snapshot_fingerprint, source_revision, created_at, updated_at, discovery_title, discovery_snapshot';
 const NOTE_COLS = 'id, brief_id, owner_id, request_id, text, meeting_date, source, saved_at';
 const REQUEST_COLS = 'id, brief_id, owner_id, request_id, payload_hash, state, candidate, reason, usage_json, version_base, created_at, expires_at';
 
@@ -162,6 +173,14 @@ export async function getBrief(db: D1Database, ownerId: string, briefId: string)
   const row = await db.prepare(`SELECT ${BRIEF_COLS} FROM bd_briefs WHERE id = ? AND owner_id = ?`).bind(briefId, ownerId).first<BriefRow>();
   return row ? toBrief(row) : null;
 }
+
+export async function listDiscoveryBriefs(db: D1Database, ownerId: string): Promise<BriefRecord[]> {
+  const result = await db.prepare(`SELECT ${BRIEF_COLS} FROM bd_briefs WHERE owner_id = ? AND source_kind = 'discovery' ORDER BY updated_at DESC, id LIMIT ?`)
+    .bind(ownerId, LIMITS.discoveryBriefs).all<BriefRow>();
+  return result.results.map(toBrief).filter((b): b is BriefRecord => b !== null);
+}
+
+export class DiscoveryBriefLimitError extends Error {}
 
 /** The brief with its bounded version history (newest first) and its notes: what GET /briefs/:id returns. */
 export async function getPayload(db: D1Database, ownerId: string, briefId: string): Promise<BriefPayload | null> {
@@ -197,19 +216,24 @@ export async function latestVersionEvidence(db: D1Database, ownerId: string, bri
  * Create-if-absent: a unique-constraint violation on (owner_id, source_kind, source_key) means the brief already
  * exists, so the existing row is returned instead of an error (two browser tabs racing both get the same brief).
  */
-export async function createBrief(db: D1Database, ownerId: string, init: { id: string; sourceKey: string; lang: Lang; now: number }): Promise<BriefRecord> {
+export async function createBrief(db: D1Database, ownerId: string, init: { id: string; sourceKey: string; lang: Lang; now: number; discovery?: { title: string; snapshot: BriefSnapshot } }): Promise<BriefRecord> {
+  const kind: BriefSourceKind = init.discovery ? 'discovery' : 'browser-session';
   try {
-    await db
+    const result = await db
       .prepare(
-        `INSERT INTO bd_briefs (id, owner_id, source_kind, source_key, schema_version, lang, version, content, snapshot_fingerprint, source_revision, created_at, updated_at)
-         VALUES (?, ?, 'browser-session', ?, ?, ?, 0, ?, '', 0, ?, ?)`,
+        `INSERT INTO bd_briefs (id, owner_id, source_kind, source_key, schema_version, lang, version, content, snapshot_fingerprint, source_revision, created_at, updated_at, discovery_title, discovery_snapshot)
+         SELECT ?, ?, ?, ?, ?, ?, 0, ?, '', 0, ?, ?, ?, ?
+         WHERE ? = 'browser-session' OR (SELECT COUNT(*) FROM bd_briefs WHERE owner_id = ? AND source_kind = 'discovery') < ?`,
       )
-      .bind(init.id, ownerId, init.sourceKey, BD_BRIEF_SCHEMA_VERSION, init.lang, JSON.stringify(makeEmptyContent()), init.now, init.now)
+      .bind(init.id, ownerId, kind, init.sourceKey, BD_BRIEF_SCHEMA_VERSION, init.lang, JSON.stringify(makeEmptyContent()), init.now, init.now,
+        init.discovery?.title ?? null, init.discovery ? JSON.stringify(init.discovery.snapshot) : null, kind, ownerId, LIMITS.discoveryBriefs)
       .run();
-  } catch {
+    if (!result.meta.changes) throw new DiscoveryBriefLimitError('Discovery brief limit reached');
+  } catch (error) {
     // either the unique source or (astronomically unlikely) the primary key exists: fall back to the stored row
-    const existing = await findActiveBySource(db, ownerId, 'browser-session', init.sourceKey);
+    const existing = await findActiveBySource(db, ownerId, kind, init.sourceKey);
     if (existing) return existing;
+    if (error instanceof DiscoveryBriefLimitError) throw error;
     throw new Error('bd-brief: createBrief failed');
   }
   const made = await getBrief(db, ownerId, init.id);

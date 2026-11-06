@@ -2,7 +2,7 @@
 // boundary. It renders NOTHING unless /api/me advertised features.bdBrief — no dialog, no
 // timers, no BD requests and no dynamic import. The full UI loads only when the BD opens it,
 // inside a local error boundary so a load or render failure can never crash the header or the
-// design screen. Removing the feature removes this file and its single Header import.
+// design screen. Removing the feature removes this file and its Header/Landing imports.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { JSX, RefObject } from 'react';
 import { Component } from 'react';
@@ -15,7 +15,7 @@ import { makeBT } from './strings.ts';
 import { isStreaming } from '../../store/selectors.ts';
 
 /** The dialog module, loaded on first open (repo convention: dynamic import in the handler, not React.lazy). */
-type DialogModule = typeof import('./BriefDialog.tsx');
+type DialogModule = Pick<typeof import('./BriefDialog.tsx'), 'BriefDialog'>;
 
 interface BoundaryProps {
   children: ReactNode;
@@ -47,7 +47,7 @@ class BdBriefBoundary extends Component<BoundaryProps, BoundaryState> {
 const selSessionId = (s: AppState): string => s.session.id;
 const selAccount = (s: AppState): AppState['account'] => s.account;
 
-export function BdBriefEntry(): JSX.Element | null {
+export function BdBriefEntry({ discovery = false }: { discovery?: boolean } = {}): JSX.Element | null {
   const account = useAppState(selAccount);
   const enabled = account?.features?.bdBrief === true;
 
@@ -75,7 +75,8 @@ export function BdBriefEntry(): JSX.Element | null {
     setLoading(true);
     const gate = current.current;
     // load the heavy UI only on first open; a failure is caught by the boundary, not the header
-    void import('./BriefDialog.tsx')
+    const load = discovery ? import('./DiscoveryDialog.tsx').then(m => ({ BriefDialog: m.DiscoveryDialog })) : import('./BriefDialog.tsx');
+    void load
       .then((m) => {
         if (!mounted.current) return;
         setMod(() => m);
@@ -85,7 +86,7 @@ export function BdBriefEntry(): JSX.Element | null {
         console.error('bd-brief load failed', err);
         if (mounted.current) { setFailed(true); setOpen(false); }
       }).finally(() => { if (mounted.current) setLoading(false); });
-  }, [mod]);
+  }, [mod, discovery]);
 
   const onClose = useCallback(() => {
     setOpen(false);
@@ -97,21 +98,21 @@ export function BdBriefEntry(): JSX.Element | null {
   const ctx: BriefContext = { sessionId, lang, accountEmail: account?.email ?? null };
   const Dialog = mod?.BriefDialog;
 
-  return (
+  const content = (
     <>
       <button
         ref={trigger}
         type="button"
-        className="btn btn--ghost bd-brief-entry"
+        className={`btn ${discovery ? 'btn--secondary bd-discovery-entry' : 'btn--ghost bd-brief-entry'}`}
         disabled={blocked || loading}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? 'bdb-dialog' : undefined}
-        aria-label={bt('bdb.entry.aria')}
+        aria-label={bt(discovery ? 'bdb.discovery.entry' : 'bdb.entry.aria')}
         onClick={onOpen}
       >
         <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 3h12v11H9l-5 3V3Z"/><path d="M7 6h6M7 9h5"/></svg>
-        <span>{bt('bdb.entry.trigger')}</span>
+        <span>{bt(discovery ? 'bdb.discovery.entry' : 'bdb.entry.trigger')}</span>
       </button>
       {failed && <span role="alert">{bt('bdb.error.generic')}</span>}
       {open && Dialog ? (
@@ -121,4 +122,5 @@ export function BdBriefEntry(): JSX.Element | null {
       ) : null}
     </>
   );
+  return discovery ? <div className="discovery-entry">{content}<span>{bt('bdb.discovery.hint')}</span></div> : content;
 }

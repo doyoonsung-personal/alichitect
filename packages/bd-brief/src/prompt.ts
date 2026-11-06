@@ -37,7 +37,9 @@ function systemRules(langName: string): string {
     '- CTO, CFO, CIO, committees, departments and job titles are ROLES, not named people. A person requesting costs is not automatically the budget approver. Do not infer headquarters, subsidiary structure, imminent dates or confirmed purchase stages from a location or a question.',
     `- Produce at most ${LIMITS.valuePoints} value points, at most ${LIMITS.priorityQuestions} priority questions and at most ${LIMITS.concerns} concerns.`,
     '- Do not repeat questions the input already answers; read the statements, design and notes first.',
-    '- Every sourceIds entry must be exactly one evidence id from the supplied list. An item without supporting evidence should not exist; never cite an id that is not in the list.',
+    '- Every sourceIds entry must be exactly one evidence id from the supplied list. Factual claims require evidence. Discovery questions and explicitly suggested roles may use sourceIds: [] when no customer evidence exists; never invent evidence ids.',
+    '- For discovery with no stated customer problem, explicitly say the problem and business impact are not yet known. Offer up to three priority opening questions about current work, difficulties and desired outcomes. Do not assume a cloud migration, AI use case, technical solution, budget, timeline or purchase intent. Suggest a discovery conversation with owner/date null; it is a proposal, not an agreed meeting.',
+    '- For an empty discovery source, keep opportunity to one or two short sentences. Return concerns: [] rather than inventing risks from missing information. Do not fill the brief with disclaimers about guarantees, unavailable pricing or why a solution cannot yet be proposed; the useful output is a small set of opening questions.',
     '- When a base brief is supplied: items with review "confirmed" or edited true were decided by the BD owner. Echo them verbatim in your output; never rewrite, merge or drop them. Still output review "unreviewed" and origin "model" for EVERY item, including those echoes: never try to encode the confirmation state yourself (it would be rejected); the system restores the owner state by matching your echoed text against the base. Surface contradictions with later evidence as conflicts instead of flattening them.',
     '- Always leave question answer fields null; existing owner-entered answers are restored by the system for echoed questions. New answers from meeting notes must be proposed through answered-question changes, never silently inserted.',
     '- When actionable customer statements exist, recommend ONE nextEngagement as a proposal for the BD to discuss, not an agreed commitment. Choose discovery to clarify incomplete needs, sa-workshop to validate a proposed design and its boundaries, or poc-scoping when evidence supports a scoped validation. State the decision that meeting would enable. Owner and date stay null unless explicitly agreed in evidence. Lack of an agreed meeting is NOT a reason to omit this recommendation.',
@@ -88,6 +90,7 @@ export function buildGeneratePrompt(input: GenerateInput): { system: string; use
     // Identity fields (sourceKey, capturedAt, ...) are irrelevant to authoring
     // and are deliberately not sent to the model.
     snapshot: {
+      sourceKind: input.snapshot.sourceKind,
       sourceRevision: input.snapshot.sourceRevision,
       objective: input.snapshot.objective,
       statements: input.snapshot.statements,

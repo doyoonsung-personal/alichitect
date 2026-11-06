@@ -25,8 +25,8 @@ export type Lang = 'en' | 'ko' | 'zh';
 // Evidence and input snapshot (plan §6)
 // ---------------------------------------------------------------------------
 
-/** Where a brief's source lives. Only browser-local sessions in the first release. */
-export type BriefSourceKind = 'browser-session';
+/** Discovery belongs to the BD module and does not require an architecture session. */
+export type BriefSourceKind = 'browser-session' | 'discovery';
 
 /** Reserved evidence ids. Per-item evidence ids are the raw snapshot statement ids
  * and saved note ids; these three cover the whole-objective/design/pricing references. */
@@ -77,9 +77,9 @@ export interface SnapshotPricing {
 export interface BriefSnapshot {
   schemaVersion: BriefSchemaVersion;
   sourceKind: BriefSourceKind;
-  /** Browser session id (grouping key only). */
+  /** Browser session id or module-owned discovery id (grouping key only). */
   sourceKey: string;
-  /** Last committed revision number of the source session at capture time. */
+  /** Last committed architecture revision, or zero for independent discovery. */
   sourceRevision: number;
   suppliedBy: 'signed-in-user';
   /** Epoch ms; excluded from the fingerprint. */
@@ -259,6 +259,8 @@ export interface BriefRecord {
   /** Epoch ms. */
   createdAt: number;
   updatedAt: number;
+  /** Saved only for an independent discovery meeting; never copied into core sessions. */
+  discovery?: { title: string; snapshot: BriefSnapshot };
 }
 
 /** One retained accepted-version's metadata (bd_brief_versions). */
@@ -426,11 +428,18 @@ export interface ListBriefsResponse {
   brief: BriefSummary | null;
 }
 
+/** Owner-scoped, bounded library of meetings started without an architecture session. */
+export interface ListDiscoveryBriefsResponse {
+  briefs: Array<BriefSummary & { title: string }>;
+}
+
 /** POST /briefs — creates the brief container from a bounded source snapshot. */
 export interface CreateBriefRequest {
   sourceKey: string;
   lang: Lang;
   snapshot: BriefSnapshot;
+  /** Optional discovery-meeting label; empty defaults to a localized first-meeting label. */
+  title?: string;
 }
 export interface CreateBriefResponse {
   brief: BriefRecord;
@@ -505,6 +514,8 @@ export type GenerateHttpResponse =
  * writes within them. Retention and quota values here are the proposed starting
  * limits — final values are configuration decisions before rollout (plan §7/§13). */
 export const LIMITS = {
+  discoveryBriefs: 50,
+  discoveryTitleChars: 120,
   /** "Up to three labeled points" (plan §2). */
   valuePoints: 3,
   /** "At most three priority questions" (plan §2). */

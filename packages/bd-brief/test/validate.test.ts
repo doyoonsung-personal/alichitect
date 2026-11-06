@@ -387,7 +387,8 @@ test('validateAddNoteRequest bounds the note', () => {
 });
 
 test('validateCreateBriefRequest requires a lang, key and valid snapshot', () => {
-  assert.equal(validateCreateBriefRequest({ sourceKey: 'sess-1', lang: 'zh', snapshot: thinSnapshot() }).ok, true);
+  assert.equal(validateCreateBriefRequest({ sourceKey: 'sess-1', lang: 'zh', snapshot: thinSnapshot({ sourceKey: 'sess-1' }) }).ok, true);
+  assert.equal(validateCreateBriefRequest({ sourceKey: 'different', lang: 'zh', snapshot: thinSnapshot() }).ok, false);
   assert.equal(validateCreateBriefRequest({ sourceKey: '', lang: 'zh', snapshot: thinSnapshot() }).ok, false);
   assert.equal(validateCreateBriefRequest({ sourceKey: 'sess-1', lang: 'de', snapshot: thinSnapshot() }).ok, false);
   assert.equal(validateCreateBriefRequest({ sourceKey: 'sess-1', lang: 'zh', snapshot: { ...thinSnapshot(), schemaVersion: 9 } }).ok, false);

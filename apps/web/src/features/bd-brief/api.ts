@@ -7,6 +7,7 @@ import type {
   AddNoteRequest, AddNoteResponse, BdBriefApiErrorCode, CreateBriefRequest, CreateBriefResponse,
   GenerateHttpRequest, GenerateHttpResponse, GetBriefResponse, ListBriefsResponse,
   PatchBriefRequest, PatchBriefResponse,
+  BriefSourceKind, ListDiscoveryBriefsResponse,
 } from '@ali/bd-brief/types.ts';
 import { BD_BRIEF_API_PREFIX } from '@ali/bd-brief/types.ts';
 
@@ -16,13 +17,17 @@ export interface ReqOpts {
 }
 
 export interface BdBriefApi {
-  listBriefs(sourceKey: string, o?: ReqOpts): Promise<ListBriefsResponse>;
+  listBriefs(sourceKey: string, o?: ReqOpts, sourceKind?: BriefSourceKind): Promise<ListBriefsResponse>;
   createBrief(body: CreateBriefRequest, o?: ReqOpts): Promise<CreateBriefResponse>;
   getBrief(id: string, o?: ReqOpts): Promise<GetBriefResponse>;
   patchBrief(id: string, body: PatchBriefRequest, o?: ReqOpts): Promise<PatchBriefResponse>;
   addNote(id: string, body: AddNoteRequest, o?: ReqOpts): Promise<AddNoteResponse>;
   generate(id: string, body: GenerateHttpRequest, o?: ReqOpts): Promise<GenerateHttpResponse>;
   deleteBrief(id: string, o?: ReqOpts): Promise<void>;
+}
+
+export interface DiscoveryBriefApi extends BdBriefApi {
+  listDiscoveryBriefs(o?: ReqOpts): Promise<ListDiscoveryBriefsResponse>;
 }
 
 const CODES: ReadonlySet<string> = new Set([
@@ -75,7 +80,7 @@ async function toError(res: Response): Promise<BdBriefApiError> {
   return new BdBriefApiError(code, res.status, message, currentVersion, reason);
 }
 
-export function createBdBriefApi(deps: { fetchImpl?: typeof fetch } = {}): BdBriefApi {
+export function createBdBriefApi(deps: { fetchImpl?: typeof fetch } = {}): DiscoveryBriefApi {
   async function call<T>(method: string, path: string, body?: unknown, o?: ReqOpts): Promise<T> {
     const f = o?.fetchImpl ?? deps.fetchImpl ?? globalThis.fetch;
     let res: Response;
@@ -102,7 +107,8 @@ export function createBdBriefApi(deps: { fetchImpl?: typeof fetch } = {}): BdBri
   const briefPath = (id: string): string => `/briefs/${encodeURIComponent(id)}`;
 
   return {
-    listBriefs: (sourceKey, o) => call<ListBriefsResponse>('GET', `/briefs?sourceKey=${encodeURIComponent(sourceKey)}`, undefined, o),
+    listBriefs: (sourceKey, o, sourceKind = 'browser-session') => call<ListBriefsResponse>('GET', `/briefs?sourceKey=${encodeURIComponent(sourceKey)}${sourceKind === 'discovery' ? '&sourceKind=discovery' : ''}`, undefined, o),
+    listDiscoveryBriefs: (o) => call<ListDiscoveryBriefsResponse>('GET', '/discovery-briefs', undefined, o),
     createBrief: (body, o) => call<CreateBriefResponse>('POST', '/briefs', body, o),
     getBrief: (id, o) => call<GetBriefResponse>('GET', briefPath(id), undefined, o),
     patchBrief: (id, body, o) => call<PatchBriefResponse>('PATCH', briefPath(id), body, o),

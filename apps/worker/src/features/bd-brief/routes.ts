@@ -25,7 +25,7 @@ import type {
 } from '../../../../../packages/bd-brief/src/types.ts';
 import { BD_BRIEF_API_PREFIX, BD_BRIEF_SCHEMA_VERSION, EVIDENCE_DESIGN, EVIDENCE_OBJECTIVE, EVIDENCE_PRICING, LIMITS } from '../../../../../packages/bd-brief/src/types.ts';
 import { validateAddNoteRequest, validateCreateBriefRequest, validateGenerateRequest, validatePatchRequest } from '../../../../../packages/bd-brief/src/validate.ts';
-import { canonicalJson } from '../../../../../packages/bd-brief/src/evidence.ts';
+import { canonicalJson, snapshotFingerprint } from '../../../../../packages/bd-brief/src/evidence.ts';
 import { generateBrief } from '../../../../../packages/bd-brief/src/engine.ts';
 import { bdBriefDeadlineMs, bdBriefEligible, bdBriefGenerationsPerUserDay } from './policy.ts';
 import { createBdBriefModel } from './model.ts';
@@ -64,6 +64,12 @@ async function routeBdBrief(request: Request, env: Env, ctx: ExecutionContextLik
   const suffix = url.pathname.startsWith(BD_BRIEF_API_PREFIX) ? url.pathname.slice(BD_BRIEF_API_PREFIX.length) : '';
   const now = deps.now ?? Date.now;
   const ids = deps.ids ?? defaultIds;
+
+  if (suffix === '/discovery-briefs') {
+    if (method !== 'GET') return json(405, { error: 'method-not-allowed' }, { Allow: 'GET' });
+    const records = await repo.listDiscoveryBriefs(env.DB, me.id);
+    return json(200, { briefs: records.map(b => ({ ...toSummary(b), title: b.discovery!.title })) });
+  }
 
   if (suffix === '/briefs') {
     if (method === 'GET') return listBriefs(env, me, url);
@@ -110,7 +116,9 @@ const invalid = (issues: readonly string[]): Response => json(400, { error: 'inv
 async function listBriefs(env: Env, me: UserRow, url: URL): Promise<Response> {
   const sourceKey = url.searchParams.get('sourceKey')?.trim();
   if (!sourceKey) return invalid(['sourceKey is required']);
-  const brief = await repo.findActiveBySource(env.DB, me.id, 'browser-session', sourceKey);
+  const kind = url.searchParams.get('sourceKind') ?? 'browser-session';
+  if (kind !== 'browser-session' && kind !== 'discovery') return invalid(['invalid sourceKind']);
+  const brief = await repo.findActiveBySource(env.DB, me.id, kind, sourceKey);
   return json(200, { brief: brief ? toSummary(brief) : null });
 }
 
@@ -127,8 +135,15 @@ async function createBriefRoute(request: Request, env: Env, me: UserRow, now: ()
   if (!checked.ok) return invalid(checked.issues);
   const value = checked.value;
   // create-if-absent: an existing brief for this owner+source is returned unchanged (200 for both, documented above)
-  const brief = await repo.createBrief(env.DB, me.id, { id: ids.next('brief'), sourceKey: value.sourceKey, lang: value.lang, now: now() });
-  return json(200, { brief });
+  const defaults = { en: 'First customer meeting', ko: '첫 고객 미팅', zh: '首次客户会议' };
+  try {
+    const brief = await repo.createBrief(env.DB, me.id, { id: ids.next('brief'), sourceKey: value.sourceKey, lang: value.lang, now: now(),
+      ...(value.snapshot.sourceKind === 'discovery' ? { discovery: { title: value.title?.trim() || defaults[value.lang], snapshot: value.snapshot } } : {}) });
+    return json(200, { brief });
+  } catch (error) {
+    if (error instanceof repo.DiscoveryBriefLimitError) return json(429, { error: 'limit-exceeded', message: 'Delete an unused discovery brief before creating another.' });
+    throw error;
+  }
 }
 
 /* ---------- GET /briefs/:id ---------- */
@@ -222,7 +237,7 @@ async function addNoteRoute(request: Request, env: Env, me: UserRow, briefId: st
 function reviewSnapshot(brief: BriefRecord, lang: BriefRecord['lang'], capturedAt: number): BriefSnapshot {
   return {
     schemaVersion: BD_BRIEF_SCHEMA_VERSION,
-    sourceKind: 'browser-session',
+    sourceKind: brief.sourceKind,
     sourceKey: brief.sourceKey,
     sourceRevision: brief.sourceRevision,
     suppliedBy: 'signed-in-user',
@@ -243,6 +258,10 @@ async function generateRoute(request: Request, env: Env, ctx: ExecutionContextLi
   const g = checked.value;
   const brief = await repo.getBrief(env.DB, me.id, briefId);
   if (!brief) return json(404, { error: 'not-found' });
+
+  if (g.snapshot && brief.sourceKind === 'discovery' && (!brief.discovery || snapshotFingerprint(g.snapshot) !== snapshotFingerprint(brief.discovery.snapshot))) {
+    return invalid(['discovery generation must use this meeting\'s saved context']);
+  }
 
   const t = now();
   const deadlineMs = bdBriefDeadlineMs(env);

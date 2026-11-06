@@ -123,9 +123,9 @@ test('ownership is enforced through the real dispatch: another owner sees not-fo
 });
 
 test('missing feature tables fail only the BD routes: /api/me, capability discovery and turns are unaffected', async () => {
-  // An older deployment: every migration except 0011 applied. Capability advertising must not
+  // An older deployment: neither BD migration applied. Capability advertising must not
   // require the tables to exist (plan §5), and a BD route must fail structured, not crash.
-  const env = makeEnv({ BD_BRIEF_ENABLED: '1', BD_BRIEF_ALLOWLIST: 'bd@example.org', DB: makeD1Without('0011_') });
+  const env = makeEnv({ BD_BRIEF_ENABLED: '1', BD_BRIEF_ALLOWLIST: 'bd@example.org', DB: makeD1Without('0011_', '0012_') });
   const bd = await signIn(env, 'bd@example.org', { status: 'approved' });
   const account = await me(bd.cookie, env);
   assert.deepEqual(account.features, { bdBrief: true }, 'capability discovery needs no BD tables');

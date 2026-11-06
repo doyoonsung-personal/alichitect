@@ -301,3 +301,13 @@
   .bdb__print[lang='ko'] { word-break: keep-all; line-height: 1.6; }
   .bdb__print[lang='zh'] { overflow-wrap: anywhere; line-height: 1.6; }
 }
+
+/* Independent meetings use only module-owned layout and the host's existing tokens. */
+.bdb-discovery__columns { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:var(--s-6); }
+.bdb-discovery__saved { border-left:1px solid var(--line-2); padding-left:var(--s-5); display:flex; flex-direction:column; gap:var(--s-4); min-width:0; }
+.bdb-discovery__list { list-style:none; margin:0; padding:0; display:grid; gap:var(--s-3); max-height:420px; overflow:auto; }
+.bdb-discovery__list button { width:100%; display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:var(--s-2); padding:var(--s-4); border:1px solid var(--line-2); border-radius:var(--r-pop); background:var(--record); color:var(--ink); cursor:pointer; }
+.bdb-discovery__list button:hover { border-color:var(--action); }
+.bdb-discovery__list strong { max-width:100%; overflow-wrap:anywhere; font-size:var(--t-13); }
+.bdb-discovery__list span { font-size:var(--t-12); color:var(--ink-3); }
+@media(max-width:640px) { .bdb-discovery__columns { grid-template-columns:1fr; } .bdb-discovery__saved { border-left:0; border-top:1px solid var(--line-2); padding-left:0; padding-top:var(--s-5); } }

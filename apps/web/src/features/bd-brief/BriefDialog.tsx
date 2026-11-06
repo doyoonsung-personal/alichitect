@@ -10,7 +10,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { JSX, KeyboardEvent, RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import type {
-  BriefContent, BriefQuestion, ContentSection, ItemOrigin, NextEngagementKind, ReviewState,
+  BriefContent, BriefQuestion, BriefRecord, ContentSection, ItemOrigin, NextEngagementKind, ReviewState,
 } from '@ali/bd-brief/types.ts';
 import { LIMITS } from '@ali/bd-brief/types.ts';
 import { Icon } from '../../shell/Icon.tsx';
@@ -33,6 +33,8 @@ export interface BriefDialogProps {
   /** Where focus returns on close: the header trigger button. */
   returnFocus: RefObject<HTMLElement | null>;
   onClose(): void;
+  /** Independent meeting source supplied by the module's library, without reading the host session. */
+  discovery?: BriefRecord['discovery'];
 }
 
 /** Section headings double as the change-target labels; the contract's ids map to our keys. */
@@ -236,9 +238,11 @@ export function BriefDialog(props: BriefDialogProps): JSX.Element {
       clock: { now: () => Date.now() },
       onState: setEmitted,
       // the only read path into app state: a fresh snapshot copy, never a live reference
-      capture: () => readSnapshotInputs(store, catalog, { lang: langRef.current, objective: null, now: Date.now() }),
+      capture: () => props.discovery
+        ? { ...structuredClone(props.discovery.snapshot), lang: langRef.current, capturedAt: Date.now() }
+        : readSnapshotInputs(store, catalog, { lang: langRef.current, objective: null, now: Date.now() }),
     }),
-    [store, catalog],
+    [store, catalog, props.discovery],
   );
   const state: BriefUiState = emitted ?? controller.getState();
 
@@ -249,7 +253,7 @@ export function BriefDialog(props: BriefDialogProps): JSX.Element {
     void controller.load(ctx.sessionId);
     return () => controller.close();
   }, [controller, ctx.sessionId, ctx.accountEmail, lang]);
-  useEffect(() => store.subscribe(() => controller.checkSource()), [store, controller]);
+  useEffect(() => props.discovery ? undefined : store.subscribe(() => controller.checkSource()), [store, controller, props.discovery]);
 
   // DraftOverlay grammar: #root goes inert, the panel takes focus, focus returns on close
   useEffect(() => {
@@ -470,7 +474,7 @@ export function BriefDialog(props: BriefDialogProps): JSX.Element {
       >
         <header className="bdb__head">
           <div className="bdb__head-titles">
-            <h2 id={titleId} className="bdb__title">{bt('bdb.dialog.title')}</h2>
+            <h2 id={titleId} className="bdb__title">{props.discovery?.title ?? bt('bdb.dialog.title')}</h2>
             {/* internal working-document labeling, always visible (plan §2 first-release scope) */}
             <p className="bdb__internal"><span className="bdb__badge bdb__badge--internal">{bt('bdb.dialog.internal')}</span> {bt('bdb.dialog.internalNote')}</p>
           </div>
@@ -532,6 +536,7 @@ export function BriefDialog(props: BriefDialogProps): JSX.Element {
         ) : null}
 
         <div className="bdb__body">
+          {props.discovery ? <div className="bdb__banner"><span>{bt('bdb.discovery.source')}</span><button className="btn btn--ghost" type="button" onClick={close}>{bt('bdb.discovery.back')}</button></div> : null}
           {prepForm && state.phase !== 'loading-brief' ? (
             <form
               className="bdb__prep"
@@ -541,7 +546,7 @@ export function BriefDialog(props: BriefDialogProps): JSX.Element {
               }}
             >
               <h3 className="bdb__sec-h">{bt('bdb.prep.heading')}</h3>
-              <p className="bdb__hint">{bt('bdb.prep.noBriefYet')}</p>
+              <p className="bdb__hint">{bt(props.discovery ? 'bdb.discovery.prep' : 'bdb.prep.noBriefYet')}</p>
               <label className="bdb__field">
                 <span className="bdb__label">{bt('bdb.prep.objective')}</span>
                 <textarea
@@ -847,8 +852,9 @@ export function BriefDialog(props: BriefDialogProps): JSX.Element {
           ) : null}
         </div>
 
-        {state.payload && !prepForm ? (
+        {state.payload && (!prepForm || props.discovery) ? (
           <footer className="bdb__foot">
+            {!prepForm ? <>
             <button type="button" className="btn btn--primary" disabled={!state.dirty || working} onClick={() => void controller.saveEdits()}>
               <span>{state.dirty ? bt('bdb.brief.saveEdits') : bt('bdb.brief.saved')}</span>
             </button>
@@ -862,6 +868,7 @@ export function BriefDialog(props: BriefDialogProps): JSX.Element {
             <button type="button" className="btn btn--ghost" onClick={() => doPrint(true)}>
               <span>{bt('bdb.print.extended')}</span>
             </button>
+            </> : null}
             {confirmDelete ? (
               <span className="bdb__delete-confirm" role="alertdialog" aria-label={bt('bdb.brief.deleteConfirm')}>
                 <span>{bt('bdb.brief.deleteConfirm')}</span>
@@ -870,7 +877,7 @@ export function BriefDialog(props: BriefDialogProps): JSX.Element {
                   className="btn btn--secondary"
                   onClick={() => {
                     setConfirmDelete(false);
-                    void controller.remove();
+                    void controller.remove().then(() => { if (props.discovery && !controller.getState().briefId) close(); });
                   }}
                 >
                   {bt('bdb.brief.deleteYes')}

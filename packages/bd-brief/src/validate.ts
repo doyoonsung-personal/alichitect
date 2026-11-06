@@ -275,7 +275,7 @@ export function validateSnapshot(v: unknown): Validation<BriefSnapshot> {
   if (!isRecord(v)) return bad(['snapshot must be an object']);
   const issues: string[] = [];
   if (v.schemaVersion !== BD_BRIEF_SCHEMA_VERSION) issues.push('snapshot.schemaVersion must be 1');
-  if (v.sourceKind !== 'browser-session') issues.push("snapshot.sourceKind must be 'browser-session'");
+  if (v.sourceKind !== 'browser-session' && v.sourceKind !== 'discovery') issues.push('snapshot.sourceKind must be browser-session or discovery');
   if (v.suppliedBy !== 'signed-in-user') issues.push("snapshot.suppliedBy must be 'signed-in-user'");
   const sourceKey = checkNonEmptyString(v.sourceKey, 512, 'snapshot.sourceKey', issues);
   const sourceRevision = checkNonNegativeInt(v.sourceRevision, 'snapshot.sourceRevision', issues);
@@ -377,13 +377,16 @@ export function validateSnapshot(v: unknown): Validation<BriefSnapshot> {
     }
   }
 
+  if (v.sourceKind === 'discovery' && (design !== null || sourceRevision !== 0 || pricing?.status !== 'missing')) {
+    issues.push('discovery starts without a design, estimate or architecture revision');
+  }
   if (issues.length > 0 || sourceKey === null || sourceRevision === null || lang === null || pricing === null) {
     if (issues.length === 0) issues.push('snapshot is invalid');
     return bad(issues);
   }
   return ok({
     schemaVersion: BD_BRIEF_SCHEMA_VERSION,
-    sourceKind: 'browser-session',
+    sourceKind: v.sourceKind as BriefSnapshot['sourceKind'],
     sourceKey,
     sourceRevision,
     suppliedBy: 'signed-in-user',
@@ -853,9 +856,11 @@ export function validateCreateBriefRequest(v: unknown): Validation<CreateBriefRe
   if (lang === null) issues.push(`lang must be one of ${LANGS.join('|')}`);
   const snapshot = validateSnapshot(v.snapshot);
   if (!snapshot.ok) issues.push(...snapshot.issues.map((x) => `snapshot: ${x}`));
+  if (snapshot.ok && snapshot.value.sourceKey !== sourceKey) issues.push('sourceKey must match snapshot.sourceKey');
+  const title = v.title === undefined ? undefined : checkBoundedString(v.title, LIMITS.discoveryTitleChars, 'title', issues, true);
   if (issues.length > 0 || sourceKey === null || lang === null || !snapshot.ok) {
     if (issues.length === 0) issues.push('create-brief request is invalid');
     return bad(issues);
   }
-  return ok({ sourceKey, lang, snapshot: snapshot.ok ? snapshot.value : v.snapshot as BriefSnapshot });
+  return ok({ sourceKey, lang, snapshot: snapshot.value, ...(title !== undefined && title !== null ? { title } : {}) });
 }

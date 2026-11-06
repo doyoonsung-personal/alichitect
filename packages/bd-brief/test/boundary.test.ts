@@ -21,6 +21,7 @@ const FEATURE_PREFIXES = ['apps/web/src/features/bd-brief/', 'apps/worker/src/fe
  * not contain the import yet; the test only rejects UNALLOWED imports. */
 const ALLOWLIST_FILES = new Set([
   'apps/web/src/shell/Header.tsx',
+  'apps/web/src/landing/Landing.tsx', // first-meeting entry, before architecture discovery
   'apps/worker/src/index.ts',
   'apps/web/vite.config.ts',
   'apps/web/scripts/alias.mjs',
@@ -61,7 +62,7 @@ test('no platform file outside the allowlist imports bd-brief', () => {
 test('allowlisted seams are the only non-feature places a bd-brief import may appear', () => {
   // Guard the guard: the allowlist must stay the small composition-point set from
   // the plan, so a future edit cannot quietly widen it to whole directories.
-  assert.equal(ALLOWLIST_FILES.size, 4);
+  assert.equal(ALLOWLIST_FILES.size, 5);
   for (const f of ALLOWLIST_FILES) assert.ok(!f.includes('*'));
 });
 

@@ -30,7 +30,7 @@ for (const module of ['business-case', 'bd-brief']) {
 }
 for (const dir of ['apps/worker/test', 'apps/worker/migrations']) {
   for (const name of readdirSync(join(source, dir))) {
-    if (/^(?:business-case|bd-brief|0010_business_case|0011_bd_briefs)/.test(name)) paths.add(`${dir}/${name}`);
+    if (/^(?:business-case|bd-brief|bd-discovery|0010_business_case|0011_bd_briefs|0012_bd_discovery)/.test(name)) paths.add(`${dir}/${name}`);
   }
 }
 for (const p of paths) {
@@ -66,6 +66,7 @@ edit('apps/worker/src/index.ts', s => {
     : withoutImports.replace(/^import .*BD_BRIEF_API_PREFIX.*\r?\n/m, '').replace(/^.*if \(path === BD_BRIEF_API_PREFIX.*\r?\n/m, '');
 });
 if (moduleName === 'bd-brief') {
+  edit('apps/web/src/landing/Landing.tsx', s => s.replace(/^import \{ BdBriefEntry \}.*\r?\n/m, '').replace(/^\s*<BdBriefEntry discovery \/>\r?\n/m, ''));
   edit('apps/web/scripts/alias.mjs', s => s.replace(/^.*'@ali\/bd-brief\/'.*\r?\n/m, ''));
   edit('apps/web/vite.config.ts', s => s.replace(/^const bdBrief .*\r?\n/m, '').replace(/,?\s*'@ali\/bd-brief': bdBrief,?/, ''));
   edit('apps/web/tsconfig.json', s => {
@@ -84,7 +85,7 @@ edit('package.json', s => {
   pkg.scripts.test = pkg.scripts.test.replace(` "packages/${moduleName}/test/**/*.test.ts"`, '');
   return JSON.stringify(pkg, null, 2) + '\n';
 });
-const removedTests = readdirSync(join(target, 'apps/worker/test')).filter(name => name.startsWith(moduleName)).map(name => `apps/worker/test/${name}`);
+const removedTests = readdirSync(join(target, 'apps/worker/test')).filter(name => name.startsWith(moduleName) || (moduleName === 'bd-brief' && name.startsWith('bd-discovery'))).map(name => `apps/worker/test/${name}`);
 // Migrations remain as historical records. Neither module may require dropping its
 // tables to detach its code; the other module stays present in this rehearsal.
 for (const p of [`packages/${moduleName}`, `apps/web/src/features/${moduleName}`, `apps/worker/src/features/${moduleName}`, ...removedTests]) {
