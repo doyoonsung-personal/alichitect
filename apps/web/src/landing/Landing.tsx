@@ -15,7 +15,8 @@ import { enterAction } from '../console/logic.ts';
 import { defaultFixtureFor } from '../replay/registry.ts';
 import { GuidedDiscovery } from './GuidedDiscovery.tsx';
 // Optional BD discovery entry. Remove this import and element to detach the module.
-import { BdBriefEntry } from '../features/bd-brief/entry.tsx';
+// Meeting brief and business case are disabled for everyone, admins included (2026-11-10). Uncomment to restore.
+// import { BdBriefEntry } from '../features/bd-brief/entry.tsx';
 import examples from './examples.json' with { type: 'json' };
 import type { AppState } from '../store/types.ts';
 import type { Lang } from '../i18n/t.ts';
@@ -194,7 +195,7 @@ export function Landing(): ReactElement {
             <p className="visually-hidden" role="status" aria-live="polite">
               {announce}
             </p>
-            <BdBriefEntry discovery />
+            {/* <BdBriefEntry discovery /> */}
             {offlineNotice}
             <section className="examples" aria-labelledby="examples-heading">
               <h2 id="examples-heading" className="examples__heading">

@@ -16,7 +16,8 @@ const me = async (cookie: string, env = makeEnv()): Promise<Record<string, unkno
 const createBody = (sourceKey: string): string =>
   JSON.stringify({ sourceKey, lang: 'en', snapshot: thinSnapshot({ sourceKey }) });
 
-test('combined trial advertises and serves both modules only to the allowlisted admin', async () => {
+// Skipped: meeting brief and business case are disabled at the Worker entry (2026-11-10). Unskip when restoring.
+test.skip('combined trial advertises and serves both modules only to the allowlisted admin', async () => {
   const allowlist = 'owner-trial@example.org,member-trial@example.org,verified-trial@example.org';
   const env = makeEnv({ BUSINESS_CASE_ENABLED: '1', BUSINESS_CASE_ADMIN_ONLY: '1', BUSINESS_CASE_ALLOWLIST: allowlist,
     BD_BRIEF_ENABLED: '1', BD_BRIEF_ADMIN_ONLY: '1', BD_BRIEF_ALLOWLIST: allowlist });
@@ -35,7 +36,8 @@ test('combined trial advertises and serves both modules only to the allowlisted 
   }
 });
 
-test('feature off (the production default): /api/me advertises nothing and every BD route is not-available', async () => {
+// Skipped: meeting brief and business case are disabled at the Worker entry (2026-11-10). Unskip when restoring.
+test.skip('feature off (the production default): /api/me advertises nothing and every BD route is not-available', async () => {
   const env = makeEnv(); // BD_BRIEF_ENABLED unset: the deployment default
   const bd = await signIn(env, 'bd@example.org', { status: 'approved' });
   const account = await me(bd.cookie, env);
@@ -52,7 +54,8 @@ test('feature off (the production default): /api/me advertises nothing and every
   assert.equal(crossSite.status, 403, 'the existing platform same-origin check still guards the prefix');
 });
 
-test('feature on: /api/me carries features.bdBrief and the registered routes serve the owner', async () => {
+// Skipped: meeting brief and business case are disabled at the Worker entry (2026-11-10). Unskip when restoring.
+test.skip('feature on: /api/me carries features.bdBrief and the registered routes serve the owner', async () => {
   // an empty allowlist now means NOBODY (fail closed), so the on-tests list the signed-in address
   const env = makeEnv({ BD_BRIEF_ENABLED: '1', BD_BRIEF_ALLOWLIST: 'bd@example.org' });
   const bd = await signIn(env, 'bd@example.org', { status: 'approved' });
@@ -73,7 +76,8 @@ test('feature on: /api/me carries features.bdBrief and the registered routes ser
   assert.equal((await call(env, req(`${PREFIX}/briefs/${brief.id}`, { cookie: bd.cookie }))).status, 404);
 });
 
-test('feature on but the allowlist is empty/unset: NOBODY is eligible — no capability, routes not-available', async () => {
+// Skipped: meeting brief and business case are disabled at the Worker entry (2026-11-10). Unskip when restoring.
+test.skip('feature on but the allowlist is empty/unset: NOBODY is eligible — no capability, routes not-available', async () => {
   for (const over of [{}, { BD_BRIEF_ALLOWLIST: '' }, { BD_BRIEF_ALLOWLIST: '   ' }]) {
     const env = makeEnv({ BD_BRIEF_ENABLED: '1', ...over });
     const bd = await signIn(env, 'bd@example.org', { status: 'approved' });
@@ -87,7 +91,8 @@ test('feature on but the allowlist is empty/unset: NOBODY is eligible — no cap
   }
 });
 
-test('the allowlist is server-side: a non-listed approved account gets neither the flag nor the routes', async () => {
+// Skipped: meeting brief and business case are disabled at the Worker entry (2026-11-10). Unskip when restoring.
+test.skip('the allowlist is server-side: a non-listed approved account gets neither the flag nor the routes', async () => {
   const env = makeEnv({ BD_BRIEF_ENABLED: '1', BD_BRIEF_ALLOWLIST: 'trial@example.org' });
   const listed = await signIn(env, 'trial@example.org', { status: 'approved' });
   const other = await signIn(env, 'other@example.org', { status: 'approved' });
@@ -107,7 +112,8 @@ test('unapproved and signed-out callers never reach the feature', async () => {
   assert.equal(anon.status, 401, 'the existing sign-in gate answers first');
 });
 
-test('ownership is enforced through the real dispatch: another owner sees not-found', async () => {
+// Skipped: meeting brief and business case are disabled at the Worker entry (2026-11-10). Unskip when restoring.
+test.skip('ownership is enforced through the real dispatch: another owner sees not-found', async () => {
   const env = makeEnv({ BD_BRIEF_ENABLED: '1', BD_BRIEF_ALLOWLIST: 'a@example.org,b@example.org' });
   const a = await signIn(env, 'a@example.org', { status: 'approved' });
   const b = await signIn(env, 'b@example.org', { status: 'approved' });
@@ -122,7 +128,8 @@ test('ownership is enforced through the real dispatch: another owner sees not-fo
   assert.equal((await call(env, req(`${PREFIX}/briefs/${brief.id}`, { cookie: a.cookie }))).status, 200, 'the owner keeps access');
 });
 
-test('missing feature tables fail only the BD routes: /api/me, capability discovery and turns are unaffected', async () => {
+// Skipped: meeting brief and business case are disabled at the Worker entry (2026-11-10). Unskip when restoring.
+test.skip('missing feature tables fail only the BD routes: /api/me, capability discovery and turns are unaffected', async () => {
   // An older deployment: neither BD migration applied. Capability advertising must not
   // require the tables to exist (plan §5), and a BD route must fail structured, not crash.
   const env = makeEnv({ BD_BRIEF_ENABLED: '1', BD_BRIEF_ALLOWLIST: 'bd@example.org', DB: makeD1Without('0011_', '0012_') });

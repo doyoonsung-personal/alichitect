@@ -56,7 +56,8 @@ test('business-case admin trial checks both role and optional exact email allowl
   assert.equal(businessCaseEligible({ BUSINESS_CASE_ENABLED: '1', BUSINESS_CASE_ALLOWLIST: ' , ' }, allowed), false, 'a configured but empty entry list grants nobody');
 });
 
-test('host preserves cookie auth, account approval and same-origin checks', async () => {
+// Skipped: meeting brief and business case are disabled at the Worker entry (2026-11-10). Unskip when restoring.
+test.skip('host preserves cookie auth, account approval and same-origin checks', async () => {
   const env = makeEnv({ BUSINESS_CASE_ENABLED: '1' });
   const approved = await signIn(env, 'bc-approved@example.org', { status: 'approved' });
   const pending = await signIn(env, 'bc-pending@example.org');
